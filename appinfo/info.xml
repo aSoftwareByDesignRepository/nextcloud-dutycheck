@@ -1,29 +1,91 @@
 <?xml version="1.0"?>
+<!--
+  - SPDX-FileCopyrightText: 2025-2026 Alexander Mäule <info@software-by-design.de>
+  - SPDX-License-Identifier: AGPL-3.0-or-later
+-->
 <info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
 	<id>dutycheck</id>
 	<name>DutyCheck</name>
+	<name lang="de">DutyCheck</name>
 	<summary>Duty-roster planning, validation, and auditable lifecycle for security services</summary>
-	<description>
-		DutyCheck provides secure duty roster planning for shift-driven teams. It covers period-based scheduling, conflict validation, controlled publish and close workflows, self-service absence requests, and immutable evidence snapshots for audit trails. The backend is the source of truth for conflict and lifecycle rules. The interface is role-aware, WCAG 2.1 AA aligned, and responsive down to 320 pixels.
-	</description>
+	<summary lang="de">Dienstplanung, Validierung und nachvollziehbare Lebenszyklen für Sicherheitsdienste</summary>
+	<description><![CDATA[
+# DutyCheck
+
+Plan duty rosters for shift-driven teams with server-side validation and clear lifecycle rules. DutyCheck supports period-based scheduling, conflict checks, controlled publish and close workflows, self-service absence requests, and evidence snapshots for audits.
+
+## Highlights
+
+- **Period workflow** — draft, validate, publish, and close rosters with guardrails
+- **Conflict rules** — backend is the source of truth for overlaps and policy checks
+- **Roles** — planner, location lead, and employee views
+- **Accessibility** — interface targets WCAG 2.1 AA; responsive layout from 320px width
+- **Optional ArbeitszeitCheck** — mirror absences when the ArbeitszeitCheck app is installed (optional integration)
+
+## Requirements
+
+- Nextcloud 32–33
+- PHP 8.2–8.4
+- MySQL or PostgreSQL
+	]]></description>
+	<description lang="de"><![CDATA[
+# DutyCheck
+
+Planen Sie Dienstpläne für schichtbasierte Teams mit serverseitiger Validierung und klaren Lebenszyklusregeln. DutyCheck unterstützt periodenbasierte Planung, Konfliktprüfungen, kontrollierte Veröffentlichungs- und Abschluss-Workflows, Self-Service-Abwesenheiten und Nachweis-Snapshots für Audits.
+
+## Funktionen
+
+- **Perioden-Workflow** — Entwurf, Validierung, Veröffentlichung und Abschluss mit Leitplanken
+- **Konfliktregeln** — Backend als alleinige Instanz für Überschneidungen und Richtlinien
+- **Rollen** — Planer, Objektleitung und Mitarbeitende
+- **Barrierefreiheit** — Ziel WCAG 2.1 AA; responsives Layout ab 320px Breite
+- **Optionales ArbeitszeitCheck** — Spiegelung von Abwesenheiten, wenn die App ArbeitszeitCheck installiert ist
+
+## Voraussetzungen
+
+- Nextcloud 32–33
+- PHP 8.2–8.4
+- MySQL oder PostgreSQL
+	]]></description>
 	<version>0.1.4</version>
 	<licence>AGPL-3.0-or-later</licence>
 	<author mail="info@software-by-design.de" homepage="https://software-by-design.de">Alexander Mäule</author>
 	<namespace>DutyCheck</namespace>
 	<category>organization</category>
+	<category>tools</category>
+	<website>https://software-by-design.de</website>
+	<bugs>https://github.com/aSoftwareByDesignRepository/nextcloud-dutycheck/issues</bugs>
+	<repository>https://github.com/aSoftwareByDesignRepository/nextcloud-dutycheck.git</repository>
 	<dependencies>
 		<nextcloud min-version="32" max-version="33"/>
+		<php min-version="8.2" max-version="8.4"/>
 	</dependencies>
-	<release>
-		<databases>
-			<database>mysql</database>
-			<database>pgsql</database>
-		</databases>
-		<php min-version="8.2" max-version="8.5"/>
-		<platforms>
-			<platform>linux</platform>
-		</platforms>
-	</release>
+	<optional-dependencies>
+		<app min-version="1.0.0">arbeitszeitcheck</app>
+	</optional-dependencies>
+	<screenshot small-thumbnail="https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-01.png">
+		https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-01.png
+	</screenshot>
+	<navigations>
+		<navigation>
+			<name>DutyCheck</name>
+			<route>dutycheck.page.index</route>
+			<icon>app.svg</icon>
+			<order>12</order>
+		</navigation>
+	</navigations>
+	<keywords>
+		<keyword>duty roster</keyword>
+		<keyword>shift planning</keyword>
+		<keyword>schedule</keyword>
+		<keyword>security services</keyword>
+		<keyword>Dienstplan</keyword>
+		<keyword>Schichtplan</keyword>
+		<keyword>audit</keyword>
+		<keyword>compliance</keyword>
+		<keyword>absence</keyword>
+		<keyword>accessibility</keyword>
+	</keywords>
 	<commands>
 		<command>OCA\DutyCheck\Command\ReconcileArbeitszeitCheckMirrorCommand</command>
 	</commands>
