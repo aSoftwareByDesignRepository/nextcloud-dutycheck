@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 - Screenshots: use `dutycheck-screenshot-01.png` … `dutycheck-screenshot-14.png`; `appinfo/info.xml` updated for the App Store.
+- App Store: `<donation>` (Software by Design); stub screenshot slots **15–17** with placeholder PNGs for future listing images.
 
 ## [0.1.4] - 2026-05-10
 

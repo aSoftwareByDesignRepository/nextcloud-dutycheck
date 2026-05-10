@@ -56,6 +56,7 @@ Planen Sie Dienstpläne für schichtbasierte Teams mit serverseitiger Validierun
 	<website>https://software-by-design.de</website>
 	<bugs>https://github.com/aSoftwareByDesignRepository/nextcloud-dutycheck/issues</bugs>
 	<repository>https://github.com/aSoftwareByDesignRepository/nextcloud-dutycheck.git</repository>
+	<donation type="other" title="Software by Design">https://software-by-design.de/</donation>
 	<dependencies>
 		<nextcloud min-version="32" max-version="33"/>
 		<php min-version="8.2" max-version="8.4"/>
@@ -104,6 +105,15 @@ Planen Sie Dienstpläne für schichtbasierte Teams mit serverseitiger Validierun
 	</screenshot>
 	<screenshot small-thumbnail="https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-14.png">
 		https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-14.png
+	</screenshot>
+	<screenshot small-thumbnail="https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-15.png">
+		https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-15.png
+	</screenshot>
+	<screenshot small-thumbnail="https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-16.png">
+		https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-16.png
+	</screenshot>
+	<screenshot small-thumbnail="https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-17.png">
+		https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-17.png
 	</screenshot>
 	<navigations>
 		<navigation>
