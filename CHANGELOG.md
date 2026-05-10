@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+- Screenshots: use `dutycheck-screenshot-01.png` … `dutycheck-screenshot-14.png`; `appinfo/info.xml` updated for the App Store.
+
 ## [0.1.4] - 2026-05-10
 
 - Initial public packaging: App Store metadata (`info.xml`), `LICENSE`, release `Makefile`, and documentation.

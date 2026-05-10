@@ -1,7 +1,7 @@
 # Store screenshots
 
-Files here are referenced from `appinfo/info.xml` for [apps.nextcloud.com](https://apps.nextcloud.com).
+Files are named `dutycheck-screenshot-NN.png` (two-digit index) and referenced from `appinfo/info.xml` for [apps.nextcloud.com](https://apps.nextcloud.com).
 
-- `dutycheck-screenshot-01.png` — currently a minimal placeholder so GitHub raw URLs resolve after push. Replace it with a real capture of the roster or dashboard (no personal or customer data; use demo users only).
+When adding or reordering shots: keep the sequence contiguous, update the `<screenshot>` blocks in `info.xml`, and use HTTPS `raw.githubusercontent.com` URLs on the default branch (`master`).
 
-Recommended: 1920×1080 or similar, PNG, high contrast, German and/or English UI as appropriate for your listing.
+Use demo data only — no real personal or customer information.

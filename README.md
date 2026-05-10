@@ -38,7 +38,7 @@ python3 scripts/sync_l10n.py
 
 See the monorepo document `ready2publish/APPSTORE-RELEASE.md` (or your team’s equivalent): bump `appinfo/info.xml` `<version>`, update this changelog, run `make release-signed` from this directory with Nextcloud `occ` and app signing certificates, then upload the tarball to [apps.nextcloud.com](https://apps.nextcloud.com).
 
-Replace `screenshots/dutycheck-screenshot-01.png` with real screenshots before promoting a release publicly.
+Store listing images live under `screenshots/` as `dutycheck-screenshot-NN.png`; keep them in sync with `appinfo/info.xml` before a release.
 
 ## Security
 
