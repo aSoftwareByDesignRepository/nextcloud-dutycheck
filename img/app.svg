@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SPDX-FileCopyrightText: 2026 Nextcloud contributors
+  SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+	<path fill="#ffffff" d="M19 3h-2.2A3 3 0 0 0 14 1h-4a3 3 0 0 0-2.8 2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2Zm-7-1a1 1 0 0 1 1 1h-2a1 1 0 0 1 1-1Zm7 17H5V5h2.18A3 3 0 0 0 10 7h4a3 3 0 0 0 2.82-2H19ZM10.1 15.5l-1.8-1.8-1.4 1.4 3.2 3.2 6.8-6.8-1.4-1.4Z"/>
+</svg>

@@ -1,0 +1,22 @@
+/*
+ * Backwards-compatibility token bridge.
+ *
+ * Older DutyCheck CSS referenced --dc-color-* variables; the rebuilt design
+ * system in css/app.css now reads directly from Nextcloud variables and the
+ * --dc-* spacing/radius/shape tokens defined there. This file keeps the old
+ * names alive for any third-party consumers and historical inline styles so
+ * a missing --dc-color-* token never falls back to `unset` and renders an
+ * inaccessible black-on-black surface.
+ */
+:root {
+	--dc-color-bg-default: var(--color-main-background, #fff);
+	--dc-color-border-default: color-mix(in srgb, var(--color-main-text, #1d1d1d) 12%, transparent);
+	--dc-color-text-muted: color-mix(in srgb, var(--color-main-text, #1d1d1d) 60%, transparent);
+	--dc-color-primary: var(--color-primary-element, var(--color-primary, #0082c9));
+	--dc-color-success: var(--color-success, #46ba61);
+	--dc-color-warning: var(--color-warning, #c98600);
+	--dc-color-error: var(--color-error, #cc4646);
+	--dc-color-overlay: color-mix(in srgb, var(--color-main-text, #000) 60%, transparent);
+	--dc-color-shadow-soft: color-mix(in srgb, var(--color-main-text, #000) 4%, transparent);
+	--dc-color-shadow-strong: color-mix(in srgb, var(--color-main-text, #000) 22%, transparent);
+}

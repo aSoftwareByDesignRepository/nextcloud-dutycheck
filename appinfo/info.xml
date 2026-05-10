@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+	<id>dutycheck</id>
+	<name>DutyCheck</name>
+	<summary>Duty-roster planning, validation, and auditable lifecycle for security services</summary>
+	<description>
+		DutyCheck provides secure duty roster planning for shift-driven teams. It covers period-based scheduling, conflict validation, controlled publish and close workflows, self-service absence requests, and immutable evidence snapshots for audit trails. The backend is the source of truth for conflict and lifecycle rules. The interface is role-aware, WCAG 2.1 AA aligned, and responsive down to 320 pixels.
+	</description>
+	<version>0.1.4</version>
+	<licence>AGPL-3.0-or-later</licence>
+	<author mail="info@software-by-design.de" homepage="https://software-by-design.de">Alexander Mäule</author>
+	<namespace>DutyCheck</namespace>
+	<category>organization</category>
+	<dependencies>
+		<nextcloud min-version="32" max-version="33"/>
+	</dependencies>
+	<release>
+		<databases>
+			<database>mysql</database>
+			<database>pgsql</database>
+		</databases>
+		<php min-version="8.2" max-version="8.5"/>
+		<platforms>
+			<platform>linux</platform>
+		</platforms>
+	</release>
+	<commands>
+		<command>OCA\DutyCheck\Command\ReconcileArbeitszeitCheckMirrorCommand</command>
+	</commands>
+	<background-jobs>
+		<job>OCA\DutyCheck\BackgroundJob\ArbeitszeitCheckMirrorReconcileJob</job>
+	</background-jobs>
+</info>

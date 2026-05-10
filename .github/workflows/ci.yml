@@ -1,0 +1,30 @@
+# DutyCheck — PHP unit tests + Composer audit (standalone app repo; path-filter when used from a monorepo mirror)
+name: CI
+
+on:
+  push:
+    paths:
+      - '**'
+  pull_request:
+    paths:
+      - '**'
+
+defaults:
+  run:
+    working-directory: .
+
+jobs:
+  php:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+      - name: Composer install
+        run: composer install --no-interaction
+      - name: Composer audit
+        run: composer audit
+      - name: PHPUnit
+        run: ./vendor/bin/phpunit
