@@ -251,7 +251,7 @@ class AccessControlService
 			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
 			->setMaxResults(1);
 		$result = $qb->executeQuery();
-		$row = $result->fetch();
+		$row = $result->fetch(\PDO::FETCH_ASSOC);
 		$result->closeCursor();
 		if ($row === false) {
 			return null;

@@ -26,6 +26,7 @@ trait IntegrationQueryBuilderTrait
 		$expr->method('lte')->willReturn('lte');
 		$expr->method('gte')->willReturn('gte');
 		$expr->method('notIn')->willReturn('notin');
+		$expr->method('in')->willReturn('in');
 		$expr->method('isNotNull')->willReturn('isnotnull');
 		$or = $this->createMock(\OCP\DB\QueryBuilder\ICompositeExpression::class);
 		$expr->method('orX')->willReturn($or);

@@ -510,9 +510,21 @@ final class ArbeitszeitCheckIntegrationService implements IArbeitszeitCheckInteg
 			$qb->delete('dc_at_absence_mirror')->executeStatement();
 			return;
 		}
-		$qb->delete('dc_at_absence_mirror')
-			->where($qb->expr()->notIn('linked_user_id', $qb->createNamedParameter($valid, IQueryBuilder::PARAM_STR_ARRAY)))
-			->executeStatement();
+		$qb->select('linked_user_id')
+			->from('dc_at_absence_mirror');
+		$seenUid = [];
+		$distinctMirrorUids = [];
+		foreach ($qb->executeQuery()->fetchAllAssociative() as $row) {
+			$uid = (string) ($row['linked_user_id'] ?? '');
+			if ($uid === '' || isset($seenUid[$uid])) {
+				continue;
+			}
+			$seenUid[$uid] = true;
+			$distinctMirrorUids[] = $uid;
+		}
+		foreach (ArbeitszeitCheckMirrorDeleteHelper::orphanLinkedUserIds($distinctMirrorUids, $valid) as $orphanUid) {
+			$this->deleteMirrorForUser($orphanUid);
+		}
 	}
 
 	private function mirrorRowCountForUser(string $linkedUserId): int
@@ -541,10 +553,27 @@ final class ArbeitszeitCheckIntegrationService implements IArbeitszeitCheckInteg
 			return;
 		}
 		$qb = $this->db->getQueryBuilder();
-		$qb->delete('dc_at_absence_mirror')
-			->where($qb->expr()->eq('linked_user_id', $qb->createNamedParameter($linkedUserId)))
-			->andWhere($qb->expr()->notIn('at_absence_id', $qb->createNamedParameter($keepIds, IQueryBuilder::PARAM_INT_ARRAY)))
-			->executeStatement();
+		$qb->select('at_absence_id')
+			->from('dc_at_absence_mirror')
+			->where($qb->expr()->eq('linked_user_id', $qb->createNamedParameter($linkedUserId)));
+		$present = [];
+		foreach ($qb->executeQuery()->fetchAllAssociative() as $row) {
+			$atId = (int) ($row['at_absence_id'] ?? 0);
+			if ($atId >= 1) {
+				$present[] = $atId;
+			}
+		}
+		$toDelete = ArbeitszeitCheckMirrorDeleteHelper::atAbsenceIdsToDelete($present, $keepIds);
+		foreach (array_chunk($toDelete, ArbeitszeitCheckMirrorDeleteHelper::IN_CHUNK) as $chunk) {
+			if ($chunk === []) {
+				continue;
+			}
+			$dqb = $this->db->getQueryBuilder();
+			$dqb->delete('dc_at_absence_mirror')
+				->where($dqb->expr()->eq('linked_user_id', $dqb->createNamedParameter($linkedUserId)))
+				->andWhere($dqb->expr()->in('at_absence_id', $dqb->createNamedParameter($chunk, IQueryBuilder::PARAM_INT_ARRAY)))
+				->executeStatement();
+		}
 	}
 
 	/**

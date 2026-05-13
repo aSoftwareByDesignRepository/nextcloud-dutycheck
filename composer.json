@@ -29,5 +29,9 @@
 			"OCP\\": "vendor/nextcloud/ocp/OCP/",
 			"NCU\\": "vendor/nextcloud/ocp/NCU/"
 		}
+	},
+	"scripts": {
+		"test": "phpunit",
+		"test-docker": "docker run --rm -v \"$PWD\":/app -w /app php:8.3-cli ./vendor/bin/phpunit"
 	}
 }

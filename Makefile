@@ -11,7 +11,9 @@ SIGN_KEY := $(if $(strip $(APP_CERT_KEY_PATH)),$(APP_CERT_KEY_PATH),$(HOME)/.nex
 SIGN_CRT := $(if $(strip $(APP_CERT_CRT_PATH)),$(APP_CERT_CRT_PATH),$(HOME)/.nextcloud/certificates/$(app_name).crt)
 ready2publish_sign = ../../ready2publish/scripts/sign-nextcloud-appstore-archive.sh
 
-.PHONY: release verify-release verify-signature-manifest sign-release release-signed sign-tarball clean
+.PHONY: release verify-release verify-signature-manifest sign-release release-signed sign-tarball clean test test-docker
+
+PHPUNIT_DOCKER_IMAGE ?= php:8.3-cli
 
 release:
 	@echo "Building $(app_name) v$(version)..."
@@ -55,6 +57,15 @@ verify-signature-manifest:
 
 clean:
 	rm -rf $(build_dir)
+
+# Run PHPUnit on the host PHP (requires pdo_sqlite for SQLite integration tests).
+test:
+	./vendor/bin/phpunit
+
+# Run PHPUnit in Docker (official PHP CLI image includes pdo_sqlite). Use when the host
+# PHP build has no SQLite driver (common on minimal CLI installs).
+test-docker:
+	docker run --rm -v "$$(pwd)":/app -w /app $(PHPUNIT_DOCKER_IMAGE) ./vendor/bin/phpunit
 
 sign-tarball:
 	@test -f $(archive_path) || (echo "Error: Run 'make release' first"; exit 1)

@@ -214,6 +214,7 @@ class ArbeitszeitCheckIntegrationServiceTest extends TestCase
 			$this->qbFetchOne(1),
 			$this->qbFetchOne(false),
 			$this->qbExecuteStatement(self::once()),
+			$this->qbFetchAllAssociative([['at_absence_id' => 9998]]),
 			$this->qbExecuteStatement(self::once()),
 		);
 
@@ -247,6 +248,7 @@ class ArbeitszeitCheckIntegrationServiceTest extends TestCase
 			$this->qbFetchOne(0),
 			$this->qbFetchOne(500),
 			$this->qbExecuteStatement(self::once()),
+			$this->qbFetchAllAssociative([['at_absence_id' => 8888]]),
 			$this->qbExecuteStatement(self::once()),
 		);
 
@@ -357,6 +359,7 @@ class ArbeitszeitCheckIntegrationServiceTest extends TestCase
 			$this->qbFetchOne(0),
 			$this->qbFetchOne(false),
 			$this->qbExecuteStatement(self::once()),
+			$this->qbFetchAllAssociative([['at_absence_id' => 7777]]),
 			$this->qbExecuteStatement(self::once()),
 		);
 
