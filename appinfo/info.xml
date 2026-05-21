@@ -47,13 +47,13 @@ Planen Sie Dienstpläne für schichtbasierte Teams mit serverseitiger Validierun
 - PHP 8.2–8.4
 - MySQL oder PostgreSQL
 	]]></description>
-	<version>0.1.6</version>
+	<version>0.1.7</version>
 	<licence>AGPL-3.0-or-later</licence>
-	<author mail="info@software-by-design.de" homepage="http://nextcloud.software-by-design.de">Alexander Mäule</author>
+	<author mail="info@software-by-design.de" homepage="https://nextcloud.software-by-design.de">Alexander Mäule</author>
 	<namespace>DutyCheck</namespace>
 	<category>organization</category>
 	<category>tools</category>
-	<website>http://nextcloud.software-by-design.de</website>
+	<website>https://nextcloud.software-by-design.de</website>
 	<bugs>https://github.com/aSoftwareByDesignRepository/nextcloud-dutycheck/issues</bugs>
 	<repository>https://github.com/aSoftwareByDesignRepository/nextcloud-dutycheck.git</repository>
 	<screenshot small-thumbnail="https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-01.png">
@@ -86,7 +86,7 @@ Planen Sie Dienstpläne für schichtbasierte Teams mit serverseitiger Validierun
 	<screenshot small-thumbnail="https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-10.png">
 		https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-10.png
 	</screenshot>
-	<donation type="other" title="Software by Design">http://nextcloud.software-by-design.de/</donation>
+	<donation type="other" title="Software by Design">https://nextcloud.software-by-design.de/</donation>
 	<dependencies>
 		<nextcloud min-version="32" max-version="33"/>
 		<php min-version="8.2" max-version="8.4"/>
