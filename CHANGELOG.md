@@ -1,9 +1,26 @@
 # Changelog
 
-## [Unreleased]
+All notable changes to this project will be documented in this file.
 
-- Screenshots: use `dutycheck-screenshot-01.png` … `dutycheck-screenshot-14.png`; `appinfo/info.xml` updated for the App Store.
-- App Store: `<donation>` (Software by Design); stub screenshot slots **15–17** with placeholder PNGs for future listing images.
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## 0.1.5 - 2026-05-21
+
+### Added
+
+- App Store listing: seventeen screenshots (`dutycheck-screenshot-01.png` … `17`) referenced from `appinfo/info.xml`; slots 15–17 use placeholder assets for future captures.
+- `<donation>` link (Software by Design) in `info.xml`.
+
+### Changed
+
+- Project URLs use `nextcloud.software-by-design.de`.
+- ArbeitszeitCheck integration hardened (mirror delete helper, access control, reconciliation job/command, expanded unit and integration tests).
+- CI: PHPUnit workflow and Docker-based test target in the release `Makefile`.
+
+### Fixed
+
+- Nextcloud compatibility: `max-version` aligned to 33 (latest stable server).
 
 ## [0.1.4] - 2026-05-10
 
