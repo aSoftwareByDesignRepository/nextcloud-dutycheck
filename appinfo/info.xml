@@ -47,7 +47,7 @@ Planen Sie Dienstpläne für schichtbasierte Teams mit serverseitiger Validierun
 - PHP 8.2–8.4
 - MySQL oder PostgreSQL
 	]]></description>
-	<version>0.1.5</version>
+	<version>0.1.6</version>
 	<licence>AGPL-3.0-or-later</licence>
 	<author mail="info@software-by-design.de" homepage="http://nextcloud.software-by-design.de">Alexander Mäule</author>
 	<namespace>DutyCheck</namespace>
@@ -56,14 +56,6 @@ Planen Sie Dienstpläne für schichtbasierte Teams mit serverseitiger Validierun
 	<website>http://nextcloud.software-by-design.de</website>
 	<bugs>https://github.com/aSoftwareByDesignRepository/nextcloud-dutycheck/issues</bugs>
 	<repository>https://github.com/aSoftwareByDesignRepository/nextcloud-dutycheck.git</repository>
-	<donation type="other" title="Software by Design">http://nextcloud.software-by-design.de/</donation>
-	<dependencies>
-		<nextcloud min-version="32" max-version="33"/>
-		<php min-version="8.2" max-version="8.4"/>
-	</dependencies>
-	<optional-dependencies>
-		<app min-version="1.0.0">arbeitszeitcheck</app>
-	</optional-dependencies>
 	<screenshot small-thumbnail="https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-01.png">
 		https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-01.png
 	</screenshot>
@@ -94,27 +86,17 @@ Planen Sie Dienstpläne für schichtbasierte Teams mit serverseitiger Validierun
 	<screenshot small-thumbnail="https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-10.png">
 		https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-10.png
 	</screenshot>
-	<screenshot small-thumbnail="https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-11.png">
-		https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-11.png
-	</screenshot>
-	<screenshot small-thumbnail="https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-12.png">
-		https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-12.png
-	</screenshot>
-	<screenshot small-thumbnail="https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-13.png">
-		https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-13.png
-	</screenshot>
-	<screenshot small-thumbnail="https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-14.png">
-		https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-14.png
-	</screenshot>
-	<screenshot small-thumbnail="https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-15.png">
-		https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-15.png
-	</screenshot>
-	<screenshot small-thumbnail="https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-16.png">
-		https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-16.png
-	</screenshot>
-	<screenshot small-thumbnail="https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-17.png">
-		https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-17.png
-	</screenshot>
+	<donation type="other" title="Software by Design">http://nextcloud.software-by-design.de/</donation>
+	<dependencies>
+		<nextcloud min-version="32" max-version="33"/>
+		<php min-version="8.2" max-version="8.4"/>
+	</dependencies>
+	<background-jobs>
+		<job>OCA\DutyCheck\BackgroundJob\ArbeitszeitCheckMirrorReconcileJob</job>
+	</background-jobs>
+	<commands>
+		<command>OCA\DutyCheck\Command\ReconcileArbeitszeitCheckMirrorCommand</command>
+	</commands>
 	<navigations>
 		<navigation>
 			<name>DutyCheck</name>
@@ -123,22 +105,4 @@ Planen Sie Dienstpläne für schichtbasierte Teams mit serverseitiger Validierun
 			<order>12</order>
 		</navigation>
 	</navigations>
-	<keywords>
-		<keyword>duty roster</keyword>
-		<keyword>shift planning</keyword>
-		<keyword>schedule</keyword>
-		<keyword>security services</keyword>
-		<keyword>Dienstplan</keyword>
-		<keyword>Schichtplan</keyword>
-		<keyword>audit</keyword>
-		<keyword>compliance</keyword>
-		<keyword>absence</keyword>
-		<keyword>accessibility</keyword>
-	</keywords>
-	<commands>
-		<command>OCA\DutyCheck\Command\ReconcileArbeitszeitCheckMirrorCommand</command>
-	</commands>
-	<background-jobs>
-		<job>OCA\DutyCheck\BackgroundJob\ArbeitszeitCheckMirrorReconcileJob</job>
-	</background-jobs>
 </info>
