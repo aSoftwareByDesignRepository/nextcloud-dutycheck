@@ -4,9 +4,13 @@
 	const Api = window.DutyCheckApi;
 	const Msg = window.DutyCheckMessaging;
 	const C = window.DutyCheckComponents;
+	const TzPicker = window.DutyCheckTimezonePicker;
 	const create = C.createElement;
 
 	let editingId = null;
+	/** @type {{ setValue: (tz: string) => void, getValue: () => string, reset: () => void } | null} */
+	let timezonePicker = null;
+
 	function readTimezone() {
 		const app = document.getElementById('app-content');
 		const fromApp = app ? app.getAttribute('data-timezone') : '';
@@ -32,8 +36,8 @@
 		const form = document.getElementById('dc-location-form');
 		if (!form) return;
 		form.reset();
-		if (form.timezone) form.timezone.value = defaultTimezone;
 		if (form.active) form.active.checked = true;
+		timezonePicker?.reset();
 		setEditMode(false);
 	}
 
@@ -42,14 +46,7 @@
 		const form = document.getElementById('dc-location-form');
 		if (!form) return;
 		form.name.value = row.name || '';
-		const timezone = row.timezone || defaultTimezone;
-		if (form.timezone && !Array.from(form.timezone.options || []).some((opt) => opt.value === timezone)) {
-			const option = document.createElement('option');
-			option.value = timezone;
-			option.textContent = timezone;
-			form.timezone.appendChild(option);
-		}
-		form.timezone.value = timezone;
+		timezonePicker?.setValue(row.timezone || defaultTimezone);
 		form.active.checked = Boolean(row.active);
 		setEditMode(true);
 		form.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -144,6 +141,11 @@
 	}
 
 	document.addEventListener('DOMContentLoaded', async () => {
+		const pickerRoot = document.querySelector('[data-dc-timezone-picker]');
+		if (TzPicker && pickerRoot) {
+			timezonePicker = await TzPicker.attach(pickerRoot, { defaultTimezone });
+		}
+
 		try {
 			await load();
 		} catch (err) {
@@ -154,13 +156,16 @@
 			event.preventDefault();
 			const formData = new FormData(event.currentTarget);
 			const name = String(formData.get('name') || '').trim();
-			const timezone = String(formData.get('timezone') || '').trim();
+			const timezone = timezonePicker
+				? timezonePicker.getValue()
+				: String(formData.get('timezone') || '').trim();
 			if (name === '') {
 				Msg.announce(t('dutycheck', 'Location name is required.'), 'error');
 				return;
 			}
 			if (timezone === '') {
 				Msg.announce(t('dutycheck', 'Please choose a timezone.'), 'error');
+				document.getElementById('dc-location-timezone-input')?.focus();
 				return;
 			}
 			try {

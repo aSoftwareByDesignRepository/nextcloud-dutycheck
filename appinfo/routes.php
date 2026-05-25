@@ -16,6 +16,7 @@ return [
 		['name' => 'page#myAbsences', 'url' => '/my-absences', 'verb' => 'GET'],
 		['name' => 'page#settings', 'url' => '/settings', 'verb' => 'GET'],
 		['name' => 'api#bootstrap', 'url' => '/api/bootstrap', 'verb' => 'GET'],
+		['name' => 'catalogApi#timezones', 'url' => '/api/catalog/timezones', 'verb' => 'GET'],
 		['name' => 'rosterApi#dashboard', 'url' => '/api/dashboard', 'verb' => 'GET'],
 		['name' => 'rosterApi#roster', 'url' => '/api/roster', 'verb' => 'GET'],
 		['name' => 'rosterApi#createPeriod', 'url' => '/api/periods', 'verb' => 'POST'],

@@ -6,9 +6,8 @@
  * @var \OCP\IL10N $l
  */
 include __DIR__ . '/common/page-start.php';
-$timezones = (array) ($_['timezones'] ?? []);
 $clientHints = (array) ($_['clientHints'] ?? []);
-$defaultTimezone = (string) ($clientHints['timezone'] ?? 'Europe/Berlin');
+$defaultTimezone = (string) ($_['defaultTimezone'] ?? ($clientHints['timezone'] ?? 'UTC'));
 ?>
 <section class="dc-card dc-empty dc-empty--quickstart" id="dc-locations-quickstart" hidden aria-labelledby="dc-locations-quickstart-title">
 	<header class="dc-section__header">
@@ -72,19 +71,34 @@ $defaultTimezone = (string) ($clientHints['timezone'] ?? 'Europe/Berlin');
 		</div>
 		<div class="dc-form-stack__segment">
 			<div class="dc-field dc-field--location-timezone">
-				<label class="dc-field__label" for="dc-location-timezone"><?php p($l->t('Timezone')); ?></label>
-				<select id="dc-location-timezone" name="timezone" class="dc-input dc-input--timezone-select" required>
-					<?php foreach ($timezones as $timezone):
-						$zone = (string) $timezone;
-						$selected = $zone === $defaultTimezone;
-						?>
-						<option value="<?php p($zone); ?>" <?php if ($selected): ?>selected<?php endif; ?>>
-							<?php p($zone); ?>
-						</option>
-					<?php endforeach; ?>
-				</select>
-				<p class="dc-field__hint">
-					<?php p($l->t('Defaults to your account timezone. IANA names only (for example: Europe/Berlin).')); ?>
+				<label class="dc-field__label" id="dc-location-timezone-label" for="dc-location-timezone-input"><?php p($l->t('Timezone')); ?></label>
+				<div class="dc-timezone-picker" data-dc-timezone-picker data-default-timezone="<?php p($defaultTimezone); ?>">
+					<select id="dc-location-timezone" name="timezone" class="dc-timezone-picker__native" tabindex="-1" aria-hidden="true" required></select>
+					<div class="dc-timezone-picker__control">
+						<input
+							type="search"
+							id="dc-location-timezone-input"
+							class="dc-input dc-timezone-picker__input"
+							role="combobox"
+							aria-autocomplete="list"
+							aria-expanded="false"
+							aria-controls="dc-location-timezone-results"
+							aria-labelledby="dc-location-timezone-label"
+							aria-describedby="dc-location-timezone-hint dc-location-timezone-status"
+							autocomplete="off"
+							spellcheck="false"
+							inputmode="search"
+							placeholder="<?php p($l->t('Search timezones (e.g. Europe/Berlin or Moscow)')); ?>"
+						>
+						<button type="button" class="dc-timezone-picker__clear button" hidden
+							aria-label="<?php p($l->t('Clear timezone selection')); ?>"
+							title="<?php p($l->t('Clear timezone selection')); ?>">×</button>
+					</div>
+					<ul id="dc-location-timezone-results" class="dc-timezone-picker__results" role="listbox" hidden></ul>
+					<p id="dc-location-timezone-status" class="dc-timezone-picker__status" role="status" aria-live="polite" aria-atomic="true" hidden></p>
+				</div>
+				<p id="dc-location-timezone-hint" class="dc-field__hint">
+					<?php p($l->t('Each location has its own timezone (not a global app setting). Defaults to your account timezone when you add a new location.')); ?>
 				</p>
 			</div>
 		</div>

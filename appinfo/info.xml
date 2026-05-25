@@ -105,4 +105,9 @@ Planen Sie Dienstpläne für schichtbasierte Teams mit serverseitiger Validierun
 			<order>12</order>
 		</navigation>
 	</navigations>
+	<repair-steps>
+		<uninstall>
+			<step>OCA\DutyCheck\Repair\UninstallDropTables</step>
+		</uninstall>
+	</repair-steps>
 </info>

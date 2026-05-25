@@ -9,7 +9,6 @@ use OCA\DutyCheck\Integration\IArbeitszeitCheckIntegration;
 use OCA\DutyCheck\Service\AccessControlService;
 use OCA\DutyCheck\Service\LocaleFormatService;
 use OCA\DutyCheck\Service\RosterService;
-use OCA\DutyCheck\Service\TimezoneCatalog;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
@@ -27,7 +26,6 @@ class PageController extends Controller
 		IRequest $request,
 		private AccessControlService $access,
 		private LocaleFormatService $localeFormat,
-		private TimezoneCatalog $timezoneCatalog,
 		private IURLGenerator $urlGenerator,
 		private IL10N $l10n,
 		private RosterService $roster,
@@ -147,7 +145,15 @@ class PageController extends Controller
 	public function locations(): TemplateResponse
 	{
 		$this->access->requirePlannerOrAdmin($this->access->currentUserId());
-		return $this->page('locations', 'locations', $this->l10n->t('Manage locations, timezones, and shift templates.'));
+		$hints = $this->localeFormat->clientHints();
+		return $this->page(
+			'locations',
+			'locations',
+			$this->l10n->t('Manage locations, timezones, and shift templates.'),
+			[
+				'defaultTimezone' => (string) ($hints['timezone'] ?? 'UTC'),
+			],
+		);
 	}
 
 	#[NoAdminRequired]
@@ -182,7 +188,7 @@ class PageController extends Controller
 		return $this->page('settings', 'settings', $this->l10n->t('App policy, privacy, and access controls.'));
 	}
 
-	private function page(string $template, string $script, string $help): TemplateResponse
+	private function page(string $template, string $script, string $help, array $extra = []): TemplateResponse
 	{
 		$userId = $this->access->currentUserId();
 		Util::addStyle(Application::APP_ID, 'common/tokens');
@@ -191,6 +197,9 @@ class PageController extends Controller
 		Util::addScript(Application::APP_ID, 'common/dates');
 		Util::addScript(Application::APP_ID, 'common/messaging');
 		Util::addScript(Application::APP_ID, 'common/components');
+		if ($template === 'locations') {
+			Util::addScript(Application::APP_ID, 'common/timezone-picker');
+		}
 		Util::addScript(Application::APP_ID, $script);
 
 		$isEmployee = $this->access->isEmployee($userId);
@@ -224,7 +233,7 @@ class PageController extends Controller
 			'UTF-8',
 		);
 
-		return new TemplateResponse(Application::APP_ID, $template, [
+		return new TemplateResponse(Application::APP_ID, $template, array_merge([
 			'pageId' => $template,
 			'pageTitle' => $this->titleForPage($template),
 			'pageHelp' => $help,
@@ -236,7 +245,6 @@ class PageController extends Controller
 			'role' => $role,
 			'roleLabel' => $roleLabel,
 			'clientHints' => $this->localeFormat->clientHints(),
-			'timezones' => $this->timezoneCatalog->all(),
 			'localeFormat' => $this->localeFormat,
 			'integrationBootstrapJson' => $integrationBootstrapJson,
 			'integrationLocksLinkedDutyCheckAbsences' => (bool)($integrationBootstrap['integrationLocksLinkedDutyCheckAbsences'] ?? false),
@@ -255,7 +263,7 @@ class PageController extends Controller
 				'rosterExportCsv' => $this->urlGenerator->linkToRoute('dutycheck.rosterApi.exportRosterCsv'),
 				'rosterPrint' => $this->urlGenerator->linkToRoute('dutycheck.page.rosterPrint'),
 			],
-		]);
+		], $extra));
 	}
 
 	private function titleForPage(string $pageId): string

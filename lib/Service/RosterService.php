@@ -20,6 +20,7 @@ class RosterService
 		private IDBConnection $db,
 		private ?IUserManager $userManager = null,
 		private ?IArbeitszeitCheckIntegration $atIntegration = null,
+		private ?TimezoneCatalog $timezoneCatalog = null,
 	) {
 	}
 
@@ -2042,11 +2043,8 @@ class RosterService
 
 	private function validateTimezone(string $timezone): string
 	{
-		$trimmed = trim($timezone);
-		if ($trimmed === '' || !in_array($trimmed, \DateTimeZone::listIdentifiers(), true)) {
-			throw new \InvalidArgumentException('INVALID_TIMEZONE');
-		}
-		return $trimmed;
+		$catalog = $this->timezoneCatalog ?? new TimezoneCatalog();
+		return $catalog->normalizeOrThrow($timezone);
 	}
 
 	private function assertEmployeeDisplayNameUnique(string $displayName, ?int $ignoreId = null): void

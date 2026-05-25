@@ -85,6 +85,7 @@ class Application extends App implements IBootstrap
 				$c->query(\OCP\IDBConnection::class),
 				$c->query(\OCP\IUserManager::class),
 				$c->query(IArbeitszeitCheckIntegration::class),
+				$c->query(TimezoneCatalog::class),
 			);
 		});
 		$context->registerService(RosterCsvFormatter::class, function ($c): RosterCsvFormatter {
