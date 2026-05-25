@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.1.8 - 2026-05-25
+
+### Added
+
+- **Searchable IANA timezone picker** on the locations page: `js/common/timezone-picker.js` with keyboard navigation, live filtering, and accessible listbox semantics; backed by `TimezoneCatalog` and a new read-only catalog API (`CatalogApiController`).
+- **`OCA\DutyCheck\Repair\UninstallDropTables`** wired in `appinfo/info.xml` so disabling the app drops all dutycheck tables, migration rows, and app config.
+
+### Changed
+
+- **`TimezoneCatalog`:** expanded IANA coverage and unit tests (`TimezoneCatalogTest`); roster/location flows use the shared picker instead of a plain text field.
+- **Locations UI:** timezone field uses the new picker component; styling in `css/app.css` for the combobox pattern (WCAG-friendly focus and contrast).
+
+### Bumped
+
+- **Nextcloud `max-version`:** `33` (latest stable major).
+
 ## 0.1.7 - 2026-05-21
 
 ### Fixed
