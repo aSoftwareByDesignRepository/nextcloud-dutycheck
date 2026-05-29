@@ -1,6 +1,17 @@
 OC.L10N.register(
     "dutycheck",
     {
+    "Something went wrong. Please try again, and contact an administrator if it keeps happening." : "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut und wenden Sie sich an eine Administratorin oder einen Administrator, falls das Problem weiterhin besteht.",
+    "Your security token expired. Please reload the page and try again." : "Ihr Sicherheitstoken ist abgelaufen. Bitte laden Sie die Seite neu und versuchen Sie es erneut.",
+    "Please enter a valid name (1–191 characters, no control characters)." : "Bitte geben Sie einen gültigen Namen ein (1–191 Zeichen, keine Steuerzeichen).",
+    "A location with that name already exists." : "Ein Standort mit diesem Namen existiert bereits.",
+    "Please choose a valid timezone." : "Bitte wählen Sie eine gültige Zeitzone.",
+    "This shift overlaps an existing assignment." : "Diese Schicht überschneidet sich mit einem bestehenden Einsatz.",
+    "This absence overlaps an existing entry." : "Diese Abwesenheit überschneidet sich mit einem bestehenden Eintrag.",
+    "This planning period is not open for changes." : "Dieser Planungszeitraum ist nicht für Änderungen geöffnet.",
+    "Resolve the remaining conflicts before continuing." : "Bitte lösen Sie die verbleibenden Konflikte, bevor Sie fortfahren.",
+    "Please provide a longer reason." : "Bitte geben Sie eine ausführlichere Begründung an.",
+    "Some details could not be saved. Please review the form and try again." : "Einige Angaben konnten nicht gespeichert werden. Bitte überprüfen Sie das Formular und versuchen Sie es erneut.",
     "1 published shift" : "1 veröffentlichte Schicht",
     "1. Add a person" : "1. Eine Person anlegen",
     "1. Build the catalog" : "1. Den Katalog aufbauen",

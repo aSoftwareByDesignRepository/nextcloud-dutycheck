@@ -45,20 +45,60 @@
 		}, k === 'error' ? 7000 : 4000);
 	}
 
+	// Codes that carry a human-meaningful, already-safe explanation. Anything
+	// not listed here is treated as an internal detail and replaced with a
+	// generic message so raw identifiers (REQUEST_FAILED, INTERNAL_ERROR, …)
+	// never reach the user. Keep these in sync with the backend error codes.
+	function knownCodeMessage(code) {
+		switch (code) {
+			case 'INVALID_DISPLAY_NAME':
+			case 'INVALID_LOCATION_NAME':
+				return t('dutycheck', 'Please enter a valid name (1–191 characters, no control characters).');
+			case 'EMPLOYEE_NAME_EXISTS':
+				return t('dutycheck', 'An employee with that display name already exists.');
+			case 'LOCATION_NAME_EXISTS':
+				return t('dutycheck', 'A location with that name already exists.');
+			case 'INVALID_LINKED_USER':
+				return t('dutycheck', 'The selected user could not be linked. Pick another account.');
+			case 'LINKED_USER_EXISTS':
+				return t('dutycheck', 'That user is already linked to another employee.');
+			case 'INVALID_TIMEZONE':
+				return t('dutycheck', 'Please choose a valid timezone.');
+			case 'ASSIGNMENT_OVERLAP':
+			case 'ASSIGNMENT_DUPLICATE_SLOT':
+				return t('dutycheck', 'This shift overlaps an existing assignment.');
+			case 'ABSENCE_OVERLAP':
+			case 'ABSENCE_CONFLICT':
+				return t('dutycheck', 'This absence overlaps an existing entry.');
+			case 'PERIOD_NOT_OPEN':
+				return t('dutycheck', 'This planning period is not open for changes.');
+			case 'PERIOD_HAS_HARD_CONFLICTS':
+				return t('dutycheck', 'Resolve the remaining conflicts before continuing.');
+			case 'REASON_TOO_SHORT':
+				return t('dutycheck', 'Please provide a longer reason.');
+			default:
+				return null;
+		}
+	}
+
 	function handleApiError(err, options) {
 		const status = Number((err && err.status) || 0);
 		const code = err && err.code ? String(err.code) : null;
-		const messageRaw = String((err && err.message) || t('dutycheck', 'Request failed.'));
+		const genericMessage = t('dutycheck', 'Something went wrong. Please try again, and contact an administrator if it keeps happening.');
 		if (status === 0 && code === 'NETWORK_ERROR') {
 			announce(t('dutycheck', 'Network error. Please check your connection and retry.'), 'error');
 			return;
 		}
-		if (status === 0 && code === 'MISSING_CSRF') {
-			announce(t('dutycheck', 'Security token missing. Please reload the page.'), 'error');
+		if (code === 'MISSING_CSRF' || code === 'CSRF_FAILED') {
+			announce(t('dutycheck', 'Your security token expired. Please reload the page and try again.'), 'error');
 			return;
 		}
-		if (status === 401) {
+		if (status === 401 || code === 'SESSION_EXPIRED' || code === 'NOT_AUTHENTICATED') {
 			announce(t('dutycheck', 'Your session expired. Please reload and sign in again.'), 'error');
+			return;
+		}
+		if (status === 412) {
+			announce(t('dutycheck', 'Your security token expired. Please reload the page and try again.'), 'error');
 			return;
 		}
 		if (code === 'INSUFFICIENT_ROLE') {
@@ -93,11 +133,12 @@
 			}
 			return;
 		}
+		const friendly = knownCodeMessage(code);
 		if (status === 422) {
-			announce(messageRaw || t('dutycheck', 'Validation failed.'), 'error');
+			announce(friendly || t('dutycheck', 'Some details could not be saved. Please review the form and try again.'), 'error');
 			return;
 		}
-		announce(messageRaw, 'error');
+		announce(friendly || genericMessage, 'error');
 	}
 
 	// Backwards-compatible alias: pre-refactor callers used `toast(message, kind)`.

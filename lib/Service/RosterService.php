@@ -707,8 +707,9 @@ class RosterService
 	public function updateEmployee(int $id, array $payload): array
 	{
 		$this->assertEmployeeRowExists($id);
+		$currentLinkedUserId = $this->fetchEmployeeLinkedUserId($id);
 		$displayName = $this->validateDisplayName((string) ($payload['displayName'] ?? ''));
-		$linkedUserId = $this->normalizeLinkedUserId($payload['linkedUserId'] ?? null);
+		$linkedUserId = $this->normalizeLinkedUserId($payload['linkedUserId'] ?? null, $currentLinkedUserId);
 		$active = $this->toActiveFlag($payload['active'] ?? 1);
 
 		$this->assertEmployeeDisplayNameUnique($displayName, $id);
@@ -2004,7 +2005,7 @@ class RosterService
 		return preg_match('/[\x00-\x1F\x7F]/', $value) === 1;
 	}
 
-	private function normalizeLinkedUserId(mixed $linkedUserId): ?string
+	private function normalizeLinkedUserId(mixed $linkedUserId, ?string $unchangedValue = null): ?string
 	{
 		$value = trim((string) ($linkedUserId ?? ''));
 		if ($value === '') {
@@ -2013,11 +2014,17 @@ class RosterService
 		if (mb_strlen($value) > 64 || !preg_match('/^[A-Za-z0-9._@-]+$/', $value)) {
 			throw new \InvalidArgumentException('INVALID_LINKED_USER');
 		}
-		// Validate the user actually exists. We accept disabled users so an
-		// employee record can stay linked while their Nextcloud account is
-		// temporarily blocked. Missing accounts must always fail loudly so a
-		// stale record never silently absorbs a typo'd UID.
-		if ($this->userManager !== null) {
+		// Validate the user actually exists when the link is new or changed. We
+		// accept disabled users so an employee record can stay linked while their
+		// Nextcloud account is temporarily blocked, and a *new* link to a missing
+		// account must always fail loudly so a stale record never silently
+		// absorbs a typo'd UID.
+		//
+		// An already-stored link is intentionally NOT re-validated: a planner
+		// must still be able to edit or deactivate an employee whose linked
+		// Nextcloud account was deleted afterwards. Without this the record would
+		// be frozen and could never be cleaned up.
+		if ($value !== $unchangedValue && $this->userManager !== null) {
 			$user = $this->userManager->get($value);
 			if ($user === null) {
 				throw new \InvalidArgumentException('INVALID_LINKED_USER');
@@ -2094,6 +2101,17 @@ class RosterService
 		if ($qb->executeQuery()->fetchOne() === false) {
 			throw new \InvalidArgumentException('EMPLOYEE_NOT_FOUND');
 		}
+	}
+
+	/** Currently stored linked Nextcloud account UID for an employee, or null when unlinked. */
+	private function fetchEmployeeLinkedUserId(int $id): ?string
+	{
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('linked_user_id')->from('dc_employees')
+			->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
+			->setMaxResults(1);
+		$value = $qb->executeQuery()->fetchOne();
+		return ($value === false || $value === null || $value === '') ? null : (string) $value;
 	}
 
 	private function assertLocationRowExists(int $id): void

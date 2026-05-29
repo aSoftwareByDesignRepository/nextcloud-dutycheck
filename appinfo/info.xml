@@ -7,20 +7,30 @@
 	<id>dutycheck</id>
 	<name>DutyCheck</name>
 	<name lang="de">DutyCheck</name>
-	<summary>Duty-roster planning, validation, and auditable lifecycle for security services</summary>
-	<summary lang="de">Dienstplanung, Validierung und nachvollziehbare Lebenszyklen für Sicherheitsdienste</summary>
+	<summary>Shift rosters that stay clear, conflict-free, and audit-ready — built into your Nextcloud</summary>
+	<summary lang="de">Klare, konfliktfreie Dienstpläne mit Nachweis — direkt in Ihrer Nextcloud</summary>
 	<description><![CDATA[
-# DutyCheck
+# DutyCheck — duty rosters your team can actually rely on
 
-Plan duty rosters for shift-driven teams with server-side validation and clear lifecycle rules. DutyCheck supports period-based scheduling, conflict checks, controlled publish and close workflows, self-service absence requests, and evidence snapshots for audits.
+Tired of spreadsheets that drift out of date the moment you publish? DutyCheck brings **shift planning into Nextcloud**: one place for rosters, absences, and the paper trail when someone asks *“who was on duty that night?”*
 
-## Highlights
+Install it, add your people and locations, open a planning period, and start assigning shifts — the interface is built to be **simple on day one** and **strict where it matters** (conflicts and lifecycle rules are enforced on the server, not in someone’s memory).
 
-- **Period workflow** — draft, validate, publish, and close rosters with guardrails
-- **Conflict rules** — backend is the source of truth for overlaps and policy checks
-- **Roles** — planner, location lead, and employee views
-- **Accessibility** — interface targets WCAG 2.1 AA; responsive layout from 320px width
-- **Optional ArbeitszeitCheck** — mirror absences when the ArbeitszeitCheck app is installed (optional integration)
+## Why teams try DutyCheck
+
+- **See problems before you publish** — overlapping shifts and policy conflicts surface while you are still editing, not after the roster goes live
+- **A workflow everyone understands** — draft → validate → publish → close, with clear states so planners and staff know what is official
+- **Self-service for staff** — linked employees can view their roster, request absences, and subscribe to a calendar feed
+- **Audit-ready by design** — snapshots and an activity trail when you need to prove what was planned and when it changed
+- **Built for real devices** — responsive from phone to desktop; interface targets **WCAG 2.1 AA** accessibility
+
+## Great fit if you run
+
+Healthcare rotations, facility coverage, events, logistics, retail shifts, on-call teams — anywhere **people, places, and time** need to line up without guesswork.
+
+## Optional: ArbeitszeitCheck
+
+If you also use **ArbeitszeitCheck**, DutyCheck can mirror absences automatically (integration is optional and stays off until you enable it).
 
 ## Requirements
 
@@ -29,17 +39,27 @@ Plan duty rosters for shift-driven teams with server-side validation and clear l
 - MySQL or PostgreSQL
 	]]></description>
 	<description lang="de"><![CDATA[
-# DutyCheck
+# DutyCheck — Dienstpläne, denen Ihr Team vertrauen kann
 
-Planen Sie Dienstpläne für schichtbasierte Teams mit serverseitiger Validierung und klaren Lebenszyklusregeln. DutyCheck unterstützt periodenbasierte Planung, Konfliktprüfungen, kontrollierte Veröffentlichungs- und Abschluss-Workflows, Self-Service-Abwesenheiten und Nachweis-Snapshots für Audits.
+Kennen Sie das: Die Excel-Tabelle war gestern noch aktuell — und heute fragt jemand, **wer eigentlich Dienst hatte**. DutyCheck holt die **Schichtplanung in Ihre Nextcloud**: ein Ort für Dienste, Abwesenheiten und den Nachweis, wenn es ernst wird.
 
-## Funktionen
+Einfach installieren, Mitarbeitende und Standorte anlegen, eine Planungsperiode öffnen und Schichten zuweisen. Die Oberfläche ist **am ersten Tag verständlich** und **dort streng, wo es zählt** (Konflikte und Lebenszyklusregeln werden serverseitig durchgesetzt — nicht in Köpfchen oder Tabellen).
 
-- **Perioden-Workflow** — Entwurf, Validierung, Veröffentlichung und Abschluss mit Leitplanken
-- **Konfliktregeln** — Backend als alleinige Instanz für Überschneidungen und Richtlinien
-- **Rollen** — Planer, Objektleitung und Mitarbeitende
-- **Barrierefreiheit** — Ziel WCAG 2.1 AA; responsives Layout ab 320px Breite
-- **Optionales ArbeitszeitCheck** — Spiegelung von Abwesenheiten, wenn die App ArbeitszeitCheck installiert ist
+## Darum lohnt sich ein Test
+
+- **Fehler sehen, bevor Sie veröffentlichen** — Überschneidungen und Regelverstöße tauchen beim Planen auf, nicht erst danach
+- **Ein Ablauf, den alle verstehen** — Entwurf → Prüfen → Veröffentlichen → Abschließen; Planende und Team wissen, was verbindlich ist
+- **Self-Service fürs Team** — verknüpfte Konten sehen ihren Dienstplan, stellen Abwesenheiten und können einen Kalender-Feed abonnieren
+- **Nachweise eingebaut** — Snapshots und Protokoll, wenn Sie belegen müssen, was wann geplant war
+- **Für Alltag und Mobilgerät** — responsiv vom Smartphone bis Desktop; Ziel **WCAG 2.1 AA**
+
+## Passt besonders gut für
+
+Gesundheitsdienste, Objektbetrieb, Veranstaltungen, Logistik, Einzelhandel, Bereitschaft — überall, wo **Menschen, Orte und Zeiten** zusammenpassen müssen.
+
+## Optional: ArbeitszeitCheck
+
+Mit **ArbeitszeitCheck** können Abwesenheiten automatisch gespiegelt werden (optional, standardmäßig aus — Sie schalten die Anbindung bewusst frei).
 
 ## Voraussetzungen
 
@@ -47,7 +67,7 @@ Planen Sie Dienstpläne für schichtbasierte Teams mit serverseitiger Validierun
 - PHP 8.2–8.4
 - MySQL oder PostgreSQL
 	]]></description>
-	<version>0.1.8</version>
+	<version>0.1.9</version>
 	<licence>AGPL-3.0-or-later</licence>
 	<author mail="info@software-by-design.de" homepage="https://nextcloud.software-by-design.de">Alexander Mäule</author>
 	<namespace>DutyCheck</namespace>

@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.1.9 - 2026-05-29
+
+### Fixed
+
+- **Mutations no longer fail with an opaque `REQUEST_FAILED` after the CSRF token rotates.** The shared API client (`js/common/api.js`) now transparently refreshes the request token from `/csrftoken` and retries a write **once** on `412` — the same recovery `@nextcloud/axios` performs for the rest of the Nextcloud frontend. This fixes "Add employee" (and every other create/update) failing on long-lived or multi-tab sessions, where the failure left **no entry in `nextcloud.log`** (CSRF rejections are handled in middleware and are never logged). Retrying is safe because a 412 is rejected before any database write occurs.
+- **Clear, localized error messages** (`js/common/messaging.js`): expired tokens/sessions now tell the user to reload, and internal codes (`REQUEST_FAILED`, `INTERNAL_ERROR`, …) are never shown raw. German translations added.
+- **Editing or deactivating an employee whose linked Nextcloud account was deleted no longer fails.** `RosterService::updateEmployee` only re-validates the linked account when it actually changes; an unchanged, now-missing link stays manageable so the record is never frozen. A new (or changed) link to a missing account is still rejected.
+
+### Changed
+
+- App Store listing copy refreshed for broader appeal (`appinfo/info.xml`: summary + long description, EN + DE).
+
 ## 0.1.8 - 2026-05-25
 
 ### Added
