@@ -4,8 +4,8 @@
 	/**
 	 * Centralised JSON API client for DutyCheck.
 	 *
-	 * - Same-origin credentials, JSON Content-Type on bodies, JSON parsing.
-	 * - Always sends the CSRF token (`requesttoken`) on mutations.
+	 * - Same-origin credentials, JSON Accept header, form-urlencoded mutation bodies.
+	 * - Always sends the CSRF token (`requesttoken`) on mutations (header + body).
 	 * - Transparently refreshes a stale CSRF token and retries a mutation once
 	 *   when Nextcloud answers `412 Precondition Failed` ("CSRF check failed").
 	 *   Long-lived or multi-tab sessions rotate the request token; without this
@@ -103,7 +103,7 @@
 		return suffix ? built + '?' + suffix : built;
 	}
 
-	function buildHeaders(opts, token, hasBody) {
+	function buildHeaders(opts, token, hasBody, formEncoded) {
 		const headers = new Headers(opts.headers || {});
 		headers.set('Accept', 'application/json');
 		headers.set('X-Requested-With', 'XMLHttpRequest');
@@ -114,9 +114,69 @@
 			headers.set('requesttoken', token);
 		}
 		if (hasBody && !headers.has('Content-Type')) {
-			headers.set('Content-Type', 'application/json');
+			headers.set(
+				'Content-Type',
+				formEncoded
+					? 'application/x-www-form-urlencoded;charset=UTF-8'
+					: 'application/json',
+			);
 		}
 		return headers;
+	}
+
+	/**
+	 * Encode a mutation payload for application/x-www-form-urlencoded.
+	 *
+	 * Nextcloud always populates $_POST for urlencoded bodies; JSON bodies depend
+	 * on Content-Type surviving proxies (Snap / reverse-proxy edge cases). The
+	 * CSRF token is duplicated in the body because some hosts strip custom headers.
+	 */
+	function appendFormField(params, key, value) {
+		if (value === undefined || value === null) {
+			return;
+		}
+		if (Array.isArray(value)) {
+			value.forEach((entry, index) => {
+				appendFormField(params, `${key}[${index}]`, entry);
+			});
+			return;
+		}
+		if (typeof value === 'object') {
+			Object.entries(value).forEach(([childKey, childValue]) => {
+				appendFormField(params, `${key}[${childKey}]`, childValue);
+			});
+			return;
+		}
+		params.append(key, String(value));
+	}
+
+	function encodeMutationBody(body, token) {
+		const params = new URLSearchParams();
+		if (token) {
+			params.append('requesttoken', token);
+		}
+		Object.entries(body || {}).forEach(([key, value]) => {
+			if (value === undefined || value === null) {
+				return;
+			}
+			if (Array.isArray(value)) {
+				if (value.length === 0) {
+					return;
+				}
+				value.forEach((entry, index) => {
+					appendFormField(params, `${key}[${index}]`, entry);
+				});
+				return;
+			}
+			if (typeof value === 'object') {
+				Object.entries(value).forEach(([childKey, childValue]) => {
+					appendFormField(params, `${key}[${childKey}]`, childValue);
+				});
+				return;
+			}
+			params.append(key, String(value));
+		});
+		return params.toString();
 	}
 
 	function networkError(cause) {
@@ -146,6 +206,48 @@
 		return message.includes('csrf') || message === '';
 	}
 
+	/**
+	 * Normalise DutyCheck API error payloads (and a few Nextcloud core shapes).
+	 *
+	 * @returns {{ code: string|null, payload: object|null }}
+	 */
+	function extractApiError(data, status) {
+		if (data && typeof data === 'object') {
+			const code = (data.error && data.error.code)
+				|| data.code
+				|| (isCsrfFailure(status, data) ? 'CSRF_FAILED' : null);
+			return { code: code ? String(code) : null, payload: data };
+		}
+		if (isCsrfFailure(status, data)) {
+			return { code: 'CSRF_FAILED', payload: null };
+		}
+		return { code: null, payload: null };
+	}
+
+	function apiError(code, message, status, payload, cause) {
+		const err = new Error(code || message || 'REQUEST_FAILED');
+		err.status = status;
+		err.payload = payload;
+		err.code = code;
+		if (cause) {
+			err.cause = cause;
+		}
+		return err;
+	}
+
+	function assertSuccessPayload(data, status) {
+		if (!data || typeof data !== 'object' || data.ok !== false) {
+			return;
+		}
+		const extracted = extractApiError(data, status);
+		throw apiError(
+			extracted.code,
+			extracted.code || 'REQUEST_FAILED',
+			status,
+			extracted.payload,
+		);
+	}
+
 	async function readBody(response) {
 		const contentType = (response.headers.get('content-type') || '').toLowerCase();
 		const isJson = contentType.includes('application/json');
@@ -166,9 +268,7 @@
 			url = buildUrl(pathOrUrl, opts.params);
 		}
 
-		const bodyInit = hasBody
-			? (typeof opts.body === 'string' ? opts.body : JSON.stringify(opts.body))
-			: undefined;
+		const formEncoded = hasBody && typeof opts.body !== 'string';
 
 		let token = csrfToken();
 		if (isMutation && !token) {
@@ -187,7 +287,12 @@
 		let lastError = null;
 
 		for (let attempt = 0; attempt < maxAttempts; attempt++) {
-			const headers = buildHeaders(opts, token, hasBody);
+			const bodyInit = hasBody
+				? (typeof opts.body === 'string'
+					? opts.body
+					: encodeMutationBody(opts.body, token))
+				: undefined;
+			const headers = buildHeaders(opts, token, hasBody, formEncoded);
 
 			let response;
 			try {
@@ -222,40 +327,32 @@
 				// an HTML page; treat it as an expired session instead of pretending
 				// the write succeeded.
 				if (isMutation && !isJson) {
-					const err = new Error('SESSION_EXPIRED');
-					err.status = 401;
-					err.code = 'SESSION_EXPIRED';
-					throw err;
+					throw apiError('SESSION_EXPIRED', 'SESSION_EXPIRED', 401, null);
 				}
+				assertSuccessPayload(data, response.status);
 				return data;
 			}
 
 			// Stale CSRF token: refresh once and retry the same request.
 			if (isMutation && attempt + 1 < maxAttempts && isCsrfFailure(response.status, data)) {
 				const fresh = await refreshCsrfToken();
-				if (fresh && fresh !== token) {
+				if (fresh) {
 					token = fresh;
 					continue;
 				}
-				// Could not obtain a usable token — surface a clean session error.
-				const err = new Error('CSRF_FAILED');
-				err.status = response.status;
-				err.payload = data;
-				err.code = 'CSRF_FAILED';
-				throw err;
+				throw apiError('CSRF_FAILED', 'CSRF_FAILED', response.status, data);
 			}
 
-			const code = (data && typeof data === 'object' && data.error && data.error.code)
-				|| (isCsrfFailure(response.status, data) ? 'CSRF_FAILED' : null);
-			const message = (data && typeof data === 'object' && data.message)
-				? String(data.message)
-				: 'REQUEST_FAILED';
-			const err = new Error(code || message);
-			err.status = response.status;
-			err.payload = data;
-			err.code = code;
-			lastError = err;
-			throw err;
+			const extracted = extractApiError(data, response.status);
+			lastError = apiError(
+				extracted.code,
+				extracted.code || (data && typeof data === 'object' && data.message
+					? String(data.message)
+					: 'REQUEST_FAILED'),
+				response.status,
+				extracted.payload,
+			);
+			throw lastError;
 		}
 
 		// Unreachable in practice, but keep a defined failure mode.
@@ -275,5 +372,14 @@
 		return request(path, Object.assign({}, options || {}, { method: 'DELETE', body }));
 	}
 
-	window.DutyCheckApi = { request, get, post, put, del, buildUrl, refreshCsrfToken };
+	window.DutyCheckApi = {
+		request,
+		get,
+		post,
+		put,
+		del,
+		buildUrl,
+		refreshCsrfToken,
+		extractApiError,
+	};
 })();

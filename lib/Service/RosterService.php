@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use DateTimeZone;
 use OCA\DutyCheck\Exception\ConflictAckRequiredException;
 use OCA\DutyCheck\Exception\IntegrationLegacyConflictException;
+use OCA\DutyCheck\Integration\ArbeitszeitCheckTypeMapper;
 use OCA\DutyCheck\Integration\IArbeitszeitCheckIntegration;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
@@ -348,23 +349,108 @@ class RosterService
 				throw new \InvalidArgumentException('PERIOD_NOT_FOUND');
 			}
 		}
-		if ($selected === null && !empty($periods)) {
-			$selected = (int) $periods[0]['id'];
-		}
+		$selected = $this->resolveRosterPeriodSelection($selected, $periods);
 
 		$employees = $this->listEmployees();
 		$locations = $this->listLocations();
 		$assignments = $selected !== null ? $this->listAssignments($selected) : [];
 		$conflicts = $selected !== null ? $this->refreshAndListConflicts($selected) : [];
+		$absenceBlocks = $selected !== null ? $this->listBlockingAbsenceSpansForPeriod($selected) : [];
+		$selectedPeriod = $selected !== null ? $this->periodById($selected) : null;
 
 		return [
 			'periods' => $periods,
 			'selectedPeriodId' => $selected,
+			'selectedPeriodStatus' => $selectedPeriod['status'] ?? null,
+			'canCreateAssignments' => $selectedPeriod !== null
+				&& ($selectedPeriod['status'] ?? '') === 'open'
+				&& $employees !== []
+				&& $locations !== [],
 			'employees' => $employees,
 			'locations' => $locations,
 			'assignments' => $assignments,
 			'conflicts' => $conflicts,
+			'absenceBlocks' => $absenceBlocks,
 		];
+	}
+
+	/**
+	 * Prefer the newest open period when none is selected so planners land on a writable roster.
+	 *
+	 * @param list<array<string,mixed>> $periods
+	 */
+	private function resolveRosterPeriodSelection(?int $requested, array $periods): ?int
+	{
+		if ($requested !== null) {
+			return $requested;
+		}
+		if ($periods === []) {
+			return null;
+		}
+		foreach ($periods as $period) {
+			if (($period['status'] ?? '') === 'open') {
+				return (int) $period['id'];
+			}
+		}
+
+		return (int) $periods[0]['id'];
+	}
+
+	/**
+	 * Approved absences and blocking ArbeitszeitCheck mirror rows overlapping a period.
+	 * The roster UI uses this to hide employees who cannot be assigned on a given day.
+	 *
+	 * @return list<array{employeeId: int, startDate: string, endDate: string, source: string}>
+	 */
+	public function listBlockingAbsenceSpansForPeriod(int $periodId): array
+	{
+		$period = $this->periodById($periodId);
+		$periodStart = (string) $period['startDate'];
+		$periodEnd = (string) $period['endDate'];
+		$spans = [];
+
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('employee_id', 'start_date', 'end_date')
+			->from('dc_absences')
+			->where($qb->expr()->eq('status', $qb->createNamedParameter('approved')))
+			->andWhere($qb->expr()->lte('start_date', $qb->createNamedParameter($periodEnd)))
+			->andWhere($qb->expr()->gte('end_date', $qb->createNamedParameter($periodStart)));
+		foreach ($qb->executeQuery()->fetchAllAssociative() as $row) {
+			$spans[] = [
+				'employeeId' => (int) $row['employee_id'],
+				'startDate' => (string) $row['start_date'],
+				'endDate' => (string) $row['end_date'],
+				'source' => 'dutycheck',
+			];
+		}
+
+		if ($this->atIntegration?->isEffective() === true) {
+			$mirror = $this->db->getQueryBuilder();
+			$mirror->select('e.id', 'm.start_date', 'm.end_date', 'm.type', 'm.status')
+				->from('dc_at_absence_mirror', 'm')
+				->innerJoin('m', 'dc_employees', 'e', 'm.linked_user_id = e.linked_user_id')
+				->where($mirror->expr()->eq('e.active', $mirror->createNamedParameter(1, IQueryBuilder::PARAM_INT)))
+				->andWhere($mirror->expr()->lte('m.start_date', $mirror->createNamedParameter($periodEnd)))
+				->andWhere($mirror->expr()->gte('m.end_date', $mirror->createNamedParameter($periodStart)));
+			foreach ($mirror->executeQuery()->fetchAllAssociative() as $row) {
+				if (!ArbeitszeitCheckTypeMapper::isBlockingApproved((string) $row['type'], (string) $row['status'])) {
+					continue;
+				}
+				$spans[] = [
+					'employeeId' => (int) $row['id'],
+					'startDate' => (string) $row['start_date'],
+					'endDate' => (string) $row['end_date'],
+					'source' => 'arbeitszeitcheck',
+				];
+			}
+		}
+
+		return $spans;
+	}
+
+	public static function dateWithinInclusiveRange(string $date, string $rangeStart, string $rangeEnd): bool
+	{
+		return $date >= $rangeStart && $date <= $rangeEnd;
 	}
 
 	public function createAssignment(array $payload, string $actor): array
@@ -378,6 +464,16 @@ class RosterService
 		$breakMinutes = (int) ($payload['breakMinutes'] ?? 0);
 		$note = trim((string) ($payload['note'] ?? ''));
 		$acknowledgements = is_array($payload['acknowledgements'] ?? null) ? $payload['acknowledgements'] : [];
+
+		if ($periodId <= 0) {
+			throw new \InvalidArgumentException('PERIOD_ID_REQUIRED');
+		}
+		if ($employeeId <= 0) {
+			throw new \InvalidArgumentException('EMPLOYEE_ID_REQUIRED');
+		}
+		if ($locationId <= 0) {
+			throw new \InvalidArgumentException('LOCATION_ID_REQUIRED');
+		}
 
 		$this->assertDate($dutyDate);
 		$startTime = $this->normalizeDutyTime($startTime);
@@ -411,29 +507,39 @@ class RosterService
 			$this->assertAcknowledgedSoftConflicts($softConflicts, $acknowledgements);
 		}
 
-		$qb = $this->db->getQueryBuilder();
+		$this->db->beginTransaction();
 		try {
-			$qb->insert('dc_assignments')
-				->values([
-					'period_id' => $qb->createNamedParameter($periodId, IQueryBuilder::PARAM_INT),
-					'employee_id' => $qb->createNamedParameter($employeeId, IQueryBuilder::PARAM_INT),
-					'location_id' => $qb->createNamedParameter($locationId, IQueryBuilder::PARAM_INT),
-					'duty_date' => $qb->createNamedParameter($dutyDate),
-					'start_time' => $qb->createNamedParameter($startTime),
-					'end_time' => $qb->createNamedParameter($endTime),
-					'break_minutes' => $qb->createNamedParameter($breakMinutes, IQueryBuilder::PARAM_INT),
-					'note' => $qb->createNamedParameter($note !== '' ? $note : null),
-					'created_by' => $qb->createNamedParameter($actor),
-					'created_at' => $qb->createNamedParameter($this->now()),
-				])->executeStatement();
+			$qb = $this->db->getQueryBuilder();
+			try {
+				$qb->insert('dc_assignments')
+					->values([
+						'period_id' => $qb->createNamedParameter($periodId, IQueryBuilder::PARAM_INT),
+						'employee_id' => $qb->createNamedParameter($employeeId, IQueryBuilder::PARAM_INT),
+						'location_id' => $qb->createNamedParameter($locationId, IQueryBuilder::PARAM_INT),
+						'duty_date' => $qb->createNamedParameter($dutyDate),
+						'start_time' => $qb->createNamedParameter($startTime),
+						'end_time' => $qb->createNamedParameter($endTime),
+						'break_minutes' => $qb->createNamedParameter($breakMinutes, IQueryBuilder::PARAM_INT),
+						'note' => $qb->createNamedParameter($note !== '' ? $note : null),
+						'created_by' => $qb->createNamedParameter($actor),
+						'created_at' => $qb->createNamedParameter($this->now()),
+					])->executeStatement();
+			} catch (Throwable $e) {
+				if ($this->isUniqueConstraintViolation($e)) {
+					throw new \InvalidArgumentException('ASSIGNMENT_DUPLICATE_SLOT');
+				}
+				throw $e;
+			}
+
+			$this->refreshAndListConflicts($periodId);
+			$this->db->commit();
 		} catch (Throwable $e) {
-			if ($this->isUniqueConstraintViolation($e)) {
-				throw new \InvalidArgumentException('ASSIGNMENT_DUPLICATE_SLOT');
+			if ($this->db->inTransaction()) {
+				$this->db->rollBack();
 			}
 			throw $e;
 		}
 
-		$this->refreshAndListConflicts($periodId);
 		return $this->rosterData($periodId);
 	}
 

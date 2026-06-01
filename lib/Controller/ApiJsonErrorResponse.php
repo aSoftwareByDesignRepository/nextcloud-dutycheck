@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace OCA\DutyCheck\Controller;
 
+use OCA\DutyCheck\AppInfo\Application;
 use OCA\DutyCheck\Exception\AppAccessDeniedException;
 use OCA\DutyCheck\Exception\ConflictAckRequiredException;
 use OCA\DutyCheck\Exception\IntegrationLegacyConflictException;
 use OCA\DutyCheck\Service\AccessControlService;
 use OCP\AppFramework\Http\DataResponse;
+use OCP\Server;
+use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
@@ -54,24 +57,49 @@ final class ApiJsonErrorResponse
 				return new DataResponse(['ok' => false, 'error' => ['code' => 'access_denied']], 403);
 			}
 			// Do not map arbitrary RuntimeExceptions to a role error — that masks server faults.
+			self::logUnexpected($e);
 			return new DataResponse(['ok' => false, 'error' => ['code' => 'INTERNAL_ERROR']], 500);
 		}
 		if ($e instanceof \InvalidArgumentException) {
 			$errorCode = $e->getMessage();
-			$status = match ($errorCode) {
-				'PERIOD_NOT_FOUND', 'ABSENCE_NOT_FOUND', 'EMPLOYEE_LINK_NOT_FOUND', 'CONFLICT_NOT_FOUND' => 404,
-				'SNAPSHOT_HASH_MISMATCH' => 500,
-				'PERIOD_NOT_OPEN', 'ASSIGNMENT_OVERLAP', 'ASSIGNMENT_DUPLICATE_SLOT', 'ABSENCE_CONFLICT', 'PERIOD_HAS_HARD_CONFLICTS', 'ABSENCE_OVERLAP' => 422,
-				'REASON_TOO_SHORT', 'CONFLICT_RESOLVED' => 422,
-				'INTEGRATION_ABSENCE_READONLY' => 403,
-				'INTEGRATION_LEGACY_CONFLICT' => 409,
-				'INTEGRATION_PURGE_BLOCKED' => 409,
-				'INTEGRATION_PEER_NOT_INSTALLED', 'INTEGRATION_PEER_DISABLED', 'INTEGRATION_PEER_VERSION' => 400,
-				default => 400,
-			};
-			return new DataResponse(['ok' => false, 'error' => ['code' => $errorCode]], $status);
+			return new DataResponse(
+				['ok' => false, 'error' => ['code' => $errorCode]],
+				self::statusForInvalidArgument($errorCode),
+			);
 		}
 
+		self::logUnexpected($e);
 		return new DataResponse(['ok' => false, 'error' => ['code' => 'INTERNAL_ERROR']], 500);
+	}
+
+	public static function statusForInvalidArgument(string $errorCode): int
+	{
+		return match ($errorCode) {
+			'PERIOD_NOT_FOUND', 'ABSENCE_NOT_FOUND', 'EMPLOYEE_LINK_NOT_FOUND', 'CONFLICT_NOT_FOUND' => 404,
+			'SNAPSHOT_HASH_MISMATCH' => 500,
+			'PERIOD_NOT_OPEN', 'ASSIGNMENT_OVERLAP', 'ASSIGNMENT_DUPLICATE_SLOT', 'ABSENCE_CONFLICT', 'PERIOD_HAS_HARD_CONFLICTS', 'ABSENCE_OVERLAP' => 422,
+			'REASON_TOO_SHORT', 'CONFLICT_RESOLVED' => 422,
+			'INTEGRATION_ABSENCE_READONLY' => 403,
+			'INTEGRATION_LEGACY_CONFLICT' => 409,
+			'INTEGRATION_PURGE_BLOCKED' => 409,
+			'INTEGRATION_PEER_NOT_INSTALLED', 'INTEGRATION_PEER_DISABLED', 'INTEGRATION_PEER_VERSION' => 400,
+			default => 400,
+		};
+	}
+
+	private static function logUnexpected(Throwable $e): void
+	{
+		try {
+			$logger = Server::get(LoggerInterface::class);
+			$logger->error(
+				'DutyCheck API unhandled error: ' . $e->getMessage(),
+				[
+					'app' => Application::APP_ID,
+					'exception' => $e,
+				],
+			);
+		} catch (Throwable) {
+			// Logging must never break the JSON error response.
+		}
 	}
 }

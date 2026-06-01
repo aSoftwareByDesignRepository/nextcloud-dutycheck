@@ -68,14 +68,42 @@
 			case 'ASSIGNMENT_DUPLICATE_SLOT':
 				return t('dutycheck', 'This shift overlaps an existing assignment.');
 			case 'ABSENCE_OVERLAP':
-			case 'ABSENCE_CONFLICT':
 				return t('dutycheck', 'This absence overlaps an existing entry.');
+			case 'ABSENCE_CONFLICT':
+				return t('dutycheck', 'This employee has approved leave on that date and cannot be scheduled.');
 			case 'PERIOD_NOT_OPEN':
 				return t('dutycheck', 'This planning period is not open for changes.');
 			case 'PERIOD_HAS_HARD_CONFLICTS':
-				return t('dutycheck', 'Resolve the remaining conflicts before continuing.');
+				return t('dutycheck', 'Resolve every “Must fix” issue before continuing.');
 			case 'REASON_TOO_SHORT':
 				return t('dutycheck', 'Please provide a longer reason.');
+			case 'INVALID_DATE':
+			case 'INVALID_TIME':
+				return t('dutycheck', 'Please check the dates and times.');
+			case 'INVALID_SHIFT_LENGTH':
+				return t('dutycheck', 'Shift length is invalid after break (check overnight times and break minutes).');
+			case 'INVALID_BREAK_MINUTES':
+				return t('dutycheck', 'Break minutes are out of the allowed range.');
+			case 'INVALID_ACTIVE_FLAG':
+				return t('dutycheck', 'Could not read the active/inactive setting. Reload the page and try again.');
+			case 'PERIOD_ID_REQUIRED':
+				return t('dutycheck', 'Select a period before saving.');
+			case 'EMPLOYEE_ID_REQUIRED':
+				return t('dutycheck', 'Select an employee.');
+			case 'LOCATION_ID_REQUIRED':
+				return t('dutycheck', 'Select a location.');
+			case 'CONFLICT_ACK_REQUIRED':
+				return t('dutycheck', 'A planning rule needs your confirmation before this shift can be saved.');
+			case 'INTERNAL_ERROR':
+				return t('dutycheck', 'The server could not complete this action. Reload the page and try again, or contact an administrator.');
+			case 'EMPLOYEE_NOT_FOUND':
+				return t('dutycheck', 'Employee not found or no longer available.');
+			case 'LOCATION_NOT_FOUND':
+				return t('dutycheck', 'Location not found or no longer available.');
+			case 'DATE_OUTSIDE_PERIOD':
+				return t('dutycheck', 'Date must fall within the selected period.');
+			case 'ASSIGNMENT_DUPLICATE_SLOT':
+				return t('dutycheck', 'This exact assignment already exists. Reload the page to see the latest roster.');
 			default:
 				return null;
 		}
@@ -84,6 +112,7 @@
 	function handleApiError(err, options) {
 		const status = Number((err && err.status) || 0);
 		const code = err && err.code ? String(err.code) : null;
+		const friendly = knownCodeMessage(code);
 		const genericMessage = t('dutycheck', 'Something went wrong. Please try again, and contact an administrator if it keeps happening.');
 		if (status === 0 && code === 'NETWORK_ERROR') {
 			announce(t('dutycheck', 'Network error. Please check your connection and retry.'), 'error');
@@ -121,19 +150,26 @@
 			announce(t('dutycheck', 'Too many requests. Please wait and retry.'), 'warning');
 			return;
 		}
-		if (status === 409 && code === 'conflict_ack_required') {
-			// soft-conflict that needs the operator to acknowledge in a modal
-			// is handled by the page-level workflow, not here
+		if (code === 'CONFLICT_ACK_REQUIRED') {
+			// Handled by roster.js (modal acknowledgement workflow).
 			return;
 		}
+		const reloadOnVersionConflict = !options || options.reloadOnConflict !== false;
 		if (status === 409 || code === 'version_conflict') {
+			if (code === 'INTEGRATION_LEGACY_CONFLICT' || code === 'INTEGRATION_PURGE_BLOCKED') {
+				announce(friendly || genericMessage, 'error');
+				return;
+			}
 			announce(t('dutycheck', 'Someone else changed this entry. Reloading...'), 'warning');
-			if (!options || options.reloadOnConflict !== false) {
+			if (reloadOnVersionConflict) {
 				window.setTimeout(() => window.location.reload(), 600);
 			}
 			return;
 		}
-		const friendly = knownCodeMessage(code);
+		if (friendly) {
+			announce(friendly, 'error');
+			return;
+		}
 		if (status === 422) {
 			announce(friendly || t('dutycheck', 'Some details could not be saved. Please review the form and try again.'), 'error');
 			return;

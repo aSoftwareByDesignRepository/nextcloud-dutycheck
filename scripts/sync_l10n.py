@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Extract translatable strings from DutyCheck PHP/JS, merge de_dict.json, write en/de .json and .js."""
+"""Extract translatable strings from DutyCheck PHP/JS, merge de_dict.json, write en/de/de_DE .json and .js."""
 
 import json
 import re
@@ -122,9 +122,15 @@ def main() -> None:
 	(l10n_dir / "en.js").write_text(gen_js(en_translations), encoding="utf-8")
 	(l10n_dir / "de.js").write_text(gen_js(de_out), encoding="utf-8")
 
-	print(f"Wrote en.json/de.json/en.js/de.js with {len(en_translations)} entries.")
+	# de_DE: same strings as de (formal DE used for both generic German and de-DE locale).
+	(l10n_dir / "de_DE.json").write_text(
+		json.dumps(de_full, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+	)
+	(l10n_dir / "de_DE.js").write_text(gen_js(de_out), encoding="utf-8")
+
+	print(f"Wrote en.json/de.json/de_DE.json and en.js/de.js/de_DE.js with {len(en_translations)} entries.")
 	de_count = sum(1 for k in de_out if de_out[k] != k)
-	print(f"de.json has {de_count} non-identity German entries.")
+	print(f"de.json / de_DE.json have {de_count} non-identity German entries.")
 
 
 if __name__ == "__main__":

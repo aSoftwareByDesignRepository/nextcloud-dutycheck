@@ -3,6 +3,7 @@
 
 	const Api = window.DutyCheckApi;
 	const Msg = window.DutyCheckMessaging;
+	const ConflictLabels = window.DutyCheckConflictLabels;
 	const C = window.DutyCheckComponents;
 	const D = window.DutyCheckDates;
 	const create = C.createElement;
@@ -176,15 +177,13 @@
 			node.textContent = '';
 			return;
 		}
-		const hard = Number(readiness.hardConflicts || 0);
-		const soft = Number(readiness.softConflicts || 0);
-		const softUnack = Number(readiness.unacknowledgedSoftConflicts || 0);
+		const mustFix = Number(readiness.hardConflicts || 0);
+		const confirm = Number(readiness.softConflicts || 0);
+		const pendingOpen = Number(readiness.unacknowledgedSoftConflicts || 0);
 		const canPublish = Boolean(readiness.canPublish);
-		node.textContent = canPublish
-			? t('dutycheck', 'Publish ready: {hard} hard, {soft} soft ({unack} unacknowledged)')
-				.replace('{hard}', String(hard)).replace('{soft}', String(soft)).replace('{unack}', String(softUnack))
-			: t('dutycheck', 'Publish blocked: {hard} hard conflict(s) must be resolved')
-				.replace('{hard}', String(hard));
+		node.textContent = ConflictLabels
+			? ConflictLabels.publishReadinessLine(canPublish, mustFix, confirm, pendingOpen)
+			: (canPublish ? t('dutycheck', 'Ready to publish') : t('dutycheck', 'Publishing blocked'));
 	}
 
 	function renderSnapshots(snapshots) {
@@ -396,7 +395,7 @@
 	function transitionErrorMessage(code) {
 		switch (code) {
 			case 'PERIOD_HAS_HARD_CONFLICTS':
-				return t('dutycheck', 'Publishing is blocked until all hard conflicts are resolved.');
+				return t('dutycheck', 'Publishing is blocked until every “Must fix” issue is resolved.');
 			case 'REASON_TOO_SHORT':
 				return t('dutycheck', 'Reason must contain at least 10 characters.');
 			case 'INVALID_PERIOD_TRANSITION':
@@ -449,7 +448,7 @@
 			} else if (status === 'published') {
 				const ok = await C.confirmDialog({
 					title: t('dutycheck', 'Publish period?'),
-					body: t('dutycheck', 'A snapshot will be created and the period will be visible to employees. Soft-conflict acknowledgements remain in the audit trail.'),
+					body: t('dutycheck', 'A snapshot will be created and the period will be visible to employees. Confirmed “Confirm to continue” exceptions remain in the audit trail.'),
 					confirmLabel: t('dutycheck', 'Publish'),
 					cancelLabel: t('dutycheck', 'Cancel'),
 				});

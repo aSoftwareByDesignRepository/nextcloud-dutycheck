@@ -76,4 +76,13 @@ class ApiJsonErrorResponseTest extends TestCase
 		self::assertSame(400, $response->getStatus());
 		self::assertSame('INTEGRATION_PEER_NOT_INSTALLED', $response->getData()['error']['code']);
 	}
+
+	public function testMapsAssignmentRequiredFieldsTo400(): void
+	{
+		foreach (['PERIOD_ID_REQUIRED', 'EMPLOYEE_ID_REQUIRED', 'LOCATION_ID_REQUIRED'] as $code) {
+			$response = ApiJsonErrorResponse::fromThrowable(new \InvalidArgumentException($code));
+			self::assertSame(400, $response->getStatus(), $code);
+			self::assertSame($code, $response->getData()['error']['code'], $code);
+		}
+	}
 }

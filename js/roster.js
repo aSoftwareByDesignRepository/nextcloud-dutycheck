@@ -5,13 +5,240 @@
 	const Msg = window.DutyCheckMessaging;
 	const C = window.DutyCheckComponents;
 	const D = window.DutyCheckDates;
+	const ConflictLabels = window.DutyCheckConflictLabels;
 	const create = C.createElement;
 
 	const state = {
 		periods: [],
 		employees: [],
 		locations: [],
+		assignments: [],
+		absenceBlocks: [],
+		canCreateAssignments: false,
 	};
+
+	function dateToDayIndex(isoDate) {
+		const parts = String(isoDate || '').split('-').map((segment) => Number(segment));
+		if (parts.length !== 3 || parts.some((n) => !Number.isFinite(n))) {
+			return null;
+		}
+		return Math.floor(Date.UTC(parts[0], parts[1] - 1, parts[2]) / 86400000);
+	}
+
+	function assignmentAbsoluteRange(dutyDate, startTime, endTime) {
+		const dayIndex = dateToDayIndex(dutyDate);
+		const start = D?.wallClockMinutesFromTimeString?.(startTime);
+		const end = D?.wallClockMinutesFromTimeString?.(endTime);
+		if (dayIndex === null || start === null || end === null) {
+			return null;
+		}
+		const absoluteStart = (dayIndex * 1440) + start;
+		let absoluteEnd = (dayIndex * 1440) + end;
+		if (absoluteEnd <= absoluteStart) {
+			absoluteEnd += 1440;
+		}
+		return [absoluteStart, absoluteEnd];
+	}
+
+	function absoluteRangesOverlap(a, b) {
+		return a[0] < b[1] && b[0] < a[1];
+	}
+
+	function isDateInAbsenceBlock(employeeId, dutyDate) {
+		if (!dutyDate) {
+			return false;
+		}
+		for (const block of state.absenceBlocks) {
+			if (Number(block?.employeeId) !== Number(employeeId)) {
+				continue;
+			}
+			const start = String(block?.startDate || '');
+			const end = String(block?.endDate || '');
+			if (dutyDate >= start && dutyDate <= end) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	function employeesAvailableOnDate(dutyDate) {
+		if (!dutyDate) {
+			return [];
+		}
+		return state.employees.filter((employee) => !isDateInAbsenceBlock(employee.id, dutyDate));
+	}
+
+	function countEmployeesBlockedOnDate(dutyDate) {
+		if (!dutyDate) {
+			return 0;
+		}
+		return state.employees.length - employeesAvailableOnDate(dutyDate).length;
+	}
+
+	function appendHintLink(parent, beforeText, linkText, afterText, href) {
+		parent.appendChild(document.createTextNode(beforeText));
+		if (href) {
+			const link = create('a', {
+				class: 'dc-hint-link',
+				href,
+				text: linkText,
+			});
+			parent.appendChild(link);
+			parent.appendChild(document.createTextNode(afterText));
+		} else {
+			parent.appendChild(document.createTextNode(linkText + afterText));
+		}
+	}
+
+	function setEmployeeAvailabilityHint(dutyDate, available, blocked) {
+		const hint = document.getElementById('dc-assignment-employee-hint');
+		if (!hint) {
+			return;
+		}
+		const urls = readUrls();
+		hint.replaceChildren();
+		if (!dutyDate) {
+			hint.appendChild(document.createTextNode(
+				t('dutycheck', 'First pick a date above. Anyone on approved leave that day is left out of the list.'),
+			));
+			return;
+		}
+		if (!available.length && blocked > 0) {
+			appendHintLink(
+				hint,
+				t('dutycheck', 'Nobody can work this day — all {n} employees are on approved leave. Pick another date or ')
+					.replace('{n}', String(blocked)),
+				t('dutycheck', 'review absences'),
+				'.',
+				String(urls.absences || ''),
+			);
+			return;
+		}
+		if (!available.length) {
+			appendHintLink(
+				hint,
+				t('dutycheck', 'No employees are available. Add an active employee on the '),
+				t('dutycheck', 'Employees'),
+				t('dutycheck', ' page first.'),
+				String(urls.employees || ''),
+			);
+			return;
+		}
+		if (blocked > 0) {
+			hint.appendChild(document.createTextNode(
+				t('dutycheck', '{available} can be scheduled · {hidden} on approved leave (not in the list)')
+					.replace('{available}', String(available.length))
+					.replace('{hidden}', String(blocked)),
+			));
+			return;
+		}
+		hint.appendChild(document.createTextNode(
+			t('dutycheck', 'All {n} active employees can be scheduled on this date.')
+				.replace('{n}', String(available.length)),
+		));
+	}
+
+	function refreshEmployeeSelectForDate() {
+		const dateInput = document.getElementById('dc-assignment-date');
+		const dutyDate = dateInput ? String(dateInput.value || '') : '';
+		const available = employeesAvailableOnDate(dutyDate);
+		const blocked = countEmployeesBlockedOnDate(dutyDate);
+		setEmployeeAvailabilityHint(dutyDate, available, blocked);
+		fillSelect('dc-assignment-employee', available, {
+			emptyText: dutyDate
+				? t('dutycheck', 'No one is available on this date (approved leave). Pick another date.')
+				: t('dutycheck', 'Pick a date first'),
+		});
+		const employeeSelect = document.getElementById('dc-assignment-employee');
+		if (employeeSelect) {
+			employeeSelect.disabled = !dutyDate || !available.length || employeeSelect.dataset.dcLockedBySetup === '1';
+		}
+	}
+
+	function findOverlapAssignment(payload) {
+		const candidate = assignmentAbsoluteRange(payload.dutyDate, payload.startTime, payload.endTime);
+		if (!candidate) {
+			return null;
+		}
+		for (const assignment of state.assignments) {
+			if (Number(assignment?.employeeId) !== Number(payload.employeeId)) {
+				continue;
+			}
+			const existing = assignmentAbsoluteRange(
+				String(assignment?.dutyDate || ''),
+				String(assignment?.startTime || ''),
+				String(assignment?.endTime || ''),
+			);
+			if (existing && absoluteRangesOverlap(candidate, existing)) {
+				return assignment;
+			}
+		}
+		return null;
+	}
+
+	function updateAssignmentFormFeedback(payload) {
+		const el = document.getElementById('dc-assignment-form-feedback');
+		const submit = document.querySelector('#dc-assignment-form button[type="submit"]');
+		if (!el) {
+			return;
+		}
+		if (typeof payload === 'string') {
+			el.hidden = false;
+			el.textContent = payload;
+			el.classList.add('dc-roster-form__feedback--error');
+			if (submit) {
+				submit.disabled = false;
+			}
+			return;
+		}
+		if (!payload) {
+			el.hidden = true;
+			el.textContent = '';
+			el.classList.remove('dc-roster-form__feedback--error');
+			return;
+		}
+		let message = '';
+		let isError = false;
+		if (payload && payload.employeeId > 0 && payload.dutyDate && isDateInAbsenceBlock(payload.employeeId, payload.dutyDate)) {
+			message = t('dutycheck', 'This person is on approved leave on the selected date and cannot be scheduled.');
+			isError = true;
+		} else if (payload && payload.employeeId > 0 && payload.dutyDate && payload.startTime && payload.endTime) {
+			const overlap = findOverlapAssignment(payload);
+			if (overlap) {
+				const when = D?.formatDisplayDate?.(overlap.dutyDate) || overlap.dutyDate;
+				const times = D?.formatClock24Range?.(overlap.startTime, overlap.endTime)
+					|| `${overlap.startTime} – ${overlap.endTime}`;
+				message = t('dutycheck', 'These times overlap an existing shift on {date} ({times}). Change the times or choose another employee.')
+					.replace('{date}', String(when))
+					.replace('{times}', String(times));
+				isError = true;
+			}
+		}
+		if (!message) {
+			el.hidden = true;
+			el.textContent = '';
+			el.classList.remove('dc-roster-form__feedback--error');
+			if (submit && submit.dataset.dcLockedBySetup !== '1') {
+				submit.disabled = false;
+			}
+			return;
+		}
+		el.hidden = false;
+		el.textContent = message;
+		el.classList.toggle('dc-roster-form__feedback--error', isError);
+		if (submit && isError) {
+			submit.disabled = true;
+		}
+	}
+
+	function refreshAssignmentFormEligibility() {
+		refreshEmployeeSelectForDate();
+		const form = document.getElementById('dc-assignment-form');
+		if (!form) {
+			return;
+		}
+		updateAssignmentFormFeedback(readForm(form));
+	}
 
 	function fillSelect(id, items, options) {
 		const opts = Object.assign({ labelKey: 'name', emptyText: t('dutycheck', 'No options available') }, options || {});
@@ -74,10 +301,10 @@
 
 	function severityBadge(severity) {
 		const sev = String(severity || 'info');
-		const label = sev === 'hard'
-			? t('dutycheck', 'Hard')
-			: (sev === 'soft' ? t('dutycheck', 'Soft') : t('dutycheck', 'Info'));
-		return create('span', { class: 'dc-severity dc-severity--' + sev, text: label });
+		const label = ConflictLabels ? ConflictLabels.severityLabel(severity) : sev;
+		const badge = create('span', { class: 'dc-severity dc-severity--' + sev, text: label });
+		badge.setAttribute('aria-label', label);
+		return badge;
 	}
 
 	function renderConflicts(conflicts) {
@@ -90,11 +317,10 @@
 		const softUnack = conflicts.filter((c) => c?.severity === 'soft' && !c?.acknowledged).length;
 		if (summary) {
 			summary.textContent = !conflicts.length
-				? t('dutycheck', 'No conflicts detected.')
-				: t('dutycheck', '{hard} hard · {soft} soft ({unack} unacknowledged)')
-					.replace('{hard}', String(hard))
-					.replace('{soft}', String(soft))
-					.replace('{unack}', String(softUnack));
+				? t('dutycheck', 'No planning issues found.')
+				: (ConflictLabels
+					? ConflictLabels.countsSummary(hard, soft, softUnack)
+					: String(hard));
 		}
 		if (!conflicts.length) {
 			return;
@@ -114,12 +340,12 @@
 			if (conflict?.acknowledged && conflict?.ackReason) {
 				body.appendChild(create('span', {
 					class: 'dc-conflict__ack',
-					text: t('dutycheck', 'Acknowledged: {reason}').replace('{reason}', String(conflict.ackReason)),
+					text: t('dutycheck', 'Confirmed: {reason}').replace('{reason}', String(conflict.ackReason)),
 				}));
 			} else if (conflict?.ackInvalidated) {
 				body.appendChild(create('span', {
 					class: 'dc-conflict__ack-invalid',
-					text: t('dutycheck', 'Acknowledgement invalidated by changes - re-acknowledge required'),
+					text: t('dutycheck', 'The roster changed — please confirm again with a new reason.'),
 				}));
 			}
 			li.appendChild(body);
@@ -129,7 +355,7 @@
 				const ackBtn = create('button', {
 					type: 'button',
 					class: 'button',
-					text: t('dutycheck', 'Acknowledge'),
+					text: t('dutycheck', 'Confirm'),
 				});
 				ackBtn.addEventListener('click', () => acknowledgeConflict(conflict.id));
 				actions.appendChild(ackBtn);
@@ -141,9 +367,9 @@
 
 	async function acknowledgeConflict(conflictId) {
 		const reason = await C.promptReason({
-			title: t('dutycheck', 'Acknowledge conflict'),
-			label: t('dutycheck', 'Acknowledgement reason (minimum 10 characters)'),
-			confirmLabel: t('dutycheck', 'Acknowledge'),
+			title: t('dutycheck', 'Confirm this exception'),
+			label: t('dutycheck', 'Briefly explain why you are allowing this (minimum 10 characters)'),
+			confirmLabel: t('dutycheck', 'Confirm'),
 			cancelLabel: t('dutycheck', 'Cancel'),
 			minLength: 10,
 		});
@@ -151,7 +377,7 @@
 		try {
 			const response = await Api.post(`/apps/dutycheck/api/conflicts/${conflictId}/acknowledge`, { reason });
 			render(response?.data || {});
-			Msg.announce(t('dutycheck', 'Conflict acknowledged.'));
+			Msg.announce(t('dutycheck', 'Exception confirmed.'));
 		} catch (err) {
 			Msg.handleApiError(err);
 		}
@@ -217,18 +443,63 @@
 		return Array.from(types);
 	}
 
+	function softConflictSummary(conflicts) {
+		const lines = [];
+		for (const conflict of conflicts || []) {
+			if (conflict?.severity !== 'soft') {
+				continue;
+			}
+			const raw = String(conflict?.message || '');
+			const text = raw ? translateConflictMessage(raw) : t('dutycheck', 'Unknown conflict');
+			if (text && !lines.includes(text)) {
+				lines.push(text);
+			}
+		}
+		return lines.join('\n');
+	}
+
+	function errorCodeFrom(err) {
+		return String(err?.code || err?.payload?.error?.code || '');
+	}
+
+	function syncAssignmentPeriodFromSwitcher() {
+		const switcher = document.getElementById('dc-roster-period-switcher');
+		const periodHidden = document.getElementById('dc-assignment-period');
+		if (!switcher || !periodHidden) {
+			return;
+		}
+		const selected = Number(switcher.value);
+		if (Number.isInteger(selected) && selected > 0) {
+			periodHidden.value = String(selected);
+		}
+	}
+
+	function announceAssignmentSaveError(err) {
+		const friendly = errorMessageFor(err);
+		const message = friendly || t('dutycheck', 'Something went wrong. Please try again, and contact an administrator if it keeps happening.');
+		updateAssignmentFormFeedback(message);
+		Msg.announce(message, 'error');
+	}
+
 	async function submitAssignment(payload, retryWithAck = true) {
 		try {
 			return await Api.post('/apps/dutycheck/api/assignments', payload);
 		} catch (error) {
-			const code = String(error?.payload?.error?.code || '');
+			const code = errorCodeFrom(error);
 			if (retryWithAck && code === 'CONFLICT_ACK_REQUIRED') {
-				const conflictTypes = uniqueConflictTypes(error?.payload?.error?.conflicts || []);
-				if (!conflictTypes.length) throw error;
+				const conflicts = error?.payload?.error?.conflicts || [];
+				let conflictTypes = uniqueConflictTypes(conflicts);
+				if (!conflictTypes.length) {
+					conflictTypes = ['rest_time_violation'];
+				}
+				const summary = softConflictSummary(conflicts);
 				const reason = await C.promptReason({
-					title: t('dutycheck', 'Soft conflicts require acknowledgement'),
-					label: t('dutycheck', 'Enter acknowledgement reason (minimum 10 characters)'),
-					confirmLabel: t('dutycheck', 'Continue'),
+					title: t('dutycheck', 'Planning rule needs your confirmation'),
+					label: summary
+						? t('dutycheck', 'Briefly explain why you are scheduling anyway (at least 10 characters).\n\n{details}')
+							.replace('{details}', summary)
+						: t('dutycheck', 'Briefly explain why you are scheduling anyway (at least 10 characters).'),
+					confirmLabel: t('dutycheck', 'Save with confirmation'),
 					cancelLabel: t('dutycheck', 'Cancel'),
 					minLength: 10,
 				});
@@ -239,6 +510,23 @@
 				return submitAssignment({ ...payload, acknowledgements }, false);
 			}
 			throw error;
+		}
+	}
+
+	function setAssignmentFormBusy(form, busy) {
+		if (!form) return;
+		const submit = form.querySelector('button[type="submit"]');
+		const clear = document.getElementById('dc-assignment-form-clear');
+		if (submit) {
+			submit.disabled = busy || submit.dataset.dcLockedBySetup === '1';
+			if (busy) {
+				submit.setAttribute('aria-busy', 'true');
+			} else {
+				submit.removeAttribute('aria-busy');
+			}
+		}
+		if (clear) {
+			clear.disabled = busy;
 		}
 	}
 
@@ -423,6 +711,9 @@
 		state.periods = data.periods || [];
 		state.employees = data.employees || [];
 		state.locations = data.locations || [];
+		state.assignments = data.assignments || [];
+		state.absenceBlocks = data.absenceBlocks || [];
+		state.canCreateAssignments = Boolean(data.canCreateAssignments);
 		fillPeriodSwitcher(state.periods, data.selectedPeriodId);
 		updateActiveScopeBanner(data.selectedPeriodId);
 		const periodHidden = document.getElementById('dc-assignment-period');
@@ -434,12 +725,17 @@
 		if (dateInput && selectedPeriod?.startDate && selectedPeriod?.endDate) {
 			dateInput.min = String(selectedPeriod.startDate);
 			dateInput.max = String(selectedPeriod.endDate);
+			if (!dateInput.value && state.canCreateAssignments) {
+				dateInput.value = String(selectedPeriod.startDate);
+			}
 		} else if (dateInput) {
 			dateInput.removeAttribute('min');
 			dateInput.removeAttribute('max');
 		}
-		fillSelect('dc-assignment-employee', state.employees);
-		fillSelect('dc-assignment-location', state.locations);
+		fillSelect('dc-assignment-location', state.locations, {
+			emptyText: t('dutycheck', 'No active locations yet'),
+		});
+		refreshAssignmentFormEligibility();
 		renderAssignments(data.assignments || []);
 		renderConflicts(data.conflicts || []);
 		renderSetupCallout(data);
@@ -511,6 +807,7 @@
 		const br = document.getElementById('dc-assignment-break');
 		if (br) br.value = '0';
 		D?.applyLocaleToTemporalInputs(form);
+		refreshAssignmentFormEligibility();
 		Msg.announce(t('dutycheck', 'Form cleared.'));
 	}
 
@@ -572,11 +869,17 @@
 		if (effective <= 0) {
 			return t('dutycheck', 'Shift length is invalid after break (check overnight times and break minutes).');
 		}
+		if (isDateInAbsenceBlock(payload.employeeId, payload.dutyDate)) {
+			return t('dutycheck', 'This employee has approved leave on the selected date.');
+		}
+		if (findOverlapAssignment(payload)) {
+			return t('dutycheck', 'This employee already has an overlapping assignment for these times.');
+		}
 		return null;
 	}
 
 	function errorMessageFor(error) {
-		const code = String(error?.payload?.error?.code || error?.code || '');
+		const code = errorCodeFrom(error);
 		switch (code) {
 			case 'PERIOD_NOT_OPEN':
 				return t('dutycheck', 'The selected period is not open for planning.');
@@ -601,12 +904,20 @@
 			case 'ABSENCE_CONFLICT':
 				return t('dutycheck', 'This employee has an approved absence on that date.');
 			case 'CONFLICT_ACK_REQUIRED':
-				return t('dutycheck', 'Acknowledgement is required for soft conflicts.');
+				return t('dutycheck', 'A planning rule needs your confirmation before this shift can be saved.');
 			case 'REASON_TOO_SHORT':
 				return t('dutycheck', 'Acknowledgement reason must contain at least 10 characters.');
+			case 'INTERNAL_ERROR':
+				return t('dutycheck', 'The server could not save this assignment. Reload the page and try again, or contact an administrator.');
 			case 'INVALID_DATE':
 			case 'INVALID_TIME':
 				return t('dutycheck', 'Please check the dates and times.');
+			case 'PERIOD_ID_REQUIRED':
+				return t('dutycheck', 'Select a period before saving.');
+			case 'EMPLOYEE_ID_REQUIRED':
+				return t('dutycheck', 'Select an employee.');
+			case 'LOCATION_ID_REQUIRED':
+				return t('dutycheck', 'Select a location.');
 			default:
 				return null;
 		}
@@ -628,14 +939,26 @@
 		});
 
 		const form = document.getElementById('dc-assignment-form');
+		const scheduleEligibilityRefresh = () => {
+			refreshAssignmentFormEligibility();
+		};
+		document.getElementById('dc-assignment-date')?.addEventListener('change', scheduleEligibilityRefresh);
+		document.getElementById('dc-assignment-employee')?.addEventListener('change', scheduleEligibilityRefresh);
+		document.getElementById('dc-assignment-start')?.addEventListener('change', scheduleEligibilityRefresh);
+		document.getElementById('dc-assignment-end')?.addEventListener('change', scheduleEligibilityRefresh);
+		document.getElementById('dc-assignment-location')?.addEventListener('change', scheduleEligibilityRefresh);
 		form?.addEventListener('submit', async (event) => {
 			event.preventDefault();
+			syncAssignmentPeriodFromSwitcher();
 			const payload = readForm(form);
 			const validation = validate(payload);
 			if (validation) {
+				updateAssignmentFormFeedback(validation);
 				Msg.announce(validation, 'error');
 				return;
 			}
+			updateAssignmentFormFeedback(null);
+			setAssignmentFormBusy(form, true);
 			try {
 				const response = await submitAssignment(payload, true);
 				render(response?.data || {});
@@ -647,14 +970,13 @@
 				const br = document.getElementById('dc-assignment-break');
 				if (br) br.value = '0';
 				D?.applyLocaleToTemporalInputs(form);
+				updateAssignmentFormFeedback(null);
 				Msg.announce(t('dutycheck', 'Assignment saved.'));
 			} catch (err) {
-				const friendly = errorMessageFor(err);
-				if (friendly) {
-					Msg.announce(friendly, 'error');
-				} else {
-					Msg.handleApiError(err, { reloadOnConflict: false });
-				}
+				announceAssignmentSaveError(err);
+			} finally {
+				setAssignmentFormBusy(form, false);
+				refreshAssignmentFormEligibility();
 			}
 		});
 	});

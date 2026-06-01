@@ -14,7 +14,7 @@ $locksLinked = !empty($_['integrationLocksLinkedDutyCheckAbsences']);
 		<div>
 			<h2 id="dc-absences-quickstart-title"><?php p($l->t('Quick start')); ?></h2>
 			<p class="dc-section__sub">
-				<?php p($l->t('Absences keep the roster honest: approved time off becomes a hard conflict against overlapping assignments.')); ?>
+				<?php p($l->t('Absences keep the roster honest: once approved, someone cannot be scheduled on those days, and any overlapping shift shows as “Must fix” on the Roster.')); ?>
 			</p>
 		</div>
 		<button type="button" class="dc-hint-dismiss" data-dc-dismiss-hint="absences_quickstart_v1" aria-describedby="dc-absences-quickstart-title">
@@ -37,7 +37,7 @@ $locksLinked = !empty($_['integrationLocksLinkedDutyCheckAbsences']);
 		<li class="dc-quickstart__item" data-step="impact">
 			<strong><?php p($l->t('3. Watch the roster react')); ?></strong>
 			<p>
-				<?php p($l->t('After approval, jump to the Roster — overlapping assignments now appear as hard conflicts that must be reassigned or removed before publishing.')); ?>
+				<?php p($l->t('After approval, open the Roster — overlapping shifts appear as “Must fix” and must be changed or removed before you publish.')); ?>
 			</p>
 			<a class="button" href="#" data-dc-link="roster"><?php p($l->t('Open Roster')); ?></a>
 		</li>
@@ -55,7 +55,7 @@ $locksLinked = !empty($_['integrationLocksLinkedDutyCheckAbsences']);
 				<?php if ($locksLinked) { ?>
 					<?php p($l->t('Use this only for people who are not linked to a Nextcloud account (they have no “ArbeitszeitCheck” tag in the list). Linked people are managed in ArbeitszeitCheck — link them under Employees if they should use the integration.')); ?>
 				<?php } else { ?>
-					<?php p($l->t('Use this form when an employee cannot submit a request themselves. Approved absences automatically conflict with overlapping assignments.')); ?>
+					<?php p($l->t('Use this form when an employee cannot submit a request themselves. Once approved, the person cannot be scheduled on those days; any overlapping shift on the Roster becomes a “Must fix” issue.')); ?>
 				<?php } ?>
 			</p>
 		</div>

@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.1.11 - 2026-06-01
+
+### Fixed
+
+- **Roster assignment and employee saves work on Snap and reverse-proxy setups.** Mutations now use `application/x-www-form-urlencoded` (the same transport Nextcloud core expects) instead of JSON-only bodies, with the CSRF token duplicated in the body when proxies strip custom headers. This fixes silent save failures that showed only the generic “Something went wrong” toast with no `nextcloud.log` entry.
+- **`createAssignment` transaction scope** — conflict refresh commits before reloading roster data; rollback is guarded with `inTransaction()` so a failed save never masks the real error.
+- **Acknowledgement payloads** from HTML forms are normalised server-side (`ApiMutationParams::acknowledgements`).
+- **Assignment form errors** stay visible in the inline feedback region (not toast-only) and the active period is re-synced from the switcher on every save attempt.
+
+## 0.1.10 - 2026-06-01
+
+### Fixed
+
+- **Roster form only offers employees who can actually be scheduled.** The API now ships approved-absence blocks (DutyCheck + ArbeitszeitCheck mirror) for the active period; the UI picks a **date first**, then lists only employees **not on approved leave** that day, with a live count of hidden names. Overlapping shifts are caught **before save** with a plain-language warning.
+- **Default period selection** opens the newest **open** planning period instead of a read-only one.
+- **Roster assignment save is reliable end-to-end.** `createAssignment` now validates required IDs before work begins, runs insert + conflict refresh in a **database transaction** (no half-saved shifts), and maps missing fields to explicit API codes (`PERIOD_ID_REQUIRED`, `EMPLOYEE_ID_REQUIRED`, `LOCATION_ID_REQUIRED`) instead of opaque failures.
+- **API client surfaces real errors.** `js/common/api.js` treats `ok: false` JSON as an error even on unusual HTTP statuses, normalises error codes consistently, and retries CSRF recovery whenever a fresh token is returned (not only when it changed).
+- **Soft-conflict acknowledgement on the roster page** no longer falls through to a generic message when conflict metadata is sparse; the modal defaults to `rest_time_violation` and lists the detected issues.
+- **409 handling** in `messaging.js` no longer mis-labels conflict-acknowledgement or integration conflicts as “someone else changed this entry”.
+- **Employee save** sends a proper boolean `active` flag; `INVALID_DISPLAY_NAME` / `INVALID_ACTIVE_FLAG` show targeted messages.
+- **Proactive CSRF refresh** on page load (`js/common/session.js`) reduces first-save failures on long-lived tabs.
+- **Unhandled API faults are logged** to `nextcloud.log` via `ApiJsonErrorResponse` while still showing a safe message in the UI.
+
+### Changed
+
+- **Roster “Create assignment” form** uses a three-step layout (day → who/where → times), step badges, inline hints, and an accessible feedback region (WCAG 2.1 AA, responsive grid).
+- **Plain-language planning checks:** conflict badges read **Must fix** / **Confirm to continue** (not “hard/soft”); the conflict panel is titled **Planning checks**; Save-time confirmation points to that section; absence hints link to the **Absences** page.
+- **Dashboard, Periods, and Absences** use the same wording via shared `js/common/conflict-labels.js` (planning status pulse, publish readiness line, German l10n); Absences quickstart and planner form no longer say “hard conflict”.
+- **`scripts/sync_l10n.py`** now mirrors `de` → `de_DE` so German (Germany) locale files stay current (636 strings, no stale “hard/soft conflict” copy).
+
 ## 0.1.9 - 2026-05-29
 
 ### Fixed

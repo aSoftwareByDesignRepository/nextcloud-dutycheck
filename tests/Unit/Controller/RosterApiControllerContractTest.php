@@ -53,16 +53,16 @@ class RosterApiControllerContractTest extends TestCase
 
 	public function testCreateAssignmentReturnsConflictAckRequiredContract(): void
 	{
-		$this->request->method('getParam')->willReturnMap([
-			['periodId', null, 12],
-			['employeeId', null, 21],
-			['locationId', null, 3],
-			['dutyDate', null, '2026-05-08'],
-			['startTime', null, '08:00'],
-			['endTime', null, '16:00'],
-			['breakMinutes', null, 30],
-			['note', null, ''],
-			['acknowledgements', [], []],
+		$this->request->method('getParams')->willReturn([
+			'periodId' => 12,
+			'employeeId' => 21,
+			'locationId' => 3,
+			'dutyDate' => '2026-05-08',
+			'startTime' => '08:00',
+			'endTime' => '16:00',
+			'breakMinutes' => 30,
+			'note' => '',
+			'acknowledgements' => [],
 		]);
 		$this->roster->method('createAssignment')
 			->willThrowException(new ConflictAckRequiredException([
@@ -76,6 +76,52 @@ class RosterApiControllerContractTest extends TestCase
 		self::assertFalse($data['ok']);
 		self::assertSame('CONFLICT_ACK_REQUIRED', $data['error']['code']);
 		self::assertNotEmpty($data['error']['conflicts']);
+	}
+
+	public function testCreateAssignmentMapsMissingEmployeeTo400(): void
+	{
+		$this->request->method('getParams')->willReturn([
+			'periodId' => '12',
+			'employeeId' => '0',
+			'locationId' => '3',
+		]);
+		$this->roster->method('createAssignment')
+			->willThrowException(new \InvalidArgumentException('EMPLOYEE_ID_REQUIRED'));
+
+		$response = $this->controller->createAssignment();
+		self::assertSame(400, $response->getStatus());
+		self::assertSame('EMPLOYEE_ID_REQUIRED', $response->getData()['error']['code']);
+	}
+
+	public function testCreateAssignmentPassesFormEncodedStringIdsToService(): void
+	{
+		$this->request->method('getParams')->willReturn([
+			'periodId' => '12',
+			'employeeId' => '21',
+			'locationId' => '3',
+			'dutyDate' => '2026-06-08',
+			'startTime' => '08:00',
+			'endTime' => '16:00',
+			'breakMinutes' => '30',
+			'note' => '',
+			'acknowledgements' => [],
+		]);
+		$this->roster->expects(self::once())
+			->method('createAssignment')
+			->with(
+				self::callback(static function (array $payload): bool {
+					return $payload['periodId'] === '12'
+						&& $payload['employeeId'] === '21'
+						&& $payload['locationId'] === '3'
+						&& $payload['dutyDate'] === '2026-06-08'
+						&& $payload['acknowledgements'] === [];
+				}),
+				'planner-1',
+			)
+			->willReturn(['assignments' => []]);
+
+		$response = $this->controller->createAssignment();
+		self::assertTrue($response->getData()['ok']);
 	}
 
 	public function testVerifyPeriodSnapshotsMapsHashMismatchTo500(): void

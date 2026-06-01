@@ -275,10 +275,10 @@
 				await save({
 					displayName,
 					linkedUserId: String(formData.get('linkedUserId') || ''),
-					active: formData.get('active') !== null,
+					active: formData.has('active'),
 				}, editingId);
 			} catch (err) {
-				const code = String(err?.payload?.error?.code || '');
+				const code = String(err?.code || err?.payload?.error?.code || '');
 				if (code === 'INVALID_LINKED_USER') {
 					Msg.announce(t('dutycheck', 'The selected user could not be linked. Pick another account.'), 'error');
 					return;
@@ -289,6 +289,14 @@
 				}
 				if (code === 'EMPLOYEE_NAME_EXISTS') {
 					Msg.announce(t('dutycheck', 'An employee with that display name already exists.'), 'error');
+					return;
+				}
+				if (code === 'INVALID_DISPLAY_NAME') {
+					Msg.announce(t('dutycheck', 'Please enter a valid name (1–191 characters, no control characters).'), 'error');
+					return;
+				}
+				if (code === 'INVALID_ACTIVE_FLAG') {
+					Msg.announce(t('dutycheck', 'Could not read the active/inactive setting. Reload the page and try again.'), 'error');
 					return;
 				}
 				Msg.handleApiError(err);

@@ -43,7 +43,7 @@ $urls = (array) ($_['urls'] ?? []);
 		<li class="dc-quickstart__item" data-step="roster">
 			<strong><?php p($l->t('3. Plan and publish duties')); ?></strong>
 			<p>
-				<?php p($l->t('In the Roster, assign each shift. Hard conflicts (e.g. someone is in two places at once) block saving — soft conflicts need a written acknowledgement. Then publish the period so employees can see their roster.')); ?>
+				<?php p($l->t('In the Roster, assign each shift. “Must fix” issues (e.g. someone in two places at once) block saving. “Confirm to continue” items need a short written reason. Then publish the period so employees can see their roster.')); ?>
 			</p>
 			<a class="button" href="#" data-dc-link="roster"><?php p($l->t('Open Roster')); ?></a>
 		</li>
@@ -102,14 +102,14 @@ $urls = (array) ($_['urls'] ?? []);
 		</li>
 		<li class="dc-quickstart__item">
 			<strong><?php p($l->t('Plan assignments')); ?></strong>
-			<p><?php p($l->t('Open Roster, add assignments, resolve every hard conflict before continuing.')); ?></p>
+			<p><?php p($l->t('Open Roster, add assignments, and resolve every “Must fix” issue before continuing.')); ?></p>
 			<a class="button" href="<?php p((string) ($urls['roster'] ?? '#')); ?>">
 				<?php p($l->t('Go to Roster')); ?>
 			</a>
 		</li>
 		<li class="dc-quickstart__item">
-			<strong><?php p($l->t('Acknowledge any soft conflicts')); ?></strong>
-			<p><?php p($l->t('Soft conflicts require a written acknowledgement that is captured in the audit trail.')); ?></p>
+			<strong><?php p($l->t('Confirm any “Confirm to continue” items')); ?></strong>
+			<p><?php p($l->t('These need a short written confirmation on the Roster page. It is stored in the audit trail.')); ?></p>
 		</li>
 		<li class="dc-quickstart__item">
 			<strong><?php p($l->t('Publish the period')); ?></strong>
@@ -124,15 +124,15 @@ $urls = (array) ($_['urls'] ?? []);
 <section class="dc-card dc-section" aria-labelledby="dc-dashboard-conflicts-title">
 	<header class="dc-section__header">
 		<div>
-			<h2 id="dc-dashboard-conflicts-title"><?php p($l->t('Conflict pulse')); ?></h2>
+			<h2 id="dc-dashboard-conflicts-title"><?php p($l->t('Planning status')); ?></h2>
 			<p class="dc-section__sub">
-				<?php p($l->t('A quick read on outstanding conflicts in the latest open period. Hard conflicts always block publishing.')); ?>
+				<?php p($l->t('A quick read on open planning issues in the latest editable period. “Must fix” always blocks publishing.')); ?>
 			</p>
 		</div>
 	</header>
 	<div id="dc-dashboard-conflict-pulse" class="dc-loading"
 		role="status" aria-live="polite" aria-busy="true">
-		<?php p($l->t('Loading conflict state…')); ?>
+		<?php p($l->t('Loading planning checks…')); ?>
 	</div>
 </section>
 <?php include __DIR__ . '/common/page-end.php'; ?>

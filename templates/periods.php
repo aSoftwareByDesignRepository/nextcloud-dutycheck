@@ -76,7 +76,7 @@ $isAppAdmin = !empty($_['isAppAdmin']);
 		<div>
 			<h2 id="dc-periods-title"><?php p($l->t('Periods')); ?></h2>
 			<p class="dc-section__sub">
-				<?php p($l->t('Select a period to load its lifecycle, snapshots, and audit trail. Publishing requires zero hard conflicts.')); ?>
+				<?php p($l->t('Select a period to load its lifecycle, snapshots, and audit trail. You can publish only when every “Must fix” issue is resolved and “Confirm to continue” items are confirmed.')); ?>
 			</p>
 		</div>
 		<div class="dc-section__controls">

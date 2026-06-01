@@ -28,7 +28,7 @@ composer install
 ./vendor/bin/phpunit
 ```
 
-Regenerate translation scaffolding after string changes:
+Regenerate translation scaffolding after string changes (writes `en`, `de`, and `de_DE` — `de_DE` mirrors `de`):
 
 ```bash
 python3 scripts/sync_l10n.py

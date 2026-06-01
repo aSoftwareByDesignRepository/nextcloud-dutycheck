@@ -6,6 +6,7 @@ namespace OCA\DutyCheck\Controller;
 
 use OCA\DutyCheck\AppInfo\Application;
 use OCA\DutyCheck\Exception\ConflictAckRequiredException;
+use OCA\DutyCheck\Http\ApiMutationParams;
 use OCA\DutyCheck\Integration\IArbeitszeitCheckIntegration;
 use OCA\DutyCheck\Service\AccessControlService;
 use OCA\DutyCheck\Service\RosterCsvFormatter;
@@ -253,18 +254,21 @@ class RosterApiController extends Controller
 	{
 		try {
 			$this->access->requirePlannerOrAdmin($this->access->currentUserId());
+			$params = ApiMutationParams::all($this->request);
 			$data = $this->roster->createAssignment([
-				'periodId' => $this->request->getParam('periodId'),
-				'employeeId' => $this->request->getParam('employeeId'),
-				'locationId' => $this->request->getParam('locationId'),
-				'dutyDate' => $this->request->getParam('dutyDate'),
-				'startTime' => $this->request->getParam('startTime'),
-				'endTime' => $this->request->getParam('endTime'),
-				'breakMinutes' => $this->request->getParam('breakMinutes'),
-				'note' => $this->request->getParam('note'),
-				'acknowledgements' => $this->request->getParam('acknowledgements', []),
+				'periodId' => $params['periodId'] ?? null,
+				'employeeId' => $params['employeeId'] ?? null,
+				'locationId' => $params['locationId'] ?? null,
+				'dutyDate' => $params['dutyDate'] ?? null,
+				'startTime' => $params['startTime'] ?? null,
+				'endTime' => $params['endTime'] ?? null,
+				'breakMinutes' => $params['breakMinutes'] ?? null,
+				'note' => $params['note'] ?? null,
+				'acknowledgements' => ApiMutationParams::acknowledgements($this->request),
 			], $this->access->currentUserId());
 			return new DataResponse(['ok' => true, 'data' => $data]);
+		} catch (\InvalidArgumentException $e) {
+			return new DataResponse(['ok' => false, 'error' => ['code' => $e->getMessage()]], ApiJsonErrorResponse::statusForInvalidArgument($e->getMessage()));
 		} catch (ConflictAckRequiredException $e) {
 			return new DataResponse([
 				'ok' => false,
@@ -354,10 +358,11 @@ class RosterApiController extends Controller
 	{
 		try {
 			$this->access->requirePlannerOrAdmin($this->access->currentUserId());
+			$params = ApiMutationParams::all($this->request);
 			$data = $this->roster->createEmployee([
-				'displayName' => $this->request->getParam('displayName'),
-				'linkedUserId' => $this->request->getParam('linkedUserId'),
-				'active' => $this->request->getParam('active'),
+				'displayName' => $params['displayName'] ?? null,
+				'linkedUserId' => $params['linkedUserId'] ?? null,
+				'active' => $params['active'] ?? null,
 			]);
 			return new DataResponse(['ok' => true, 'data' => $data]);
 		} catch (\InvalidArgumentException $e) {
@@ -372,10 +377,11 @@ class RosterApiController extends Controller
 	{
 		try {
 			$this->access->requirePlannerOrAdmin($this->access->currentUserId());
+			$params = ApiMutationParams::all($this->request);
 			$data = $this->roster->updateEmployee($id, [
-				'displayName' => $this->request->getParam('displayName'),
-				'linkedUserId' => $this->request->getParam('linkedUserId'),
-				'active' => $this->request->getParam('active'),
+				'displayName' => $params['displayName'] ?? null,
+				'linkedUserId' => $params['linkedUserId'] ?? null,
+				'active' => $params['active'] ?? null,
 			]);
 			return new DataResponse(['ok' => true, 'data' => $data]);
 		} catch (\InvalidArgumentException $e) {

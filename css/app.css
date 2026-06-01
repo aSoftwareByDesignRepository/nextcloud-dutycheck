@@ -358,7 +358,7 @@
 	color: color-mix(in srgb, var(--color-error, #cc4646) 75%, var(--color-main-text, #1d1d1d) 25%);
 }
 
-/* Hard / soft conflict severity */
+/* Planning issue severity (must fix / confirm to continue) */
 .dc-severity {
 	display: inline-flex;
 	align-items: center;
@@ -367,8 +367,24 @@
 	border-radius: 999px;
 	font-size: var(--dc-fs-xs);
 	font-weight: 700;
-	letter-spacing: 0.04em;
-	text-transform: uppercase;
+	letter-spacing: 0.01em;
+	text-transform: none;
+}
+.dc-hint-link {
+	color: var(--color-primary-element, #00679e);
+	font-weight: 600;
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+.dc-hint-link:hover,
+.dc-hint-link:focus-visible {
+	color: var(--color-primary-element-text, #00679e);
+	text-decoration-thickness: 2px;
+}
+.dc-hint-link:focus-visible {
+	outline: 2px solid var(--color-primary-element, #00679e);
+	outline-offset: 2px;
+	border-radius: 2px;
 }
 .dc-severity--hard {
 	background: var(--dc-tint-critical);
@@ -1033,6 +1049,58 @@ label.dc-checkbox {
 	row-gap: var(--dc-space-3);
 	align-items: start;
 }
+.dc-roster-form__intro {
+	grid-column: 1 / -1;
+	margin: 0 0 var(--dc-space-2);
+	padding: var(--dc-space-3);
+	border-radius: var(--dc-radius-sm);
+	background: var(--dc-bg-soft);
+	border: 1px solid var(--dc-border);
+	font-size: var(--dc-fs-sm);
+	line-height: var(--dc-line-normal);
+	color: var(--color-main-text, #1d1d1d);
+}
+.dc-roster-form__section-heading--step {
+	display: flex;
+	align-items: center;
+	gap: var(--dc-space-2);
+}
+.dc-roster-form__step-badge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 1.75rem;
+	height: 1.75rem;
+	padding: 0 var(--dc-space-1);
+	border-radius: 999px;
+	background: var(--color-primary-element, #00679e);
+	color: var(--color-primary-element-text, #fff);
+	font-size: var(--dc-fs-sm);
+	font-weight: 700;
+	flex-shrink: 0;
+}
+.dc-roster-form__feedback {
+	grid-column: 1 / -1;
+	margin: 0;
+	padding: var(--dc-space-3);
+	border-radius: var(--dc-radius-sm);
+	border: 1px solid var(--dc-border);
+	background: var(--color-warning, #fcf4d4);
+	color: var(--color-main-text, #1d1d1d);
+	font-size: var(--dc-fs-sm);
+	line-height: var(--dc-line-normal);
+}
+.dc-roster-form__feedback[hidden] {
+	display: none !important;
+}
+.dc-roster-form__feedback--error {
+	border-color: var(--color-error, #c00);
+	background: var(--color-error, #c00);
+	background: color-mix(in srgb, var(--color-error, #c00) 12%, var(--color-main-background, #fff));
+}
+.dc-form-grid--roster-assignment > .dc-field--roster-date {
+	grid-column: 1 / 2;
+}
 .dc-form-grid--roster-assignment > .dc-field--roster-employee {
 	grid-column: 1 / 2;
 }
@@ -1060,14 +1128,19 @@ label.dc-checkbox {
 .dc-form-grid--roster-assignment .dc-roster-24h-hint {
 	margin: 0;
 }
-.dc-form-grid--roster-assignment > .dc-field--roster-date {
-	grid-column: 1 / 2;
-}
 .dc-form-grid--roster-assignment > .dc-field--roster-start {
 	grid-column: 2 / 3;
 }
 .dc-form-grid--roster-assignment > .dc-field--roster-end {
 	grid-column: 3 / 4;
+}
+.dc-form-grid--roster-assignment > .dc-field--roster-rest-hint {
+	grid-column: 1 / -1;
+	margin: 0;
+	padding: var(--dc-space-2) var(--dc-space-3);
+	border-radius: var(--dc-radius-sm);
+	background: var(--dc-bg-soft);
+	border: 1px solid var(--dc-border);
 }
 .dc-form-grid--roster-assignment > .dc-field--roster-break {
 	grid-column: 1 / 2;
@@ -1828,6 +1901,8 @@ button:focus-visible,
 	.dc-form-grid--roster-assignment {
 		grid-template-columns: 1fr;
 	}
+	.dc-form-grid--roster-assignment > .dc-roster-form__intro,
+	.dc-form-grid--roster-assignment > .dc-roster-form__feedback,
 	.dc-form-grid--roster-assignment > .dc-field--roster-employee,
 	.dc-form-grid--roster-assignment > .dc-field--roster-location,
 	.dc-form-grid--roster-assignment > .dc-roster-form__section-heading,
@@ -1835,6 +1910,7 @@ button:focus-visible,
 	.dc-form-grid--roster-assignment > .dc-field--roster-time-hint,
 	.dc-form-grid--roster-assignment > .dc-field--roster-start,
 	.dc-form-grid--roster-assignment > .dc-field--roster-end,
+	.dc-form-grid--roster-assignment > .dc-field--roster-rest-hint,
 	.dc-form-grid--roster-assignment > .dc-field--roster-break,
 	.dc-form-grid--roster-assignment > .dc-field--roster-note {
 		grid-column: 1 / -1;

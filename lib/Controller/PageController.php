@@ -194,8 +194,10 @@ class PageController extends Controller
 		Util::addStyle(Application::APP_ID, 'common/tokens');
 		Util::addStyle(Application::APP_ID, 'app');
 		Util::addScript(Application::APP_ID, 'common/api');
+		Util::addScript(Application::APP_ID, 'common/session');
 		Util::addScript(Application::APP_ID, 'common/dates');
 		Util::addScript(Application::APP_ID, 'common/messaging');
+		Util::addScript(Application::APP_ID, 'common/conflict-labels');
 		Util::addScript(Application::APP_ID, 'common/components');
 		if ($template === 'locations') {
 			Util::addScript(Application::APP_ID, 'common/timezone-picker');

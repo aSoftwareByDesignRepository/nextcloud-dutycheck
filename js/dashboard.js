@@ -3,6 +3,7 @@
 
 	const Api = window.DutyCheckApi;
 	const Msg = window.DutyCheckMessaging;
+	const ConflictLabels = window.DutyCheckConflictLabels;
 	const C = window.DutyCheckComponents || {};
 	const create = (C.createElement || ((tag, props, children) => {
 		const el = document.createElement(tag);
@@ -37,19 +38,16 @@
 			]));
 			return;
 		}
-		const hard = conflicts.filter((c) => String(c?.severity) === 'hard').length;
-		const soft = conflicts.filter((c) => String(c?.severity) === 'soft').length;
-		const softUnack = conflicts.filter((c) => String(c?.severity) === 'soft' && !c?.acknowledged).length;
-		const tone = hard > 0 ? 'critical' : (softUnack > 0 ? 'warning' : 'success');
-		const title = hard > 0
-			? t('dutycheck', 'Hard conflicts block publishing.')
-			: (softUnack > 0
-				? t('dutycheck', 'Soft conflicts need acknowledgement.')
-				: t('dutycheck', 'No outstanding conflicts in the active period.'));
-		const subtitle = t('dutycheck', '{hard} hard, {soft} soft ({unack} unacknowledged)')
-			.replace('{hard}', String(hard))
-			.replace('{soft}', String(soft))
-			.replace('{unack}', String(softUnack));
+		const mustFix = conflicts.filter((c) => String(c?.severity) === 'hard').length;
+		const confirm = conflicts.filter((c) => String(c?.severity) === 'soft').length;
+		const pendingOpen = conflicts.filter((c) => String(c?.severity) === 'soft' && !c?.acknowledged).length;
+		const tone = mustFix > 0 ? 'critical' : (pendingOpen > 0 ? 'warning' : 'success');
+		const title = ConflictLabels
+			? ConflictLabels.pulseTitle(mustFix, pendingOpen)
+			: t('dutycheck', 'Planning issue status');
+		const subtitle = ConflictLabels
+			? ConflictLabels.countsSummary(mustFix, confirm, pendingOpen)
+			: String(mustFix);
 		root.appendChild(create('div', { class: 'dc-callout dc-callout--' + tone }, [
 			create('p', {}, [create('strong', { text: title })]),
 			create('p', { class: 'dc-callout__hint', text: subtitle }),
@@ -80,7 +78,7 @@
 				root.classList.remove('dc-loading');
 				root.removeAttribute('aria-busy');
 				root.replaceChildren(create('div', { class: 'dc-callout dc-callout--warning' }, [
-					create('p', { text: t('dutycheck', 'Could not load conflict state. Reload the page to retry.') }),
+					create('p', { text: t('dutycheck', 'Could not load planning checks. Reload the page to retry.') }),
 				]));
 			}
 		}
