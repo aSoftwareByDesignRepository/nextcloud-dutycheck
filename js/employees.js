@@ -20,11 +20,85 @@
 		return name === uid ? uid : `${name} (${uid})`;
 	}
 
-	function setLinkedUser(user) {
+	/** Strip control characters; must stay aligned with RosterService::hasControlCharacters. */
+	function sanitizeDisplayNameCandidate(raw) {
+		const trimmed = String(raw ?? '').trim();
+		if (trimmed === '') {
+			return '';
+		}
+		return trimmed.replace(/[\x00-\x1F\x7F]/g, '').trim();
+	}
+
+	function suggestedDisplayNameFromUser(user) {
+		if (!user) {
+			return '';
+		}
+		const fromProfile = sanitizeDisplayNameCandidate(user.displayName);
+		if (fromProfile !== '') {
+			return fromProfile;
+		}
+		return sanitizeDisplayNameCandidate(user.id);
+	}
+
+	function employeeNameInput() {
+		const form = document.getElementById('dc-employee-form');
+		return form?.elements?.namedItem?.('displayName') ?? form?.displayName ?? null;
+	}
+
+	/** Fill the name field only when empty — never overwrite a planner's manual entry. */
+	function maybeAutoFillDisplayNameFromUser(user) {
+		const input = employeeNameInput();
+		if (!input) {
+			return;
+		}
+		if (String(input.value || '').trim() !== '') {
+			return;
+		}
+		const suggested = suggestedDisplayNameFromUser(user);
+		if (suggested === '') {
+			return;
+		}
+		input.value = suggested;
+	}
+
+	function resolveDisplayNameForSubmit(formData) {
+		let displayName = sanitizeDisplayNameCandidate(formData.get('displayName'));
+		if (displayName !== '') {
+			return displayName;
+		}
+		const linkedUserId = String(formData.get('linkedUserId') || '').trim();
+		if (linkedUserId === '') {
+			return '';
+		}
+		const cached = directoryUserMap.get(linkedUserId);
+		if (cached) {
+			return suggestedDisplayNameFromUser(cached);
+		}
+		if (selectedUser && String(selectedUser.id) === linkedUserId) {
+			return suggestedDisplayNameFromUser(selectedUser);
+		}
+		return '';
+	}
+
+	function setLinkedUser(user, options = {}) {
 		selectedUser = user || null;
 		const hidden = document.getElementById('dc-employee-linked-user');
 		if (hidden) hidden.value = user ? String(user.id) : '';
 		renderLinkedChips();
+		if (user && options.autoFillDisplayName !== false) {
+			maybeAutoFillDisplayNameFromUser(user);
+			focusDisplayNameAfterLink();
+		}
+	}
+
+	function focusDisplayNameAfterLink() {
+		const nameInput = employeeNameInput();
+		if (nameInput) {
+			nameInput.focus();
+			if (typeof nameInput.select === 'function' && String(nameInput.value || '').trim() !== '') {
+				nameInput.select();
+			}
+		}
 	}
 
 	function renderLinkedChips() {
@@ -164,9 +238,9 @@
 		const linkedUserId = String(row.linkedUserId || '');
 		if (linkedUserId) {
 			const known = directoryUserMap.get(linkedUserId);
-			setLinkedUser(known || { id: linkedUserId, displayName: linkedUserId });
+			setLinkedUser(known || { id: linkedUserId, displayName: linkedUserId }, { autoFillDisplayName: false });
 		} else {
-			setLinkedUser(null);
+			setLinkedUser(null, { autoFillDisplayName: false });
 		}
 		form.active.checked = Boolean(row.active);
 		setEditMode(true);
@@ -180,8 +254,10 @@
 		if (!form) return;
 		form.reset();
 		form.active.checked = true;
-		setLinkedUser(null);
+		setLinkedUser(null, { autoFillDisplayName: false });
 		setEditMode(false);
+		const search = document.getElementById('dc-employee-search');
+		search?.focus();
 	}
 
 	async function loadDirectoryUsers(query) {
@@ -229,7 +305,6 @@
 			setLinkedUser(item);
 			input.value = '';
 			renderResults([], onPick);
-			input.focus();
 		};
 		input.addEventListener('input', () => {
 			if (searchTimer) window.clearTimeout(searchTimer);
@@ -266,10 +341,32 @@
 		document.getElementById('dc-employee-form')?.addEventListener('submit', async (event) => {
 			event.preventDefault();
 			const formData = new FormData(event.currentTarget);
-			const displayName = String(formData.get('displayName') || '').trim();
+			let displayName = resolveDisplayNameForSubmit(formData);
 			if (displayName === '') {
-				Msg.announce(t('dutycheck', 'Display name is required.'), 'error');
+				const linkedUserId = String(formData.get('linkedUserId') || '').trim();
+				if (linkedUserId.length >= 2) {
+					try {
+						await loadDirectoryUsers(linkedUserId);
+						displayName = resolveDisplayNameForSubmit(formData);
+					} catch (err) {
+						Msg.handleApiError(err);
+						return;
+					}
+				}
+			}
+			if (displayName === '') {
+				const linkedUserId = String(formData.get('linkedUserId') || '').trim();
+				if (linkedUserId !== '') {
+					Msg.announce(t('dutycheck', 'Display name is required. Link an account to fill it automatically, or type a name.'), 'error');
+				} else {
+					Msg.announce(t('dutycheck', 'Display name is required.'), 'error');
+				}
+				employeeNameInput()?.focus();
 				return;
+			}
+			const nameInput = employeeNameInput();
+			if (nameInput && String(nameInput.value || '').trim() === '') {
+				nameInput.value = displayName;
 			}
 			try {
 				await save({

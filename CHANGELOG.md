@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Employee display name auto-fills when linking a Nextcloud account** (UI + API). Picking a user fills the name field only when it is still empty; editing an existing employee never overwrites a stored name. The server derives the name from the linked account when the field is omitted, so direct API calls cannot bypass validation.
+- **Employee form field order** — account search first, then display name (matches the natural link-then-confirm workflow).
 - **Roster assignment and employee saves work on Snap and reverse-proxy setups.** Mutations now use `application/x-www-form-urlencoded` (the same transport Nextcloud core expects) instead of JSON-only bodies, with the CSRF token duplicated in the body when proxies strip custom headers. This fixes silent save failures that showed only the generic “Something went wrong” toast with no `nextcloud.log` entry.
 - **`createAssignment` transaction scope** — conflict refresh commits before reloading roster data; rollback is guarded with `inTransaction()` so a failed save never masks the real error.
 - **Acknowledgement payloads** from HTML forms are normalised server-side (`ApiMutationParams::acknowledgements`).

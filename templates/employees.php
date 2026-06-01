@@ -20,16 +20,16 @@ include __DIR__ . '/common/page-start.php';
 		</button>
 	</header>
 	<ol class="dc-quickstart">
-		<li class="dc-quickstart__item" data-step="add">
-			<strong><?php p($l->t('1. Add a person')); ?></strong>
+		<li class="dc-quickstart__item" data-step="link">
+			<strong><?php p($l->t('1. Optionally link a Nextcloud account')); ?></strong>
 			<p>
-				<?php p($l->t('Use a clear display name. The name appears on rosters and in audit logs, so use the form people are most easily recognised by.')); ?>
+				<?php p($l->t('Search the directory first — the display name is filled in automatically. Linking enables self-service: roster, absences, and calendar feed for that person.')); ?>
 			</p>
 		</li>
-		<li class="dc-quickstart__item" data-step="link">
-			<strong><?php p($l->t('2. Optionally link a Nextcloud account')); ?></strong>
+		<li class="dc-quickstart__item" data-step="add">
+			<strong><?php p($l->t('2. Confirm the display name')); ?></strong>
 			<p>
-				<?php p($l->t('Linking enables self-service: that person can then sign in to see their personal roster, request absences, and subscribe to a calendar feed.')); ?>
+				<?php p($l->t('The name appears on rosters and in audit logs. Adjust it if needed, or type one manually when no account is linked.')); ?>
 			</p>
 		</li>
 		<li class="dc-quickstart__item" data-step="lifecycle">
@@ -46,22 +46,11 @@ include __DIR__ . '/common/page-start.php';
 		<div>
 			<h2 id="dc-employee-form-title"><?php p($l->t('Add or update employee')); ?></h2>
 			<p class="dc-section__sub">
-				<?php p($l->t('Linking a Nextcloud account lets the employee sign in to see their personal roster and submit absences.')); ?>
+				<?php p($l->t('Search for a Nextcloud user first to fill in the name, or enter a display name for staff without an account.')); ?>
 			</p>
 		</div>
 	</header>
 	<form id="dc-employee-form" class="dc-form-grid dc-form-grid--employees" novalidate>
-		<div class="dc-field dc-field--employee-name">
-			<label class="dc-field__label" for="dc-employee-name"><?php p($l->t('Display name')); ?></label>
-			<input id="dc-employee-name" type="text" name="displayName" class="dc-input"
-				maxlength="191" autocomplete="name" required>
-		</div>
-		<div class="dc-field dc-field--employee-active">
-			<label class="dc-checkbox" for="dc-employee-active">
-				<input id="dc-employee-active" type="checkbox" name="active" checked>
-				<span class="dc-checkbox__text"><?php p($l->t('Active – available for new assignments')); ?></span>
-			</label>
-		</div>
 		<div class="dc-field dc-field--employee-link">
 			<label class="dc-field__label" for="dc-employee-search"><?php p($l->t('Linked user account')); ?></label>
 			<div class="dc-entity-picker">
@@ -78,6 +67,22 @@ include __DIR__ . '/common/page-start.php';
 			<p class="dc-field__hint">
 				<?php p($l->t('Type at least 2 characters to search the directory. Leave empty for an unlinked employee.')); ?>
 			</p>
+		</div>
+		<div class="dc-field dc-field--employee-name">
+			<label class="dc-field__label" for="dc-employee-name"><?php p($l->t('Display name')); ?></label>
+			<input id="dc-employee-name" type="text" name="displayName" class="dc-input"
+				maxlength="191" autocomplete="name" required
+				aria-describedby="dc-employee-name-hint">
+			<p id="dc-employee-name-hint" class="dc-field__hint">
+				<?php p($l->t('Filled automatically when you link an account; edit if needed.')); ?>
+			</p>
+		</div>
+		<div class="dc-field dc-field--employee-active">
+			<span class="dc-field__label" id="dc-employee-active-label"><?php p($l->t('Status')); ?></span>
+			<label class="dc-checkbox" for="dc-employee-active" aria-labelledby="dc-employee-active-label">
+				<input id="dc-employee-active" type="checkbox" name="active" checked>
+				<span class="dc-checkbox__text"><?php p($l->t('Active – available for new assignments')); ?></span>
+			</label>
 		</div>
 		<div class="dc-form-actions">
 			<button type="submit" class="button primary"><?php p($l->t('Save employee')); ?></button>

@@ -792,8 +792,8 @@ class RosterService
 
 	public function createEmployee(array $payload): array
 	{
-		$displayName = $this->validateDisplayName((string) ($payload['displayName'] ?? ''));
 		$linkedUserId = $this->normalizeLinkedUserId($payload['linkedUserId'] ?? null);
+		$displayName = $this->resolveDisplayNameFromPayload($payload, $linkedUserId);
 		$active = $this->toActiveFlag($payload['active'] ?? 1);
 
 		$this->assertEmployeeDisplayNameUnique($displayName);
@@ -814,8 +814,8 @@ class RosterService
 	{
 		$this->assertEmployeeRowExists($id);
 		$currentLinkedUserId = $this->fetchEmployeeLinkedUserId($id);
-		$displayName = $this->validateDisplayName((string) ($payload['displayName'] ?? ''));
 		$linkedUserId = $this->normalizeLinkedUserId($payload['linkedUserId'] ?? null, $currentLinkedUserId);
+		$displayName = $this->resolveDisplayNameFromPayload($payload, $linkedUserId);
 		$active = $this->toActiveFlag($payload['active'] ?? 1);
 
 		$this->assertEmployeeDisplayNameUnique($displayName, $id);
@@ -2077,6 +2077,43 @@ class RosterService
 	private function now(): string
 	{
 		return (new DateTimeImmutable('now'))->format('Y-m-d H:i:s');
+	}
+
+	/**
+	 * Resolve the roster display name from the mutation payload.
+	 *
+	 * An explicit non-empty displayName always wins (audit trail stays independent of
+	 * the linked account). When omitted and a linked user is present, the name is
+	 * taken once from the Nextcloud account at save time — same rule as the UI auto-fill.
+	 */
+	private function resolveDisplayNameFromPayload(array $payload, ?string $linkedUserId): string
+	{
+		$raw = trim((string) ($payload['displayName'] ?? ''));
+		if ($raw !== '') {
+			return $this->validateDisplayName($raw);
+		}
+		if ($linkedUserId === null || $linkedUserId === '') {
+			throw new \InvalidArgumentException('INVALID_DISPLAY_NAME');
+		}
+
+		return $this->validateDisplayName($this->resolveLinkedUserDisplayName($linkedUserId));
+	}
+
+	private function resolveLinkedUserDisplayName(string $linkedUserId): string
+	{
+		if ($this->userManager === null) {
+			throw new \InvalidArgumentException('INVALID_DISPLAY_NAME');
+		}
+		$user = $this->userManager->get($linkedUserId);
+		if ($user === null) {
+			throw new \InvalidArgumentException('INVALID_LINKED_USER');
+		}
+		$name = trim((string) $user->getDisplayName());
+		if ($name === '') {
+			$name = $linkedUserId;
+		}
+
+		return $name;
 	}
 
 	private function validateDisplayName(string $name): string

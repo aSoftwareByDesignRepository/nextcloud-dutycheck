@@ -160,7 +160,7 @@ $canAdminApp = !empty($_['isAppAdmin']);
 					</label>
 					<p class="dc-field__hint" id="dc-at-intent-hint"></p>
 				</div>
-				<div class="dc-field dc-form-actions dc-field--full dc-at-integration__actions">
+				<div class="dc-form-actions dc-at-integration__actions">
 					<button type="button" class="button" id="dc-at-sync-btn"><?php p($l->t('Sync now')); ?></button>
 					<button type="button" class="button danger" id="dc-at-purge-legacy-btn" hidden><?php p($l->t('Remove legacy DutyCheck absences')); ?></button>
 					<a class="button" id="dc-at-open-peer" href="#" hidden target="_blank" rel="noopener noreferrer"><?php p($l->t('Open ArbeitszeitCheck')); ?></a>

@@ -187,6 +187,7 @@ OC.L10N.register(
     "Dismiss" : "Schließen",
     "Display name" : "Anzeigename",
     "Display name is required." : "Anzeigename ist erforderlich.",
+    "Display name is required. Link an account to fill it automatically, or type a name." : "Anzeigename ist erforderlich. Verknüpfen Sie ein Konto, um ihn automatisch zu übernehmen, oder geben Sie einen Namen ein.",
     "Download CSV" : "CSV herunterladen",
     "Download a spreadsheet file or open a clean print layout for the period selected above. Only DutyCheck and server administrators see this section." : "Lade eine Tabellendatei herunter oder öffne eine übersichtliche Druckansicht für den oben gewählten Zeitraum. Nur DutyCheck- und Server-Administrator/innen sehen diesen Abschnitt.",
     "Duty assignments for this period" : "Diensteinsätze für diesen Zeitraum",

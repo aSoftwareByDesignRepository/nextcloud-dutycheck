@@ -187,6 +187,7 @@ OC.L10N.register(
     "Dismiss" : "Dismiss",
     "Display name" : "Display name",
     "Display name is required." : "Display name is required.",
+    "Display name is required. Link an account to fill it automatically, or type a name." : "Display name is required. Link an account to fill it automatically, or type a name.",
     "Download CSV" : "Download CSV",
     "Download a spreadsheet file or open a clean print layout for the period selected above. Only DutyCheck and server administrators see this section." : "Download a spreadsheet file or open a clean print layout for the period selected above. Only DutyCheck and server administrators see this section.",
     "Duty assignments for this period" : "Duty assignments for this period",
