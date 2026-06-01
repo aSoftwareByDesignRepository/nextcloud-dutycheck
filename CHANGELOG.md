@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.1.12 - 2026-06-01
+
+### Changed
+
+- **Mobile-first responsive layout.** The stylesheet now builds up from a small-screen base (`min-width: 480px` / `768px` breakpoints) instead of patching a desktop layout downward. Shell, cards, page header, filter and form grids reflow cleanly from phone to desktop, and `overflow-x: clip` prevents the stray horizontal scrollbar on narrow viewports.
+- **Tables collapse to cards on small screens.** Data tables render as stacked, labelled cards below the tablet breakpoint (row headers and `data-cell` labels) and switch back to a normal table on wider screens, keeping rosters and lists readable on phones (WCAG 2.1 AA reflow).
+- **Tighter page header** with a smaller icon and a dedicated actions area so primary actions stay reachable on mobile.
+
+### Security
+
+- **Hardened CI workflow and refreshed the Composer lock file** to pull in the patched Symfony release (CVE fix), keeping bundled dependencies current.
+
 ## 0.1.11 - 2026-06-01
 
 ### Fixed
