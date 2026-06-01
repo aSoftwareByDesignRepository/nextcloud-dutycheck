@@ -1,31 +1,91 @@
-# DutyCheck — PHP unit tests + Composer audit (standalone app repo; path-filter when used from a monorepo mirror)
+# DutyCheck — continuous integration
+#
+# Two stages:
+#   1. lint   — fast, dependency-free checks (composer manifest, security audit, PHP syntax)
+#   2. test   — PHPUnit across every PHP version the app declares support for (8.2–8.4)
+#
+# The security audit runs against composer.lock and gates the test matrix, so a
+# vulnerable dependency fails the build immediately and cheaply.
 name: CI
 
 on:
   push:
-    paths:
-      - '**'
+    branches: [master]
+    tags: ['v*']
   pull_request:
-    paths:
-      - '**'
 
-defaults:
-  run:
-    working-directory: .
+# Least privilege: CI only needs to read the repository contents.
+permissions:
+  contents: read
+
+# Cancel superseded runs on the same ref to save runner time.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  php:
+  lint:
+    name: Lint & security audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: shivammathur/setup-php@v2
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
           coverage: none
+          tools: composer:v2
+
+      - name: Validate composer.json / composer.lock
+        run: composer validate --strict
+
+      # --locked audits the committed lock file directly (no vendor install needed).
+      # Without it, "composer audit" finds no installed packages and silently passes.
+      - name: Security audit (composer.lock)
+        run: composer audit --locked
+
+      - name: PHP syntax check
+        run: |
+          find lib tests templates -name '*.php' -print0 \
+            | xargs -0 -n1 -P4 php -l
+
+  test:
+    name: PHPUnit (PHP ${{ matrix.php-version }})
+    runs-on: ubuntu-latest
+    needs: lint
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ['8.2', '8.3', '8.4']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: none
+          # pdo_sqlite backs the SQLite integration tests (mirror purge at >1000 rows).
           extensions: pdo_sqlite
-      - name: Composer install
-        run: composer install --no-interaction
-      - name: Composer audit
-        run: composer audit
+          tools: composer:v2
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ matrix.php-version }}-${{ hashFiles('composer.lock') }}
+          restore-keys: |
+            composer-${{ matrix.php-version }}-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
       - name: PHPUnit
         run: ./vendor/bin/phpunit
