@@ -1,0 +1,7 @@
+dutycheck-0.1.11.tar.gz
+SHA256: a0f57cdcc30ebf7a76f855029c4e0abd160979881473a872d6654d69f8a51126
+SHA512: 0edf450f76566ca9690fa5f24cdf7928cb147a0f8432bd91380d9a4efa344d5e47412f2a01e6e12b351925043cbd70dc70e77aef8787985330a6e2dce72c0b63
+
+Regenerate signature after any tarball rebuild:
+  openssl dgst -sha512 -sign ~/.nextcloud/certificates/dutycheck.key \
+    build/release/dutycheck-0.1.11.tar.gz | openssl base64 | tr -d '\n'
