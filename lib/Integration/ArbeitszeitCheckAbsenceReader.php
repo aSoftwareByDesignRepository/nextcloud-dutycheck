@@ -57,7 +57,7 @@ final class ArbeitszeitCheckAbsenceReader implements IArbeitszeitCheckAbsenceRea
 		$qb->andWhere($or);
 
 		try {
-			$rows = $qb->executeQuery()->fetchAllAssociative();
+			$rows = $qb->executeQuery()->fetchAll();
 		} catch (\Throwable $e) {
 			$this->logger->warning('DutyCheck AT reader query failed: ' . $e->getMessage(), [
 				'app' => 'dutycheck',

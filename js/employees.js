@@ -325,12 +325,7 @@
 	}
 
 	document.addEventListener('DOMContentLoaded', async () => {
-		try {
-			await loadDirectoryUsers('');
-			renderLinkedChips();
-		} catch (err) {
-			Msg.handleApiError(err);
-		}
+		renderLinkedChips();
 		try {
 			await load();
 		} catch (err) {

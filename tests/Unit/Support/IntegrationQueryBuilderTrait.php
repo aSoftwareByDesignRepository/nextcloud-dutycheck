@@ -43,7 +43,7 @@ trait IntegrationQueryBuilderTrait
 	}
 
 	/**
-	 * @param array<string,mixed>|false|null $row Row for fetchAssociative, or false when missing
+	 * @param array<string,mixed>|false|null $row Row for IResult::fetch(), or false when missing
 	 */
 	protected function qbFetchAssociative(array|false|null $row): IQueryBuilder
 	{
@@ -55,9 +55,9 @@ trait IntegrationQueryBuilderTrait
 			$qb->method($method)->willReturnSelf();
 		}
 		$res = $this->createMock(IResult::class);
-		$res->method('fetchAssociative')->willReturn($row === null ? false : $row);
+		$res->method('fetch')->willReturn($row === null ? false : $row);
 		$res->method('fetchOne')->willReturn(false);
-		$res->method('fetchAllAssociative')->willReturn([]);
+		$res->method('fetchAll')->willReturn([]);
 		$qb->method('executeQuery')->willReturn($res);
 		$qb->method('executeStatement')->willReturn(1);
 		return $qb;
@@ -74,7 +74,7 @@ trait IntegrationQueryBuilderTrait
 		}
 		$res = $this->createMock(IResult::class);
 		$res->method('fetchOne')->willReturn($value);
-		$res->method('fetchAllAssociative')->willReturn([]);
+		$res->method('fetchAll')->willReturn([]);
 		$qb->method('executeQuery')->willReturn($res);
 		$qb->method('executeStatement')->willReturn(1);
 		return $qb;
@@ -91,7 +91,7 @@ trait IntegrationQueryBuilderTrait
 		}
 		$res = $this->createMock(IResult::class);
 		$res->method('fetchOne')->willReturn(false);
-		$res->method('fetchAllAssociative')->willReturn($rows);
+		$res->method('fetchAll')->willReturn($rows);
 		$qb->method('executeQuery')->willReturn($res);
 		$qb->method('executeStatement')->willReturn(1);
 		return $qb;

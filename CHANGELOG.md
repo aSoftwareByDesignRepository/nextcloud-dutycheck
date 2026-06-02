@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.1.13 - 2026-06-02
+
+### Fixed
+
+- **Nextcloud 32 compatibility — employees, roster, absences and the ArbeitszeitCheck integration no longer crash.** Database reads called `IResult::fetchAllAssociative()` / `fetchAssociative()`, which are only available since Nextcloud 33. On Nextcloud 32 this raised `Call to undefined method OC\DB\ResultAdapter::fetchAllAssociative()` and broke creating employees (the catalog reload after insert), the roster API (`GET /api/roster`), period/absence/conflict lookups and the ArbeitszeitCheck mirror. All result access now uses the stable `IResult::fetch()` / `fetchAll()` API (available since Nextcloud 21), and a static test guards against any future use of the Nextcloud 33-only result methods.
+- **Settings "Allowed people / groups / app administrators" picker.** The user directory lookup is now available to planners (not only app administrators), skips backend lookups for queries shorter than two characters, and the Employees page no longer eagerly loads the whole directory on open. This keeps the autocomplete responsive and the policy form saveable. The settings page now explains the two-step flow (type, then pick from the list), shows inline search status, supports keyboard selection, and gives audible feedback when someone is added.
+
+### Changed
+
+- **Settings access-control form** — clearer hints under each search field, visible search status while typing, Enter/arrow-key selection in result lists, and a busy state on save so administrators get immediate confirmation.
+
 ## 0.1.12 - 2026-06-01
 
 ### Changed

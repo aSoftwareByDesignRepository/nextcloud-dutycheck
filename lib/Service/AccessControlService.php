@@ -186,7 +186,7 @@ class AccessControlService
 		$appAdmins = $this->normalizeUniqueIdList($payload['appAdminUserIds'] ?? []);
 		$allowedUsers = $this->normalizeUniqueIdList($payload['allowedUserIds'] ?? []);
 		$allowedGroups = $this->normalizeUniqueIdList($payload['allowedGroupIds'] ?? []);
-		$restriction = (bool) ($payload['accessRestrictionEnabled'] ?? false);
+		$restriction = $this->normalizeBooleanFlag($payload['accessRestrictionEnabled'] ?? false, 'INVALID_ACCESS_RESTRICTION');
 
 		foreach ($appAdmins as $uid) {
 			$this->assertKnownUser($uid, 'INVALID_APP_ADMIN_USER');
@@ -325,8 +325,16 @@ class AccessControlService
 	 */
 	private function normalizeUniqueIdList(mixed $value): array
 	{
+		if (is_string($value)) {
+			$trimmed = trim($value);
+			return $trimmed !== '' ? [$trimmed] : [];
+		}
 		if (!is_array($value)) {
-			return [];
+			if ($value === null) {
+				return [];
+			}
+			$single = trim((string) $value);
+			return $single !== '' ? [$single] : [];
 		}
 		$ids = [];
 		foreach ($value as $entry) {
@@ -336,5 +344,32 @@ class AccessControlService
 			}
 		}
 		return array_values(array_unique($ids));
+	}
+
+	private function normalizeBooleanFlag(mixed $value, string $errorCode): bool
+	{
+		if (is_bool($value)) {
+			return $value;
+		}
+		if (is_int($value)) {
+			if ($value === 1) {
+				return true;
+			}
+			if ($value === 0) {
+				return false;
+			}
+			throw new \InvalidArgumentException($errorCode);
+		}
+		if (is_string($value)) {
+			$normalized = strtolower(trim($value));
+			if (in_array($normalized, ['1', 'true', 'yes', 'on'], true)) {
+				return true;
+			}
+			if (in_array($normalized, ['0', 'false', 'no', 'off', ''], true)) {
+				return false;
+			}
+		}
+
+		throw new \InvalidArgumentException($errorCode);
 	}
 }

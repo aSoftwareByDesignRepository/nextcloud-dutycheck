@@ -357,4 +357,81 @@ class RosterApiControllerContractTest extends TestCase
 		self::assertSame(422, $response->getStatus());
 		self::assertSame('ABSENCE_OVERLAP', $response->getData()['error']['code']);
 	}
+
+	public function testDirectoryUsersAllowsPlannerWhenNotAppAdmin(): void
+	{
+		$this->access->method('currentUserId')->willReturn('planner-1');
+		$this->access->method('isAppAdmin')->with('planner-1')->willReturn(false);
+		$this->access->method('isPlannerOrAdmin')->with('planner-1')->willReturn(true);
+		$this->request->method('getParam')->willReturnMap([
+			['q', '', 'pla'],
+		]);
+		$user = $this->createMock(\OCP\IUser::class);
+		$user->method('getUID')->willReturn('planner-1');
+		$user->method('getDisplayName')->willReturn('Planner One');
+		$user->method('isEnabled')->willReturn(true);
+		$userManager = $this->createMock(IUserManager::class);
+		$userManager->method('search')->with('pla')->willReturn([$user]);
+		$controller = new RosterApiController(
+			'dutycheck',
+			$this->request,
+			$this->access,
+			$this->roster,
+			$this->csvFormatter,
+			$userManager,
+			$this->createMock(IGroupManager::class),
+			$this->createMock(IArbeitszeitCheckIntegration::class),
+			$this->createMock(IConfig::class),
+			$this->createMock(ITimeFactory::class),
+		);
+
+		$response = $controller->directoryUsers();
+		self::assertSame(200, $response->getStatus());
+		self::assertTrue($response->getData()['ok']);
+		self::assertCount(1, $response->getData()['users']);
+	}
+
+	public function testDirectoryUsersFallsBackToForbiddenWhenNeitherPlannerNorAppAdmin(): void
+	{
+		$this->access->method('currentUserId')->willReturn('employee-1');
+		$this->access->method('isAppAdmin')->willReturn(false);
+		$this->access->method('isPlannerOrAdmin')->willReturn(false);
+		$this->access->method('requireAppAdmin')->willThrowException(
+			new AppAccessDeniedException(AccessControlService::DENIAL_INSUFFICIENT_ROLE),
+		);
+
+		$response = $this->controller->directoryUsers();
+		self::assertSame(403, $response->getStatus());
+		self::assertFalse($response->getData()['ok']);
+		self::assertSame('INSUFFICIENT_ROLE', $response->getData()['error']['code']);
+	}
+
+	public function testDirectoryUsersReturnsEmptyForShortQueryWithoutDirectoryLookup(): void
+	{
+		$this->access->method('currentUserId')->willReturn('planner-1');
+		$this->access->method('isAppAdmin')->willReturn(false);
+		$this->access->method('isPlannerOrAdmin')->willReturn(true);
+		$this->request->method('getParam')->willReturnMap([
+			['q', '', 'a'],
+		]);
+		$userManager = $this->createMock(IUserManager::class);
+		$userManager->expects(self::never())->method('search');
+		$controller = new RosterApiController(
+			'dutycheck',
+			$this->request,
+			$this->access,
+			$this->roster,
+			$this->csvFormatter,
+			$userManager,
+			$this->createMock(IGroupManager::class),
+			$this->createMock(IArbeitszeitCheckIntegration::class),
+			$this->createMock(IConfig::class),
+			$this->createMock(ITimeFactory::class),
+		);
+
+		$response = $controller->directoryUsers();
+		self::assertSame(200, $response->getStatus());
+		self::assertTrue($response->getData()['ok']);
+		self::assertSame([], $response->getData()['users']);
+	}
 }

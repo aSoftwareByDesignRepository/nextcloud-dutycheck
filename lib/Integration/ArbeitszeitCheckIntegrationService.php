@@ -443,7 +443,7 @@ final class ArbeitszeitCheckIntegrationService implements IArbeitszeitCheckInteg
 				->where($qb->expr()->isNotNull('e.linked_user_id'))
 				->andWhere($qb->expr()->neq('e.linked_user_id', $qb->createNamedParameter('')))
 				->andWhere($qb->expr()->eq('e.active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)));
-			$rows = $qb->executeQuery()->fetchAllAssociative();
+			$rows = $qb->executeQuery()->fetchAll();
 			$ids = [];
 			foreach ($rows as $r) {
 				$ids[] = (int) $r['id'];
@@ -491,7 +491,7 @@ final class ArbeitszeitCheckIntegrationService implements IArbeitszeitCheckInteg
 			->where($qb->expr()->eq('active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)))
 			->andWhere($qb->expr()->isNotNull('linked_user_id'))
 			->andWhere($qb->expr()->neq('linked_user_id', $qb->createNamedParameter('')));
-		$rows = $qb->executeQuery()->fetchAllAssociative();
+		$rows = $qb->executeQuery()->fetchAll();
 		$out = [];
 		foreach ($rows as $r) {
 			$u = (string) $r['linked_user_id'];
@@ -514,7 +514,7 @@ final class ArbeitszeitCheckIntegrationService implements IArbeitszeitCheckInteg
 			->from('dc_at_absence_mirror');
 		$seenUid = [];
 		$distinctMirrorUids = [];
-		foreach ($qb->executeQuery()->fetchAllAssociative() as $row) {
+		foreach ($qb->executeQuery()->fetchAll() as $row) {
 			$uid = (string) ($row['linked_user_id'] ?? '');
 			if ($uid === '' || isset($seenUid[$uid])) {
 				continue;
@@ -557,7 +557,7 @@ final class ArbeitszeitCheckIntegrationService implements IArbeitszeitCheckInteg
 			->from('dc_at_absence_mirror')
 			->where($qb->expr()->eq('linked_user_id', $qb->createNamedParameter($linkedUserId)));
 		$present = [];
-		foreach ($qb->executeQuery()->fetchAllAssociative() as $row) {
+		foreach ($qb->executeQuery()->fetchAll() as $row) {
 			$atId = (int) ($row['at_absence_id'] ?? 0);
 			if ($atId >= 1) {
 				$present[] = $atId;
@@ -756,7 +756,7 @@ final class ArbeitszeitCheckIntegrationService implements IArbeitszeitCheckInteg
 			->where($qb->expr()->eq('e.active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)))
 			->orderBy('m.start_date', 'DESC')
 			->addOrderBy('m.at_absence_id', 'DESC');
-		$rows = $qb->executeQuery()->fetchAllAssociative();
+		$rows = $qb->executeQuery()->fetchAll();
 		$out = [];
 		foreach ($rows as $r) {
 			$atStatus = (string) $r['status'];
@@ -793,7 +793,7 @@ final class ArbeitszeitCheckIntegrationService implements IArbeitszeitCheckInteg
 			->where($qb->expr()->eq('linked_user_id', $qb->createNamedParameter($linkedUserId)))
 			->orderBy('start_date', 'DESC')
 			->addOrderBy('at_absence_id', 'DESC');
-		$rows = $qb->executeQuery()->fetchAllAssociative();
+		$rows = $qb->executeQuery()->fetchAll();
 		$out = [];
 		foreach ($rows as $r) {
 			$atStatus = (string) $r['status'];
@@ -828,7 +828,7 @@ final class ArbeitszeitCheckIntegrationService implements IArbeitszeitCheckInteg
 			->andWhere($qb->expr()->lte('m.start_date', $qb->createNamedParameter($dateYmd)))
 			->andWhere($qb->expr()->gte('m.end_date', $qb->createNamedParameter($dateYmd)))
 			->setMaxResults(50);
-		$rows = $qb->executeQuery()->fetchAllAssociative();
+		$rows = $qb->executeQuery()->fetchAll();
 		foreach ($rows as $r) {
 			if (ArbeitszeitCheckTypeMapper::isBlockingApproved((string) $r['type'], (string) $r['status'])) {
 				return true;
@@ -858,7 +858,7 @@ final class ArbeitszeitCheckIntegrationService implements IArbeitszeitCheckInteg
 		if ($ignoreAtAbsenceId !== null) {
 			$qb->andWhere($qb->expr()->neq('m.at_absence_id', $qb->createNamedParameter($ignoreAtAbsenceId, IQueryBuilder::PARAM_INT)));
 		}
-		$rows = $qb->executeQuery()->fetchAllAssociative();
+		$rows = $qb->executeQuery()->fetchAll();
 		foreach ($rows as $r) {
 			if (ArbeitszeitCheckTypeMapper::atStatusOverlapsDutyStatuses((string) $r['status'], $dutyStatuses)) {
 				return true;

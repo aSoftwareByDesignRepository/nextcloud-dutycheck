@@ -92,6 +92,9 @@ $canAdminApp = !empty($_['isAppAdmin']);
 						aria-label="<?php p($l->t('User search results')); ?>"></ul>
 				</div>
 				<ul id="dc-policy-user-chips" class="dc-chip-list" aria-label="<?php p($l->t('Selected users')); ?>"></ul>
+				<p class="dc-field__hint" id="dc-policy-user-search-hint">
+					<?php p($l->t('Type at least 2 characters and pick a result, or press Enter to add an exact user ID.')); ?>
+				</p>
 			</div>
 
 			<div class="dc-field dc-field--full">
@@ -104,6 +107,9 @@ $canAdminApp = !empty($_['isAppAdmin']);
 						aria-label="<?php p($l->t('Group search results')); ?>"></ul>
 				</div>
 				<ul id="dc-policy-group-chips" class="dc-chip-list" aria-label="<?php p($l->t('Selected groups')); ?>"></ul>
+				<p class="dc-field__hint" id="dc-policy-group-search-hint">
+					<?php p($l->t('Type at least 2 characters and pick a result, or press Enter to add an exact group ID.')); ?>
+				</p>
 			</div>
 
 			<div class="dc-field dc-field--full">
@@ -116,6 +122,9 @@ $canAdminApp = !empty($_['isAppAdmin']);
 						aria-label="<?php p($l->t('App administrator search results')); ?>"></ul>
 				</div>
 				<ul id="dc-policy-admin-chips" class="dc-chip-list" aria-label="<?php p($l->t('Selected app administrators')); ?>"></ul>
+				<p class="dc-field__hint" id="dc-policy-admin-search-hint">
+					<?php p($l->t('Type at least 2 characters and pick a result, or press Enter to add an exact user ID.')); ?>
+				</p>
 				<p class="dc-field__hint">
 					<?php p($l->t('App administrators can change this policy and may re-open closed periods. System administrators always have these powers.')); ?>
 				</p>

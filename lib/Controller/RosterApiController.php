@@ -395,8 +395,14 @@ class RosterApiController extends Controller
 	public function directoryUsers(): DataResponse
 	{
 		try {
-			$this->access->requirePlannerOrAdmin($this->access->currentUserId());
+			$userId = $this->access->currentUserId();
+			if (!$this->access->isAppAdmin($userId) && !$this->access->isPlannerOrAdmin($userId)) {
+				$this->access->requireAppAdmin($userId);
+			}
 			$query = trim((string) $this->request->getParam('q', ''));
+			if (mb_strlen($query) < 2) {
+				return new DataResponse(['ok' => true, 'users' => []]);
+			}
 			$users = $this->userManager->search($query);
 			$rows = [];
 			$count = 0;
@@ -467,11 +473,12 @@ class RosterApiController extends Controller
 	{
 		try {
 			$this->access->requireAppAdmin($this->access->currentUserId());
+			$params = ApiMutationParams::all($this->request);
 			$policy = $this->access->saveAppPolicy([
-				'appAdminUserIds' => $this->request->getParam('appAdminUserIds', []),
-				'accessRestrictionEnabled' => $this->request->getParam('accessRestrictionEnabled', false),
-				'allowedUserIds' => $this->request->getParam('allowedUserIds', []),
-				'allowedGroupIds' => $this->request->getParam('allowedGroupIds', []),
+				'appAdminUserIds' => $params['appAdminUserIds'] ?? [],
+				'accessRestrictionEnabled' => $params['accessRestrictionEnabled'] ?? false,
+				'allowedUserIds' => $params['allowedUserIds'] ?? [],
+				'allowedGroupIds' => $params['allowedGroupIds'] ?? [],
 			]);
 			return new DataResponse(['ok' => true, 'policy' => $policy]);
 		} catch (\InvalidArgumentException $e) {

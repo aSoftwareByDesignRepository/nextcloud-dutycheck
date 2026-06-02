@@ -98,10 +98,27 @@
 		}
 	}
 
-	function renderResults(containerId, items, onPick) {
+	function renderResults(containerId, items, onPick, options) {
+		const opts = options || {};
 		const container = document.getElementById(containerId);
 		if (!container) return;
 		container.replaceChildren();
+		if (opts.status === 'short') {
+			container.appendChild(create('li', {
+				class: 'dc-entity-results__empty',
+				attrs: { 'aria-disabled': 'true' },
+				text: t('dutycheck', 'Type at least 2 characters to search.'),
+			}));
+			return;
+		}
+		if (opts.status === 'searching') {
+			container.appendChild(create('li', {
+				class: 'dc-entity-results__empty',
+				attrs: { 'aria-disabled': 'true', 'aria-busy': 'true' },
+				text: t('dutycheck', 'Searching…'),
+			}));
+			return;
+		}
 		if (!items.length) {
 			container.appendChild(create('li', {
 				class: 'dc-entity-results__empty',
@@ -110,22 +127,43 @@
 			}));
 			return;
 		}
-		for (const item of items) {
+		items.forEach((item, index) => {
 			const text = item.displayName === item.id ? item.id : `${item.displayName} (${item.id})`;
 			const li = create('li', {
-				attrs: { role: 'option', tabindex: '0', 'aria-selected': 'false' },
+				attrs: {
+					role: 'option',
+					tabindex: index === 0 ? '0' : '-1',
+					'aria-selected': index === 0 ? 'true' : 'false',
+					'data-index': String(index),
+				},
 			}, [
 				create('span', { class: 'dc-entity-results__title', text }),
 			]);
 			const pick = () => onPick(item);
 			li.addEventListener('click', pick);
 			li.addEventListener('keydown', (event) => {
-				if (event.key !== 'Enter' && event.key !== ' ') return;
+				if (event.key === 'Enter' || event.key === ' ') {
+					event.preventDefault();
+					pick();
+					return;
+				}
+				if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') {
+					return;
+				}
 				event.preventDefault();
-				pick();
+				const optionsEls = Array.from(container.querySelectorAll('[role="option"]'));
+				const currentIdx = optionsEls.indexOf(li);
+				const nextIdx = event.key === 'ArrowDown'
+					? Math.min(currentIdx + 1, optionsEls.length - 1)
+					: Math.max(currentIdx - 1, 0);
+				optionsEls.forEach((el, i) => {
+					el.tabIndex = i === nextIdx ? 0 : -1;
+					el.setAttribute('aria-selected', i === nextIdx ? 'true' : 'false');
+				});
+				optionsEls[nextIdx]?.focus();
 			});
 			container.appendChild(li);
-		}
+		});
 	}
 
 	async function fetchUsers(query) {
@@ -141,31 +179,141 @@
 			.map((g) => ({ id: String(g.id), displayName: String(g.displayName || g.id) }));
 	}
 
-	function wireSearch(inputId, resultsId, fetcher, onPick) {
+	function wireSearch(inputId, resultsId, fetcher, onPick, options) {
+		const opts = options || {};
 		const input = document.getElementById(inputId);
 		if (!input) return;
 		let timer = null;
+		let activeQuery = '';
+		let lastResults = [];
+
+		const pickAndReset = (item) => {
+			onPick(item);
+			const label = item.displayName === item.id ? item.id : `${item.displayName} (${item.id})`;
+			Msg.announce(t('dutycheck', 'Added {name} to the selection.').replace('{name}', label));
+			input.value = '';
+			activeQuery = '';
+			renderResults(resultsId, [], onPick, { status: 'short' });
+			input.focus();
+		};
+
+		const runSearch = async (q) => {
+			renderResults(resultsId, [], onPick, { status: 'searching' });
+			const items = await fetcher(q);
+			lastResults = items;
+			renderResults(resultsId, items, pickAndReset);
+			return items;
+		};
+
+		const pickBestMatch = (q) => {
+			const query = String(q || '').trim().toLowerCase();
+			if (query.length < 1) return false;
+			const exact = lastResults.find((item) => {
+				const id = String(item?.id || '').toLowerCase();
+				const display = String(item?.displayName || '').toLowerCase();
+				return id === query || display === query;
+			});
+			if (exact) {
+				pickAndReset(exact);
+				return true;
+			}
+			if (lastResults.length === 1) {
+				pickAndReset(lastResults[0]);
+				return true;
+			}
+			if (opts.allowDirectEntry) {
+				const rawId = String(q || '').trim();
+				const normalized = typeof opts.normalizeDirectEntry === 'function'
+					? opts.normalizeDirectEntry(rawId)
+					: rawId;
+				if (normalized) {
+					pickAndReset({ id: normalized, displayName: normalized });
+					return true;
+				}
+			}
+			return false;
+		};
+
+		input.addEventListener('keydown', (event) => {
+			if (event.key !== 'Enter' && event.key !== 'Tab' && event.key !== ',') return;
+			const container = document.getElementById(resultsId);
+			const first = container?.querySelector('[role="option"]:not([aria-disabled="true"])');
+			const q = input.value.trim();
+			if (q.length < 1) return;
+			if (event.key === 'Enter' || event.key === ',') {
+				event.preventDefault();
+			}
+			if (event.key === 'Tab' && !first && pickBestMatch(q)) {
+				event.preventDefault();
+				return;
+			}
+			if (first) {
+				first.click();
+				return;
+			}
+			// If Enter is pressed before the debounce finished, perform an immediate
+			// lookup so admins still get deterministic keyboard selection feedback.
+			if (q.length < 2) {
+				pickBestMatch(q);
+				return;
+			}
+			(async () => {
+				try {
+					const items = await runSearch(q);
+					if (items.length > 0) {
+						pickAndReset(items[0]);
+						return;
+					}
+					// Deterministic keyboard workflow: when search returns no results,
+					// still allow exact/manual identifiers on Enter (same as Tab/blur).
+					pickBestMatch(q);
+				} catch (err) {
+					Msg.handleApiError(err);
+				}
+			})();
+		});
+		input.addEventListener('blur', () => {
+			const q = input.value.trim();
+			if (q.length < 1) return;
+			pickBestMatch(q);
+		});
 		input.addEventListener('input', () => {
 			if (timer) window.clearTimeout(timer);
+			const q = input.value.trim();
+			activeQuery = q;
+			if (q.length < 2) {
+				lastResults = [];
+				renderResults(resultsId, [], onPick, { status: 'short' });
+				return;
+			}
+			renderResults(resultsId, [], onPick, { status: 'searching' });
 			timer = window.setTimeout(async () => {
-				const q = input.value.trim();
-				if (q.length < 2) {
-					renderResults(resultsId, [], onPick);
-					return;
-				}
+				if (input.value.trim() !== q) return;
 				try {
-					const items = await fetcher(q);
-					renderResults(resultsId, items, (item) => {
-						onPick(item);
-						input.value = '';
-						renderResults(resultsId, [], onPick);
-						input.focus();
-					});
+					await runSearch(q);
 				} catch (err) {
 					Msg.handleApiError(err);
 				}
 			}, 240);
 		});
+
+		return async function finalizePendingInput() {
+			const q = input.value.trim();
+			if (q.length < 1) {
+				return false;
+			}
+			// Resolve stale debounce state before save so manually typed values are
+			// deterministically committed (exact ID/display name or single match).
+			if (q.length >= 2) {
+				try {
+					await runSearch(q);
+				} catch (err) {
+					Msg.handleApiError(err);
+					return false;
+				}
+			}
+			return pickBestMatch(q);
+		};
 	}
 
 	function renderAll() {
@@ -465,21 +613,21 @@
 			Msg.handleApiError(err);
 			return;
 		}
-		wireSearch('dc-policy-user-search', 'dc-policy-user-results', fetchUsers, (item) => {
+		const finalizeAllowedUserInput = wireSearch('dc-policy-user-search', 'dc-policy-user-results', fetchUsers, (item) => {
 			state.allowedUsers = dedupeById([...state.allowedUsers, item]);
 			renderAll();
 			recomputeDirty();
-		});
-		wireSearch('dc-policy-group-search', 'dc-policy-group-results', fetchGroups, (item) => {
+		}, { allowDirectEntry: true });
+		const finalizeAllowedGroupInput = wireSearch('dc-policy-group-search', 'dc-policy-group-results', fetchGroups, (item) => {
 			state.allowedGroups = dedupeById([...state.allowedGroups, item]);
 			renderAll();
 			recomputeDirty();
-		});
-		wireSearch('dc-policy-admin-search', 'dc-policy-admin-results', fetchUsers, (item) => {
+		}, { allowDirectEntry: true });
+		const finalizeAdminInput = wireSearch('dc-policy-admin-search', 'dc-policy-admin-results', fetchUsers, (item) => {
 			state.appAdmins = dedupeById([...state.appAdmins, item]);
 			renderAll();
 			recomputeDirty();
-		});
+		}, { allowDirectEntry: true });
 		form.accessRestrictionEnabled.addEventListener('change', () => {
 			state.restrictionEnabled = Boolean(form.accessRestrictionEnabled.checked);
 			renderPolicyStateBadge();
@@ -496,12 +644,22 @@
 
 		form.addEventListener('submit', async (event) => {
 			event.preventDefault();
+			await Promise.all([
+				finalizeAllowedUserInput?.(),
+				finalizeAllowedGroupInput?.(),
+				finalizeAdminInput?.(),
+			]);
 			if (state.restrictionEnabled && state.allowedUsers.length === 0 && state.allowedGroups.length === 0) {
 				// The server enforces this too (ACCESS_LIST_REQUIRED). We refuse client-side
 				// to give an immediate, descriptive error and to focus the search input.
 				Msg.announce(t('dutycheck', 'Add at least one allowed user or group when restriction is enabled.'), 'error');
 				document.getElementById('dc-policy-user-search')?.focus();
 				return;
+			}
+			const saveBtn = document.getElementById('dc-policy-save');
+			if (saveBtn) {
+				saveBtn.disabled = true;
+				saveBtn.setAttribute('aria-busy', 'true');
 			}
 			try {
 				const response = await Api.post('/apps/dutycheck/api/admin/policy', {
@@ -536,6 +694,11 @@
 						break;
 					default:
 						Msg.handleApiError(err);
+				}
+			} finally {
+				if (saveBtn) {
+					saveBtn.disabled = false;
+					saveBtn.removeAttribute('aria-busy');
 				}
 			}
 		});

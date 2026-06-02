@@ -1206,6 +1206,9 @@ label.dc-checkbox {
 .dc-entity-results:empty {
 	display: none;
 }
+.dc-entity-results:not(:empty) {
+	margin-top: var(--dc-space-2);
+}
 .dc-entity-results li {
 	padding: var(--dc-space-2) var(--dc-space-3);
 	cursor: pointer;

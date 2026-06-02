@@ -66,7 +66,7 @@ class RosterService
 		$qb->select('id', 'start_date', 'end_date', 'status', 'created_by', 'created_at', 'published_at', 'closed_at')
 			->from('dc_periods')
 			->orderBy('start_date', 'DESC');
-		$rows = $qb->executeQuery()->fetchAllAssociative();
+		$rows = $qb->executeQuery()->fetchAll();
 		return array_map(fn (array $r): array => $this->normalizePeriod($r), $rows);
 	}
 
@@ -188,7 +188,7 @@ class RosterService
 			->where($qb->expr()->eq('period_id', $qb->createNamedParameter($periodId, IQueryBuilder::PARAM_INT)))
 			->orderBy('generated_at', 'DESC')
 			->addOrderBy('id', 'DESC');
-		$rows = $qb->executeQuery()->fetchAllAssociative();
+		$rows = $qb->executeQuery()->fetchAll();
 		return array_map(static fn (array $row): array => [
 			'id' => (int) $row['id'],
 			'kind' => (string) $row['snapshot_kind'],
@@ -284,7 +284,7 @@ class RosterService
 			->orderBy('created_at', 'DESC')
 			->addOrderBy('id', 'DESC')
 			->setMaxResults(100);
-		$rows = $qb->executeQuery()->fetchAllAssociative();
+		$rows = $qb->executeQuery()->fetchAll();
 		return array_map(static function (array $row): array {
 			$payload = [];
 			try {
@@ -415,7 +415,7 @@ class RosterService
 			->where($qb->expr()->eq('status', $qb->createNamedParameter('approved')))
 			->andWhere($qb->expr()->lte('start_date', $qb->createNamedParameter($periodEnd)))
 			->andWhere($qb->expr()->gte('end_date', $qb->createNamedParameter($periodStart)));
-		foreach ($qb->executeQuery()->fetchAllAssociative() as $row) {
+		foreach ($qb->executeQuery()->fetchAll() as $row) {
 			$spans[] = [
 				'employeeId' => (int) $row['employee_id'],
 				'startDate' => (string) $row['start_date'],
@@ -432,7 +432,7 @@ class RosterService
 				->where($mirror->expr()->eq('e.active', $mirror->createNamedParameter(1, IQueryBuilder::PARAM_INT)))
 				->andWhere($mirror->expr()->lte('m.start_date', $mirror->createNamedParameter($periodEnd)))
 				->andWhere($mirror->expr()->gte('m.end_date', $mirror->createNamedParameter($periodStart)));
-			foreach ($mirror->executeQuery()->fetchAllAssociative() as $row) {
+			foreach ($mirror->executeQuery()->fetchAll() as $row) {
 				if (!ArbeitszeitCheckTypeMapper::isBlockingApproved((string) $row['type'], (string) $row['status'])) {
 					continue;
 				}
@@ -553,7 +553,7 @@ class RosterService
 		$qb->select('id', 'period_id', 'context_hash', 'is_resolved')
 			->from('dc_conflicts')
 			->where($qb->expr()->eq('id', $qb->createNamedParameter($conflictId, IQueryBuilder::PARAM_INT)));
-		$row = $qb->executeQuery()->fetchAssociative();
+		$row = $qb->executeQuery()->fetch();
 		if ($row === false) {
 			throw new \InvalidArgumentException('CONFLICT_NOT_FOUND');
 		}
@@ -723,7 +723,7 @@ class RosterService
 			->from('dc_absences', 'a')
 			->leftJoin('a', 'dc_employees', 'e', 'a.employee_id = e.id')
 			->orderBy('a.start_date', 'DESC');
-		$rows = $qb->executeQuery()->fetchAllAssociative();
+		$rows = $qb->executeQuery()->fetchAll();
 
 		$mapped = array_map(static fn (array $r): array => [
 			'id' => (int) $r['id'],
@@ -759,7 +759,7 @@ class RosterService
 		$qb->select('id', 'display_name', 'linked_user_id', 'active', 'created_at')
 			->from('dc_employees')
 			->orderBy('display_name', 'ASC');
-		$rows = $qb->executeQuery()->fetchAllAssociative();
+		$rows = $qb->executeQuery()->fetchAll();
 		return array_map(static fn (array $r): array => [
 			'id' => (int) $r['id'],
 			'displayName' => (string) $r['display_name'],
@@ -844,7 +844,7 @@ class RosterService
 		$qb->select('id', 'name', 'timezone', 'active', 'created_at')
 			->from('dc_locations')
 			->orderBy('name', 'ASC');
-		$rows = $qb->executeQuery()->fetchAllAssociative();
+		$rows = $qb->executeQuery()->fetchAll();
 		return array_map(static fn (array $r): array => [
 			'id' => (int) $r['id'],
 			'name' => (string) $r['name'],
@@ -932,7 +932,7 @@ class RosterService
 			->andWhere($qb->expr()->lte('a.duty_date', $qb->createNamedParameter($toIso)))
 			->orderBy('a.duty_date', 'ASC')
 			->addOrderBy('a.start_time', 'ASC');
-		$rows = $qb->executeQuery()->fetchAllAssociative();
+		$rows = $qb->executeQuery()->fetchAll();
 
 		return array_map(static fn (array $r): array => [
 			'id' => (int) $r['id'],
@@ -978,7 +978,7 @@ class RosterService
 			->where($qb->expr()->eq('employee_id', $qb->createNamedParameter($employeeId, IQueryBuilder::PARAM_INT)))
 			->orderBy('start_date', 'DESC')
 			->addOrderBy('id', 'DESC');
-		$rows = $qb->executeQuery()->fetchAllAssociative();
+		$rows = $qb->executeQuery()->fetchAll();
 
 		$mapped = array_map(static fn (array $r): array => [
 			'id' => (int) $r['id'],
@@ -1135,7 +1135,7 @@ class RosterService
 		$qb->select('id', 'start_date', 'end_date', 'status', 'created_by', 'created_at', 'published_at', 'closed_at', 'close_snapshot_id')
 			->from('dc_periods')
 			->where($qb->expr()->eq('id', $qb->createNamedParameter($periodId, IQueryBuilder::PARAM_INT)));
-		$row = $qb->executeQuery()->fetchAssociative();
+		$row = $qb->executeQuery()->fetch();
 		if ($row === false) {
 			throw new \InvalidArgumentException('PERIOD_NOT_FOUND');
 		}
@@ -1205,7 +1205,7 @@ class RosterService
 			->orderBy('generated_at', 'DESC')
 			->addOrderBy('id', 'DESC')
 			->setMaxResults(1);
-		$row = $qb->executeQuery()->fetchAssociative();
+		$row = $qb->executeQuery()->fetch();
 		if ($row === false) {
 			return null;
 		}
@@ -1223,7 +1223,7 @@ class RosterService
 			->where($qb->expr()->eq('period_id', $qb->createNamedParameter($periodId, IQueryBuilder::PARAM_INT)))
 			->orderBy('generated_at', 'ASC')
 			->addOrderBy('id', 'ASC');
-		return $qb->executeQuery()->fetchAllAssociative();
+		return $qb->executeQuery()->fetchAll();
 	}
 
 	private function canonicalizeJson(array $payload): string
@@ -1281,7 +1281,7 @@ class RosterService
 			->from('dc_employees')
 			->where($qb->expr()->eq('active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)))
 			->orderBy('display_name', 'ASC');
-		$rows = $qb->executeQuery()->fetchAllAssociative();
+		$rows = $qb->executeQuery()->fetchAll();
 		return array_map(static function (array $r): array {
 			$link = $r['linked_user_id'];
 			$linkStr = $link !== null ? trim((string) $link) : '';
@@ -1300,7 +1300,7 @@ class RosterService
 			->from('dc_locations')
 			->where($qb->expr()->eq('active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)))
 			->orderBy('name', 'ASC');
-		$rows = $qb->executeQuery()->fetchAllAssociative();
+		$rows = $qb->executeQuery()->fetchAll();
 		return array_map(static fn (array $r): array => ['id' => (int) $r['id'], 'name' => (string) $r['name'], 'timezone' => (string) $r['timezone']], $rows);
 	}
 
@@ -1314,7 +1314,7 @@ class RosterService
 			->where($qb->expr()->eq('a.period_id', $qb->createNamedParameter($periodId, IQueryBuilder::PARAM_INT)))
 			->orderBy('a.duty_date', 'ASC')
 			->addOrderBy('a.start_time', 'ASC');
-		$rows = $qb->executeQuery()->fetchAllAssociative();
+		$rows = $qb->executeQuery()->fetchAll();
 		return array_map(static fn (array $r): array => [
 			'id' => (int) $r['id'],
 			'periodId' => (int) $r['period_id'],
@@ -1608,7 +1608,7 @@ class RosterService
 			->andWhere($qb->expr()->eq('is_resolved', $qb->createNamedParameter(0, IQueryBuilder::PARAM_INT)))
 			->orderBy('severity', 'DESC')
 			->addOrderBy('id', 'ASC');
-		$rows = $qb->executeQuery()->fetchAllAssociative();
+		$rows = $qb->executeQuery()->fetchAll();
 		return array_map(static function (array $row): array {
 			$payload = [];
 			try {
@@ -1651,7 +1651,7 @@ class RosterService
 			->from('dc_conflicts')
 			->where($qb->expr()->eq('period_id', $qb->createNamedParameter($periodId, IQueryBuilder::PARAM_INT)))
 			->andWhere($qb->expr()->eq('is_resolved', $qb->createNamedParameter(0, IQueryBuilder::PARAM_INT)));
-		$rows = $qb->executeQuery()->fetchAllAssociative();
+		$rows = $qb->executeQuery()->fetchAll();
 		$out = [];
 		foreach ($rows as $row) {
 			$identity = $this->conflictIdentity(
@@ -2008,7 +2008,7 @@ class RosterService
 			->andWhere($qb->expr()->eq('p.status', $qb->createNamedParameter('published')))
 			->orderBy('a.duty_date', 'ASC')
 			->addOrderBy('a.start_time', 'ASC');
-		return $qb->executeQuery()->fetchAllAssociative();
+		return $qb->executeQuery()->fetchAll();
 	}
 
 	private function toUtcDateTime(string $date, string $time): DateTimeImmutable
@@ -2051,7 +2051,7 @@ class RosterService
 			'id' => (int) $row['id'],
 			'startDate' => (string) $row['start_date'],
 			'endDate' => (string) $row['end_date'],
-		], $qb->executeQuery()->fetchAllAssociative());
+		], $qb->executeQuery()->fetchAll());
 	}
 
 	private function absenceById(int $absenceId): array
@@ -2060,7 +2060,7 @@ class RosterService
 		$qb->select('id', 'employee_id', 'start_date', 'end_date', 'status')
 			->from('dc_absences')
 			->where($qb->expr()->eq('id', $qb->createNamedParameter($absenceId, IQueryBuilder::PARAM_INT)));
-		$row = $qb->executeQuery()->fetchAssociative();
+		$row = $qb->executeQuery()->fetch();
 		if ($row === false) {
 			throw new \InvalidArgumentException('ABSENCE_NOT_FOUND');
 		}
