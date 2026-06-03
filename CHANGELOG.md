@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.1.14 - 2026-06-03
+
+### Fixed
+
+- **Roster "Create assignment" form layout.** On the tablet/desktop grid the start- and end-time fields were placed in columns 2–3, leaving a gap in the first column and pushing the break field out of alignment. Start now sits in column 1 and end in column 2, so the day/time row lines up cleanly with the rest of the form.
+
 ## 0.1.13 - 2026-06-02
 
 ### Fixed
