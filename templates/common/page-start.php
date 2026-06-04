@@ -64,6 +64,7 @@ $urlsJson = htmlspecialchars(json_encode($urls, JSON_THROW_ON_ERROR | JSON_UNESC
 	data-locale="<?php p($locale); ?>"
 	data-timezone="<?php p($timezone); ?>"
 	data-dc-time-24h="1"
+	data-dc-time-input-lang="en-GB"
 	data-dc-page="<?php p($pageId); ?>"
 	data-dc-role="<?php p($role); ?>"
 	data-dc-is-app-admin="<?php p($isAppAdmin ? '1' : '0'); ?>"

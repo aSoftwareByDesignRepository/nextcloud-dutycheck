@@ -6,7 +6,7 @@
 	 *
 	 * - createElement(tag, props, children): tiny DOM helper with attribute/data
 	 *   handling, never sets innerHTML.
-	 * - openModal({ title, render, primary, onSubmit, onCancel }): focus-trapped
+	 * - openModal({ title, render, primary, onSubmit, onCancel, onClose }): focus-trapped
 	 *   dialog with a labelled title, Escape closes, click-on-backdrop cancels,
 	 *   focus is restored to the trigger.
 	 * - confirmDialog({ title, body, danger }): boolean Promise convenience.
@@ -94,6 +94,7 @@
 			dialogClass: '',
 			onSubmit: null,
 			onCancel: null,
+			onClose: null,
 		}, options || {});
 
 		if (openInstance) {
@@ -224,6 +225,9 @@
 					try { previousFocus.focus(); } catch (_) { /* element may be gone */ }
 				}
 				if (typeof opts.resolve === 'function') opts.resolve(result);
+				if (typeof opts.onClose === 'function') {
+					opts.onClose(result);
+				}
 				if (result === false && typeof opts.onCancel === 'function') opts.onCancel();
 			},
 		};
@@ -418,9 +422,21 @@
 		wireAllDismissibleHints();
 	}
 
+	function dismissOpenModal() {
+		if (openInstance && openInstance._open) {
+			openInstance.close(false);
+		}
+	}
+
+	function isModalOpen() {
+		return !!(openInstance && openInstance._open);
+	}
+
 	window.DutyCheckComponents = {
 		createElement,
 		openModal,
+		dismissOpenModal,
+		isModalOpen,
 		confirmDialog,
 		promptReason,
 		setLoadingRow,

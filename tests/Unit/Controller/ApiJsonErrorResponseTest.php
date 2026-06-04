@@ -34,6 +34,11 @@ class ApiJsonErrorResponseTest extends TestCase
 		self::assertSame('INSUFFICIENT_ROLE', $data['error']['code']);
 	}
 
+	public function testMapsEqualDutyTimesTo422(): void
+	{
+		self::assertSame(422, ApiJsonErrorResponse::statusForInvalidArgument('EQUAL_DUTY_TIMES'));
+	}
+
 	public function testMapsIntegrationAbsenceReadonlyTo403(): void
 	{
 		$response = ApiJsonErrorResponse::fromThrowable(

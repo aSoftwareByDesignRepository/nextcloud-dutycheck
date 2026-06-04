@@ -23,6 +23,7 @@ class RosterService
 		private ?IUserManager $userManager = null,
 		private ?IArbeitszeitCheckIntegration $atIntegration = null,
 		private ?TimezoneCatalog $timezoneCatalog = null,
+		private ?PlanningDefaultsService $planningDefaults = null,
 	) {
 	}
 
@@ -392,6 +393,7 @@ class RosterService
 			'assignments' => $assignments,
 			'conflicts' => $conflicts,
 			'absenceBlocks' => $absenceBlocks,
+			'defaultBreakMinutes' => $this->planningDefaults?->getDefaultBreakMinutes() ?? 0,
 		];
 	}
 
@@ -482,7 +484,7 @@ class RosterService
 		$dutyDate = (string) ($payload['dutyDate'] ?? '');
 		$startTime = (string) ($payload['startTime'] ?? '');
 		$endTime = (string) ($payload['endTime'] ?? '');
-		$breakMinutes = (int) ($payload['breakMinutes'] ?? 0);
+		$breakMinutes = PlanningDefaultsService::parseAssignmentBreakMinutes($payload['breakMinutes'] ?? null);
 		$note = trim((string) ($payload['note'] ?? ''));
 		$acknowledgements = is_array($payload['acknowledgements'] ?? null) ? $payload['acknowledgements'] : [];
 
@@ -500,10 +502,7 @@ class RosterService
 		$startTime = $this->normalizeDutyTime($startTime);
 		$endTime = $this->normalizeDutyTime($endTime);
 		if ($startTime === $endTime) {
-			throw new \InvalidArgumentException('INVALID_SHIFT_LENGTH');
-		}
-		if ($breakMinutes < 0 || $breakMinutes > 720) {
-			throw new \InvalidArgumentException('INVALID_BREAK_MINUTES');
+			throw new \InvalidArgumentException('EQUAL_DUTY_TIMES');
 		}
 		if (mb_strlen($note) > 512) {
 			throw new \InvalidArgumentException('NOTE_TOO_LONG');

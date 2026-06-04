@@ -54,6 +54,20 @@
 		return !!(app && app.getAttribute('data-dc-time-24h') === '1');
 	}
 
+	/**
+	 * Locale for <input type="time"> controls only.
+	 * Browsers pick 12h vs 24h picker UI from this attribute; de-DE can still show AM/PM
+	 * on some platforms. DutyCheck duty times are always wall-clock HH:mm (24-hour).
+	 */
+	function timeInputLocale() {
+		const app = document.getElementById('app-content');
+		const explicit = app ? app.getAttribute('data-dc-time-input-lang') : '';
+		if (explicit && explicit.trim() !== '') {
+			return explicit.trim();
+		}
+		return use24HourTimeInputs() ? 'en-GB' : currentLocale();
+	}
+
 	function formatDisplayDate(value) {
 		const date = safeDate(value);
 		if (!date) return '';
@@ -217,15 +231,20 @@
 		scope.querySelectorAll('input[type="date"], input[type="datetime-local"], input[type="month"]').forEach((input) => {
 			input.setAttribute('lang', locale);
 		});
+		const timeLocale = timeInputLocale();
 		scope.querySelectorAll('input[type="time"]').forEach((input) => {
-			/* Match page locale; UI hints already state 24-hour (HH:mm) when data-dc-time-24h is set. */
-			input.setAttribute('lang', locale);
+			input.setAttribute('lang', timeLocale);
+			if (use24HourTimeInputs()) {
+				input.setAttribute('data-dc-time-24h', '1');
+			}
 		});
 	}
 
 	window.DutyCheckDates = {
 		currentLocale,
 		currentTimezone,
+		timeInputLocale,
+		use24HourTimeInputs,
 		formatDisplayDate,
 		formatDisplayDateTime,
 		formatDisplayTime,

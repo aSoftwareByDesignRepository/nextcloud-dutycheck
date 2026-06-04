@@ -40,9 +40,10 @@
 		toast.appendChild(text);
 		toast.appendChild(close);
 		container.appendChild(toast);
+		const dismissMs = k === 'error' ? 7000 : (k === 'success' ? 8000 : 5000);
 		window.setTimeout(() => {
 			if (toast.parentNode) toast.parentNode.removeChild(toast);
-		}, k === 'error' ? 7000 : 4000);
+		}, dismissMs);
 	}
 
 	// Codes that carry a human-meaningful, already-safe explanation. Anything
@@ -80,10 +81,19 @@
 			case 'INVALID_DATE':
 			case 'INVALID_TIME':
 				return t('dutycheck', 'Please check the dates and times.');
+			case 'EQUAL_DUTY_TIMES':
+				return t(
+					'dutycheck',
+					'Start and end time must be different. For overnight shifts, set the end time earlier than the start (e.g. 22:00–06:00).',
+				);
 			case 'INVALID_SHIFT_LENGTH':
 				return t('dutycheck', 'Shift length is invalid after break (check overnight times and break minutes).');
 			case 'INVALID_BREAK_MINUTES':
 				return t('dutycheck', 'Break minutes are out of the allowed range.');
+			case 'DEFAULT_BREAK_MINUTES_REQUIRED':
+				return t('dutycheck', 'Enter a default break duration in minutes.');
+			case 'INVALID_DEFAULT_BREAK_MINUTES':
+				return t('dutycheck', 'Default break must be a number between 0 and 720.');
 			case 'INVALID_ACTIVE_FLAG':
 				return t('dutycheck', 'Could not read the active/inactive setting. Reload the page and try again.');
 			case 'PERIOD_ID_REQUIRED':

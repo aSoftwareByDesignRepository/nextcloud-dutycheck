@@ -42,6 +42,8 @@ return [
 		['name' => 'rosterApi#directoryGroups', 'url' => '/api/admin/groups', 'verb' => 'GET'],
 		['name' => 'rosterApi#appPolicy', 'url' => '/api/admin/policy', 'verb' => 'GET'],
 		['name' => 'rosterApi#saveAppPolicy', 'url' => '/api/admin/policy', 'verb' => 'POST'],
+		['name' => 'rosterApi#planningDefaults', 'url' => '/api/admin/planning-defaults', 'verb' => 'GET'],
+		['name' => 'rosterApi#savePlanningDefaults', 'url' => '/api/admin/planning-defaults', 'verb' => 'POST'],
 		['name' => 'rosterApi#integrationStatus', 'url' => '/api/admin/integration', 'verb' => 'GET'],
 		['name' => 'rosterApi#integrationIntent', 'url' => '/api/admin/integration/intent', 'verb' => 'POST'],
 		['name' => 'rosterApi#integrationSyncNow', 'url' => '/api/admin/integration/sync', 'verb' => 'POST'],

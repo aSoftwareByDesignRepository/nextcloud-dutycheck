@@ -59,7 +59,7 @@ $urls = (array) ($_['urls'] ?? []);
 		<li class="dc-quickstart__item" data-step="roster">
 			<strong><?php p($l->t('3. Plan and publish duties')); ?></strong>
 			<p>
-				<?php p($l->t('In the Roster, assign each shift. “Must fix” issues (e.g. someone in two places at once) block saving. “Confirm to continue” items need a short written reason. Then publish the period so employees can see their roster.')); ?>
+				<?php p($l->t('On the Roster page, use “Add assignment” for each shift. “Must fix” issues (e.g. someone in two places at once) block saving. “Confirm to continue” items need a short written reason. Then publish the period so employees can see their roster.')); ?>
 			</p>
 			<a class="button" href="#" data-dc-link="roster"><?php p($l->t('Open Roster')); ?></a>
 		</li>
@@ -118,7 +118,7 @@ $urls = (array) ($_['urls'] ?? []);
 		</li>
 		<li class="dc-quickstart__item">
 			<strong><?php p($l->t('Plan assignments')); ?></strong>
-			<p><?php p($l->t('Open Roster, add assignments, and resolve every “Must fix” issue before continuing.')); ?></p>
+			<p><?php p($l->t('Open Roster, use “Add assignment” for each shift, and resolve every “Must fix” issue before continuing.')); ?></p>
 			<a class="button" href="<?php p((string) ($urls['roster'] ?? '#')); ?>">
 				<?php p($l->t('Go to Roster')); ?>
 			</a>

@@ -8,6 +8,8 @@
 	const ConflictLabels = window.DutyCheckConflictLabels;
 	const create = C.createElement;
 
+	const BREAK_STORAGE_KEY = 'dutycheck.roster.lastBreakMinutes';
+
 	const state = {
 		periods: [],
 		employees: [],
@@ -15,7 +17,115 @@
 		assignments: [],
 		absenceBlocks: [],
 		canCreateAssignments: false,
+		lastRosterData: null,
+		defaultBreakMinutes: 0,
 	};
+	let assignmentModalInstance = null;
+	let suggestedBreakMinutes = 0;
+
+	function clampBreakMinutes(value) {
+		const n = Number(value);
+		if (!Number.isFinite(n)) {
+			return 0;
+		}
+		return Math.max(0, Math.min(720, Math.round(n)));
+	}
+
+	function readStoredBreakMinutes() {
+		try {
+			const raw = sessionStorage.getItem(BREAK_STORAGE_KEY);
+			if (raw === null || raw === '') {
+				return null;
+			}
+			return clampBreakMinutes(raw);
+		} catch (_) {
+			return null;
+		}
+	}
+
+	function rememberBreakMinutes(minutes) {
+		try {
+			sessionStorage.setItem(BREAK_STORAGE_KEY, String(clampBreakMinutes(minutes)));
+		} catch (_) {
+			/* ignore quota / privacy mode */
+		}
+	}
+
+	function resolveBreakPrefill() {
+		const org = clampBreakMinutes(state.defaultBreakMinutes);
+		// Organisation default from Settings always wins when it is greater than zero.
+		if (org > 0) {
+			return { minutes: org, source: 'settings' };
+		}
+		const stored = readStoredBreakMinutes();
+		if (stored !== null) {
+			return { minutes: stored, source: 'last' };
+		}
+		return { minutes: 0, source: 'settings' };
+	}
+
+	async function refreshPlanningDefaultFromServer() {
+		try {
+			const response = await Api.get('/apps/dutycheck/api/admin/planning-defaults');
+			const minutes = Number(response?.planning?.defaultBreakMinutes);
+			if (Number.isFinite(minutes)) {
+				state.defaultBreakMinutes = clampBreakMinutes(minutes);
+			}
+		} catch (_) {
+			/* Fall back to defaultBreakMinutes from the last roster API load. */
+		}
+	}
+
+	function breakPrefillMessage(prefill) {
+		const n = String(prefill.minutes);
+		if (prefill.source === 'last') {
+			return t('dutycheck', 'Pre-filled with {n} min — same as your last shift.').replace('{n}', n);
+		}
+		if (prefill.minutes === 0) {
+			return t('dutycheck', 'Pre-filled with 0 min — no break.');
+		}
+		return t('dutycheck', 'Pre-filled with {n} min — organisation default in Settings.').replace('{n}', n);
+	}
+
+	function updateBreakPrefillHint(userEdited) {
+		const el = document.getElementById('dc-assignment-break-prefill');
+		if (!el) {
+			return;
+		}
+		if (userEdited) {
+			el.textContent = t('dutycheck', 'You changed the suggested break for this shift.');
+			return;
+		}
+		el.textContent = breakPrefillMessage(resolveBreakPrefill());
+	}
+
+	function applyDefaultBreakToForm() {
+		const prefill = resolveBreakPrefill();
+		suggestedBreakMinutes = prefill.minutes;
+		const br = document.getElementById('dc-assignment-break');
+		if (br) {
+			br.value = String(prefill.minutes);
+		}
+		updateBreakPrefillHint(false);
+	}
+
+	function wireBreakPrefillHint() {
+		const br = document.getElementById('dc-assignment-break');
+		if (!br || br.dataset.dcBreakPrefillWired) {
+			return;
+		}
+		br.dataset.dcBreakPrefillWired = '1';
+		br.addEventListener('input', () => {
+			const current = clampBreakMinutes(br.value);
+			updateBreakPrefillHint(current !== suggestedBreakMinutes);
+		});
+		br.addEventListener('change', () => {
+			const current = clampBreakMinutes(br.value);
+			if (current === suggestedBreakMinutes) {
+				updateBreakPrefillHint(false);
+			}
+		});
+	}
 
 	function dateToDayIndex(isoDate) {
 		const parts = String(isoDate || '').split('-').map((segment) => Number(segment));
@@ -176,16 +286,138 @@
 		return null;
 	}
 
+	function setFormFeedbackA11y(el, isError) {
+		if (!el) {
+			return;
+		}
+		if (isError) {
+			el.setAttribute('role', 'alert');
+			el.setAttribute('aria-live', 'assertive');
+		} else {
+			el.setAttribute('role', 'status');
+			el.setAttribute('aria-live', 'polite');
+		}
+	}
+
+	function focusFirstInvalidAssignmentField(payload) {
+		if (!payload) {
+			return;
+		}
+		const period = selectedPeriodForPayload(payload);
+		const order = [
+			{ test: () => !payload.periodId, id: 'dc-roster-period-switcher' },
+			{ test: () => period && String(period.status || '').toLowerCase() !== 'open', id: 'dc-roster-period-switcher' },
+			{ test: () => !payload.dutyDate, id: 'dc-assignment-date' },
+			{
+				test: () => period?.startDate && period?.endDate && payload.dutyDate
+					&& (payload.dutyDate < String(period.startDate) || payload.dutyDate > String(period.endDate)),
+				id: 'dc-assignment-date',
+			},
+			{ test: () => !payload.employeeId, id: 'dc-assignment-employee' },
+			{ test: () => !payload.locationId, id: 'dc-assignment-location' },
+			{ test: () => !payload.startTime, id: 'dc-assignment-start' },
+			{ test: () => !payload.endTime, id: 'dc-assignment-end' },
+			{ test: () => payload.startTime && payload.endTime && payload.startTime === payload.endTime, id: 'dc-assignment-start' },
+			{
+				test: () => {
+					const effective = effectiveWorkMinutes(payload.startTime, payload.endTime, payload.breakMinutes);
+					return effective === null || effective <= 0;
+				},
+				id: 'dc-assignment-end',
+			},
+		];
+		for (const item of order) {
+			if (item.test()) {
+				document.getElementById(item.id)?.focus();
+				return;
+			}
+		}
+	}
+
+	function selectedPeriodForPayload(payload) {
+		const periodId = Number(payload?.periodId);
+		if (!Number.isInteger(periodId) || periodId <= 0) {
+			return null;
+		}
+		return state.periods.find((p) => Number(p.id) === periodId) || null;
+	}
+
+	function clearAssignmentFormSuccess() {
+		const el = document.getElementById('dc-assignment-form-feedback');
+		if (!el || el.dataset.dcSuccess !== '1') {
+			return;
+		}
+		el.hidden = true;
+		el.textContent = '';
+		el.dataset.dcSuccess = '';
+		el.classList.remove('dc-roster-form__feedback--success', 'dc-roster-form__feedback--info');
+		setFormFeedbackA11y(el, false);
+	}
+
+	function showAssignmentFormSuccess(message, kind) {
+		const el = document.getElementById('dc-assignment-form-feedback');
+		const submit = document.querySelector('#dc-assignment-form button[type="submit"]');
+		if (!el) {
+			return;
+		}
+		const tone = kind === 'info' ? 'info' : 'success';
+		el.hidden = false;
+		el.textContent = String(message);
+		el.dataset.dcSuccess = '1';
+		el.classList.remove('dc-roster-form__feedback--error');
+		el.classList.toggle('dc-roster-form__feedback--success', tone === 'success');
+		el.classList.toggle('dc-roster-form__feedback--info', tone === 'info');
+		setFormFeedbackA11y(el, false);
+		if (submit) {
+			submit.disabled = submit.dataset.dcLockedBySetup === '1';
+		}
+		el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+	}
+
+	function labelsForAssignmentPayload(payload) {
+		const employee = state.employees.find((row) => Number(row.id) === Number(payload?.employeeId));
+		const location = state.locations.find((row) => Number(row.id) === Number(payload?.locationId));
+		const employeeSelect = document.getElementById('dc-assignment-employee');
+		const locationSelect = document.getElementById('dc-assignment-location');
+		const employeeName = employee
+			? String(employee.name || employee.displayName || '')
+			: (employeeSelect?.selectedOptions?.[0]?.textContent || '').trim();
+		const locationName = location
+			? String(location.name || '')
+			: (locationSelect?.selectedOptions?.[0]?.textContent || '').trim();
+		return { employeeName, locationName };
+	}
+
+	function buildAssignmentSavedMessage(payload) {
+		const { employeeName, locationName } = labelsForAssignmentPayload(payload);
+		const dateLabel = D?.formatDisplayDate?.(payload.dutyDate) || payload.dutyDate;
+		const times = D?.formatClock24Range?.(payload.startTime, payload.endTime)
+			|| `${payload.startTime} – ${payload.endTime}`;
+		return t(
+			'dutycheck',
+			'Assignment saved — {employee} on {date}, {times}, at {location}. The list above is updated.',
+		)
+			.replace('{employee}', employeeName || '—')
+			.replace('{date}', String(dateLabel || ''))
+			.replace('{times}', String(times))
+			.replace('{location}', locationName || '—');
+	}
+
 	function updateAssignmentFormFeedback(payload) {
 		const el = document.getElementById('dc-assignment-form-feedback');
 		const submit = document.querySelector('#dc-assignment-form button[type="submit"]');
 		if (!el) {
 			return;
 		}
+		if (el.dataset.dcSuccess === '1') {
+			return;
+		}
 		if (typeof payload === 'string') {
 			el.hidden = false;
 			el.textContent = payload;
+			el.classList.remove('dc-roster-form__feedback--success', 'dc-roster-form__feedback--info');
 			el.classList.add('dc-roster-form__feedback--error');
+			setFormFeedbackA11y(el, true);
 			if (submit) {
 				submit.disabled = false;
 			}
@@ -194,7 +426,8 @@
 		if (!payload) {
 			el.hidden = true;
 			el.textContent = '';
-			el.classList.remove('dc-roster-form__feedback--error');
+			el.classList.remove('dc-roster-form__feedback--error', 'dc-roster-form__feedback--success', 'dc-roster-form__feedback--info');
+			setFormFeedbackA11y(el, false);
 			return;
 		}
 		let message = '';
@@ -217,7 +450,8 @@
 		if (!message) {
 			el.hidden = true;
 			el.textContent = '';
-			el.classList.remove('dc-roster-form__feedback--error');
+			el.classList.remove('dc-roster-form__feedback--error', 'dc-roster-form__feedback--success', 'dc-roster-form__feedback--info');
+			setFormFeedbackA11y(el, false);
 			if (submit && submit.dataset.dcLockedBySetup !== '1') {
 				submit.disabled = false;
 			}
@@ -226,6 +460,7 @@
 		el.hidden = false;
 		el.textContent = message;
 		el.classList.toggle('dc-roster-form__feedback--error', isError);
+		setFormFeedbackA11y(el, isError);
 		if (submit && isError) {
 			submit.disabled = true;
 		}
@@ -233,11 +468,36 @@
 
 	function refreshAssignmentFormEligibility() {
 		refreshEmployeeSelectForDate();
+		updateLocationTimezoneHint();
 		const form = document.getElementById('dc-assignment-form');
 		if (!form) {
 			return;
 		}
 		updateAssignmentFormFeedback(readForm(form));
+	}
+
+	function updateLocationTimezoneHint() {
+		const hint = document.getElementById('dc-assignment-location-tz-hint');
+		const select = document.getElementById('dc-assignment-location');
+		if (!hint || !select) {
+			return;
+		}
+		const locationId = Number(select.value);
+		const location = state.locations.find((row) => Number(row.id) === locationId);
+		const tz = location && String(location.timezone || '').trim();
+		if (!tz) {
+			hint.hidden = true;
+			hint.replaceChildren();
+			return;
+		}
+		const accountTz = D?.currentTimezone?.() || '';
+		hint.textContent = t(
+			'dutycheck',
+			'Shift times use the location timezone ({locationTimezone}). Change it on the Locations page. Your account timezone ({accountTimezone}) is shown in the header.',
+		)
+			.replace('{locationTimezone}', tz)
+			.replace('{accountTimezone}', accountTz || 'UTC');
+		hint.hidden = false;
 	}
 
 	function fillSelect(id, items, options) {
@@ -311,6 +571,8 @@
 		const list = document.getElementById('dc-conflict-list');
 		const summary = document.getElementById('dc-conflict-summary');
 		if (!list) return;
+		list.setAttribute('role', 'list');
+		list.setAttribute('aria-label', t('dutycheck', 'Planning checks'));
 		list.replaceChildren();
 		const hard = conflicts.filter((c) => c?.severity === 'hard').length;
 		const soft = conflicts.filter((c) => c?.severity === 'soft').length;
@@ -329,14 +591,15 @@
 			const li = create('li', { class: 'dc-conflict dc-conflict--' + (conflict?.severity || 'info') });
 			li.appendChild(severityBadge(conflict?.severity));
 			const conflictMessage = String(conflict?.message || '');
-			const body = create('div', { class: 'dc-conflict__body' }, [
-				create('span', {
-					class: 'dc-conflict__title',
-					text: conflictMessage
-						? translateConflictMessage(conflictMessage)
-						: t('dutycheck', 'Unknown conflict'),
-				}),
-			]);
+			const titleText = conflictMessage
+				? translateConflictMessage(conflictMessage)
+				: t('dutycheck', 'Unknown conflict');
+			const titleId = `dc-conflict-title-${String(conflict?.id || conflicts.indexOf(conflict))}`;
+			const body = create('div', { class: 'dc-conflict__body' });
+			const title = create('span', { class: 'dc-conflict__title', text: titleText });
+			title.id = titleId;
+			body.appendChild(title);
+			li.setAttribute('aria-labelledby', titleId);
 			if (conflict?.acknowledged && conflict?.ackReason) {
 				body.appendChild(create('span', {
 					class: 'dc-conflict__ack',
@@ -377,9 +640,17 @@
 		try {
 			const response = await Api.post(`/apps/dutycheck/api/conflicts/${conflictId}/acknowledge`, { reason });
 			render(response?.data || {});
-			Msg.announce(t('dutycheck', 'Exception confirmed.'));
+			const ackMsg = t('dutycheck', 'Exception confirmed. Planning checks are updated.');
+			Msg.announce(ackMsg, 'success');
 		} catch (err) {
 			Msg.handleApiError(err);
+		}
+	}
+
+	function setAssignmentsEmptyPanelVisible(showEmptyPanel) {
+		const emptyPanel = document.getElementById('dc-roster-assignments-empty');
+		if (emptyPanel) {
+			emptyPanel.hidden = !showEmptyPanel;
 		}
 	}
 
@@ -399,13 +670,11 @@
 		};
 		tbody.replaceChildren();
 		if (!assignments.length) {
-			const tr = create('tr');
-			const td = create('td', { text: t('dutycheck', 'No assignments in this period yet.') });
-			td.colSpan = 7;
-			tr.appendChild(td);
-			tbody.appendChild(tr);
+			setAssignmentsEmptyPanelVisible(true);
+			updateAddAssignmentControl();
 			return;
 		}
+		setAssignmentsEmptyPanelVisible(false);
 		for (const a of assignments) {
 			const tr = create('tr');
 			const date = D?.formatDisplayDate(a.dutyDate) || a.dutyDate;
@@ -475,6 +744,7 @@
 	}
 
 	function announceAssignmentSaveError(err) {
+		clearAssignmentFormSuccess();
 		const friendly = errorMessageFor(err);
 		const message = friendly || t('dutycheck', 'Something went wrong. Please try again, and contact an administrator if it keeps happening.');
 		updateAssignmentFormFeedback(message);
@@ -576,6 +846,7 @@
 					delete el.dataset.dcLockedBySetup;
 				}
 			});
+			updateAddAssignmentControl();
 			return;
 		}
 		for (const item of missing) {
@@ -597,6 +868,7 @@
 				el.disabled = true;
 			}
 		});
+		updateAddAssignmentControl();
 	}
 
 	function readUrls() {
@@ -606,6 +878,257 @@
 			return JSON.parse(raw) || {};
 		} catch (_) {
 			return {};
+		}
+	}
+
+	function restoreAssignmentFormPanel() {
+		const host = document.getElementById('dc-assignment-form-host');
+		const panel = document.getElementById('dc-assignment-form-panel');
+		if (host && panel && panel.parentElement !== host) {
+			host.appendChild(panel);
+		}
+	}
+
+	function selectedPeriodFromState() {
+		const switcher = document.getElementById('dc-roster-period-switcher');
+		const raw = switcher?.value || document.getElementById('dc-assignment-period')?.value;
+		const periodId = Number(raw);
+		if (!Number.isInteger(periodId) || periodId <= 0) {
+			return null;
+		}
+		return state.periods.find((p) => Number(p.id) === periodId) || null;
+	}
+
+	function isAssignmentSetupBlocking() {
+		const callout = document.getElementById('dc-roster-setup-callout');
+		return !!(callout && !callout.hidden);
+	}
+
+	function canAddAssignment() {
+		if (!state.canCreateAssignments) {
+			return false;
+		}
+		if (!state.periods.length || !state.employees.length || !state.locations.length) {
+			return false;
+		}
+		const period = selectedPeriodFromState();
+		return !!(period && String(period.status || '').toLowerCase() === 'open');
+	}
+
+	function addAssignmentDisabledReason() {
+		if (!state.periods.length) {
+			return t('dutycheck', 'Create a planning period first.');
+		}
+		if (!state.employees.length) {
+			return t('dutycheck', 'Add at least one active employee before planning shifts.');
+		}
+		if (!state.locations.length) {
+			return t('dutycheck', 'Add at least one active location before planning shifts.');
+		}
+		const period = selectedPeriodFromState();
+		if (!period) {
+			return t('dutycheck', 'Select a period before adding assignments.');
+		}
+		if (String(period.status || '').toLowerCase() !== 'open') {
+			return t('dutycheck', 'The selected period is not open for planning.');
+		}
+		if (!state.canCreateAssignments) {
+			return t('dutycheck', 'You cannot add assignments for this period.');
+		}
+		return t('dutycheck', 'Adding assignments is not available right now.');
+	}
+
+	function updateAddAssignmentControl() {
+		const allowed = canAddAssignment();
+		const reason = addAssignmentDisabledReason();
+		document.querySelectorAll('.dc-roster-add-assignment-trigger').forEach((btn) => {
+			btn.disabled = false;
+			btn.setAttribute('aria-disabled', allowed ? 'false' : 'true');
+			btn.classList.toggle('dc-is-disabled', !allowed);
+			if (allowed) {
+				btn.removeAttribute('title');
+			} else {
+				btn.setAttribute('title', reason);
+			}
+		});
+		const emptyHint = document.getElementById('dc-roster-empty-add-hint');
+		if (emptyHint) {
+			emptyHint.textContent = allowed
+				? t('dutycheck', 'Use “Add assignment” above to plan the first shift.')
+				: reason;
+		}
+	}
+
+	function clearAssignmentsSectionSuccess() {
+		const el = document.getElementById('dc-roster-assignments-success');
+		if (!el) {
+			return;
+		}
+		el.hidden = true;
+		el.textContent = '';
+		el.classList.remove('dc-roster-flash--visible');
+	}
+
+	function showAssignmentsSectionSuccess(message) {
+		const el = document.getElementById('dc-roster-assignments-success');
+		if (!el) {
+			return;
+		}
+		el.textContent = String(message);
+		el.hidden = false;
+		el.classList.add('dc-roster-flash--visible');
+	}
+
+	function prepareAssignmentFormForModal() {
+		syncAssignmentPeriodFromSwitcher();
+		const form = document.getElementById('dc-assignment-form');
+		if (!form) {
+			return;
+		}
+		clearAssignmentFormSuccess();
+		updateAssignmentFormFeedback(null);
+		const period = selectedPeriodFromState();
+		const dateInput = document.getElementById('dc-assignment-date');
+		if (dateInput && period?.startDate && period?.endDate) {
+			dateInput.min = String(period.startDate);
+			dateInput.max = String(period.endDate);
+			if (!dateInput.value) {
+				dateInput.value = String(period.startDate);
+			}
+		}
+		refreshAssignmentFormEligibility();
+		applyDefaultBreakToForm();
+		wireBreakPrefillHint();
+		D?.applyLocaleToTemporalInputs(form);
+	}
+
+	function resetAssignmentFormAfterSave(data) {
+		const form = document.getElementById('dc-assignment-form');
+		if (!form) {
+			return;
+		}
+		form.reset();
+		const periodHidden = document.getElementById('dc-assignment-period');
+		if (periodHidden && data?.selectedPeriodId) {
+			periodHidden.value = String(data.selectedPeriodId);
+		}
+		applyDefaultBreakToForm();
+		const period = selectedPeriodFromState();
+		const dateInput = document.getElementById('dc-assignment-date');
+		if (dateInput && period?.startDate) {
+			dateInput.value = String(period.startDate);
+		}
+		D?.applyLocaleToTemporalInputs(form);
+		updateAssignmentFormFeedback(null);
+	}
+
+	async function performAssignmentSave() {
+		syncAssignmentPeriodFromSwitcher();
+		const form = document.getElementById('dc-assignment-form');
+		if (!form) {
+			return false;
+		}
+		if (isAssignmentSetupBlocking()) {
+			const msg = t('dutycheck', 'Complete setup before adding assignments. See the checklist in this dialog.');
+			clearAssignmentFormSuccess();
+			updateAssignmentFormFeedback(msg);
+			Msg.announce(msg, 'error');
+			return false;
+		}
+		const payload = readForm(form);
+		const validation = validate(payload);
+		if (validation) {
+			clearAssignmentFormSuccess();
+			updateAssignmentFormFeedback(validation);
+			Msg.announce(validation, 'error');
+			focusFirstInvalidAssignmentField(payload);
+			return false;
+		}
+		updateAssignmentFormFeedback(null);
+		setAssignmentFormBusy(form, true);
+		try {
+			const response = await submitAssignment(payload, true);
+			render(response?.data || {});
+			const savedMsg = buildAssignmentSavedMessage(payload);
+			clearAssignmentFormSuccess();
+			showAssignmentsSectionSuccess(savedMsg);
+			Msg.announce(savedMsg, 'success');
+			rememberBreakMinutes(payload.breakMinutes);
+			resetAssignmentFormAfterSave(response?.data || {});
+			return true;
+		} catch (err) {
+			announceAssignmentSaveError(err);
+			return false;
+		} finally {
+			setAssignmentFormBusy(form, false);
+		}
+	}
+
+	function syncAssignmentModalPrimary(instance) {
+		if (!instance?.primaryBtn) {
+			return;
+		}
+		const blocked = isAssignmentSetupBlocking() || !canAddAssignment();
+		instance.primaryBtn.disabled = blocked;
+		if (blocked) {
+			instance.primaryBtn.setAttribute('title', addAssignmentDisabledReason());
+		} else {
+			instance.primaryBtn.removeAttribute('title');
+		}
+	}
+
+	async function openAssignmentCreateModal(triggerEl) {
+		if (!canAddAssignment()) {
+			Msg.announce(addAssignmentDisabledReason(), 'warning');
+			if (triggerEl && typeof triggerEl.focus === 'function') {
+				triggerEl.focus();
+			}
+			return;
+		}
+		await refreshPlanningDefaultFromServer();
+		prepareAssignmentFormForModal();
+		clearAssignmentsSectionSuccess();
+		const panel = document.getElementById('dc-assignment-form-panel');
+		if (!panel) {
+			return;
+		}
+		renderSetupCallout(state.lastRosterData || {});
+		const instance = C.openModal({
+			title: t('dutycheck', 'Create assignment'),
+			dialogClass: 'dc-modal__dialog--roster-assignment',
+			primaryLabel: t('dutycheck', 'Save assignment'),
+			cancelLabel: t('dutycheck', 'Cancel'),
+			render: () => panel,
+			onSubmit: async () => {
+				const ok = await performAssignmentSave();
+				return ok;
+			},
+			onClose: (result) => {
+				assignmentModalInstance = null;
+				restoreAssignmentFormPanel();
+				if (!result) {
+					clearAssignmentFormSuccess();
+					return;
+				}
+				const addBtn = document.getElementById('dc-roster-add-assignment');
+				if (addBtn && typeof addBtn.focus === 'function') {
+					addBtn.focus();
+				}
+			},
+			onCancel: () => {
+				clearAssignmentFormSuccess();
+			},
+		});
+		assignmentModalInstance = instance;
+		syncAssignmentModalPrimary(instance);
+		const form = document.getElementById('dc-assignment-form');
+		if (form && !form.dataset.dcModalSyncWired) {
+			form.dataset.dcModalSyncWired = '1';
+			form.addEventListener('change', () => {
+				if (assignmentModalInstance?._open) {
+					syncAssignmentModalPrimary(assignmentModalInstance);
+				}
+			});
 		}
 	}
 
@@ -680,34 +1203,11 @@
 		return t('dutycheck', raw);
 	}
 
-	function updateActiveScopeBanner(selectedPeriodId) {
-		const el = document.getElementById('dc-roster-active-scope');
-		if (!el) return;
-		const period = state.periods.find((p) => Number(p.id) === Number(selectedPeriodId));
-		if (!period) {
-			el.textContent = '';
-			el.hidden = true;
-			return;
-		}
-		const statusLabelMap = {
-			open: t('dutycheck', 'Open'),
-			published: t('dutycheck', 'Published'),
-			closed: t('dutycheck', 'Closed'),
-		};
-		const statusKey = String(period.status || '').toLowerCase();
-		const status = statusLabelMap[statusKey] || String(period.status || '').toUpperCase();
-		const start = D?.formatDisplayDate(period.startDate) || period.startDate;
-		const end = D?.formatDisplayDate(period.endDate) || period.endDate;
-		const tpl = getRosterPhpL10n()?.selectedPeriod
-			|| t('dutycheck', 'Selected period: {start} – {end} · {status}');
-		el.textContent = tpl
-			.replace('{start}', start)
-			.replace('{end}', end)
-			.replace('{status}', status);
-		el.hidden = false;
-	}
-
 	function render(data) {
+		state.lastRosterData = data;
+		if (data.defaultBreakMinutes !== undefined && data.defaultBreakMinutes !== null) {
+			state.defaultBreakMinutes = clampBreakMinutes(data.defaultBreakMinutes);
+		}
 		state.periods = data.periods || [];
 		state.employees = data.employees || [];
 		state.locations = data.locations || [];
@@ -715,7 +1215,6 @@
 		state.absenceBlocks = data.absenceBlocks || [];
 		state.canCreateAssignments = Boolean(data.canCreateAssignments);
 		fillPeriodSwitcher(state.periods, data.selectedPeriodId);
-		updateActiveScopeBanner(data.selectedPeriodId);
 		const periodHidden = document.getElementById('dc-assignment-period');
 		if (periodHidden) {
 			periodHidden.value = data.selectedPeriodId ? String(data.selectedPeriodId) : '';
@@ -735,10 +1234,12 @@
 		fillSelect('dc-assignment-location', state.locations, {
 			emptyText: t('dutycheck', 'No active locations yet'),
 		});
+		updateLocationTimezoneHint();
 		refreshAssignmentFormEligibility();
 		renderAssignments(data.assignments || []);
 		renderConflicts(data.conflicts || []);
 		renderSetupCallout(data);
+		updateAddAssignmentControl();
 		updateAdminExportLinks(data.selectedPeriodId);
 		D?.applyLocaleToTemporalInputs(document.getElementById('dc-assignment-form') || document);
 	}
@@ -762,6 +1263,12 @@
 	}
 
 	async function loadRoster(periodId) {
+		if (C.isModalOpen?.()) {
+			C.dismissOpenModal();
+		} else {
+			restoreAssignmentFormPanel();
+		}
+		setAssignmentsEmptyPanelVisible(false);
 		const tbody = document.getElementById('dc-assignments-table-body');
 		C.setLoadingRow(tbody, 7);
 		try {
@@ -804,11 +1311,14 @@
 		if (periodHidden && periodVal) {
 			periodHidden.value = periodVal;
 		}
-		const br = document.getElementById('dc-assignment-break');
-		if (br) br.value = '0';
+		applyDefaultBreakToForm();
 		D?.applyLocaleToTemporalInputs(form);
 		refreshAssignmentFormEligibility();
-		Msg.announce(t('dutycheck', 'Form cleared.'));
+		const clearedMsg = t('dutycheck', 'Form cleared. You can enter another assignment.');
+		if (document.getElementById('dc-assignment-form-panel')?.closest('.dc-modal')) {
+			showAssignmentFormSuccess(clearedMsg, 'info');
+		}
+		Msg.announce(clearedMsg, 'info');
 	}
 
 	function readForm(form) {
@@ -847,6 +1357,13 @@
 		if (!Number.isInteger(payload.periodId) || payload.periodId <= 0) {
 			return t('dutycheck', 'Select a period before saving.');
 		}
+		const period = selectedPeriodForPayload(payload);
+		if (!period) {
+			return t('dutycheck', 'That planning period was not found.');
+		}
+		if (String(period.status || '').toLowerCase() !== 'open') {
+			return t('dutycheck', 'The selected period is not open for planning.');
+		}
 		if (!Number.isInteger(payload.employeeId) || payload.employeeId <= 0) {
 			return t('dutycheck', 'Select an employee.');
 		}
@@ -856,8 +1373,15 @@
 		if (!payload.dutyDate || !payload.startTime || !payload.endTime) {
 			return t('dutycheck', 'Date, start time, and end time are required.');
 		}
+		if (period.startDate && period.endDate
+			&& (payload.dutyDate < String(period.startDate) || payload.dutyDate > String(period.endDate))) {
+			return t('dutycheck', 'Date must fall within the selected period.');
+		}
 		if (payload.startTime === payload.endTime) {
-			return t('dutycheck', 'Start and end time must be different.');
+			return t(
+				'dutycheck',
+				'Start and end time must be different. For overnight shifts, set the end time earlier than the start (e.g. 22:00–06:00).',
+			);
 		}
 		if (!Number.isFinite(payload.breakMinutes) || payload.breakMinutes < 0 || payload.breakMinutes > 720) {
 			return t('dutycheck', 'Break minutes must be between 0 and 720.');
@@ -891,6 +1415,11 @@
 				return t('dutycheck', 'Employee not found or no longer available.');
 			case 'LOCATION_NOT_FOUND':
 				return t('dutycheck', 'Location not found or no longer available.');
+			case 'EQUAL_DUTY_TIMES':
+				return t(
+					'dutycheck',
+					'Start and end time must be different. For overnight shifts, set the end time earlier than the start (e.g. 22:00–06:00).',
+				);
 			case 'INVALID_SHIFT_LENGTH':
 				return t('dutycheck', 'Shift length is invalid after break (check overnight times and break minutes).');
 			case 'INVALID_BREAK_MINUTES':
@@ -925,13 +1454,29 @@
 
 	document.addEventListener('DOMContentLoaded', async () => {
 		D?.applyLocaleToTemporalInputs(document);
+		wireBreakPrefillHint();
+		window.addEventListener('dc-planning-defaults-changed', (event) => {
+			const minutes = Number(event?.detail?.defaultBreakMinutes);
+			if (Number.isFinite(minutes)) {
+				state.defaultBreakMinutes = clampBreakMinutes(minutes);
+			}
+		});
 		wireAdminExportGuards();
 		await loadRoster(selectedPeriodIdFromUrl());
 
 		const switcher = document.getElementById('dc-roster-period-switcher');
 		switcher?.addEventListener('change', async () => {
+			clearAssignmentsSectionSuccess();
 			const periodId = Number(switcher.value);
 			await loadRoster(Number.isInteger(periodId) && periodId > 0 ? periodId : null);
+		});
+
+		document.getElementById('dc-roster-assignments-section')?.addEventListener('click', (event) => {
+			const btn = event.target.closest('.dc-roster-add-assignment-trigger');
+			if (!btn) {
+				return;
+			}
+			openAssignmentCreateModal(btn);
 		});
 
 		document.getElementById('dc-assignment-form-clear')?.addEventListener('click', () => {
@@ -940,6 +1485,8 @@
 
 		const form = document.getElementById('dc-assignment-form');
 		const scheduleEligibilityRefresh = () => {
+			clearAssignmentFormSuccess();
+			clearAssignmentsSectionSuccess();
 			refreshAssignmentFormEligibility();
 		};
 		document.getElementById('dc-assignment-date')?.addEventListener('change', scheduleEligibilityRefresh);
@@ -947,36 +1494,15 @@
 		document.getElementById('dc-assignment-start')?.addEventListener('change', scheduleEligibilityRefresh);
 		document.getElementById('dc-assignment-end')?.addEventListener('change', scheduleEligibilityRefresh);
 		document.getElementById('dc-assignment-location')?.addEventListener('change', scheduleEligibilityRefresh);
-		form?.addEventListener('submit', async (event) => {
+		form?.addEventListener('submit', (event) => {
 			event.preventDefault();
-			syncAssignmentPeriodFromSwitcher();
-			const payload = readForm(form);
-			const validation = validate(payload);
-			if (validation) {
-				updateAssignmentFormFeedback(validation);
-				Msg.announce(validation, 'error');
+			const dialog = form.closest('.dc-modal__dialog--roster-assignment');
+			if (!dialog) {
 				return;
 			}
-			updateAssignmentFormFeedback(null);
-			setAssignmentFormBusy(form, true);
-			try {
-				const response = await submitAssignment(payload, true);
-				render(response?.data || {});
-				form.reset();
-				const periodHidden = document.getElementById('dc-assignment-period');
-				if (periodHidden && response?.data?.selectedPeriodId) {
-					periodHidden.value = String(response.data.selectedPeriodId);
-				}
-				const br = document.getElementById('dc-assignment-break');
-				if (br) br.value = '0';
-				D?.applyLocaleToTemporalInputs(form);
-				updateAssignmentFormFeedback(null);
-				Msg.announce(t('dutycheck', 'Assignment saved.'));
-			} catch (err) {
-				announceAssignmentSaveError(err);
-			} finally {
-				setAssignmentFormBusy(form, false);
-				refreshAssignmentFormEligibility();
+			const primary = dialog.querySelector('.dc-modal__actions .button.primary');
+			if (primary && !primary.disabled) {
+				primary.click();
 			}
 		});
 	});

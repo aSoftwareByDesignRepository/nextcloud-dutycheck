@@ -3,11 +3,11 @@
 /**
  * Roster planning page.
  *
- * Layout (top → bottom, causal flow):
- *  - Period switcher: scope for everything below on this page
- *  - Assignments table: rows for the selected period (directly under the switcher)
- *  - Conflict panel: same period
- *  - Create assignment form: adds to the selected period (last — “add after you reviewed the list”)
+ * Layout (top → bottom):
+ *  - Period switcher
+ *  - Assignments table (+ “Add assignment” opens the create modal)
+ *  - Planning checks (conflicts)
+ *  - Export (app admins only)
  *
  * @var array $_
  * @var \OCP\IL10N $l
@@ -16,7 +16,6 @@ include __DIR__ . '/common/page-start.php';
 $htmlLang = (string) (($_['clientHints']['htmlLang'] ?? 'en-US'));
 $urls = (array) ($_['urls'] ?? []);
 $rosterPhpL10n = [
-	'selectedPeriod' => $l->t('Selected period: {start} – {end} · {status}'),
 	'conflictMessages' => [],
 ];
 foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as $enMsg) {
@@ -44,9 +43,9 @@ foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as
 			</p>
 		</li>
 		<li class="dc-quickstart__item" data-step="add-assignment">
-			<strong><?php p($l->t('2. Fill in the assignment form')); ?></strong>
+			<strong><?php p($l->t('2. Add assignments from the table')); ?></strong>
 			<p>
-				<?php p($l->t('Pick an employee, location, date, and start/end times. Save attempts that violate hard rules (overlap, approved absence) are blocked with a clear message.')); ?>
+				<?php p($l->t('Click “Add assignment” next to the assignments list, fill in the three steps in the dialog, and save. Violations of hard rules are blocked with a clear message.')); ?>
 			</p>
 		</li>
 		<li class="dc-quickstart__item" data-step="resolve-conflicts">
@@ -72,7 +71,7 @@ foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as
 		<div>
 			<h2 id="dc-roster-period-title"><?php p($l->t('Active period')); ?></h2>
 			<p class="dc-section__sub">
-				<?php p($l->t('Your choice here controls the assignment list, conflicts, and new shifts on this page. Only open periods accept new assignments.')); ?>
+				<?php p($l->t('Your choice here controls the assignment list and planning checks below. Only open periods accept new assignments.')); ?>
 			</p>
 		</div>
 	</header>
@@ -83,16 +82,77 @@ foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as
 			</label>
 			<select id="dc-roster-period-switcher" class="dc-input" aria-describedby="dc-roster-period-hint"></select>
 			<p id="dc-roster-period-hint" class="dc-field__hint">
-				<?php p($l->t('Periods are listed newest first. Closed periods are read-only. Changing the period updates the sections below — no full page reload.')); ?>
+				<?php p($l->t('Periods are listed newest first. Closed periods are read-only. Changing the period updates the list below — no full page reload.')); ?>
 			</p>
 			<div class="dc-roster-period__lifecycle" role="note">
 				<p class="dc-field__hint">
-					<?php p($l->t('Publishing and closing happen on the Periods page. Use this page to add and edit shifts only.')); ?>
+					<?php p($l->t('Publishing and closing happen on the Periods page. Use “Add assignment” on this page to plan shifts.')); ?>
 				</p>
 				<a class="button" href="<?php p((string) ($urls['periods'] ?? '#')); ?>"><?php p($l->t('Go to Periods')); ?></a>
 			</div>
 		</div>
 	</div>
+</section>
+
+<section class="dc-card dc-section dc-roster-panel" id="dc-roster-assignments-section" aria-labelledby="dc-assignments-title">
+	<header class="dc-section__header">
+		<div>
+			<h2 id="dc-assignments-title"><?php p($l->t('Assignments')); ?></h2>
+			<p class="dc-section__sub">
+				<?php p($l->t('Shifts for the period selected above. Use “Add assignment” to plan the next one.')); ?>
+			</p>
+		</div>
+		<div class="dc-section__controls">
+			<button type="button" class="button primary dc-roster-add-assignment-trigger" id="dc-roster-add-assignment"
+				aria-describedby="dc-roster-add-assignment-desc" aria-disabled="true">
+				<?php p($l->t('Add assignment')); ?>
+			</button>
+			<span id="dc-roster-add-assignment-desc" class="dc-sr-only">
+				<?php p($l->t('Opens a dialog to create a new shift for the selected open period.')); ?>
+			</span>
+		</div>
+	</header>
+	<p id="dc-roster-assignments-success" class="dc-roster-flash" role="status" aria-live="polite" aria-atomic="true" hidden></p>
+	<div class="dc-table-wrap" id="dc-assignments-table-wrap">
+		<table class="dc-table" id="dc-assignments-table">
+			<caption class="dc-sr-only"><?php p($l->t('Assignments for the selected period')); ?></caption>
+			<thead>
+				<tr>
+					<th scope="col"><?php p($l->t('Date')); ?></th>
+					<th scope="col"><?php p($l->t('Start')); ?></th>
+					<th scope="col"><?php p($l->t('End')); ?></th>
+					<th scope="col"><?php p($l->t('Employee')); ?></th>
+					<th scope="col"><?php p($l->t('Location')); ?></th>
+					<th scope="col"><?php p($l->t('Break')); ?></th>
+					<th scope="col"><?php p($l->t('Note')); ?></th>
+				</tr>
+			</thead>
+			<tbody id="dc-assignments-table-body"></tbody>
+		</table>
+		<div id="dc-roster-assignments-empty" class="dc-roster-empty-panel" hidden>
+			<p class="dc-roster-empty-state__text">
+				<?php p($l->t('No assignments in this period yet.')); ?>
+			</p>
+			<p id="dc-roster-empty-add-hint" class="dc-roster-empty-state__hint"></p>
+		</div>
+	</div>
+</section>
+
+<section class="dc-card dc-section dc-roster-panel" id="dc-roster-conflicts-section" aria-labelledby="dc-conflict-title">
+	<header class="dc-section__header">
+		<div>
+			<h2 id="dc-conflict-title"><?php p($l->t('Planning checks')); ?></h2>
+			<p class="dc-section__sub">
+				<?php p($l->t('Automatic checks for the same period as the assignment list. “Must fix” blocks publishing until resolved. “Confirm to continue” lets you proceed after you confirm with a short reason.')); ?>
+			</p>
+		</div>
+		<div class="dc-section__controls">
+			<span id="dc-conflict-summary" class="dc-pill" aria-live="polite">
+				<?php p($l->t('Loading conflicts...')); ?>
+			</span>
+		</div>
+	</header>
+	<ul id="dc-conflict-list" class="dc-conflicts" role="list" aria-label="<?php p($l->t('Planning checks')); ?>" aria-live="polite"></ul>
 </section>
 
 <?php if (!empty($_['isAppAdmin'])): ?>
@@ -119,143 +179,106 @@ foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as
 </section>
 <?php endif; ?>
 
-<section class="dc-card dc-section dc-roster-panel" id="dc-roster-assignments-section" aria-labelledby="dc-assignments-title">
-	<header class="dc-section__header">
-		<div>
-			<h2 id="dc-assignments-title"><?php p($l->t('Assignments')); ?></h2>
-			<p class="dc-section__sub">
-				<?php p($l->t('Every row belongs to the period chosen above. Use the form at the bottom of the page to add another shift.')); ?>
-			</p>
-			<p id="dc-roster-active-scope" class="dc-roster-active-scope" aria-live="polite" aria-atomic="true" hidden></p>
+<div id="dc-assignment-form-host" class="dc-assignment-form-host" hidden>
+	<div id="dc-assignment-form-panel" class="dc-assignment-form-panel">
+		<div id="dc-roster-setup-callout" class="dc-callout dc-callout--warning" role="status" aria-live="polite" hidden>
+			<p><strong><?php p($l->t('Setup is required before you can plan duties.')); ?></strong></p>
+			<ul class="dc-callout__list" id="dc-roster-setup-checklist"></ul>
 		</div>
-	</header>
-	<div class="dc-table-wrap">
-		<table class="dc-table">
-			<caption class="dc-sr-only"><?php p($l->t('Assignments for the selected period')); ?></caption>
-			<thead>
-				<tr>
-					<th scope="col"><?php p($l->t('Date')); ?></th>
-					<th scope="col"><?php p($l->t('Start')); ?></th>
-					<th scope="col"><?php p($l->t('End')); ?></th>
-					<th scope="col"><?php p($l->t('Employee')); ?></th>
-					<th scope="col"><?php p($l->t('Location')); ?></th>
-					<th scope="col"><?php p($l->t('Break')); ?></th>
-					<th scope="col"><?php p($l->t('Note')); ?></th>
-				</tr>
-			</thead>
-			<tbody id="dc-assignments-table-body"></tbody>
-		</table>
+		<form id="dc-assignment-form" class="dc-form-grid dc-form-grid--roster-assignment" novalidate>
+			<input type="hidden" name="periodId" id="dc-assignment-period" value="">
+			<p id="dc-assignment-form-intro" class="dc-roster-form__intro">
+				<?php p($l->t('Three steps: pick the day, choose who works and where, then enter shift times. People on approved leave are not listed for that day.')); ?>
+			</p>
+			<fieldset class="dc-roster-form__step-group" aria-labelledby="dc-roster-step-day">
+				<h3 id="dc-roster-step-day" class="dc-roster-form__section-heading dc-roster-form__section-heading--step">
+					<span class="dc-roster-form__step-badge" aria-hidden="true">1</span>
+					<?php p($l->t('Pick the duty day')); ?>
+				</h3>
+				<div class="dc-field dc-field--roster-date">
+					<label class="dc-field__label" for="dc-assignment-date"><?php p($l->t('Date')); ?></label>
+					<input id="dc-assignment-date" type="date" name="dutyDate" class="dc-input" lang="<?php p($htmlLang); ?>"
+						aria-describedby="dc-assignment-date-hint" required>
+					<p id="dc-assignment-date-hint" class="dc-field__hint">
+						<?php p($l->t('Only dates inside the open planning period selected on this page.')); ?>
+					</p>
+				</div>
+			</fieldset>
+			<fieldset class="dc-roster-form__step-group" aria-labelledby="dc-roster-step-who">
+				<h3 id="dc-roster-step-who" class="dc-roster-form__section-heading dc-roster-form__section-heading--step">
+					<span class="dc-roster-form__step-badge" aria-hidden="true">2</span>
+					<?php p($l->t('Who and where')); ?>
+				</h3>
+				<div class="dc-field dc-field--roster-employee">
+					<label class="dc-field__label" for="dc-assignment-employee"><?php p($l->t('Employee')); ?></label>
+					<select id="dc-assignment-employee" name="employeeId" class="dc-input" required
+						aria-describedby="dc-assignment-employee-hint dc-assignment-form-feedback"></select>
+					<p id="dc-assignment-employee-hint" class="dc-field__hint" aria-live="polite" aria-atomic="true">
+						<?php p($l->t('Pick a date in step 1 first. People on approved leave that day are not listed here.')); ?>
+					</p>
+				</div>
+				<div class="dc-field dc-field--roster-location">
+					<label class="dc-field__label" for="dc-assignment-location"><?php p($l->t('Location')); ?></label>
+					<select id="dc-assignment-location" name="locationId" class="dc-input" required
+						aria-describedby="dc-assignment-location-tz-hint"></select>
+					<p id="dc-assignment-location-tz-hint" class="dc-field__hint" aria-live="polite" aria-atomic="true" hidden></p>
+				</div>
+			</fieldset>
+			<fieldset class="dc-roster-form__step-group" aria-labelledby="dc-roster-shift-schedule-label">
+				<h3 id="dc-roster-shift-schedule-label" class="dc-roster-form__section-heading dc-roster-form__section-heading--step">
+					<span class="dc-roster-form__step-badge" aria-hidden="true">3</span>
+					<?php p($l->t('Shift times')); ?>
+				</h3>
+				<div class="dc-field dc-field--full dc-field--roster-time-hint">
+					<p id="dc-roster-24h-hint" class="dc-field__hint dc-roster-24h-hint">
+						<?php p($l->t('Times use the 24-hour clock (HH:mm). For shifts past midnight, set an end time earlier than the start time (e.g. 22:00–06:00).')); ?>
+					</p>
+				</div>
+				<div class="dc-field dc-field--roster-start">
+					<label class="dc-field__label" for="dc-assignment-start"><?php p($l->t('Start')); ?></label>
+					<input id="dc-assignment-start" type="time" name="startTime" class="dc-input dc-input--time-24h" step="60"
+						lang="en-GB"
+						aria-label="<?php p($l->t('Start time (24-hour HH:mm)')); ?>"
+						aria-describedby="dc-roster-24h-hint dc-assignment-location-tz-hint" required>
+				</div>
+				<div class="dc-field dc-field--roster-end">
+					<label class="dc-field__label" for="dc-assignment-end"><?php p($l->t('End')); ?></label>
+					<input id="dc-assignment-end" type="time" name="endTime" class="dc-input dc-input--time-24h" step="60"
+						lang="en-GB"
+						aria-label="<?php p($l->t('End time (24-hour HH:mm)')); ?>"
+						aria-describedby="dc-roster-24h-hint dc-assignment-location-tz-hint dc-assignment-rest-hint" required>
+				</div>
+				<p id="dc-assignment-rest-hint" class="dc-field__hint dc-field--full dc-field--roster-rest-hint">
+					<?php p($l->t('If Save asks you to confirm, a planning rule was triggered (for example less than 11 hours rest between shifts). You can review issues in')); ?>
+					<a class="dc-hint-link" href="#dc-roster-conflicts-section"><?php p($l->t('Planning checks')); ?></a><?php p(' '); ?><?php p($l->t('on this page.')); ?>
+				</p>
+			</fieldset>
+			<hr class="dc-form-grid__divider" aria-hidden="true">
+			<div class="dc-roster-form__extras" role="group" aria-labelledby="dc-roster-form-extras-label">
+				<h3 id="dc-roster-form-extras-label" class="dc-roster-form__section-heading">
+					<?php p($l->t('Break and note')); ?>
+				</h3>
+			<div class="dc-field dc-field--roster-break">
+				<label class="dc-field__label" for="dc-assignment-break"><?php p($l->t('Break (minutes)')); ?></label>
+				<input id="dc-assignment-break" type="number" name="breakMinutes" class="dc-input dc-input--num"
+					min="0" max="720" step="5" value="0" required
+					aria-describedby="dc-assignment-break-prefill dc-assignment-break-hint">
+				<p id="dc-assignment-break-prefill" class="dc-roster-break-prefill" aria-live="polite" aria-atomic="true"></p>
+				<p id="dc-assignment-break-hint" class="dc-field__hint">
+					<?php p($l->t('Unpaid break during the shift. Use 0 when there is no break.')); ?>
+				</p>
+			</div>
+			<div class="dc-field dc-field--roster-note">
+				<label class="dc-field__label" for="dc-assignment-note"><?php p($l->t('Note (optional)')); ?></label>
+				<input id="dc-assignment-note" type="text" name="note" class="dc-input" maxlength="512" autocomplete="off">
+			</div>
+			</div>
+			<div id="dc-assignment-form-feedback" class="dc-roster-form__feedback" role="status" aria-live="polite" aria-atomic="true" hidden></div>
+			<div class="dc-form-actions dc-form-actions--roster">
+				<button type="submit" class="button primary" tabindex="-1" aria-hidden="true" hidden><?php p($l->t('Save assignment')); ?></button>
+				<button type="button" id="dc-assignment-form-clear" class="button"><?php p($l->t('Clear entered fields')); ?></button>
+			</div>
+		</form>
 	</div>
-</section>
-
-<section class="dc-card dc-section dc-roster-panel" id="dc-roster-conflicts-section" aria-labelledby="dc-conflict-title">
-	<header class="dc-section__header">
-		<div>
-			<h2 id="dc-conflict-title"><?php p($l->t('Planning checks')); ?></h2>
-			<p class="dc-section__sub">
-				<?php p($l->t('Automatic checks for the same period as the assignment list. “Must fix” blocks publishing until resolved. “Confirm to continue” lets you proceed after you confirm with a short reason.')); ?>
-			</p>
-		</div>
-		<div class="dc-section__controls">
-			<span id="dc-conflict-summary" class="dc-pill" aria-live="polite">
-				<?php p($l->t('Loading conflicts...')); ?>
-			</span>
-		</div>
-	</header>
-	<ul id="dc-conflict-list" class="dc-conflicts" aria-live="polite"></ul>
-</section>
-
-<section class="dc-card dc-section dc-roster-panel" id="dc-roster-create-section" aria-labelledby="dc-assignment-form-title">
-	<header class="dc-section__header">
-		<div>
-			<h2 id="dc-assignment-form-title"><?php p($l->t('Create assignment')); ?></h2>
-			<p class="dc-section__sub">
-				<?php p($l->t('Three steps: (1) pick the day, (2) choose who works and where, (3) enter start and end times. The employee list only shows people who are allowed to work on the day you picked.')); ?>
-			</p>
-		</div>
-	</header>
-	<div id="dc-roster-setup-callout" class="dc-callout dc-callout--warning" role="status" aria-live="polite" hidden>
-		<p><strong><?php p($l->t('Setup is required before you can plan duties.')); ?></strong></p>
-		<ul class="dc-callout__list" id="dc-roster-setup-checklist"></ul>
-	</div>
-	<form id="dc-assignment-form" class="dc-form-grid dc-form-grid--roster-assignment" novalidate>
-		<input type="hidden" name="periodId" id="dc-assignment-period" value="">
-		<p id="dc-assignment-form-intro" class="dc-roster-form__intro">
-			<?php p($l->t('Start with step 1 and work down the page. If someone is on approved leave, they will not appear in the employee list for that day.')); ?>
-		</p>
-		<h3 id="dc-roster-step-day" class="dc-roster-form__section-heading dc-roster-form__section-heading--step">
-			<span class="dc-roster-form__step-badge" aria-hidden="true">1</span>
-			<?php p($l->t('Pick the duty day')); ?>
-		</h3>
-		<div class="dc-field dc-field--roster-date">
-			<label class="dc-field__label" for="dc-assignment-date"><?php p($l->t('Date')); ?></label>
-			<input id="dc-assignment-date" type="date" name="dutyDate" class="dc-input" lang="<?php p($htmlLang); ?>"
-				aria-describedby="dc-roster-step-day dc-assignment-date-hint" required>
-			<p id="dc-assignment-date-hint" class="dc-field__hint">
-				<?php p($l->t('Only dates inside the open planning period shown at the top of this page.')); ?>
-			</p>
-		</div>
-		<h3 id="dc-roster-step-who" class="dc-roster-form__section-heading dc-roster-form__section-heading--step">
-			<span class="dc-roster-form__step-badge" aria-hidden="true">2</span>
-			<?php p($l->t('Who and where')); ?>
-		</h3>
-		<div class="dc-field dc-field--roster-employee">
-			<label class="dc-field__label" for="dc-assignment-employee"><?php p($l->t('Employee')); ?></label>
-			<select id="dc-assignment-employee" name="employeeId" class="dc-input" required
-				aria-describedby="dc-assignment-employee-hint dc-assignment-form-feedback"></select>
-			<p id="dc-assignment-employee-hint" class="dc-field__hint" aria-live="polite" aria-atomic="true">
-				<?php p($l->t('Pick a date in step 1 first. People on approved leave that day are not listed here.')); ?>
-			</p>
-		</div>
-		<div class="dc-field dc-field--roster-location">
-			<label class="dc-field__label" for="dc-assignment-location"><?php p($l->t('Location')); ?></label>
-			<select id="dc-assignment-location" name="locationId" class="dc-input" required
-				aria-describedby="dc-roster-step-who"></select>
-		</div>
-		<h3 id="dc-roster-shift-schedule-label" class="dc-roster-form__section-heading dc-roster-form__section-heading--step">
-			<span class="dc-roster-form__step-badge" aria-hidden="true">3</span>
-			<?php p($l->t('Shift times')); ?>
-		</h3>
-		<div class="dc-field dc-field--full dc-field--roster-time-hint">
-			<p id="dc-roster-24h-hint" class="dc-field__hint dc-roster-24h-hint">
-				<?php p($l->t('Times use the 24-hour clock (HH:mm). For shifts past midnight, set an end time earlier than the start time (e.g. 22:00–06:00).')); ?>
-			</p>
-		</div>
-		<div class="dc-field dc-field--roster-start">
-			<label class="dc-field__label" for="dc-assignment-start"><?php p($l->t('Start')); ?></label>
-			<input id="dc-assignment-start" type="time" name="startTime" class="dc-input dc-input--time-24h" step="60"
-				lang="<?php p($htmlLang); ?>"
-				aria-describedby="dc-roster-shift-schedule-label dc-roster-24h-hint" required>
-		</div>
-		<div class="dc-field dc-field--roster-end">
-			<label class="dc-field__label" for="dc-assignment-end"><?php p($l->t('End')); ?></label>
-			<input id="dc-assignment-end" type="time" name="endTime" class="dc-input dc-input--time-24h" step="60"
-				lang="<?php p($htmlLang); ?>"
-				aria-describedby="dc-roster-shift-schedule-label dc-roster-24h-hint dc-assignment-rest-hint" required>
-		</div>
-		<p id="dc-assignment-rest-hint" class="dc-field__hint dc-field--full dc-field--roster-rest-hint">
-			<?php p($l->t('If Save asks you to confirm, a planning rule was triggered (for example less than 11 hours rest between shifts). See the')); ?>
-			<a class="dc-hint-link" href="#dc-roster-conflicts-section"><?php p($l->t('Planning checks')); ?></a><?php p(' '); ?><?php p($l->t('section above this form.')); ?>
-		</p>
-		<hr class="dc-form-grid__divider" aria-hidden="true">
-		<div class="dc-field dc-field--roster-break">
-			<label class="dc-field__label" for="dc-assignment-break"><?php p($l->t('Break (minutes)')); ?></label>
-			<input id="dc-assignment-break" type="number" name="breakMinutes" class="dc-input dc-input--num"
-				min="0" max="720" step="5" value="0" required
-				aria-describedby="dc-assignment-break-hint">
-			<p id="dc-assignment-break-hint" class="dc-field__hint">
-				<?php p($l->t('Unpaid break duration. Use 0 if there is none.')); ?>
-			</p>
-		</div>
-		<div class="dc-field dc-field--roster-note">
-			<label class="dc-field__label" for="dc-assignment-note"><?php p($l->t('Note (optional)')); ?></label>
-			<input id="dc-assignment-note" type="text" name="note" class="dc-input" maxlength="512" autocomplete="off">
-		</div>
-		<div id="dc-assignment-form-feedback" class="dc-roster-form__feedback" role="status" aria-live="polite" aria-atomic="true" hidden></div>
-		<div class="dc-form-actions dc-form-actions--roster">
-			<button type="submit" class="button primary"><?php p($l->t('Save assignment')); ?></button>
-			<button type="button" id="dc-assignment-form-clear" class="button"><?php p($l->t('Clear entered fields')); ?></button>
-		</div>
-	</form>
-</section>
+</div>
 <?php include __DIR__ . '/common/page-end.php'; ?>

@@ -9,6 +9,7 @@ use OCA\DutyCheck\Exception\ConflictAckRequiredException;
 use OCA\DutyCheck\Http\ApiMutationParams;
 use OCA\DutyCheck\Integration\IArbeitszeitCheckIntegration;
 use OCA\DutyCheck\Service\AccessControlService;
+use OCA\DutyCheck\Service\PlanningDefaultsService;
 use OCA\DutyCheck\Service\RosterCsvFormatter;
 use OCA\DutyCheck\Service\RosterService;
 use OCP\AppFramework\Controller;
@@ -35,6 +36,7 @@ class RosterApiController extends Controller
 		private IUserManager $userManager,
 		private IGroupManager $groupManager,
 		private IArbeitszeitCheckIntegration $arbeitszeitCheckIntegration,
+		private PlanningDefaultsService $planningDefaults,
 		private IConfig $config,
 		private ITimeFactory $timeFactory,
 	) {
@@ -489,6 +491,35 @@ class RosterApiController extends Controller
 			return new DataResponse(['ok' => true, 'policy' => $policy]);
 		} catch (\InvalidArgumentException $e) {
 			return new DataResponse(['ok' => false, 'error' => ['code' => $e->getMessage()]], 400);
+		} catch (Throwable $e) {
+			return ApiJsonErrorResponse::fromThrowable($e);
+		}
+	}
+
+	#[NoAdminRequired]
+	public function planningDefaults(): DataResponse
+	{
+		try {
+			// Planners need the org default for roster pre-fill; only saving requires app admin.
+			$this->access->requirePlannerOrAdmin($this->access->currentUserId());
+
+			return new DataResponse(['ok' => true, 'planning' => $this->planningDefaults->toApi()]);
+		} catch (Throwable $e) {
+			return ApiJsonErrorResponse::fromThrowable($e);
+		}
+	}
+
+	#[NoAdminRequired]
+	public function savePlanningDefaults(): DataResponse
+	{
+		try {
+			$this->access->requireAppAdmin($this->access->currentUserId());
+			$params = ApiMutationParams::all($this->request);
+			$this->planningDefaults->setFromPayload($params['defaultBreakMinutes'] ?? null);
+
+			return new DataResponse(['ok' => true, 'planning' => $this->planningDefaults->toApi()]);
+		} catch (\InvalidArgumentException $e) {
+			return ApiJsonErrorResponse::fromThrowable($e);
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);
 		}

@@ -9,6 +9,7 @@ use OCA\DutyCheck\Exception\AppAccessDeniedException;
 use OCA\DutyCheck\Exception\ConflictAckRequiredException;
 use OCA\DutyCheck\Integration\IArbeitszeitCheckIntegration;
 use OCA\DutyCheck\Service\AccessControlService;
+use OCA\DutyCheck\Service\PlanningDefaultsService;
 use OCA\DutyCheck\Service\RosterCsvFormatter;
 use OCA\DutyCheck\Service\RosterService;
 use OCP\AppFramework\Http\DataDisplayResponse;
@@ -45,6 +46,7 @@ class RosterApiControllerContractTest extends TestCase
 			$this->createMock(IUserManager::class),
 			$this->createMock(IGroupManager::class),
 			$this->createMock(IArbeitszeitCheckIntegration::class),
+			$this->createMock(PlanningDefaultsService::class),
 			$this->createMock(IConfig::class),
 			$this->createMock(ITimeFactory::class),
 		);
@@ -253,6 +255,7 @@ class RosterApiControllerContractTest extends TestCase
 			$this->createMock(IUserManager::class),
 			$this->createMock(IGroupManager::class),
 			$this->createMock(IArbeitszeitCheckIntegration::class),
+			$this->createMock(PlanningDefaultsService::class),
 			$this->createMock(IConfig::class),
 			$this->createMock(ITimeFactory::class),
 		);
@@ -297,6 +300,7 @@ class RosterApiControllerContractTest extends TestCase
 			$this->createMock(IUserManager::class),
 			$this->createMock(IGroupManager::class),
 			$this->createMock(IArbeitszeitCheckIntegration::class),
+			$this->createMock(PlanningDefaultsService::class),
 			$this->createMock(IConfig::class),
 			$this->createMock(ITimeFactory::class),
 		);
@@ -381,6 +385,7 @@ class RosterApiControllerContractTest extends TestCase
 			$userManager,
 			$this->createMock(IGroupManager::class),
 			$this->createMock(IArbeitszeitCheckIntegration::class),
+			$this->createMock(PlanningDefaultsService::class),
 			$this->createMock(IConfig::class),
 			$this->createMock(ITimeFactory::class),
 		);
@@ -466,6 +471,7 @@ class RosterApiControllerContractTest extends TestCase
 			$userManager,
 			$this->createMock(IGroupManager::class),
 			$this->createMock(IArbeitszeitCheckIntegration::class),
+			$this->createMock(PlanningDefaultsService::class),
 			$this->createMock(IConfig::class),
 			$this->createMock(ITimeFactory::class),
 		);

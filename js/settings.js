@@ -604,8 +604,78 @@
 		await loadAtIntegrationState();
 	}
 
+	async function wirePlanningDefaults() {
+		const form = document.getElementById('dc-planning-defaults-form');
+		const input = document.getElementById('dc-planning-default-break');
+		if (!form || !input) {
+			return;
+		}
+		try {
+			const response = await Api.get('/apps/dutycheck/api/admin/planning-defaults');
+			const minutes = Number(response?.planning?.defaultBreakMinutes);
+			input.value = String(Number.isFinite(minutes) ? Math.max(0, Math.min(720, minutes)) : 0);
+		} catch (err) {
+			Msg.handleApiError(err);
+			return;
+		}
+		form.addEventListener('submit', async (event) => {
+			event.preventDefault();
+			const statusEl = document.getElementById('dc-planning-defaults-status');
+			if (statusEl) {
+				statusEl.hidden = true;
+				statusEl.textContent = '';
+			}
+			const raw = Number(input.value);
+			if (!Number.isFinite(raw) || raw < 0 || raw > 720) {
+				const msg = t('dutycheck', 'Enter break minutes between 0 and 720.');
+				Msg.announce(msg, 'error');
+				input.focus();
+				return;
+			}
+			const saveBtn = document.getElementById('dc-planning-defaults-save');
+			if (saveBtn) {
+				saveBtn.disabled = true;
+				saveBtn.setAttribute('aria-busy', 'true');
+			}
+			try {
+				const response = await Api.post('/apps/dutycheck/api/admin/planning-defaults', {
+					defaultBreakMinutes: Math.round(raw),
+				});
+				const minutes = Number(response?.planning?.defaultBreakMinutes);
+				if (!response?.ok || !Number.isFinite(minutes)) {
+					const failMsg = t('dutycheck', 'Could not save planning defaults. Try again or contact an administrator.');
+					Msg.announce(failMsg, 'error');
+					if (statusEl) {
+						statusEl.textContent = failMsg;
+						statusEl.hidden = false;
+					}
+					return;
+				}
+				const saved = Math.max(0, Math.min(720, minutes));
+				input.value = String(saved);
+				window.dispatchEvent(new CustomEvent('dc-planning-defaults-changed', {
+					detail: { defaultBreakMinutes: saved },
+				}));
+				const msg = t('dutycheck', 'Planning defaults saved.');
+				if (statusEl) {
+					statusEl.textContent = msg;
+					statusEl.hidden = false;
+				}
+				Msg.announce(msg, 'success');
+			} catch (err) {
+				Msg.handleApiError(err);
+			} finally {
+				if (saveBtn) {
+					saveBtn.disabled = false;
+					saveBtn.removeAttribute('aria-busy');
+				}
+			}
+		});
+	}
+
 	document.addEventListener('DOMContentLoaded', async () => {
 		await wireAtIntegration();
+		await wirePlanningDefaults();
 		const form = document.getElementById('dc-app-policy-form');
 		if (!form) return;
 		try {

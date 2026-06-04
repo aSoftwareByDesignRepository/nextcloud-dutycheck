@@ -12,6 +12,7 @@ use OCA\DutyCheck\Middleware\AppAccessMiddleware;
 use OCA\DutyCheck\Service\AccessControlService;
 use OCA\DutyCheck\Service\IconCatalog;
 use OCA\DutyCheck\Service\LocaleFormatService;
+use OCA\DutyCheck\Service\PlanningDefaultsService;
 use OCA\DutyCheck\Service\RosterCsvFormatter;
 use OCA\DutyCheck\Service\RosterService;
 use OCA\DutyCheck\Service\TimezoneCatalog;
@@ -80,12 +81,18 @@ class Application extends App implements IBootstrap
 			);
 		});
 		$context->registerServiceAlias(IArbeitszeitCheckIntegration::class, ArbeitszeitCheckIntegrationService::class);
+		$context->registerService(PlanningDefaultsService::class, function ($c): PlanningDefaultsService {
+			return new PlanningDefaultsService(
+				$c->query(\OCP\IConfig::class),
+			);
+		});
 		$context->registerService(RosterService::class, function ($c): RosterService {
 			return new RosterService(
 				$c->query(\OCP\IDBConnection::class),
 				$c->query(\OCP\IUserManager::class),
 				$c->query(IArbeitszeitCheckIntegration::class),
 				$c->query(TimezoneCatalog::class),
+				$c->query(PlanningDefaultsService::class),
 			);
 		});
 		$context->registerService(RosterCsvFormatter::class, function ($c): RosterCsvFormatter {
