@@ -113,6 +113,8 @@
 				return t('dutycheck', 'Sync failed — see server logs or try again later.');
 			case 'ACCESS_LIST_REQUIRED':
 				return t('dutycheck', 'Add at least one allowed user or group when restriction is enabled.');
+			case 'SCHEMA_NOT_READY':
+				return t('dutycheck', 'DutyCheck is still setting up its database. Ask an administrator to run the upgrade or re-enable the app, then reload this page.');
 			case 'INTERNAL_ERROR':
 				return t('dutycheck', 'The server could not complete this action. Reload the page and try again, or contact an administrator.');
 			case 'EMPLOYEE_NOT_FOUND':
@@ -163,6 +165,14 @@
 		}
 		if (status === 403 || code === 'access_denied' || code === 'app_access_denied') {
 			announce(t('dutycheck', 'You are not authorized to perform that action.'), 'error');
+			return;
+		}
+		if (status === 404) {
+			announce(t('dutycheck', 'The server could not find this DutyCheck action. Reload the page; if it keeps happening, ask an administrator to update DutyCheck to the latest version.'), 'error');
+			return;
+		}
+		if (status === 503 || code === 'SCHEMA_NOT_READY') {
+			announce(friendly || t('dutycheck', 'DutyCheck is still setting up its database. Ask an administrator to run the upgrade or re-enable the app, then reload this page.'), 'error');
 			return;
 		}
 		if (status === 429 || code === 'rate_limit_exceeded') {

@@ -406,6 +406,47 @@ class RosterApiControllerContractTest extends TestCase
 		self::assertSame('INSUFFICIENT_ROLE', $response->getData()['error']['code']);
 	}
 
+	public function testCreateEmployeeReturnsCatalog(): void
+	{
+		$this->access->method('requirePlannerOrAdmin')->willReturnCallback(static function (): void {
+		});
+		$this->roster->method('isSchemaReady')->willReturn(true);
+		$this->request->method('getParams')->willReturn([
+			'displayName' => 'Alex Planner',
+			'linkedUserId' => '',
+			'active' => '1',
+		]);
+		$catalog = [
+			['id' => 1, 'displayName' => 'Alex Planner', 'linkedUserId' => null, 'active' => true, 'createdAt' => '2026-06-04 12:00:00'],
+		];
+		$this->roster->expects(self::once())
+			->method('createEmployee')
+			->with([
+				'displayName' => 'Alex Planner',
+				'linkedUserId' => '',
+				'active' => '1',
+			])
+			->willReturn($catalog);
+
+		$response = $this->controller->createEmployee();
+		self::assertSame(200, $response->getStatus());
+		self::assertTrue($response->getData()['ok']);
+		self::assertSame($catalog, $response->getData()['data']);
+	}
+
+	public function testCreateEmployeeMapsSchemaNotReadyTo503(): void
+	{
+		$this->access->method('requirePlannerOrAdmin')->willReturnCallback(static function (): void {
+		});
+		$this->roster->method('isSchemaReady')->willReturn(false);
+		$this->roster->expects(self::never())->method('createEmployee');
+
+		$response = $this->controller->createEmployee();
+		self::assertSame(503, $response->getStatus());
+		self::assertFalse($response->getData()['ok']);
+		self::assertSame('SCHEMA_NOT_READY', $response->getData()['error']['code']);
+	}
+
 	public function testDirectoryUsersReturnsEmptyForShortQueryWithoutDirectoryLookup(): void
 	{
 		$this->access->method('currentUserId')->willReturn('planner-1');

@@ -206,7 +206,7 @@
 					await save({
 						displayName: row.displayName,
 						linkedUserId: row.linkedUserId || '',
-						active: !row.active,
+						active: row.active ? '0' : '1',
 					}, row.id);
 				} catch (err) {
 					Msg.handleApiError(err);
@@ -291,9 +291,9 @@
 	async function save(payload, id) {
 		const isUpdate = Number.isInteger(id) && id > 0;
 		const url = isUpdate ? `/apps/dutycheck/api/employees/${id}` : '/apps/dutycheck/api/employees';
-		const method = isUpdate ? 'put' : 'post';
-		const response = await Api[method](url, payload);
-		renderRows(response?.data || []);
+		// POST for both create and update: some hosts block PUT before PHP runs.
+		await Api.post(url, payload);
+		await load();
 		resetForm();
 		Msg.announce(t('dutycheck', 'Employee saved.'));
 	}
@@ -367,7 +367,7 @@
 				await save({
 					displayName,
 					linkedUserId: String(formData.get('linkedUserId') || ''),
-					active: formData.has('active'),
+					active: formData.has('active') ? '1' : '0',
 				}, editingId);
 			} catch (err) {
 				const code = String(err?.code || err?.payload?.error?.code || '');

@@ -358,6 +358,9 @@ class RosterApiController extends Controller
 	{
 		try {
 			$this->access->requirePlannerOrAdmin($this->access->currentUserId());
+			if (!$this->roster->isSchemaReady()) {
+				return ApiJsonErrorResponse::fromThrowable(new \InvalidArgumentException('SCHEMA_NOT_READY'));
+			}
 			$params = ApiMutationParams::all($this->request);
 			$data = $this->roster->createEmployee([
 				'displayName' => $params['displayName'] ?? null,
@@ -366,7 +369,7 @@ class RosterApiController extends Controller
 			]);
 			return new DataResponse(['ok' => true, 'data' => $data]);
 		} catch (\InvalidArgumentException $e) {
-			return new DataResponse(['ok' => false, 'error' => ['code' => $e->getMessage()]], 400);
+			return ApiJsonErrorResponse::fromThrowable($e);
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);
 		}
@@ -377,6 +380,9 @@ class RosterApiController extends Controller
 	{
 		try {
 			$this->access->requirePlannerOrAdmin($this->access->currentUserId());
+			if (!$this->roster->isSchemaReady()) {
+				return ApiJsonErrorResponse::fromThrowable(new \InvalidArgumentException('SCHEMA_NOT_READY'));
+			}
 			$params = ApiMutationParams::all($this->request);
 			$data = $this->roster->updateEmployee($id, [
 				'displayName' => $params['displayName'] ?? null,
@@ -385,7 +391,7 @@ class RosterApiController extends Controller
 			]);
 			return new DataResponse(['ok' => true, 'data' => $data]);
 		} catch (\InvalidArgumentException $e) {
-			return new DataResponse(['ok' => false, 'error' => ['code' => $e->getMessage()]], 400);
+			return ApiJsonErrorResponse::fromThrowable($e);
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);
 		}

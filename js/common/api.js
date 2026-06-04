@@ -257,16 +257,20 @@
 		return { isJson, data };
 	}
 
+	function resolveAppPath(pathOrUrl, params) {
+		if (typeof pathOrUrl !== 'string' || !/^\//.test(pathOrUrl) || pathOrUrl.includes('://')) {
+			return pathOrUrl;
+		}
+		return params ? buildUrl(pathOrUrl, params) : resolveUrl(pathOrUrl);
+	}
+
 	async function request(pathOrUrl, options) {
 		const opts = options || {};
 		const method = String(opts.method || 'GET').toUpperCase();
 		const isMutation = MUTATION_METHODS.has(method);
 		const hasBody = opts.body !== undefined && opts.body !== null;
 
-		let url = pathOrUrl;
-		if (opts.params && typeof pathOrUrl === 'string' && /^\//.test(pathOrUrl) && !pathOrUrl.includes('://')) {
-			url = buildUrl(pathOrUrl, opts.params);
-		}
+		const url = resolveAppPath(pathOrUrl, opts.params);
 
 		const formEncoded = hasBody && typeof opts.body !== 'string';
 
@@ -379,6 +383,7 @@
 		put,
 		del,
 		buildUrl,
+		resolveAppPath,
 		refreshCsrfToken,
 		extractApiError,
 	};

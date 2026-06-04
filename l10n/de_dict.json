@@ -632,5 +632,22 @@
   "Resolve every “Must fix” issue before continuing.": "Alle „Muss behoben werden“-Punkte lösen, bevor Sie fortfahren.",
   "Absences keep the roster honest: once approved, someone cannot be scheduled on those days, and any overlapping shift shows as “Must fix” on the Roster.": "Abwesenheiten halten den Dienstplan nachvollziehbar: Nach Genehmigung kann die Person an diesen Tagen nicht eingeteilt werden; überschneidende Schichten erscheinen im Dienstplan als „Muss behoben werden“.",
   "After approval, open the Roster — overlapping shifts appear as “Must fix” and must be changed or removed before you publish.": "Nach der Genehmigung den Dienstplan öffnen — überschneidende Schichten erscheinen als „Muss behoben werden“ und müssen geändert oder entfernt werden, bevor Sie veröffentlichen.",
-  "Use this form when an employee cannot submit a request themselves. Once approved, the person cannot be scheduled on those days; any overlapping shift on the Roster becomes a “Must fix” issue.": "Dieses Formular nutzen, wenn jemand keinen Antrag selbst stellen kann. Nach Genehmigung kann die Person an diesen Tagen nicht eingeteilt werden; jede überschneidende Schicht im Dienstplan wird zu „Muss behoben werden“."
+  "Use this form when an employee cannot submit a request themselves. Once approved, the person cannot be scheduled on those days; any overlapping shift on the Roster becomes a “Must fix” issue.": "Dieses Formular nutzen, wenn jemand keinen Antrag selbst stellen kann. Nach Genehmigung kann die Person an diesen Tagen nicht eingeteilt werden; jede überschneidende Schicht im Dienstplan wird zu „Muss behoben werden“.",
+  "A date range for new assignments.": "Ein Datumsbereich für neue Einsätze.",
+  "Add employees": "Beschäftigte anlegen",
+  "Add locations": "Standorte anlegen",
+  "An administrator must run “Update apps” or `php occ upgrade` on the server. Until then, DutyCheck cannot save data.": "Eine Administration muss auf dem Server „Apps aktualisieren“ oder `php occ upgrade` ausführen. Bis dahin kann DutyCheck keine Daten speichern.",
+  "Complete these steps before your team can plan duties. Each item links to the right page.": "Schließe diese Schritte ab, bevor dein Team Dienste planen kann. Jeder Punkt verlinkt zur passenden Seite.",
+  "Create an open planning period": "Offenen Planungszeitraum anlegen",
+  "Database setup is incomplete.": "Datenbankeinrichtung unvollständig.",
+  "Database tables installed": "Datenbanktabellen installiert",
+  "Done — the app can store roster data.": "Erledigt — die App kann Dienstplandaten speichern.",
+  "DutyCheck database setup is incomplete. Ask an administrator to run the server upgrade.": "Die DutyCheck-Datenbank ist noch nicht vollständig eingerichtet. Bitte eine Administration, das Server-Upgrade auszuführen.",
+  "DutyCheck is still setting up its database. Ask an administrator to run the upgrade or re-enable the app, then reload this page.": "DutyCheck richtet die Datenbank noch ein. Bitte eine Administration ausführen lassen (`occ upgrade` oder App neu aktivieren) und diese Seite neu laden.",
+  "Open Locations": "Standorte öffnen",
+  "People who work shifts.": "Personen, die Schichten arbeiten.",
+  "Places where shifts happen.": "Orte, an denen Schichten stattfinden.",
+  "Setup progress": "Einrichtungsfortschritt",
+  "The server could not find this DutyCheck action. Reload the page; if it keeps happening, ask an administrator to update DutyCheck to the latest version.": "Der Server hat diese DutyCheck-Aktion nicht gefunden. Seite neu laden; wenn es weiterhin auftritt, DutyCheck auf die neueste Version aktualisieren lassen.",
+  "Waiting for server upgrade — ask an administrator.": "Warte auf Server-Upgrade — bitte eine Administration."
 }

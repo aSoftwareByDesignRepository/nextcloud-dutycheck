@@ -77,6 +77,24 @@ class ApiJsonErrorResponseTest extends TestCase
 		self::assertSame('INTEGRATION_PEER_NOT_INSTALLED', $response->getData()['error']['code']);
 	}
 
+	public function testMapsSchemaNotReadyTo503(): void
+	{
+		$response = ApiJsonErrorResponse::fromThrowable(
+			new \InvalidArgumentException('SCHEMA_NOT_READY'),
+		);
+		self::assertSame(503, $response->getStatus());
+		self::assertSame('SCHEMA_NOT_READY', $response->getData()['error']['code']);
+	}
+
+	public function testMapsEmployeeNotFoundTo404(): void
+	{
+		$response = ApiJsonErrorResponse::fromThrowable(
+			new \InvalidArgumentException('EMPLOYEE_NOT_FOUND'),
+		);
+		self::assertSame(404, $response->getStatus());
+		self::assertSame('EMPLOYEE_NOT_FOUND', $response->getData()['error']['code']);
+	}
+
 	public function testMapsAssignmentRequiredFieldsTo400(): void
 	{
 		foreach (['PERIOD_ID_REQUIRED', 'EMPLOYEE_ID_REQUIRED', 'LOCATION_ID_REQUIRED'] as $code) {

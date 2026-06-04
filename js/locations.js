@@ -133,9 +133,8 @@
 	async function save(payload, id) {
 		const isUpdate = Number.isInteger(id) && id > 0;
 		const url = isUpdate ? `/apps/dutycheck/api/locations/${id}` : '/apps/dutycheck/api/locations';
-		const method = isUpdate ? 'put' : 'post';
-		const response = await Api[method](url, payload);
-		renderRows(response?.data || []);
+		await Api.post(url, payload);
+		await load();
 		resetForm();
 		Msg.announce(t('dutycheck', 'Location saved.'));
 	}

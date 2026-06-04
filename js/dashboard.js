@@ -137,7 +137,7 @@
 
 	async function loadDashboard() {
 		try {
-			const summary = await Api.request(OC.generateUrl('/apps/dutycheck/api/dashboard'));
+			const summary = await Api.get('/apps/dutycheck/api/dashboard');
 			const data = summary?.data || {};
 			setText('dc-metric-open-periods', data.openPeriods);
 			setText('dc-metric-published-periods', data.publishedPeriods);
@@ -158,7 +158,7 @@
 			});
 		}
 		try {
-			const roster = await Api.request(OC.generateUrl('/apps/dutycheck/api/roster'));
+			const roster = await Api.get('/apps/dutycheck/api/roster');
 			renderConflictPulse(roster?.data || {});
 		} catch (err) {
 			Msg.handleApiError(err);

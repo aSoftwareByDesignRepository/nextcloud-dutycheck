@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.1.16 - 2026-06-04
+
+### Fixed
+
+- **Employee and location saves no longer hit the wrong URL or silently empty the list.** `js/common/api.js` now resolves every app-relative path through `OC.generateUrl` for GET, POST, PUT, and DELETE (mutations previously skipped this and could 404 on hosts that require `/index.php/`). After a successful save, the Employees and Locations pages reload the catalog from the server instead of trusting a stale empty `data` array.
+- **Updates use POST as well as PUT** (`/api/employees/{id}`, `/api/locations/{id}`) so reverse proxies that block PUT still persist edits.
+- **Incomplete database schema** returns `SCHEMA_NOT_READY` (503) with a clear message instead of a generic failure when `dc_employees` (or other tables) are missing.
+- **German translations** for the dashboard “Setup progress” checklist and related setup strings (were still showing English on `de` / `de_DE` locales).
+
 ## 0.1.15 - 2026-06-04
 
 ### Fixed
