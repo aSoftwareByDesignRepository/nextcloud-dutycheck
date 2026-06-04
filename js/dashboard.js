@@ -24,6 +24,87 @@
 		if (node) node.textContent = String(value ?? '0');
 	}
 
+	function readUrls() {
+		return window.DutyCheckComponents?.getAppUrls?.() || {};
+	}
+
+	function renderSetupProgress(setup) {
+		const section = document.getElementById('dc-dashboard-setup');
+		const list = document.getElementById('dc-dashboard-setup-list');
+		const schemaAlert = document.getElementById('dc-dashboard-setup-schema-alert');
+		if (!section || !list) {
+			return;
+		}
+		const urls = readUrls();
+		const schemaReady = Boolean(setup?.schemaReady);
+		const employees = Number(setup?.activeEmployees ?? 0);
+		const locations = Number(setup?.activeLocations ?? 0);
+		const openPeriods = Number(setup?.openPeriods ?? 0);
+		const ready = Boolean(setup?.readyForPlanning);
+
+		if (schemaAlert) {
+			schemaAlert.hidden = schemaReady;
+		}
+		if (ready) {
+			section.hidden = true;
+			list.replaceChildren();
+			return;
+		}
+		section.hidden = false;
+
+		const steps = [
+			{
+				done: schemaReady,
+				label: t('dutycheck', 'Database tables installed'),
+				hint: schemaReady
+					? t('dutycheck', 'Done — the app can store roster data.')
+					: t('dutycheck', 'Waiting for server upgrade — ask an administrator.'),
+				url: null,
+				cta: null,
+			},
+			{
+				done: employees > 0,
+				label: t('dutycheck', 'Add employees'),
+				hint: t('dutycheck', 'People who work shifts.'),
+				url: urls.employees,
+				cta: t('dutycheck', 'Open Employees'),
+			},
+			{
+				done: locations > 0,
+				label: t('dutycheck', 'Add locations'),
+				hint: t('dutycheck', 'Places where shifts happen.'),
+				url: urls.locations,
+				cta: t('dutycheck', 'Open Locations'),
+			},
+			{
+				done: openPeriods > 0,
+				label: t('dutycheck', 'Create an open planning period'),
+				hint: t('dutycheck', 'A date range for new assignments.'),
+				url: urls.periods,
+				cta: t('dutycheck', 'Open Periods'),
+			},
+		];
+
+		list.replaceChildren();
+		for (const step of steps) {
+			const li = create('li', { class: 'dc-setup-checklist__item' + (step.done ? ' is-done' : '') });
+			const status = create('span', {
+				class: 'dc-setup-checklist__status',
+				attrs: { 'aria-hidden': 'true' },
+				text: step.done ? '\u2713' : '\u2022',
+			});
+			const body = create('div', { class: 'dc-setup-checklist__body' });
+			body.appendChild(create('strong', { text: step.label }));
+			body.appendChild(create('p', { class: 'dc-setup-checklist__hint', text: step.hint }));
+			if (!step.done && step.url && step.cta) {
+				body.appendChild(create('a', { class: 'button', href: step.url, text: step.cta }));
+			}
+			li.appendChild(status);
+			li.appendChild(body);
+			list.appendChild(li);
+		}
+	}
+
 	function renderConflictPulse(data) {
 		const root = document.getElementById('dc-dashboard-conflict-pulse');
 		if (!root) return;
@@ -62,6 +143,13 @@
 			setText('dc-metric-published-periods', data.publishedPeriods);
 			setText('dc-metric-employees', data.activeEmployees);
 			setText('dc-metric-assignments', data.assignments);
+			renderSetupProgress(data.setup || {});
+			if (data.setup && data.setup.schemaReady === false) {
+				Msg.announce(
+					t('dutycheck', 'DutyCheck database setup is incomplete. Ask an administrator to run the server upgrade.'),
+					'error',
+				);
+			}
 		} catch (err) {
 			Msg.handleApiError(err);
 			['dc-metric-open-periods', 'dc-metric-published-periods', 'dc-metric-employees', 'dc-metric-assignments'].forEach((id) => {
@@ -73,6 +161,7 @@
 			const roster = await Api.request(OC.generateUrl('/apps/dutycheck/api/roster'));
 			renderConflictPulse(roster?.data || {});
 		} catch (err) {
+			Msg.handleApiError(err);
 			const root = document.getElementById('dc-dashboard-conflict-pulse');
 			if (root) {
 				root.classList.remove('dc-loading');

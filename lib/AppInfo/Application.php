@@ -118,7 +118,16 @@ class Application extends App implements IBootstrap
 					'name' => $c->get(IFactory::class)->get(self::APP_ID)->t('DutyCheck'),
 				];
 			});
-		} catch (\Throwable) {
+		} catch (\Throwable $e) {
+			try {
+				$c = $this->getContainer();
+				$c->get(\Psr\Log\LoggerInterface::class)->error(
+					'DutyCheck navigation registration failed',
+					['exception' => $e, 'app' => self::APP_ID],
+				);
+			} catch (\Throwable) {
+				// Logging must never break app boot.
+			}
 		}
 	}
 }

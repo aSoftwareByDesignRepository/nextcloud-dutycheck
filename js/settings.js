@@ -492,6 +492,7 @@
 				if (retryBtn) {
 					retryBtn.hidden = false;
 				}
+				Msg.handleApiError(err);
 				return false;
 			}
 		}

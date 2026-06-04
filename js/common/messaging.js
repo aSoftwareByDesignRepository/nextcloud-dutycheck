@@ -94,6 +94,25 @@
 				return t('dutycheck', 'Select a location.');
 			case 'CONFLICT_ACK_REQUIRED':
 				return t('dutycheck', 'A planning rule needs your confirmation before this shift can be saved.');
+			case 'INTEGRATION_PEER_NOT_INSTALLED':
+				return t('dutycheck', 'Peer app is not installed.');
+			case 'INTEGRATION_PEER_DISABLED':
+				return t('dutycheck', 'Peer app disabled for this instance.');
+			case 'INTEGRATION_PEER_VERSION':
+				return t('dutycheck', 'Peer app version is too old.');
+			case 'INTEGRATION_LEGACY_CONFLICT':
+				return t('dutycheck', 'Legacy DutyCheck absences exist on linked employees. Resolve them before enabling integration.');
+			case 'INTEGRATION_PURGE_BLOCKED':
+				return t('dutycheck', 'Cannot remove legacy absences while integration is enabled. Disable integration first.');
+			case 'INTEGRATION_SYNC_THROTTLED':
+				return t('dutycheck', 'Manual sync was rate-limited. Wait a moment and try again.');
+			case 'INTEGRATION_SYNC_ALREADY_RUNNING':
+				return t('dutycheck', 'Sync is already running.');
+			case 'INTEGRATION_SYNC_FAILED':
+			case 'INTEGRATION_SYNC_BREAKER_TRIPPED':
+				return t('dutycheck', 'Sync failed — see server logs or try again later.');
+			case 'ACCESS_LIST_REQUIRED':
+				return t('dutycheck', 'Add at least one allowed user or group when restriction is enabled.');
 			case 'INTERNAL_ERROR':
 				return t('dutycheck', 'The server could not complete this action. Reload the page and try again, or contact an administrator.');
 			case 'EMPLOYEE_NOT_FOUND':

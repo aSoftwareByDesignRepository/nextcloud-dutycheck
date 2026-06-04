@@ -552,6 +552,66 @@
 	margin-top: auto;
 }
 
+/* Setup progress (dashboard — not dismissable until complete) */
+.dc-setup-checklist {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+	gap: var(--dc-space-3);
+}
+.dc-setup-checklist__item {
+	display: grid;
+	grid-template-columns: 2.75rem 1fr;
+	gap: var(--dc-space-3);
+	align-items: start;
+	padding: var(--dc-space-4);
+	border: 1px solid var(--dc-border);
+	border-radius: var(--dc-radius-sm);
+	background: var(--dc-bg-card);
+}
+.dc-setup-checklist__item.is-done {
+	border-color: var(--dc-tint-success-border, var(--dc-border));
+	background: var(--dc-tint-success);
+}
+.dc-setup-checklist__status {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 2.75rem;
+	height: 2.75rem;
+	border-radius: 50%;
+	font-size: 1.25rem;
+	font-weight: 700;
+	line-height: 1;
+	background: var(--color-background-dark, #e8e8e8);
+	color: var(--color-main-text, #1d1d1d);
+}
+.dc-setup-checklist__item.is-done .dc-setup-checklist__status {
+	background: var(--color-success, #2d7a46);
+	color: #fff;
+}
+.dc-setup-checklist__body {
+	display: flex;
+	flex-direction: column;
+	gap: var(--dc-space-2);
+	min-width: 0;
+}
+.dc-setup-checklist__body strong {
+	font-size: var(--dc-fs-md);
+	line-height: var(--dc-line-tight);
+}
+.dc-setup-checklist__hint {
+	margin: 0;
+	color: var(--dc-muted);
+	font-size: var(--dc-fs-sm);
+}
+.dc-setup-checklist__body .button {
+	align-self: flex-start;
+	min-height: 44px;
+}
+
 /* ── Quickstart card variant (dismissable) ───────────────────── */
 .dc-empty--quickstart {
 	position: relative;

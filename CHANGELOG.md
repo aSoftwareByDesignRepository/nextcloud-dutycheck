@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.1.15 - 2026-06-04
+
+### Fixed
+
+- **Install and upgrade path hardened.** `appinfo/info.xml` now declares MySQL/PostgreSQL under `<dependencies>` (required by `MigrationService` for correct schema checks), and **`EnsureDutyCheckSchema`** runs on install and post-migration to recreate any missing tables and fail loudly in `occ upgrade` logs instead of leaving a half-installed app with no UI feedback. Schema repair uses `OC\DB\Connection` for `MigrationService`, matching core `occ upgrade`.
+- **Dashboard setup progress.** Planners see a persistent “Setup progress” checklist (schema, employees, locations, open period) with direct links until planning is possible; incomplete database setup shows a critical alert and an audible error message.
+- **Integration and policy errors** use targeted messages in `messaging.js` (peer app missing/disabled/too old, sync throttled, legacy absences, access list required) instead of a generic “Something went wrong”.
+- **Settings integration load failures** now surface via the shared error handler (toast + live region), not only a silent banner.
+- **Navigation boot failures** are logged to `nextcloud.log` instead of being swallowed in `Application::boot()`.
+
+### Added
+
+- **`tests/Integration/UpgradeRepairIntegrationTest.php`** and **`EnsureDutyCheckSchemaTest`** to guard the production upgrade container path.
+
 ## 0.1.14 - 2026-06-03
 
 ### Fixed

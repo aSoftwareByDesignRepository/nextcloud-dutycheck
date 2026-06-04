@@ -9,6 +9,7 @@ use DateTimeZone;
 use OCA\DutyCheck\Exception\ConflictAckRequiredException;
 use OCA\DutyCheck\Exception\IntegrationLegacyConflictException;
 use OCA\DutyCheck\Integration\ArbeitszeitCheckTypeMapper;
+use OCA\DutyCheck\Repair\UninstallDropTables;
 use OCA\DutyCheck\Integration\IArbeitszeitCheckIntegration;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
@@ -50,14 +51,34 @@ class RosterService
 		$openPeriods = $this->count('dc_periods', 'status', 'open');
 		$publishedPeriods = $this->count('dc_periods', 'status', 'published');
 		$employees = $this->count('dc_employees', 'active', 1);
+		$locations = $this->count('dc_locations', 'active', 1);
 		$assignments = $this->countAll('dc_assignments');
+		$schemaReady = $this->isSchemaReady();
 
 		return [
 			'openPeriods' => $openPeriods,
 			'publishedPeriods' => $publishedPeriods,
 			'activeEmployees' => $employees,
+			'activeLocations' => $locations,
 			'assignments' => $assignments,
+			'setup' => [
+				'schemaReady' => $schemaReady,
+				'activeEmployees' => $employees,
+				'activeLocations' => $locations,
+				'openPeriods' => $openPeriods,
+				'readyForPlanning' => $schemaReady && $employees > 0 && $locations > 0 && $openPeriods > 0,
+			],
 		];
+	}
+
+	public function isSchemaReady(): bool
+	{
+		foreach (UninstallDropTables::TABLES as $table) {
+			if (!$this->db->tableExists($table)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public function listPeriods(): array

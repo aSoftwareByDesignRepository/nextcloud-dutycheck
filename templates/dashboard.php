@@ -13,6 +13,22 @@
 include __DIR__ . '/common/page-start.php';
 $urls = (array) ($_['urls'] ?? []);
 ?>
+<section class="dc-card dc-section dc-setup-progress" id="dc-dashboard-setup" hidden aria-labelledby="dc-dashboard-setup-title">
+	<header class="dc-section__header">
+		<div>
+			<h2 id="dc-dashboard-setup-title"><?php p($l->t('Setup progress')); ?></h2>
+			<p class="dc-section__sub">
+				<?php p($l->t('Complete these steps before your team can plan duties. Each item links to the right page.')); ?>
+			</p>
+		</div>
+	</header>
+	<div id="dc-dashboard-setup-schema-alert" class="dc-callout dc-callout--critical" role="alert" hidden>
+		<p><strong><?php p($l->t('Database setup is incomplete.')); ?></strong></p>
+		<p><?php p($l->t('An administrator must run “Update apps” or `php occ upgrade` on the server. Until then, DutyCheck cannot save data.')); ?></p>
+	</div>
+	<ol class="dc-setup-checklist" id="dc-dashboard-setup-list" aria-live="polite"></ol>
+</section>
+
 <section class="dc-card dc-empty dc-empty--quickstart" id="dc-quickstart" hidden aria-labelledby="dc-quickstart-title">
 	<header class="dc-section__header">
 		<div>
