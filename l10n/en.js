@@ -692,5 +692,4 @@ OC.L10N.register(
     "{n} published shifts" : "{n} published shifts",
     "{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page." : "{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page.",
     "“Must fix” issues block publishing." : "“Must fix” issues block publishing."
-},
-"nplurals=2; plural=(n != 1);");
+});

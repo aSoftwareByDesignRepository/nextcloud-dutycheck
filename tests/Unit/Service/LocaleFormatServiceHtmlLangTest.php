@@ -20,6 +20,10 @@ class LocaleFormatServiceHtmlLangTest extends TestCase
 		);
 		self::assertSame('de-DE', $service->canonicalHtmlLangFromLocaleString('de'));
 		self::assertSame('de-DE', $service->canonicalHtmlLangFromLocaleString('de_de'));
+		self::assertSame('fr-FR', $service->canonicalHtmlLangFromLocaleString('fr'));
+		self::assertSame('fr-FR', $service->canonicalHtmlLangFromLocaleString('fr_fr'));
+		self::assertSame('es-ES', $service->canonicalHtmlLangFromLocaleString('es'));
+		self::assertSame('es-ES', $service->canonicalHtmlLangFromLocaleString('es_es'));
 		self::assertSame('en-US', $service->canonicalHtmlLangFromLocaleString(''));
 	}
 

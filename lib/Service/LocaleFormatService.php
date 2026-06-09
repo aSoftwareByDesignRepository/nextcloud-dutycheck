@@ -31,6 +31,8 @@ class LocaleFormatService
 			return match ($locale) {
 				'de' => 'de-DE',
 				'en' => 'en-US',
+				'fr' => 'fr-FR',
+				'es' => 'es-ES',
 				default => 'en-US',
 			};
 		}
