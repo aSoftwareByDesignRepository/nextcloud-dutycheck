@@ -12,6 +12,11 @@
 	<summary lang="fr">Plannings de service clairs, sans conflits et prêts pour l'audit — intégrés à votre Nextcloud</summary>
 	<summary lang="da">Klare, konfliktfri vagtplaner med revisionsspor — direkte i din Nextcloud</summary>
 	<summary lang="es">Planificaciones de turnos claras, sin conflictos y listas para auditoría — integradas en tu Nextcloud</summary>
+	<summary lang="nl">Duidelijke, conflictvrije dienstroosters met audittrail — geïntegreerd in uw Nextcloud</summary>
+	<summary lang="it">Turni chiari, senza conflitti e pronti per l'audit — integrati nella tua Nextcloud</summary>
+	<summary lang="pl">Przejrzyste harmonogramy dyżurów bez konfliktów, gotowe do audytu — w Twoim Nextcloud</summary>
+	<summary lang="sv">Tydliga, konfliktfria schema med revisionsspår — inbyggt i din Nextcloud</summary>
+	<summary lang="nb">Klare, konfliktfrie vaktplaner med revisjonsspor — direkte i din Nextcloud</summary>
 	<description><![CDATA[
 # DutyCheck — duty rosters your team can actually rely on
 
