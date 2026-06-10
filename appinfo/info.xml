@@ -9,6 +9,9 @@
 	<name lang="de">DutyCheck</name>
 	<summary>Shift rosters that stay clear, conflict-free, and audit-ready — built into your Nextcloud</summary>
 	<summary lang="de">Klare, konfliktfreie Dienstpläne mit Nachweis — direkt in Ihrer Nextcloud</summary>
+	<summary lang="fr">Plannings de service clairs, sans conflits et prêts pour l'audit — intégrés à votre Nextcloud</summary>
+	<summary lang="da">Klare, konfliktfri vagtplaner med revisionsspor — direkte i din Nextcloud</summary>
+	<summary lang="es">Planificaciones de turnos claras, sin conflictos y listas para auditoría — integradas en tu Nextcloud</summary>
 	<description><![CDATA[
 # DutyCheck — duty rosters your team can actually rely on
 
@@ -66,6 +69,93 @@ Mit **ArbeitszeitCheck** können Abwesenheiten automatisch gespiegelt werden (op
 - Nextcloud 32–33
 - PHP 8.2–8.4
 - MySQL oder PostgreSQL
+	]]></description>
+	<description lang="fr"><![CDATA[
+# DutyCheck — des plannings de service sur lesquels votre équipe peut compter
+
+Marre des tableurs qui deviennent obsolètes dès la publication ? DutyCheck intègre la **planification des équipes dans Nextcloud** : un seul endroit pour les plannings, les absences et la traçabilité quand quelqu'un demande *« qui était de service cette nuit-là ? »*
+
+Installez l'application, ajoutez vos collaborateurs et lieux, ouvrez une période de planification et commencez à affecter les postes — l'interface est **simple dès le premier jour** et **stricte là où cela compte** (les conflits et règles de cycle de vie sont appliqués côté serveur, pas de mémoire).
+
+## Pourquoi les équipes essaient DutyCheck
+
+- **Voir les problèmes avant de publier** — chevauchements et conflits de règles apparaissent pendant l'édition, pas après
+- **Un flux que tout le monde comprend** — brouillon → validation → publication → clôture, avec des états clairs
+- **Self-service pour le personnel** — les comptes liés consultent leur planning, demandent des absences et s'abonnent à un flux calendrier
+- **Prêt pour l'audit** — instantanés et journal d'activité pour prouver ce qui était planifié et quand cela a changé
+- **Conçu pour le terrain** — responsive du téléphone au bureau ; interface visant **WCAG 2.1 AA**
+
+## Idéal pour
+
+Rotations médicales, couverture de sites, événements, logistique, commerce, astreintes — partout où **personnes, lieux et horaires** doivent s'aligner sans approximation.
+
+## Optionnel : ArbeitszeitCheck
+
+Avec **ArbeitszeitCheck**, DutyCheck peut refléter les absences automatiquement (intégration optionnelle, désactivée par défaut).
+
+## Prérequis
+
+- Nextcloud 32–33
+- PHP 8.2–8.4
+- MySQL ou PostgreSQL
+	]]></description>
+	<description lang="da"><![CDATA[
+# DutyCheck — vagtplaner dit team faktisk kan stole på
+
+Træt af regneark, der er forældede, så snart du offentliggør? DutyCheck bringer **vagtplanlægning ind i Nextcloud**: ét sted til vagtplaner, fravær og dokumentation, når nogen spørger *« hvem var på vagt den nat? »*
+
+Installer appen, tilføj medarbejdere og lokationer, åbn en planlægningsperiode, og begynd at tildele vagter — grænsefladen er **enkel fra dag ét** og **streng, hvor det betyder noget** (konflikter og livscyklusregler håndhæves på serveren, ikke i hukommelsen).
+
+## Derfor prøver teams DutyCheck
+
+- **Se problemer før offentliggørelse** — overlappende vagter og politik-konflikter vises under redigering, ikke bagefter
+- **En arbejdsgang alle forstår** — kladde → valider → offentliggør → luk, med tydelige tilstande
+- **Selvbetjening for medarbejdere** — linkede konti kan se vagtplan, anmode om fravær og abonnere på kalenderfeed
+- **Klar til revision** — øjebliksbilleder og aktivitetslog, når du skal dokumentere plan og ændringer
+- **Bygget til virkelige enheder** — responsiv fra telefon til desktop; mål **WCAG 2.1 AA**
+
+## Passer særligt godt til
+
+Sundhedsvagter, driftsdækning, events, logistik, detailhandel, vagthold — overalt hvor **mennesker, steder og tid** skal passe uden gætteri.
+
+## Valgfrit: ArbeitszeitCheck
+
+Med **ArbeitszeitCheck** kan DutyCheck spejle fravær automatisk (integration er valgfri og slået fra, indtil du aktiverer den).
+
+## Krav
+
+- Nextcloud 32–33
+- PHP 8.2–8.4
+- MySQL eller PostgreSQL
+	]]></description>
+	<description lang="es"><![CDATA[
+# DutyCheck — planificaciones de turnos en las que tu equipo puede confiar
+
+¿Cansado de hojas de cálculo que quedan obsoletas al publicar? DutyCheck lleva la **planificación de turnos a Nextcloud**: un solo lugar para cuadrantes, ausencias y el registro cuando alguien pregunta *« ¿quién estaba de guardia esa noche? »*
+
+Instálala, añade personas y ubicaciones, abre un periodo de planificación y empieza a asignar turnos — la interfaz es **sencilla desde el primer día** y **estricta donde importa** (conflictos y reglas de ciclo de vida se aplican en el servidor, no de memoria).
+
+## Por qué los equipos prueban DutyCheck
+
+- **Ver problemas antes de publicar** — solapamientos y conflictos de normas aparecen al editar, no después
+- **Un flujo que todos entienden** — borrador → validar → publicar → cerrar, con estados claros
+- **Autoservicio para el personal** — cuentas vinculadas ven su cuadrante, solicitan ausencias y se suscriben a un feed de calendario
+- **Listo para auditoría** — instantáneas y registro de actividad para demostrar qué se planificó y cuándo cambió
+- **Hecho para dispositivos reales** — responsive de móvil a escritorio; interfaz orientada a **WCAG 2.1 AA**
+
+## Encaja especialmente en
+
+Rotaciones sanitarias, cobertura de instalaciones, eventos, logística, comercio, guardias — donde **personas, lugares y horarios** deben cuadrar sin conjeturas.
+
+## Opcional: ArbeitszeitCheck
+
+Con **ArbeitszeitCheck**, DutyCheck puede reflejar ausencias automáticamente (integración opcional, desactivada hasta que la habilites).
+
+## Requisitos
+
+- Nextcloud 32–33
+- PHP 8.2–8.4
+- MySQL o PostgreSQL
 	]]></description>
 	<version>0.1.16</version>
 	<licence>AGPL-3.0-or-later</licence>

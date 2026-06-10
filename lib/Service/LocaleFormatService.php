@@ -33,6 +33,11 @@ class LocaleFormatService
 				'en' => 'en-US',
 				'fr' => 'fr-FR',
 				'es' => 'es-ES',
+				'da' => 'da-DK',
+				'nl' => 'nl-NL',
+				'it' => 'it-IT',
+				'pl' => 'pl-PL',
+				'pt' => 'pt-PT',
 				default => 'en-US',
 			};
 		}
