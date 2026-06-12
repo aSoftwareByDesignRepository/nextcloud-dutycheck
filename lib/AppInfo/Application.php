@@ -8,6 +8,8 @@ use OCA\DutyCheck\Integration\ArbeitszeitCheckAbsenceReader;
 use OCA\DutyCheck\Integration\ArbeitszeitCheckIntegrationService;
 use OCA\DutyCheck\Integration\IArbeitszeitCheckAbsenceReader;
 use OCA\DutyCheck\Integration\IArbeitszeitCheckIntegration;
+use OCA\DutyCheck\Repair\EnsureDutyCheckSchema;
+use OCA\DutyCheck\Repair\UninstallDropTables;
 use OCA\DutyCheck\Middleware\AppAccessMiddleware;
 use OCA\DutyCheck\Service\AccessControlService;
 use OCA\DutyCheck\Service\IconCatalog;
@@ -101,6 +103,20 @@ class Application extends App implements IBootstrap
 			);
 		});
 		$context->registerMiddleware(AppAccessMiddleware::class);
+
+		$context->registerService(EnsureDutyCheckSchema::class, function ($c): EnsureDutyCheckSchema {
+			return new EnsureDutyCheckSchema(
+				$c->query(\OCP\IDBConnection::class),
+				$c->query(\OCP\IConfig::class),
+			);
+		});
+
+		$context->registerService(UninstallDropTables::class, function ($c): UninstallDropTables {
+			return new UninstallDropTables(
+				$c->query(\OCP\IDBConnection::class),
+				$c->query(\OCP\IConfig::class),
+			);
+		});
 	}
 
 	public function boot(IBootContext $context): void
