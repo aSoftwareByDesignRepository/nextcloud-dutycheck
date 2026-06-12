@@ -121,6 +121,7 @@
         "Break minutes must be between 0 and 720.": "Les minutes de pause doivent être comprises entre 0 et 720.",
         "Briefly explain why you are allowing this (minimum 10 characters)": "Expliquez brièvement pourquoi vous autorisez cela (minimum 10 caractères)",
         "Briefly explain why you are scheduling anyway (at least 10 characters).": "Expliquez brièvement pourquoi vous planifiez quand même (au moins 10 caractères).",
+        "Briefly explain why you are scheduling anyway (at least 10 characters).\n\n{details}": "Expliquez brièvement pourquoi vous planifiez quand même (au moins 10 caractères).\n\n{details}",
         "Briefly explain why you are scheduling anyway (at least 10 characters).\\n\\n{details}": "Expliquez brièvement pourquoi vous planifiez quand même (au moins 10 caractères).\\n\\n{details}",
         "Browse your published shifts by date range and keep a private calendar subscription in sync.": "Parcourez vos équipes publiées par plage de dates et synchronisez un abonnement à un calendrier privé.",
         "By default, every Nextcloud member can open DutyCheck. If your organisation is large, restrict access to selected users and groups instead.": "Par défaut, chaque membre Nextcloud peut ouvrir DutyCheck. Si votre organisation est grande, limitez plutôt l’accès aux utilisateurs et groupes sélectionnés.",

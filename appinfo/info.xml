@@ -162,7 +162,7 @@ Con **ArbeitszeitCheck**, DutyCheck puede reflejar ausencias automáticamente (i
 - PHP 8.2–8.4
 - MySQL o PostgreSQL
 	]]></description>
-	<version>0.1.16</version>
+	<version>0.1.17</version>
 	<licence>AGPL-3.0-or-later</licence>
 	<author mail="info@software-by-design.de" homepage="https://nextcloud.software-by-design.de">Alexander Mäule</author>
 	<namespace>DutyCheck</namespace>
@@ -203,8 +203,8 @@ Con **ArbeitszeitCheck**, DutyCheck puede reflejar ausencias automáticamente (i
 	</screenshot>
 	<donation type="other" title="Software by Design">https://nextcloud.software-by-design.de/</donation>
 	<dependencies>
-		<nextcloud min-version="32" max-version="33"/>
-		<php min-version="8.2" max-version="8.4"/>
+		<nextcloud min-version="32" max-version="34"/>
+		<php min-version="8.2" max-version="8.5"/>
 		<!-- Required under <dependencies>: MigrationService reads these for schema naming checks -->
 		<database>mysql</database>
 		<database>pgsql</database>

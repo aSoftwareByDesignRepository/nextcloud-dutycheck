@@ -7,6 +7,7 @@ namespace OCA\DutyCheck\Repair;
 use OC\DB\Connection;
 use OC\DB\MigrationService;
 use OCA\DutyCheck\Migration\DutyCheckTableCatalog;
+use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\Server;
 use OCP\Migration\IOutput;
@@ -23,6 +24,7 @@ final class EnsureDutyCheckSchema implements IRepairStep
 {
 	public function __construct(
 		private readonly IDBConnection $connection,
+		private readonly IConfig $config,
 	) {
 	}
 
@@ -33,6 +35,8 @@ final class EnsureDutyCheckSchema implements IRepairStep
 
 	public function run(IOutput $output): void
 	{
+		$this->config->deleteAppValue(UninstallDropTables::APP_ID, UninstallDropTables::REPAIR_PASS_KEY);
+
 		$missingBefore = $this->missingTables();
 		if ($missingBefore === []) {
 			$output->info('DutyCheck: all ' . count(DutyCheckTableCatalog::TABLES) . ' tables are present.');

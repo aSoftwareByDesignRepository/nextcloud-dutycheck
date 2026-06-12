@@ -121,6 +121,7 @@
     "Break minutes must be between 0 and 720.": "Break minutes must be between 0 and 720.",
     "Briefly explain why you are allowing this (minimum 10 characters)": "Briefly explain why you are allowing this (minimum 10 characters)",
     "Briefly explain why you are scheduling anyway (at least 10 characters).": "Briefly explain why you are scheduling anyway (at least 10 characters).",
+    "Briefly explain why you are scheduling anyway (at least 10 characters).\n\n{details}": "Briefly explain why you are scheduling anyway (at least 10 characters).\n\n{details}",
     "Briefly explain why you are scheduling anyway (at least 10 characters).\\n\\n{details}": "Briefly explain why you are scheduling anyway (at least 10 characters).\\n\\n{details}",
     "Browse your published shifts by date range and keep a private calendar subscription in sync.": "Browse your published shifts by date range and keep a private calendar subscription in sync.",
     "By default, every Nextcloud member can open DutyCheck. If your organisation is large, restrict access to selected users and groups instead.": "By default, every Nextcloud member can open DutyCheck. If your organisation is large, restrict access to selected users and groups instead.",

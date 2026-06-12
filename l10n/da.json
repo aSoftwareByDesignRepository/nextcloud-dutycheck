@@ -121,6 +121,7 @@
         "Break minutes must be between 0 and 720.": "Pauseminutter skal være mellem 0 og 720.",
         "Briefly explain why you are allowing this (minimum 10 characters)": "Forklar kort, hvorfor du tillader dette (mindst 10 tegn)",
         "Briefly explain why you are scheduling anyway (at least 10 characters).": "Forklar kort, hvorfor du alligevel planlægger (mindst 10 tegn).",
+        "Briefly explain why you are scheduling anyway (at least 10 characters).\n\n{details}": "Forklar kort, hvorfor du alligevel planlægger (mindst 10 tegn).\n\n{details}",
         "Briefly explain why you are scheduling anyway (at least 10 characters).\\n\\n{details}": "Forklar kort, hvorfor du alligevel planlægger (mindst 10 tegn).\\n\\n{details}",
         "Browse your published shifts by date range and keep a private calendar subscription in sync.": "Gennemse dine offentliggjorte vagter efter datointerval, og hold et privat kalenderabonnement synkroniseret.",
         "By default, every Nextcloud member can open DutyCheck. If your organisation is large, restrict access to selected users and groups instead.": "Som standard kan alle Nextcloud-medlemmer åbne DutyCheck. Er din organisation stor, kan du i stedet begrænse adgangen til udvalgte brugere og grupper.",
