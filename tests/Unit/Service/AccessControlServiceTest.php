@@ -270,4 +270,109 @@ class AccessControlServiceTest extends TestCase
 		self::assertSame('["alice","bob"]', $writes['access_allowed_user_ids'] ?? null);
 		self::assertSame('["ops","night"]', $writes['access_allowed_group_ids'] ?? null);
 	}
+
+	public function testSetDutyRoleUpsertsPlannerAndReturnsAssignments(): void
+	{
+		$user = $this->createMock(IUser::class);
+		$user->method('getDisplayName')->willReturn('Pat Planner');
+		$user->method('isEnabled')->willReturn(true);
+
+		$userManager = $this->createMock(IUserManager::class);
+		$userManager->method('get')->with('planner1')->willReturn($user);
+
+		$deleteQb = $this->createMock(IQueryBuilder::class);
+		$deleteQb->method('expr')->willReturn($this->createMock(IExpressionBuilder::class));
+		$deleteQb->method('createNamedParameter')->willReturn('p');
+		foreach (['delete', 'where'] as $method) {
+			$deleteQb->method($method)->willReturnSelf();
+		}
+		$deleteQb->expects(self::once())->method('executeStatement');
+
+		$insertQb = $this->createMock(IQueryBuilder::class);
+		$insertQb->method('createNamedParameter')->willReturn('p');
+		foreach (['insert', 'values'] as $method) {
+			$insertQb->method($method)->willReturnSelf();
+		}
+		$insertQb->expects(self::once())->method('executeStatement');
+
+		$listQb = $this->createMock(IQueryBuilder::class);
+		$listExpr = $this->createMock(IExpressionBuilder::class);
+		$listExpr->method('in')->willReturn('expr');
+		$listQb->method('expr')->willReturn($listExpr);
+		$listQb->method('createNamedParameter')->willReturn('p');
+		foreach (['select', 'from', 'where', 'orderBy'] as $method) {
+			$listQb->method($method)->willReturnSelf();
+		}
+		$listResult = $this->createMock(IResult::class);
+		$listResult->method('fetch')->willReturnOnConsecutiveCalls(
+			['user_id' => 'planner1', 'role' => 'planner', 'created_at' => '2026-06-15 10:00:00'],
+			false,
+		);
+		$listResult->method('closeCursor')->willReturn(true);
+		$listQb->method('executeQuery')->willReturn($listResult);
+
+		$db = $this->createMock(IDBConnection::class);
+		$db->method('getQueryBuilder')->willReturnOnConsecutiveCalls($deleteQb, $insertQb, $listQb);
+
+		$access = new AccessControlService(
+			$db,
+			$this->createMock(IConfig::class),
+			$this->createMock(IGroupManager::class),
+			$userManager,
+			$this->createMock(IUserSession::class),
+		);
+
+		$assignments = $access->setDutyRole('planner1', 'planner');
+		self::assertCount(1, $assignments);
+		self::assertSame('planner1', $assignments[0]['userId']);
+		self::assertSame('Pat Planner', $assignments[0]['displayName']);
+		self::assertSame('planner', $assignments[0]['role']);
+		self::assertSame('2026-06-15 10:00:00', $assignments[0]['createdAt']);
+	}
+
+	public function testSetDutyRoleRejectsInvalidRole(): void
+	{
+		$access = $this->service($this->createMock(IDBConnection::class));
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('INVALID_DUTY_ROLE');
+		$access->setDutyRole('planner1', 'admin');
+	}
+
+	public function testRemoveDutyRoleDeletesAndReturnsAssignments(): void
+	{
+		$deleteQb = $this->createMock(IQueryBuilder::class);
+		$deleteQb->method('expr')->willReturn($this->createMock(IExpressionBuilder::class));
+		$deleteQb->method('createNamedParameter')->willReturn('p');
+		foreach (['delete', 'where'] as $method) {
+			$deleteQb->method($method)->willReturnSelf();
+		}
+		$deleteQb->expects(self::once())->method('executeStatement');
+
+		$listQb = $this->createMock(IQueryBuilder::class);
+		$listExpr = $this->createMock(IExpressionBuilder::class);
+		$listExpr->method('in')->willReturn('expr');
+		$listQb->method('expr')->willReturn($listExpr);
+		$listQb->method('createNamedParameter')->willReturn('p');
+		foreach (['select', 'from', 'where', 'orderBy'] as $method) {
+			$listQb->method($method)->willReturnSelf();
+		}
+		$listResult = $this->createMock(IResult::class);
+		$listResult->method('fetch')->willReturn(false);
+		$listResult->method('closeCursor')->willReturn(true);
+		$listQb->method('executeQuery')->willReturn($listResult);
+
+		$db = $this->createMock(IDBConnection::class);
+		$db->method('getQueryBuilder')->willReturnOnConsecutiveCalls($deleteQb, $listQb);
+
+		$access = new AccessControlService(
+			$db,
+			$this->createMock(IConfig::class),
+			$this->createMock(IGroupManager::class),
+			$this->createMock(IUserManager::class),
+			$this->createMock(IUserSession::class),
+		);
+
+		$assignments = $access->removeDutyRole('planner1');
+		self::assertSame([], $assignments);
+	}
 }

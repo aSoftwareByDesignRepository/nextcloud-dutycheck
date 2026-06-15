@@ -39,7 +39,7 @@ $canAdminApp = !empty($_['isAppAdmin']);
 			<li class="dc-quickstart__item" data-step="audience">
 				<strong><?php p($l->t('1. Choose the audience')); ?></strong>
 				<p>
-					<?php p($l->t('By default, every Nextcloud member can open DutyCheck. If your organisation is large, restrict access to selected users and groups instead.')); ?>
+					<?php p($l->t('Opening DutyCheck is separate from planner or staff access. Without directory restriction, any Nextcloud member can open the app — but they still need a planner role below or an employee catalog link to use roster features.')); ?>
 				</p>
 			</li>
 			<li class="dc-quickstart__item" data-step="safety">
@@ -69,6 +69,12 @@ $canAdminApp = !empty($_['isAppAdmin']);
 				<span id="dc-policy-dirty" class="dc-pill" hidden><?php p($l->t('Unsaved changes')); ?></span>
 			</div>
 		</header>
+		<div class="dc-callout dc-callout--info" role="note" aria-labelledby="dc-access-gate-title">
+			<p id="dc-access-gate-title"><strong><?php p($l->t('This list controls the door, not the data.')); ?></strong></p>
+			<p class="dc-field__hint">
+				<?php p($l->t('Adding users or groups here only lets them open DutyCheck. Planners need a duty role in the section below. Staff need their Nextcloud account linked to an employee record on the Employees page.')); ?>
+			</p>
+		</div>
 		<form id="dc-app-policy-form" class="dc-form-grid" novalidate>
 			<div class="dc-field dc-field--full">
 				<label class="dc-checkbox" for="dc-policy-restriction">
@@ -137,6 +143,50 @@ $canAdminApp = !empty($_['isAppAdmin']);
 				</button>
 			</div>
 		</form>
+	</section>
+
+	<section class="dc-card dc-section" aria-labelledby="dc-settings-duty-roles-title">
+		<header class="dc-section__header">
+			<div>
+				<h2 id="dc-settings-duty-roles-title"><?php p($l->t('Duty roles')); ?></h2>
+				<p class="dc-section__sub">
+					<?php p($l->t('Planners can manage rosters, periods, and the employee catalog. Employee access is granted by linking a Nextcloud account on the Employees page — not here.')); ?>
+				</p>
+			</div>
+		</header>
+		<div class="dc-form-grid">
+			<div class="dc-field dc-field--full">
+				<label class="dc-field__label" for="dc-duty-role-user-search"><?php p($l->t('Assign planner role')); ?></label>
+				<div class="dc-entity-picker">
+					<input id="dc-duty-role-user-search" type="search" class="dc-input"
+						autocomplete="off" placeholder="<?php p($l->t('Search users to assign planner role…')); ?>"
+						aria-controls="dc-duty-role-user-results">
+					<ul id="dc-duty-role-user-results" class="dc-entity-results" role="listbox"
+						aria-label="<?php p($l->t('User search results')); ?>"></ul>
+				</div>
+				<div class="dc-form-actions">
+					<button type="button" class="button primary" id="dc-duty-role-assign" disabled>
+						<?php p($l->t('Assign planner')); ?>
+					</button>
+				</div>
+			</div>
+			<div class="dc-field dc-field--full">
+				<h3 class="dc-subsection-heading"><?php p($l->t('Current duty role assignments')); ?></h3>
+				<div class="dc-table-wrap">
+					<table class="dc-table" id="dc-duty-roles-table">
+						<thead>
+							<tr>
+								<th scope="col"><?php p($l->t('User')); ?></th>
+								<th scope="col"><?php p($l->t('Role')); ?></th>
+								<th scope="col"><?php p($l->t('Assigned')); ?></th>
+								<th scope="col" class="dc-table__col--actions"><?php p($l->t('Actions')); ?></th>
+							</tr>
+						</thead>
+						<tbody id="dc-duty-roles-tbody"></tbody>
+					</table>
+				</div>
+			</div>
+		</div>
 	</section>
 
 	<section class="dc-card dc-section dc-settings-panel" aria-labelledby="dc-settings-planning-title">

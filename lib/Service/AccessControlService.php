@@ -24,6 +24,9 @@ class AccessControlService
 	public const ROLE_PLANNER = 'planner';
 	public const ROLE_EMPLOYEE = 'employee';
 
+	/** Roles that may be assigned from Settings (planner only; employee access is via catalog link). */
+	public const ASSIGNABLE_DUTY_ROLES = [self::ROLE_PLANNER];
+
 	public const DENIAL_RESTRICTION = 'restriction';
 	public const DENIAL_NO_MEMBERSHIP = 'no_membership';
 	/** Global role is employee but no active dc_employees row links this user */
@@ -210,6 +213,93 @@ class AccessControlService
 		$this->config->setAppValue(Application::APP_ID, self::KEY_ACCESS_RESTRICTION, $restriction ? '1' : '0');
 
 		return $this->appPolicy();
+	}
+
+	/**
+	 * @return list<array{userId:string,displayName:string,role:string,createdAt:string}>
+	 */
+	public function listDutyRoleAssignments(): array
+	{
+		$roles = [self::ROLE_PLANNER, self::ROLE_EMPLOYEE];
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('user_id', 'role', 'created_at')
+			->from('dc_user_roles')
+			->where($qb->expr()->in('role', $qb->createNamedParameter($roles, IQueryBuilder::PARAM_STR_ARRAY)))
+			->orderBy('created_at', 'DESC');
+		$result = $qb->executeQuery();
+		$rows = [];
+		while (($row = $result->fetch(\PDO::FETCH_ASSOC)) !== false) {
+			$userId = (string)($row['user_id'] ?? '');
+			if ($userId === '') {
+				continue;
+			}
+			$role = (string)($row['role'] ?? '');
+			if (!in_array($role, $roles, true)) {
+				continue;
+			}
+			$user = $this->userManager->get($userId);
+			$displayName = $user !== null ? (string)$user->getDisplayName() : $userId;
+			$createdAt = (string)($row['created_at'] ?? '');
+			$rows[] = [
+				'userId' => $userId,
+				'displayName' => $displayName !== '' ? $displayName : $userId,
+				'role' => $role,
+				'createdAt' => $createdAt,
+			];
+		}
+		$result->closeCursor();
+		return $rows;
+	}
+
+	public function setDutyRole(string $userId, string $role): array
+	{
+		$userId = trim($userId);
+		$role = trim($role);
+		if ($userId === '') {
+			throw new \InvalidArgumentException('INVALID_USER');
+		}
+		$allowed = array_merge(self::ASSIGNABLE_DUTY_ROLES, [self::ROLE_EMPLOYEE]);
+		if (!in_array($role, $allowed, true)) {
+			throw new \InvalidArgumentException('INVALID_DUTY_ROLE');
+		}
+		$this->assertKnownUser($userId, 'INVALID_USER');
+
+		$del = $this->db->getQueryBuilder();
+		$del->delete('dc_user_roles')
+			->where($del->expr()->eq('user_id', $del->createNamedParameter($userId)));
+		$del->executeStatement();
+
+		$ins = $this->db->getQueryBuilder();
+		$ins->insert('dc_user_roles')
+			->values([
+				'user_id' => $ins->createNamedParameter($userId),
+				'role' => $ins->createNamedParameter($role),
+				'created_at' => $ins->createNamedParameter(gmdate('Y-m-d H:i:s')),
+			]);
+		$ins->executeStatement();
+
+		return $this->listDutyRoleAssignments();
+	}
+
+	public function removeDutyRole(string $userId): array
+	{
+		$userId = trim($userId);
+		if ($userId === '') {
+			throw new \InvalidArgumentException('INVALID_USER');
+		}
+		$this->purgeUserDutyRole($userId);
+		return $this->listDutyRoleAssignments();
+	}
+
+	public function purgeUserDutyRole(string $userId): void
+	{
+		if ($userId === '') {
+			return;
+		}
+		$qb = $this->db->getQueryBuilder();
+		$qb->delete('dc_user_roles')
+			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)));
+		$qb->executeStatement();
 	}
 
 	public function isEmployee(string $userId): bool

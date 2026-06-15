@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\DutyCheck\AppInfo;
 
 use OCA\DutyCheck\Integration\ArbeitszeitCheckAbsenceReader;
+use OCA\DutyCheck\Listener\UserDeletedListener;
 use OCA\DutyCheck\Integration\ArbeitszeitCheckIntegrationService;
 use OCA\DutyCheck\Integration\IArbeitszeitCheckAbsenceReader;
 use OCA\DutyCheck\Integration\IArbeitszeitCheckIntegration;
@@ -24,6 +25,7 @@ use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\INavigationManager;
 use OCP\L10N\IFactory;
+use OCP\User\Events\UserDeletedEvent;
 
 class Application extends App implements IBootstrap
 {
@@ -103,6 +105,7 @@ class Application extends App implements IBootstrap
 			);
 		});
 		$context->registerMiddleware(AppAccessMiddleware::class);
+		$context->registerEventListener(UserDeletedEvent::class, UserDeletedListener::class);
 
 		$context->registerService(EnsureDutyCheckSchema::class, function ($c): EnsureDutyCheckSchema {
 			return new EnsureDutyCheckSchema(

@@ -477,6 +477,49 @@ class RosterApiController extends Controller
 	}
 
 	#[NoAdminRequired]
+	public function listDutyRoles(): DataResponse
+	{
+		try {
+			$this->access->requireAppAdmin($this->access->currentUserId());
+			return new DataResponse(['ok' => true, 'assignments' => $this->access->listDutyRoleAssignments()]);
+		} catch (Throwable $e) {
+			return ApiJsonErrorResponse::fromThrowable($e);
+		}
+	}
+
+	#[NoAdminRequired]
+	public function setDutyRole(): DataResponse
+	{
+		try {
+			$this->access->requireAppAdmin($this->access->currentUserId());
+			$params = ApiMutationParams::all($this->request);
+			$assignments = $this->access->setDutyRole(
+				(string)($params['userId'] ?? ''),
+				(string)($params['role'] ?? ''),
+			);
+			return new DataResponse(['ok' => true, 'assignments' => $assignments]);
+		} catch (\InvalidArgumentException $e) {
+			return new DataResponse(['ok' => false, 'error' => ['code' => $e->getMessage()]], 400);
+		} catch (Throwable $e) {
+			return ApiJsonErrorResponse::fromThrowable($e);
+		}
+	}
+
+	#[NoAdminRequired]
+	public function removeDutyRole(string $userId): DataResponse
+	{
+		try {
+			$this->access->requireAppAdmin($this->access->currentUserId());
+			$assignments = $this->access->removeDutyRole($userId);
+			return new DataResponse(['ok' => true, 'assignments' => $assignments]);
+		} catch (\InvalidArgumentException $e) {
+			return new DataResponse(['ok' => false, 'error' => ['code' => $e->getMessage()]], 400);
+		} catch (Throwable $e) {
+			return ApiJsonErrorResponse::fromThrowable($e);
+		}
+	}
+
+	#[NoAdminRequired]
 	public function saveAppPolicy(): DataResponse
 	{
 		try {
