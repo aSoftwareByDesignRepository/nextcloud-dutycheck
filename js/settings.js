@@ -49,7 +49,7 @@
 			badge.textContent = t('dutycheck', 'Restricted');
 		} else {
 			badge.classList.add('dc-status-badge--published');
-			badge.textContent = t('dutycheck', 'Open to all members');
+			badge.textContent = t('dutycheck', 'No directory restriction');
 		}
 	}
 
@@ -189,12 +189,16 @@
 
 		const pickAndReset = (item) => {
 			onPick(item);
-			const label = item.displayName === item.id ? item.id : `${item.displayName} (${item.id})`;
-			Msg.announce(t('dutycheck', 'Added {name} to the selection.').replace('{name}', label));
-			input.value = '';
-			activeQuery = '';
-			renderResults(resultsId, [], onPick, { status: 'short' });
-			input.focus();
+			if (!opts.silentPick) {
+				const label = item.displayName === item.id ? item.id : `${item.displayName} (${item.id})`;
+				Msg.announce(t('dutycheck', 'Added {name} to the selection.').replace('{name}', label));
+			}
+			if (!opts.retainInputOnPick) {
+				input.value = '';
+				activeQuery = '';
+				renderResults(resultsId, [], onPick, { status: 'short' });
+				input.focus();
+			}
 		};
 
 		const runSearch = async (q) => {
@@ -604,6 +608,144 @@
 		await loadAtIntegrationState();
 	}
 
+	async function wireDutyRoles() {
+		const assignBtn = document.getElementById('dc-duty-role-assign');
+		const tbody = document.getElementById('dc-duty-roles-tbody');
+		if (!assignBtn || !tbody) {
+			return;
+		}
+		let selectedUser = null;
+
+		function roleLabel(role) {
+			if (role === 'planner') {
+				return t('dutycheck', 'Planner');
+			}
+			if (role === 'employee') {
+				return t('dutycheck', 'Employee');
+			}
+			return String(role || '—');
+		}
+
+		function formatAssignedAt(value) {
+			const raw = String(value || '').trim();
+			if (raw === '') {
+				return '—';
+			}
+			const normalized = raw.includes('T') ? raw : raw.replace(' ', 'T') + 'Z';
+			const date = new Date(normalized);
+			if (Number.isNaN(date.getTime())) {
+				return raw;
+			}
+			try {
+				return date.toLocaleString();
+			} catch (_err) {
+				return raw;
+			}
+		}
+
+		function setSelectedUser(user) {
+			selectedUser = user;
+			assignBtn.disabled = !user;
+		}
+
+		function renderDutyRoleTable(assignments) {
+			tbody.replaceChildren();
+			const rows = Array.isArray(assignments) ? assignments : [];
+			if (!rows.length) {
+				const tr = create('tr', { class: 'dc-table__empty-row' });
+				const td = create('td', {
+					attrs: { colspan: '4' },
+					class: 'dc-table__empty-cell',
+					text: t('dutycheck', 'No planner roles assigned yet.'),
+				});
+				tr.appendChild(td);
+				tbody.appendChild(tr);
+				return;
+			}
+			for (const row of rows) {
+				const userId = String(row.userId || '');
+				const displayName = String(row.displayName || userId);
+				const label = displayName === userId ? userId : `${displayName} (${userId})`;
+				const tr = create('tr');
+				tr.appendChild(create('td', { text: label }));
+				tr.appendChild(create('td', { text: roleLabel(row.role) }));
+				tr.appendChild(create('td', { text: formatAssignedAt(row.createdAt) }));
+				const actionsTd = create('td', { class: 'dc-table__col--actions' });
+				const removeBtn = create('button', {
+					type: 'button',
+					class: 'button',
+					text: t('dutycheck', 'Remove planner role'),
+					on: {
+						click: async () => {
+							removeBtn.disabled = true;
+							try {
+								const response = await Api.del(`/apps/dutycheck/api/admin/duty-roles/${encodeURIComponent(userId)}`);
+								renderDutyRoleTable(response?.assignments || []);
+								Msg.announce(t('dutycheck', 'Planner role removed.'));
+							} catch (err) {
+								Msg.handleApiError(err);
+							} finally {
+								removeBtn.disabled = false;
+							}
+						},
+					},
+				});
+				actionsTd.appendChild(removeBtn);
+				tr.appendChild(actionsTd);
+				tbody.appendChild(tr);
+			}
+		}
+
+		async function loadDutyRoles() {
+			const response = await Api.get('/apps/dutycheck/api/admin/duty-roles');
+			renderDutyRoleTable(response?.assignments || []);
+		}
+
+		wireSearch('dc-duty-role-user-search', 'dc-duty-role-user-results', fetchUsers, (item) => {
+			setSelectedUser(item);
+		}, { silentPick: true, retainInputOnPick: true });
+
+		assignBtn.addEventListener('click', async () => {
+			if (!selectedUser) {
+				return;
+			}
+			assignBtn.disabled = true;
+			assignBtn.setAttribute('aria-busy', 'true');
+			try {
+				const response = await Api.post('/apps/dutycheck/api/admin/duty-roles', {
+					userId: selectedUser.id,
+					role: 'planner',
+				});
+				renderDutyRoleTable(response?.assignments || []);
+				const searchInput = document.getElementById('dc-duty-role-user-search');
+				if (searchInput) {
+					searchInput.value = '';
+				}
+				renderResults('dc-duty-role-user-results', [], () => {}, { status: 'short' });
+				setSelectedUser(null);
+				Msg.announce(t('dutycheck', 'Planner role assigned.'));
+			} catch (err) {
+				const code = String(err?.payload?.error?.code || '');
+				if (code === 'INVALID_USER') {
+					Msg.announce(t('dutycheck', 'That user no longer exists. Search again and pick a valid account.'), 'error');
+				} else if (code === 'INVALID_DUTY_ROLE') {
+					Msg.announce(t('dutycheck', 'Invalid duty role.'), 'error');
+				} else {
+					Msg.handleApiError(err);
+				}
+			} finally {
+				assignBtn.removeAttribute('aria-busy');
+				assignBtn.disabled = !selectedUser;
+			}
+		});
+
+		try {
+			await loadDutyRoles();
+		} catch (err) {
+			Msg.handleApiError(err);
+		}
+	}
+
 	async function wirePlanningDefaults() {
 		const form = document.getElementById('dc-planning-defaults-form');
 		const input = document.getElementById('dc-planning-default-break');
@@ -676,6 +818,7 @@
 	document.addEventListener('DOMContentLoaded', async () => {
 		await wireAtIntegration();
 		await wirePlanningDefaults();
+		await wireDutyRoles();
 		const form = document.getElementById('dc-app-policy-form');
 		if (!form) return;
 		try {
