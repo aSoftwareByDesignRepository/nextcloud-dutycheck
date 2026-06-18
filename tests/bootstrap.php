@@ -24,12 +24,17 @@ if ($base !== null) {
 	if (is_file($integrationBootstrap)) {
 		require_once $integrationBootstrap;
 	}
-	if (!class_exists(\Test\TestCase::class)) {
-		$shim = __DIR__ . '/shim/TestCase.php';
-		if (is_file($shim)) {
-			require_once $shim;
-		}
-	}
 }
 
 require_once __DIR__ . '/../vendor/autoload.php';
+
+if (!class_exists(\Test\TestCase::class)) {
+	$shim = __DIR__ . '/shim/TestCase.php';
+	if (is_file($shim)) {
+		require_once $shim;
+	}
+}
+
+if (!class_exists(\Symfony\Component\Console\Command\Command::class, false)) {
+	eval('namespace Symfony\Component\Console\Command; class Command {}');
+}
