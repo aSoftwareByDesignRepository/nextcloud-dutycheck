@@ -37,7 +37,7 @@ class LocaleFormatServiceHtmlLangTest extends TestCase
 
 		$userSession->method('getUser')->willReturn($user);
 		$l10nFactory->method('getUserLanguage')->with($user)->willReturn('de');
-		$dateTimeZone->method('getTimeZone')->willReturn('Europe/Berlin');
+		$dateTimeZone->method('getTimeZone')->willReturn(new \DateTimeZone('Europe/Berlin'));
 		$dateTimeFormatter->expects(self::once())
 			->method('formatDateTime')
 			->with(self::isType('int'))
