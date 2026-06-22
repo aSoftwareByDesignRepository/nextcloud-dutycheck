@@ -9,8 +9,9 @@ declare(strict_types=1);
  * Drops every table the dutycheck app has ever created, migration rows, and app config.
  *
  * Nextcloud runs this step on disable ({@see \OC\App\AppManager::disableApp}) and again on
- * remove ({@see \OC\Installer::removeApp}). Pass 1 preserves data (e.g. after auto-disable
- * during a server upgrade); pass 2 performs the actual cleanup on full uninstall.
+ * remove ({@see \OC\Installer::removeApp}, {@see \OCA\Settings\Controller\AppSettingsController::uninstallApp}).
+ * Disable (including auto-disable during a server upgrade) always preserves data; only an
+ * explicit app removal drops tables.
  *
  * Regenerate table list via:
  *     php scripts/check-nextcloud-db-standards.php sync-uninstall --app=dutycheck
@@ -30,9 +31,11 @@ final class UninstallDropTables implements IRepairStep
 {
 	public const APP_ID = 'dutycheck';
 
+	/**
+	 * Legacy counter from the two-pass implementation. Cleared on disable and by schema
+	 * repair steps so upgrades never inherit a stale value.
+	 */
 	public const REPAIR_PASS_KEY = 'uninstall_repair_pass';
-
-	public const PASSES_BEFORE_DROP = 2;
 
 	/**
 	 * Sorted list of every table this app has ever created across all migrations.
@@ -66,18 +69,21 @@ final class UninstallDropTables implements IRepairStep
 
 	public function run(IOutput $output): void
 	{
-		$pass = (int)$this->config->getAppValue(self::APP_ID, self::REPAIR_PASS_KEY, '0') + 1;
-		if ($pass < self::PASSES_BEFORE_DROP) {
-			$this->config->setAppValue(self::APP_ID, self::REPAIR_PASS_KEY, (string)$pass);
-			$output->info(sprintf(
-				'dutycheck: preserving data on disable (uninstall repair pass %d/%d). '
-				. 'Tables, migration history, and settings are kept until the app is fully removed.',
-				$pass,
-				self::PASSES_BEFORE_DROP,
-			));
+		if (UninstallRepairFlow::isRemovalContext()) {
+			$this->dropAllTablesAndMetadata($output);
 			return;
 		}
 
+		// Disable path (manual or auto during server upgrade): idempotent — never drop.
+		$this->config->deleteAppValue(self::APP_ID, self::REPAIR_PASS_KEY);
+		$output->info(
+			'dutycheck: preserving data on disable. '
+			. 'Tables, migration history, and settings are kept until the app is fully removed.'
+		);
+	}
+
+	private function dropAllTablesAndMetadata(IOutput $output): void
+	{
 		$provider = $this->connection->getDatabaseProvider();
 		$fkChecksDisabled = false;
 		if ($provider === IDBConnection::PLATFORM_MYSQL) {

@@ -38,3 +38,8 @@ if (!class_exists(\Test\TestCase::class)) {
 if (!class_exists(\Symfony\Component\Console\Command\Command::class, false)) {
 	eval('namespace Symfony\Component\Console\Command; class Command {}');
 }
+
+$ocpStubs = dirname(__DIR__, 3) . '/scripts/phpunit-ocp-doctrine-stubs.php';
+if ($base === null && is_file($ocpStubs)) {
+	require_once $ocpStubs;
+}
