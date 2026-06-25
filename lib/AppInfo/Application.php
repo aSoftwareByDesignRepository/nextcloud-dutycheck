@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace OCA\DutyCheck\AppInfo;
 
+use OCP\Lock\ILockingProvider;
+use OCP\Files\IRootFolder;
+use OCP\App\IAppManager;
+use OCA\DutyCheck\Service\UpgradeBackupService;
+use OCA\DutyCheck\Repair\BackupBeforeUpdate;
 use OCA\DutyCheck\Integration\ArbeitszeitCheckAbsenceReader;
 use OCA\DutyCheck\Listener\UserDeletedListener;
 use OCA\DutyCheck\Integration\ArbeitszeitCheckIntegrationService;
@@ -118,8 +123,26 @@ class Application extends App implements IBootstrap
 			return new UninstallDropTables(
 				$c->query(\OCP\IDBConnection::class),
 				$c->query(\OCP\IConfig::class),
+				$c->query(IRootFolder::class),
 			);
 		});
+		$context->registerService(UpgradeBackupService::class, function ($c): UpgradeBackupService {
+			return new UpgradeBackupService(
+				$c->query(\OCP\IDBConnection::class),
+				$c->query(\OCP\IConfig::class),
+				$c->query(IRootFolder::class),
+				$c->query(IAppManager::class),
+				$c->query(ILockingProvider::class),
+				$c->query(\Psr\Log\LoggerInterface::class),
+			);
+		});
+
+		$context->registerService(BackupBeforeUpdate::class, function ($c): BackupBeforeUpdate {
+			return new BackupBeforeUpdate(
+				$c->query(UpgradeBackupService::class),
+			);
+		});
+
 	}
 
 	public function boot(IBootContext $context): void

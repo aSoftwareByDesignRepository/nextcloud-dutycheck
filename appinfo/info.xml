@@ -219,6 +219,7 @@ Con **ArbeitszeitCheck**, DutyCheck puede reflejar ausencias automáticamente (i
 		<job>OCA\DutyCheck\BackgroundJob\ArbeitszeitCheckMirrorReconcileJob</job>
 	</background-jobs>
 	<commands>
+		<command>OCA\DutyCheck\Command\UpgradeBackupCommand</command>
 		<command>OCA\DutyCheck\Command\ReconcileArbeitszeitCheckMirrorCommand</command>
 	</commands>
 	<navigations>
@@ -239,5 +240,8 @@ Con **ArbeitszeitCheck**, DutyCheck puede reflejar ausencias automáticamente (i
 		<uninstall>
 			<step>OCA\DutyCheck\Repair\UninstallDropTables</step>
 		</uninstall>
-	</repair-steps>
+		<pre-migration>
+			<step>OCA\DutyCheck\Repair\BackupBeforeUpdate</step>
+		</pre-migration>
+</repair-steps>
 </info>

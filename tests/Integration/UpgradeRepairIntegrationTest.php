@@ -6,6 +6,7 @@ namespace OCA\DutyCheck\Tests\Integration;
 
 use OCA\DutyCheck\Repair\EnsureDutyCheckSchema;
 use OCA\DutyCheck\Repair\UninstallDropTables;
+use OCA\DutyCheck\Repair\BackupBeforeUpdate;
 use OCA\DutyCheck\Service\AccessControlService;
 use OCA\DutyCheck\Service\RosterService;
 use OCP\Migration\IOutput;
@@ -22,6 +23,7 @@ class UpgradeRepairIntegrationTest extends TestCase
 		foreach ([
 			EnsureDutyCheckSchema::class,
 			UninstallDropTables::class,
+			BackupBeforeUpdate::class,
 		] as $class) {
 			$step = \OC::$server->get($class);
 			$this->assertInstanceOf($class, $step);

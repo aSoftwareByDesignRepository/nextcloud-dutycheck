@@ -22,6 +22,9 @@ declare(strict_types=1);
  */
 namespace OCA\DutyCheck\Repair;
 
+use OCP\Files\Folder;
+use OCP\Files\IRootFolder;
+use OCP\Files\NotFoundException;
 use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\Migration\IOutput;
@@ -59,6 +62,7 @@ final class UninstallDropTables implements IRepairStep
 	public function __construct(
 		private readonly IDBConnection $connection,
 		private readonly IConfig $config,
+		private readonly IRootFolder $rootFolder,
 	) {
 	}
 
@@ -109,8 +113,10 @@ final class UninstallDropTables implements IRepairStep
 
 		$this->config->deleteAppValues(self::APP_ID);
 
+		$this->purgeUpgradeBackupSnapshots($output);
+
 		$output->info(sprintf(
-			'dutycheck: dropped %d of %d table(s); removed %d migration row(s) and app config.',
+			'dutycheck: dropped %d of %d table(s); removed %d migration row(s), app config, and upgrade-backup snapshots.',
 			$dropped,
 			count(self::TABLES),
 			$migrationsRemoved,
@@ -138,5 +144,30 @@ final class UninstallDropTables implements IRepairStep
 		}
 
 		return true;
+	}
+
+	/**
+	 * Pre-update JSON snapshots contain full table exports — remove on explicit app removal.
+	 */
+	private function purgeUpgradeBackupSnapshots(IOutput $output): void
+	{
+		$instanceId = (string)$this->config->getSystemValue('instanceid', '');
+		if ($instanceId === '') {
+			return;
+		}
+
+		$path = 'appdata_' . $instanceId . '/' . self::APP_ID . '/upgrade-backups';
+		try {
+			$node = $this->rootFolder->get($path);
+		} catch (NotFoundException) {
+			return;
+		}
+
+		if (!$node instanceof Folder) {
+			return;
+		}
+
+		$node->delete();
+		$output->info('dutycheck: removed upgrade-backup snapshots from app data.');
 	}
 }
