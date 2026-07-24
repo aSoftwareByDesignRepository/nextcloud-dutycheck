@@ -256,5 +256,14 @@ $canAdminApp = !empty($_['isAppAdmin']);
 			</div>
 		</div>
 	</section>
+	<?php
+	// Support & Us — informational CTAs only; never gates AGPL use.
+	$supportUsLanguageCode = method_exists($l, 'getLanguageCode') ? (string)$l->getLanguageCode() : 'en';
+	$supportUsCssPrefix = 'dc';
+	$supportUsBtnPrimaryClass = 'button primary';
+	$supportUsBtnSecondaryClass = 'button';
+	$supportUsLinks = new \OCA\DutyCheck\Support\SupportUsLinks('DutyCheck', false, null);
+	include __DIR__ . '/parts/support-us-section.php';
+	?>
 <?php endif; ?>
 <?php include __DIR__ . '/common/page-end.php'; ?>
