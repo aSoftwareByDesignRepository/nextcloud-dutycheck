@@ -65,6 +65,21 @@ function parseCssColor(color) {
 	return null
 }
 
+/**
+ * @param {import('@playwright/test').Page} page
+ */
+async function waitForSetupRender(page) {
+	await page.waitForFunction(() => {
+		const el = document.getElementById('dc-dashboard-setup')
+		const list = document.getElementById('dc-dashboard-setup-list')
+		if (!el) {
+			return false
+		}
+		// Ready instances keep the section hidden; incomplete ones render items.
+		return el.hidden || (list !== null && list.children.length > 0)
+	}, null, { timeout: 15_000 }).catch(() => {})
+}
+
 test.describe('setup progress a11y + journey', () => {
 	test.beforeEach(async ({ page }) => {
 		test.skip(plannerCredsCandidates().length === 0, 'Requires E2E_* or NC_ADMIN_* credentials')
@@ -133,11 +148,8 @@ test.describe('setup progress a11y + journey', () => {
 		).toBeGreaterThanOrEqual(4.5)
 
 		// Guard the exact regression from the screenshot: white on pale success.
-		const whiteOnSuccess = contrastRatio(
-			{ r: 255, g: 255, b: 255 },
-			parseCssColor(colors.successToken.startsWith('#') ? colors.successToken : colors.background) || bg,
-		)
-		// If NC still ships a pale --color-success, white-on-success must stay illegal for our ink.
+		const successSurface = parseCssColor(colors.successToken.startsWith('#') ? colors.successToken : colors.background) || bg
+		const whiteOnSuccess = contrastRatio({ r: 255, g: 255, b: 255 }, successSurface)
 		if (whiteOnSuccess < 3) {
 			expect(ratio).toBeGreaterThanOrEqual(4.5)
 			expect(colors.color).not.toMatch(/rgb\(\s*255\s*,\s*255\s*,\s*255\s*\)/)
@@ -154,7 +166,7 @@ test.describe('setup progress a11y + journey', () => {
 	test('live setup shows one primary CTA and suppresses Quick start', async ({ page }) => {
 		await page.goto('/apps/dutycheck/', { waitUntil: 'domcontentloaded' })
 		await page.waitForSelector('#dc-main-content', { timeout: 30_000 })
-		await page.waitForTimeout(500)
+		await waitForSetupRender(page)
 
 		const setup = page.locator('#dc-dashboard-setup')
 		const visible = await setup.isVisible().catch(() => false)
@@ -179,6 +191,8 @@ test.describe('setup progress a11y + journey', () => {
 	test('CTA completes a one-click jump into the next setup page', async ({ page }) => {
 		await page.goto('/apps/dutycheck/', { waitUntil: 'domcontentloaded' })
 		await page.waitForSelector('#dc-main-content', { timeout: 30_000 })
+		await waitForSetupRender(page)
+
 		const setup = page.locator('#dc-dashboard-setup')
 		const visible = await setup.isVisible().catch(() => false)
 		test.skip(!visible, 'Setup already complete on this instance')

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.36 - 2026-07-29
+
+### Accessibility / UX
+
+- **Setup progress WCAG fix (NC34).** Done-step checkmarks no longer paint `--color-primary-element-text` (white) on `--color-success`. On Nextcloud 34, `--color-success` is a pale surface (`#D8F3DA`) — white-on-success measured **~1.18:1** (fails 1.4.11). Done status now uses `--color-success-text` on the success surface with an `--color-element-success` ring (same contract as status badges).
+- **One next step.** Setup checklist collapses done rows, highlights only the current gate, and shows a single primary CTA. Misleading “each item links” copy removed. Quick start is suppressed while setup gates remain so onboarding is not duplicated.
+- E2E fixture proves done-status contrast ≥ 4.5:1 under live theme tokens; JS + CSS contract tests lock the ink token.
+
 ## 0.1.35 - 2026-07-27
 
 ### Security / integrity
