@@ -5,11 +5,19 @@
 	const Msg = window.DutyCheckMessaging;
 	const ConflictLabels = window.DutyCheckConflictLabels;
 	const C = window.DutyCheckComponents || {};
+	// Fallback mirrors the `class`/`text`/`attrs` contract of
+	// DutyCheckComponents.createElement so markup (incl. aria-* attributes)
+	// stays identical even if components.js failed to load.
 	const create = (C.createElement || ((tag, props, children) => {
 		const el = document.createElement(tag);
 		if (props) Object.entries(props).forEach(([k, v]) => {
+			if (v === undefined || v === null) return;
 			if (k === 'class') el.className = String(v);
 			else if (k === 'text') el.textContent = String(v);
+			else if (k === 'attrs') Object.entries(v).forEach(([ak, av]) => {
+				if (av === null || av === undefined || av === false) return;
+				el.setAttribute(ak, av === true ? '' : String(av));
+			});
 			else el.setAttribute(k, String(v));
 		});
 		(Array.isArray(children) ? children : [children]).forEach((c) => {
@@ -21,11 +29,33 @@
 
 	function setText(id, value) {
 		const node = document.getElementById(id);
-		if (node) node.textContent = String(value ?? '0');
+		if (!node) return;
+		node.textContent = String(value ?? '0');
+		node.removeAttribute('aria-label');
+	}
+
+	function setMetricsUnavailable() {
+		['dc-metric-open-periods', 'dc-metric-published-periods', 'dc-metric-employees', 'dc-metric-assignments'].forEach((id) => {
+			const node = document.getElementById(id);
+			if (!node) return;
+			node.textContent = '\u2014';
+			// The em dash is silent for most screen readers; name the state.
+			node.setAttribute('aria-label', t('dutycheck', 'Not available'));
+		});
 	}
 
 	function readUrls() {
 		return window.DutyCheckComponents?.getAppUrls?.() || {};
+	}
+
+	function setQuickstartSuppressed(suppress) {
+		const quickstart = document.getElementById('dc-quickstart');
+		if (!quickstart || !suppress) {
+			return;
+		}
+		// One onboarding path while gates remain: Setup progress owns the CTA.
+		quickstart.hidden = true;
+		quickstart.setAttribute('data-dc-hint-suppress', 'setup');
 	}
 
 	function renderSetupProgress(setup) {
@@ -51,6 +81,7 @@
 			return;
 		}
 		section.hidden = false;
+		setQuickstartSuppressed(true);
 
 		const steps = [
 			{
@@ -85,19 +116,41 @@
 			},
 		];
 
+		const currentIndex = steps.findIndex((step) => !step.done);
+
 		list.replaceChildren();
-		for (const step of steps) {
-			const li = create('li', { class: 'dc-setup-checklist__item' + (step.done ? ' is-done' : '') });
+		for (let i = 0; i < steps.length; i++) {
+			const step = steps[i];
+			const isCurrent = i === currentIndex;
+			const classes = ['dc-setup-checklist__item'];
+			if (step.done) {
+				classes.push('is-done');
+			}
+			if (isCurrent) {
+				classes.push('is-current');
+			}
+			const li = create('li', { class: classes.join(' ') });
+			const statusLabel = step.done
+				? t('dutycheck', 'Done')
+				: (isCurrent ? t('dutycheck', 'Next step') : t('dutycheck', 'To do'));
 			const status = create('span', {
 				class: 'dc-setup-checklist__status',
-				attrs: { 'aria-hidden': 'true' },
-				text: step.done ? '\u2713' : '\u2022',
+				attrs: { 'aria-label': statusLabel },
+				text: step.done ? '\u2713' : (isCurrent ? String(i + 1) : '\u2022'),
 			});
 			const body = create('div', { class: 'dc-setup-checklist__body' });
 			body.appendChild(create('strong', { text: step.label }));
-			body.appendChild(create('p', { class: 'dc-setup-checklist__hint', text: step.hint }));
-			if (!step.done && step.url && step.cta) {
-				body.appendChild(create('a', { class: 'button', href: step.url, text: step.cta }));
+			if (!step.done) {
+				body.appendChild(create('p', { class: 'dc-setup-checklist__hint', text: step.hint }));
+			}
+			// One CTA only — the first incomplete actionable step. Done rows
+			// stay compact; blocked schema step explains itself without a dead link.
+			if (isCurrent && step.url && step.cta) {
+				body.appendChild(create('a', {
+					class: 'button primary',
+					href: step.url,
+					text: step.cta,
+				}));
 			}
 			li.appendChild(status);
 			li.appendChild(body);
@@ -135,7 +188,7 @@
 		]));
 	}
 
-	async function loadDashboard() {
+	async function loadSummary() {
 		try {
 			const summary = await Api.get('/apps/dutycheck/api/dashboard');
 			const data = summary?.data || {};
@@ -152,11 +205,11 @@
 			}
 		} catch (err) {
 			Msg.handleApiError(err);
-			['dc-metric-open-periods', 'dc-metric-published-periods', 'dc-metric-employees', 'dc-metric-assignments'].forEach((id) => {
-				const n = document.getElementById(id);
-				if (n) n.textContent = '\u2014';
-			});
+			setMetricsUnavailable();
 		}
+	}
+
+	async function loadPulse() {
 		try {
 			const roster = await Api.get('/apps/dutycheck/api/roster');
 			renderConflictPulse(roster?.data || {});
@@ -171,6 +224,12 @@
 				]));
 			}
 		}
+	}
+
+	function loadDashboard() {
+		// Independent requests rendering disjoint DOM regions; run in parallel.
+		// Each helper traps its own failures, so this can never reject.
+		return Promise.all([loadSummary(), loadPulse()]);
 	}
 
 	document.addEventListener('DOMContentLoaded', () => {

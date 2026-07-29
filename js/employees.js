@@ -3,8 +3,11 @@
 
 	const Api = window.DutyCheckApi;
 	const Msg = window.DutyCheckMessaging;
-	const C = window.DutyCheckComponents;
+	const C = window.DutyCheckComponents || window.DutyCheckDom || {};
 	const create = C.createElement;
+	if (typeof create !== 'function') {
+		throw new Error('DutyCheck components failed to load');
+	}
 
 	let editingId = null;
 	let directoryUsers = [];
@@ -106,7 +109,11 @@
 		if (!container) return;
 		container.replaceChildren();
 		if (!selectedUser) {
-			container.appendChild(create('span', { class: 'dc-pill', text: t('dutycheck', 'No linked account') }));
+			// Must be an <li>: the container is a <ul> and stray children break
+			// the accessible list semantics (axe "list" rule, WCAG 1.3.1).
+			container.appendChild(create('li', {}, [
+				create('span', { class: 'dc-pill', text: t('dutycheck', 'No linked account') }),
+			]));
 			return;
 		}
 		const chip = create('li', { class: 'dc-chip' }, [
@@ -335,7 +342,11 @@
 		wireSearch();
 		document.getElementById('dc-employee-form')?.addEventListener('submit', async (event) => {
 			event.preventDefault();
-			const formData = new FormData(event.currentTarget);
+			const form = event.currentTarget;
+			if (form.dataset.dcBusy === '1') {
+				return;
+			}
+			const formData = new FormData(form);
 			let displayName = resolveDisplayNameForSubmit(formData);
 			if (displayName === '') {
 				const linkedUserId = String(formData.get('linkedUserId') || '').trim();
@@ -362,6 +373,12 @@
 			const nameInput = employeeNameInput();
 			if (nameInput && String(nameInput.value || '').trim() === '') {
 				nameInput.value = displayName;
+			}
+			const submitBtn = form.querySelector('button[type="submit"]');
+			form.dataset.dcBusy = '1';
+			if (submitBtn) {
+				submitBtn.disabled = true;
+				submitBtn.setAttribute('aria-busy', 'true');
 			}
 			try {
 				await save({
@@ -392,6 +409,12 @@
 					return;
 				}
 				Msg.handleApiError(err);
+			} finally {
+				delete form.dataset.dcBusy;
+				if (submitBtn) {
+					submitBtn.disabled = false;
+					submitBtn.removeAttribute('aria-busy');
+				}
 			}
 		});
 		document.getElementById('dc-employee-form-reset')?.addEventListener('click', resetForm);

@@ -4,9 +4,12 @@
 	const Api = window.DutyCheckApi;
 	const Msg = window.DutyCheckMessaging;
 	const ConflictLabels = window.DutyCheckConflictLabels;
-	const C = window.DutyCheckComponents;
+	const C = window.DutyCheckComponents || window.DutyCheckDom || {};
 	const D = window.DutyCheckDates;
 	const create = C.createElement;
+	if (typeof create !== 'function') {
+		throw new Error('DutyCheck components failed to load');
+	}
 
 	const STATUS_ACTIONS = {
 		open: ['published'],
@@ -112,15 +115,13 @@
 		for (const period of periods) {
 			const tr = create('tr');
 			const periodId = Number(period.id);
-			if (currentPeriodId && periodId === currentPeriodId) {
+			const isSelected = Boolean(currentPeriodId && periodId === currentPeriodId);
+			tr.classList.add('dc-row--selectable');
+			if (isSelected) {
 				tr.classList.add('is-selected');
-				tr.setAttribute('aria-selected', 'true');
 			}
 			const start = D?.formatDisplayDate(period.startDate) || period.startDate;
 			const end = D?.formatDisplayDate(period.endDate) || period.endDate;
-			tr.tabIndex = 0;
-			tr.setAttribute('role', 'button');
-			tr.setAttribute('aria-label', t('dutycheck', 'Select period {start} to {end}').replace('{start}', start).replace('{end}', end));
 			const onSelect = async () => {
 				if (isBusy || currentPeriodId === periodId) return;
 				currentPeriodId = periodId;
@@ -128,15 +129,28 @@
 				renderPeriods(periods);
 				await loadPeriodDetails(currentPeriodId);
 			};
-			tr.addEventListener('click', onSelect);
-			tr.addEventListener('keydown', (event) => {
-				if (event.key !== 'Enter' && event.key !== ' ') return;
-				event.preventDefault();
+			// Keyboard/AT path: a real button in the first cell. A role="button"
+			// on the <tr> is invalid ARIA (nested interactives, aria-selected
+			// not allowed outside grids) and was flagged by axe.
+			const selectBtn = create('button', {
+				type: 'button',
+				class: 'button button--text dc-period-select',
+				text: `${start} – ${end}`,
+				attrs: {
+					'aria-label': t('dutycheck', 'Select period {start} to {end}').replace('{start}', start).replace('{end}', end),
+					'aria-current': isSelected ? 'true' : null,
+				},
+				on: { click: onSelect },
+			});
+			// Pointer convenience only: clicking anywhere in the row selects too.
+			tr.addEventListener('click', (event) => {
+				if (event.target.closest('button')) return;
 				onSelect();
 			});
 
-			const range = create('td', { text: `${start} – ${end}` });
+			const range = create('td', { class: 'dc-period-select-cell' });
 			range.dataset.cell = t('dutycheck', 'Range');
+			range.appendChild(selectBtn);
 			tr.appendChild(range);
 
 			const status = create('td');
@@ -181,8 +195,9 @@
 		const confirm = Number(readiness.softConflicts || 0);
 		const pendingOpen = Number(readiness.unacknowledgedSoftConflicts || 0);
 		const canPublish = Boolean(readiness.canPublish);
+		const integrationStale = Boolean(readiness.integrationPublishStale || readiness.integrationStale);
 		node.textContent = ConflictLabels
-			? ConflictLabels.publishReadinessLine(canPublish, mustFix, confirm, pendingOpen)
+			? ConflictLabels.publishReadinessLine(canPublish, mustFix, confirm, pendingOpen, integrationStale)
 			: (canPublish ? t('dutycheck', 'Ready to publish') : t('dutycheck', 'Publishing blocked'));
 	}
 
@@ -326,6 +341,7 @@
 			renderSnapshots([]);
 			renderPublishReadiness(null);
 			renderAudit([]);
+			renderAcknowledgeStats(null);
 			setIntegrityBanner('');
 			const verifyButton = document.getElementById('dc-verify-snapshots-button');
 			if (verifyButton) verifyButton.disabled = true;
@@ -333,7 +349,7 @@
 		}
 
 		const tableErr = t('dutycheck', 'Could not load this section. Retry or contact an administrator if it continues.');
-		const [snapR, pubR, audR] = await Promise.allSettled([
+		const [snapR, pubR, audR, ackR] = await Promise.allSettled([
 			Api.get(`/apps/dutycheck/api/periods/${periodId}/snapshots`).then((r) => {
 				renderSnapshots(r?.data || []);
 			}),
@@ -342,6 +358,9 @@
 			}),
 			Api.get(`/apps/dutycheck/api/periods/${periodId}/audit`).then((r) => {
 				renderAudit(r?.data || []);
+			}),
+			Api.get(`/apps/dutycheck/api/periods/${periodId}/acknowledge-stats`).then((r) => {
+				renderAcknowledgeStats(r?.data || null);
 			}),
 		]);
 
@@ -355,8 +374,14 @@
 			const pill = document.getElementById('dc-publish-readiness');
 			if (pill) pill.textContent = t('dutycheck', 'Could not load publish readiness.');
 		}
+		if (ackR.status === 'rejected') {
+			renderAcknowledgeStats(null);
+		}
 
-		const failed = [snapR, pubR, audR].filter((r) => r.status === 'rejected');
+		const failed = [snapR, pubR, audR].filter((r) => {
+			if (r.status !== 'rejected') return false;
+			return !(Api.isAborted && Api.isAborted(r.reason));
+		});
 		if (failed.length) {
 			setIntegrityBanner(t('dutycheck', 'Some period details failed to load. Retry, or review server logs if this persists.'));
 			Msg.handleApiError(failed[0].reason);
@@ -366,6 +391,21 @@
 
 		const verifyButton = document.getElementById('dc-verify-snapshots-button');
 		if (verifyButton) verifyButton.disabled = !periodId || isBusy;
+	}
+
+	function renderAcknowledgeStats(data) {
+		const el = document.getElementById('dc-period-ack-stats');
+		if (!el) return;
+		if (!data || Number(data.total || 0) <= 0) {
+			el.hidden = true;
+			el.textContent = '';
+			return;
+		}
+		el.hidden = false;
+		el.textContent = t('dutycheck', 'Staff seen: {acked}/{total} ({pct}%)')
+			.replace('{acked}', String(data.acknowledged ?? 0))
+			.replace('{total}', String(data.total ?? 0))
+			.replace('{pct}', String(data.percent ?? 0));
 	}
 
 	async function loadPeriods(preferredPeriodId) {
@@ -396,6 +436,10 @@
 		switch (code) {
 			case 'PERIOD_HAS_HARD_CONFLICTS':
 				return t('dutycheck', 'Publishing is blocked until every “Must fix” issue is resolved.');
+			case 'INTEGRATION_PUBLISH_STALE':
+				return t('dutycheck', 'Publishing blocked: ArbeitszeitCheck absences are stale or the sync breaker is open. Sync in Settings, then try again.');
+			case 'PERIOD_STATUS_CONFLICT':
+				return t('dutycheck', 'Someone else changed this period’s status. Reload the page and try again.');
 			case 'REASON_TOO_SHORT':
 				return t('dutycheck', 'Reason must contain at least 10 characters.');
 			case 'INVALID_PERIOD_TRANSITION':

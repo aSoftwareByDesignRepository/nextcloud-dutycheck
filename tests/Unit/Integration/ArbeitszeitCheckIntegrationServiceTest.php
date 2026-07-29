@@ -8,6 +8,7 @@ use OCA\DutyCheck\AppInfo\Application;
 use OCA\DutyCheck\Exception\IntegrationLegacyConflictException;
 use OCA\DutyCheck\Integration\ArbeitszeitCheckIntegrationService;
 use OCA\DutyCheck\Integration\IArbeitszeitCheckAbsenceReader;
+use OCA\DutyCheck\Integration\IntegrationOpsConstants;
 use OCA\DutyCheck\Tests\Unit\Support\IntegrationQueryBuilderTrait;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -52,8 +53,61 @@ class ArbeitszeitCheckIntegrationServiceTest extends TestCase
 		$app = $this->createMock(IAppManager::class);
 		$app->method('isInstalled')->with(ArbeitszeitCheckIntegrationService::PEER_APP_ID)->willReturn(true);
 		$app->method('isEnabledForUser')->willReturn(true);
-		$app->method('getAppVersion')->with(ArbeitszeitCheckIntegrationService::PEER_APP_ID)->willReturn('1.0.0');
+		$app->method('getAppVersion')->with(ArbeitszeitCheckIntegrationService::PEER_APP_ID)->willReturn('1.2.0');
 		return $app;
+	}
+
+	public function testIsEffectiveIgnoresCircuitBreaker(): void
+	{
+		$store = [
+			'integration_at_intent_enabled' => '1',
+			'integration_at_breaker_until' => gmdate('Y-m-d H:i:s', 9_999_999),
+		];
+		$config = $this->configWithStore($store);
+		$db = $this->createMock(IDBConnection::class);
+		$svc = $this->service($db, $config, $this->appManagerPeerOk(), $this->timeAt(1_000_000));
+		self::assertTrue($svc->isEffective());
+		self::assertTrue($svc->isBreakerActive());
+		self::assertTrue($svc->isStale());
+	}
+
+	public function testSetIntentBlockedDuringDetectionGrace(): void
+	{
+		$store = [
+			'integration_at_intent_enabled' => '0',
+			'integration_at_detection_fail_at' => '999990',
+		];
+		$config = $this->configWithStore($store);
+		$db = $this->createMock(IDBConnection::class);
+		$svc = $this->service($db, $config, $this->appManagerPeerOk(), $this->timeAt(1_000_000));
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('INTEGRATION_DETECTION_FLAPPING');
+		$svc->setIntentEnabled(true, 'admin');
+	}
+
+	public function testShouldBlockPublishForStaleWhenConfigured(): void
+	{
+		$store = [
+			'integration_at_intent_enabled' => '1',
+			'block_publish_when_stale' => '1',
+			// never reconciled
+		];
+		$config = $this->configWithStore($store);
+		$db = $this->createMock(IDBConnection::class);
+		$svc = $this->service($db, $config, $this->appManagerPeerOk(), $this->timeAt(1_000_000));
+		self::assertTrue($svc->shouldBlockPublishForStale());
+	}
+
+	public function testIncludePiiRequiresJustification(): void
+	{
+		$store = [];
+		$config = $this->configWithStore($store);
+		$db = $this->createMock(IDBConnection::class);
+		$db->method('getQueryBuilder')->willReturn($this->qbExecuteStatement(null, 0));
+		$svc = $this->service($db, $config);
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('INTEGRATION_PII_JUSTIFICATION_REQUIRED');
+		$svc->setIncludePii(true, 'admin', '');
 	}
 
 	private function service(
@@ -206,7 +260,7 @@ class ArbeitszeitCheckIntegrationServiceTest extends TestCase
 		];
 		$reader = $this->createMock(IArbeitszeitCheckAbsenceReader::class);
 		$reader->expects(self::once())->method('listAbsencesOverlapping')
-			->with(['user-1'], '2025-06-01', '2027-06-01')
+			->with(['user-1'], '2025-06-01', '2027-06-01', self::anything())
 			->willReturn([$row]);
 
 		$db = $this->createMock(IDBConnection::class);
@@ -221,7 +275,7 @@ class ArbeitszeitCheckIntegrationServiceTest extends TestCase
 		$svc = $this->service($db, $config, $this->createMock(IAppManager::class), null, $reader);
 		$m = new ReflectionMethod(ArbeitszeitCheckIntegrationService::class, 'reconcileUser');
 		$m->setAccessible(true);
-		$m->invoke($svc, 'user-1', [], '2025-06-01', '2027-06-01');
+		$m->invoke($svc, 'user-1', [], '2025-06-01', '2027-06-01', new \OCA\DutyCheck\Integration\AbsenceReadOptions(false));
 	}
 
 	public function testReconcileUserUpdatesWhenMirrorRowAlreadyExists(): void
@@ -255,7 +309,7 @@ class ArbeitszeitCheckIntegrationServiceTest extends TestCase
 		$svc = $this->service($db, $config, $this->createMock(IAppManager::class), null, $reader);
 		$m = new ReflectionMethod(ArbeitszeitCheckIntegrationService::class, 'reconcileUser');
 		$m->setAccessible(true);
-		$m->invoke($svc, 'user-1', [$row], '2025-06-01', '2027-06-01');
+		$m->invoke($svc, 'user-1', [$row], '2025-06-01', '2027-06-01', new \OCA\DutyCheck\Integration\AbsenceReadOptions(false));
 	}
 
 	public function testReleaseSyncLeaseDeletesOnlyWhenTokenMatches(): void
@@ -276,7 +330,7 @@ class ArbeitszeitCheckIntegrationServiceTest extends TestCase
 		self::assertArrayNotHasKey('integration_at_sync_lease', $store);
 	}
 
-	public function testRunReconcileReturnsBreakerWhenReaderThrows(): void
+	public function testRunReconcileReturnsSyncFailedWhenReaderThrowsOnce(): void
 	{
 		$store = [
 			'integration_at_intent_enabled' => '1',
@@ -295,7 +349,52 @@ class ArbeitszeitCheckIntegrationServiceTest extends TestCase
 		$svc = $this->service($db, $config, null, null, $reader);
 		$result = $svc->runReconcile('tok');
 		self::assertFalse($result['ok']);
+		self::assertSame('INTEGRATION_SYNC_FAILED', $result['code']);
+		self::assertFalse($svc->isBreakerActive());
+	}
+
+	public function testRunReconcileTripsBreakerAfterThresholdFailures(): void
+	{
+		$store = [
+			'integration_at_intent_enabled' => '1',
+			'integration_at_breaker_until' => '',
+			'integration_t_stale_seconds' => '3600',
+			'integration_at_err_window_start' => '999940',
+			'integration_at_err_count' => (string) (IntegrationOpsConstants::RD_FAIL_THRESHOLD - 1),
+		];
+		$config = $this->configWithStore($store);
+		$time = $this->timeAt(1_000_000);
+		$db = $this->createMock(IDBConnection::class);
+		$db->method('getQueryBuilder')->willReturn(
+			$this->qbFetchAllAssociative([['linked_user_id' => 'user-1']]),
+		);
+		$reader = $this->createMock(IArbeitszeitCheckAbsenceReader::class);
+		$reader->method('listAbsencesOverlapping')->willThrowException(new \RuntimeException('at db down'));
+
+		$svc = $this->service($db, $config, null, $time, $reader);
+		$result = $svc->runReconcile('tok');
+		self::assertFalse($result['ok']);
 		self::assertSame('INTEGRATION_SYNC_BREAKER_TRIPPED', $result['code']);
+		self::assertTrue($svc->isBreakerActive());
+		self::assertSame(IntegrationOpsConstants::RD_BACKOFF_BASE_SECONDS, $svc->getBreakerRetryAfterSeconds());
+	}
+
+	public function testExponentialBackoffDoublesPerTrip(): void
+	{
+		$store = [
+			'integration_at_err_window_start' => '999940',
+			'integration_at_err_count' => (string) (IntegrationOpsConstants::RD_FAIL_THRESHOLD - 1),
+			'integration_at_breaker_trips' => '1',
+		];
+		$config = $this->configWithStore($store);
+		$time = $this->timeAt(1_000_000);
+		$db = $this->createMock(IDBConnection::class);
+		$svc = $this->service($db, $config, null, $time);
+		$m = new ReflectionMethod(ArbeitszeitCheckIntegrationService::class, 'registerReaderFailure');
+		$m->setAccessible(true);
+		$m->invoke($svc);
+		self::assertTrue($svc->isBreakerActive());
+		self::assertSame(120, $svc->getBreakerRetryAfterSeconds());
 	}
 
 	public function testReconcileUserDeletesMirrorWhenBatchEmptyButMirrorExistedAndRetryStillEmpty(): void
@@ -304,7 +403,7 @@ class ArbeitszeitCheckIntegrationServiceTest extends TestCase
 		$config = $this->configWithStore($store);
 		$reader = $this->createMock(IArbeitszeitCheckAbsenceReader::class);
 		$reader->expects(self::once())->method('listAbsencesOverlapping')
-			->with(['user-1'], '2025-06-01', '2027-06-01')
+			->with(['user-1'], '2025-06-01', '2027-06-01', self::anything())
 			->willReturn([]);
 
 		$db = $this->createMock(IDBConnection::class);
@@ -316,7 +415,7 @@ class ArbeitszeitCheckIntegrationServiceTest extends TestCase
 		$svc = $this->service($db, $config, $this->createMock(IAppManager::class), null, $reader);
 		$m = new ReflectionMethod(ArbeitszeitCheckIntegrationService::class, 'reconcileUser');
 		$m->setAccessible(true);
-		$m->invoke($svc, 'user-1', [], '2025-06-01', '2027-06-01');
+		$m->invoke($svc, 'user-1', [], '2025-06-01', '2027-06-01', new \OCA\DutyCheck\Integration\AbsenceReadOptions(false));
 	}
 
 	public function testReconcileUserDoesNotTouchDatabaseWhenNoMirrorAndNoRows(): void
@@ -332,7 +431,7 @@ class ArbeitszeitCheckIntegrationServiceTest extends TestCase
 		$svc = $this->service($db, $config, $this->createMock(IAppManager::class), null, $reader);
 		$m = new ReflectionMethod(ArbeitszeitCheckIntegrationService::class, 'reconcileUser');
 		$m->setAccessible(true);
-		$m->invoke($svc, 'user-1', [], '2025-06-01', '2027-06-01');
+		$m->invoke($svc, 'user-1', [], '2025-06-01', '2027-06-01', new \OCA\DutyCheck\Integration\AbsenceReadOptions(false));
 	}
 
 	public function testReconcileUserInsertsNewMirrorRowAndPrunesStaleIds(): void
@@ -366,7 +465,7 @@ class ArbeitszeitCheckIntegrationServiceTest extends TestCase
 		$svc = $this->service($db, $config, $this->createMock(IAppManager::class), null, $reader);
 		$m = new ReflectionMethod(ArbeitszeitCheckIntegrationService::class, 'reconcileUser');
 		$m->setAccessible(true);
-		$m->invoke($svc, 'user-1', [$row], '2025-06-01', '2027-06-01');
+		$m->invoke($svc, 'user-1', [$row], '2025-06-01', '2027-06-01', new \OCA\DutyCheck\Integration\AbsenceReadOptions(false));
 	}
 
 	public function testCountLegacyAbsencesForEmployeeReturnsFetchOne(): void
@@ -405,11 +504,16 @@ class ArbeitszeitCheckIntegrationServiceTest extends TestCase
 		$config = $this->configWithStore($store);
 		$db = $this->createMock(IDBConnection::class);
 		$svc = $this->service($db, $config, $this->appManagerPeerOk(), $this->timeAt(1_000_000));
-		self::assertFalse($svc->isEffective());
+		// REQ-RD-11: breaker does not clear effective; mirror stays in use while stale.
+		self::assertTrue($svc->isEffective());
+		self::assertTrue($svc->isBreakerActive());
+		self::assertTrue($svc->isStale());
 		self::assertTrue($svc->integrationLocksLinkedDutyCheckAbsences());
 		$b = $svc->buildBootstrapForUser('u1', true);
 		self::assertTrue($b['readonlyAbsencesForCurrentUser']);
 		self::assertTrue($b['integrationLocksLinkedDutyCheckAbsences']);
+		self::assertTrue($b['integrationBreakerTripped']);
+		self::assertTrue($b['integrationStale']);
 	}
 
 	public function testIntegrationDoesNotLockLinkedWhenIntentOnButPeerMissing(): void

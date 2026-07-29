@@ -72,11 +72,26 @@ $myAbsencesUrl = (string) ($urls['myAbsences'] ?? '#');
 					<th scope="col"><?php p($l->t('Location')); ?></th>
 					<th scope="col"><?php p($l->t('Break')); ?></th>
 					<th scope="col"><?php p($l->t('Note')); ?></th>
+					<th scope="col"><?php p($l->t('Confirm')); ?></th>
+					<th scope="col"><?php p($l->t('Swap')); ?></th>
 				</tr>
 			</thead>
 			<tbody id="dc-my-roster-table-body"></tbody>
 		</table>
 	</div>
+</section>
+
+<section class="dc-card dc-section" aria-labelledby="dc-open-shifts-title">
+	<header class="dc-section__header">
+		<div>
+			<h2 id="dc-open-shifts-title"><?php p($l->t('Open shifts')); ?></h2>
+			<p class="dc-section__sub">
+				<?php p($l->t('Unassigned shifts you can claim. Hard planning rules still apply — if a claim fails, ask your planner.')); ?>
+			</p>
+		</div>
+	</header>
+	<ul id="dc-open-shifts-list" class="dc-conflicts" role="list" aria-live="polite"></ul>
+	<p id="dc-open-shifts-empty" class="dc-field__hint" hidden><?php p($l->t('No open shifts right now.')); ?></p>
 </section>
 
 <section class="dc-card dc-section dc-ical-panel" aria-labelledby="dc-ical-title">
@@ -104,6 +119,18 @@ $myAbsencesUrl = (string) ($urls['myAbsences'] ?? '#');
 				<?php p($l->t('Anyone with the link can see your published shifts. If someone else might have seen it, use “Replace calendar link” and paste the new address into your calendar app.')); ?>
 			</p>
 		</div>
+		<div class="dc-callout dc-callout--info dc-ical-at-disclosure" id="dc-ical-at-disclosure" hidden role="region"
+			aria-labelledby="dc-ical-at-disclosure-title">
+			<p class="dc-callout__title" id="dc-ical-at-disclosure-title"><?php p($l->t('This calendar feed shows DutyCheck shifts only')); ?></p>
+			<p class="dc-callout__hint dc-callout__hint--tight">
+				<?php p($l->t('Time off lives in ArbeitszeitCheck and is not included in this subscription. Use ArbeitszeitCheck to request or change absences.')); ?>
+			</p>
+			<p class="dc-callout__actions">
+				<a class="button" id="dc-ical-open-azc" hidden rel="noopener noreferrer">
+					<?php p($l->t('View or request absences in ArbeitszeitCheck')); ?>
+				</a>
+			</p>
+		</div>
 		<div class="dc-ical-link-card">
 			<h3 id="dc-ical-link-heading" class="dc-ical-subtitle"><?php p($l->t('Your private link')); ?></h3>
 			<div class="dc-ical__actions">
@@ -129,4 +156,28 @@ $myAbsencesUrl = (string) ($urls['myAbsences'] ?? '#');
 		</div>
 	</div>
 </section>
+
+<dialog id="dc-swap-dialog" class="dc-dialog" aria-labelledby="dc-swap-dialog-title">
+	<form method="dialog" id="dc-swap-form" class="dc-dialog__panel" novalidate>
+		<h2 id="dc-swap-dialog-title" class="dc-dialog__title"><?php p($l->t('Request a swap')); ?></h2>
+		<p class="dc-dialog__intro" id="dc-swap-dialog-intro">
+			<?php p($l->t('Choose a colleague, or leave “Open pool” so anyone can claim this shift after a planner approves.')); ?>
+		</p>
+		<input type="hidden" name="assignmentId" id="dc-swap-assignment-id" value="">
+		<div class="dc-field">
+			<label class="dc-field__label" for="dc-swap-colleague"><?php p($l->t('Swap with')); ?></label>
+			<select id="dc-swap-colleague" class="dc-input" name="toEmployeeId" aria-describedby="dc-swap-dialog-intro">
+				<option value=""><?php p($l->t('Open pool (anyone can claim)')); ?></option>
+			</select>
+		</div>
+		<div class="dc-field">
+			<label class="dc-field__label" for="dc-swap-reason"><?php p($l->t('Note for your planner (optional)')); ?></label>
+			<textarea id="dc-swap-reason" class="dc-input" name="reason" rows="2" maxlength="512"></textarea>
+		</div>
+		<div class="dc-dialog__actions">
+			<button type="submit" value="cancel" class="button"><?php p($l->t('Cancel')); ?></button>
+			<button type="submit" value="confirm" class="button primary"><?php p($l->t('Send swap request')); ?></button>
+		</div>
+	</form>
+</dialog>
 <?php include __DIR__ . '/common/page-end.php'; ?>

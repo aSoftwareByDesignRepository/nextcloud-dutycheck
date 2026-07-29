@@ -39,9 +39,9 @@ class ApiController extends Controller
 				'myAbsences' => null,
 			];
 			if ($includePlanner) {
-				$catalog['dashboard'] = $this->roster->dashboardSummary();
-				$catalog['roster'] = $this->roster->rosterData();
-				$catalog['absences'] = $this->roster->listAbsences();
+				$catalog['dashboard'] = $this->roster->dashboardSummary($userId);
+				$catalog['roster'] = $this->roster->rosterData(null, $userId);
+				$catalog['absences'] = $this->roster->listAbsences($userId);
 			}
 			if ($this->access->hasActiveLinkedEmployee($userId)) {
 				try {

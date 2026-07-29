@@ -75,6 +75,10 @@
 		return el;
 	}
 
+	// Available before the full DutyCheckComponents export so page scripts that
+	// load out of order still get a safe createElement (attrs-aware).
+	window.DutyCheckDom = { createElement };
+
 	function focusables(root) {
 		return Array.from(root.querySelectorAll(
 			'a[href], area[href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex]:not([tabindex="-1"]), [contenteditable]'

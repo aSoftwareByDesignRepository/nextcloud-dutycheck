@@ -84,11 +84,24 @@ foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as
 			<p id="dc-roster-period-hint" class="dc-field__hint">
 				<?php p($l->t('Periods are listed newest first. Closed periods are read-only. Changing the period updates the list below — no full page reload.')); ?>
 			</p>
+			<p id="dc-roster-ack-stats" class="dc-pill dc-roster-ack-stats" role="status" aria-live="polite" hidden></p>
 			<div class="dc-roster-period__lifecycle" role="note">
 				<p class="dc-field__hint">
 					<?php p($l->t('Publishing and closing happen on the Periods page. Use “Add assignment” on this page to plan shifts.')); ?>
 				</p>
 				<a class="button" href="<?php p((string) ($urls['periods'] ?? '#')); ?>"><?php p($l->t('Go to Periods')); ?></a>
+			</div>
+			<div class="dc-roster-copy-period" id="dc-roster-copy-period" hidden>
+				<label class="dc-field__label" for="dc-roster-copy-source"><?php p($l->t('Copy assignments from another period')); ?></label>
+				<div class="dc-roster-copy-period__row">
+					<select id="dc-roster-copy-source" class="dc-input" aria-describedby="dc-roster-copy-hint"></select>
+					<button type="button" class="button" id="dc-roster-copy-preview"><?php p($l->t('Preview copy')); ?></button>
+					<button type="button" class="button primary" id="dc-roster-copy-apply" disabled><?php p($l->t('Apply copy')); ?></button>
+				</div>
+				<p id="dc-roster-copy-hint" class="dc-field__hint">
+					<?php p($l->t('Preview never writes. Apply only after you confirm the dry-run counts. Conflicts are recomputed after apply.')); ?>
+				</p>
+				<p id="dc-roster-copy-status" class="dc-roster-flash" role="status" aria-live="polite" aria-atomic="true" hidden></p>
 			</div>
 		</div>
 	</div>
@@ -99,10 +112,14 @@ foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as
 		<div>
 			<h2 id="dc-assignments-title"><?php p($l->t('Assignments')); ?></h2>
 			<p class="dc-section__sub">
-				<?php p($l->t('Shifts for the period selected above. Use “Add assignment” to plan the next one.')); ?>
+				<?php p($l->t('Shifts for the period selected above. Use the grid for a week overview, or the list for details.')); ?>
 			</p>
 		</div>
 		<div class="dc-section__controls">
+			<div class="dc-roster-view-toggle" role="group" aria-label="<?php p($l->t('Roster view')); ?>">
+				<button type="button" class="button" id="dc-roster-view-grid" aria-pressed="true"><?php p($l->t('Grid')); ?></button>
+				<button type="button" class="button" id="dc-roster-view-list" aria-pressed="false"><?php p($l->t('List')); ?></button>
+			</div>
 			<button type="button" class="button primary dc-roster-add-assignment-trigger" id="dc-roster-add-assignment"
 				aria-describedby="dc-roster-add-assignment-desc" aria-disabled="true">
 				<?php p($l->t('Add assignment')); ?>
@@ -113,7 +130,29 @@ foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as
 		</div>
 	</header>
 	<p id="dc-roster-assignments-success" class="dc-roster-flash" role="status" aria-live="polite" aria-atomic="true" hidden></p>
-	<div class="dc-table-wrap" id="dc-assignments-table-wrap">
+	<div id="dc-roster-grid-wrap" class="dc-roster-grid-wrap">
+		<div
+			id="dc-roster-grid"
+			class="dc-roster-grid"
+			role="grid"
+			aria-labelledby="dc-assignments-title"
+			aria-describedby="dc-roster-grid-hint"
+			tabindex="0"
+		></div>
+		<p id="dc-roster-grid-hint" class="dc-field__hint">
+			<?php p($l->t('Rows are people, columns are days. Arrow keys move between cells. Enter opens the shift. Space selects empty cells for bulk fill.')); ?>
+		</p>
+		<div id="dc-roster-bulk-bar" class="dc-roster-bulk-bar" hidden>
+			<p class="dc-roster-bulk-bar__count" id="dc-roster-bulk-count" role="status" aria-live="polite"></p>
+			<label class="dc-field__label" for="dc-roster-bulk-template"><?php p($l->t('Fill selected cells from template')); ?></label>
+			<div class="dc-roster-bulk-bar__row">
+				<select id="dc-roster-bulk-template" class="dc-input"></select>
+				<button type="button" class="button primary" id="dc-roster-bulk-apply"><?php p($l->t('Apply to selected')); ?></button>
+				<button type="button" class="button" id="dc-roster-bulk-clear"><?php p($l->t('Clear selection')); ?></button>
+			</div>
+		</div>
+	</div>
+	<div class="dc-table-wrap" id="dc-assignments-table-wrap" hidden>
 		<table class="dc-table" id="dc-assignments-table">
 			<caption class="dc-sr-only"><?php p($l->t('Assignments for the selected period')); ?></caption>
 			<thead>
@@ -125,6 +164,7 @@ foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as
 					<th scope="col"><?php p($l->t('Location')); ?></th>
 					<th scope="col"><?php p($l->t('Break')); ?></th>
 					<th scope="col"><?php p($l->t('Note')); ?></th>
+					<th scope="col"><?php p($l->t('Actions')); ?></th>
 				</tr>
 			</thead>
 			<tbody id="dc-assignments-table-body"></tbody>
@@ -153,6 +193,47 @@ foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as
 		</div>
 	</header>
 	<ul id="dc-conflict-list" class="dc-conflicts" role="list" aria-label="<?php p($l->t('Planning checks')); ?>" aria-live="polite"></ul>
+</section>
+
+<section class="dc-card dc-section dc-roster-panel" id="dc-roster-marketplace-section" aria-labelledby="dc-marketplace-title">
+	<header class="dc-section__header">
+		<div>
+			<h2 id="dc-marketplace-title"><?php p($l->t('Swaps & open shifts')); ?></h2>
+			<p class="dc-section__sub">
+				<?php p($l->t('Review staff swap requests and post unassigned shifts for the selected period. Approving a pool swap cancels the old shift and opens it for claiming.')); ?>
+			</p>
+		</div>
+		<div class="dc-section__controls">
+			<button type="button" class="button" id="dc-open-shift-create"><?php p($l->t('Post open shift')); ?></button>
+		</div>
+	</header>
+	<div class="dc-form-grid" id="dc-open-shift-form" hidden>
+		<div class="dc-field">
+			<label class="dc-field__label" for="dc-os-date"><?php p($l->t('Date')); ?></label>
+			<input id="dc-os-date" type="date" class="dc-input">
+		</div>
+		<div class="dc-field">
+			<label class="dc-field__label" for="dc-os-location"><?php p($l->t('Location')); ?></label>
+			<select id="dc-os-location" class="dc-input"></select>
+		</div>
+		<div class="dc-field">
+			<label class="dc-field__label" for="dc-os-start"><?php p($l->t('Start')); ?></label>
+			<input id="dc-os-start" type="time" class="dc-input dc-input--time-24h" step="60" lang="en-GB">
+		</div>
+		<div class="dc-field">
+			<label class="dc-field__label" for="dc-os-end"><?php p($l->t('End')); ?></label>
+			<input id="dc-os-end" type="time" class="dc-input dc-input--time-24h" step="60" lang="en-GB">
+		</div>
+		<div class="dc-form-actions">
+			<button type="button" class="button primary" id="dc-os-save"><?php p($l->t('Save open shift')); ?></button>
+		</div>
+	</div>
+	<h3 class="dc-subsection-heading"><?php p($l->t('Pending swap requests')); ?></h3>
+	<ul id="dc-swap-list" class="dc-conflicts" role="list" aria-live="polite"></ul>
+	<p id="dc-swap-empty" class="dc-field__hint" hidden><?php p($l->t('No pending swaps.')); ?></p>
+	<h3 class="dc-subsection-heading"><?php p($l->t('Pending open-shift claims')); ?></h3>
+	<ul id="dc-open-claim-list" class="dc-conflicts" role="list" aria-live="polite"></ul>
+	<p id="dc-open-claim-empty" class="dc-field__hint" hidden><?php p($l->t('No pending claims.')); ?></p>
 </section>
 
 <?php if (!empty($_['isAppAdmin'])): ?>
@@ -187,9 +268,19 @@ foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as
 		</div>
 		<form id="dc-assignment-form" class="dc-form-grid dc-form-grid--roster-assignment" novalidate>
 			<input type="hidden" name="periodId" id="dc-assignment-period" value="">
+			<input type="hidden" name="assignmentId" id="dc-assignment-id" value="">
 			<p id="dc-assignment-form-intro" class="dc-roster-form__intro">
 				<?php p($l->t('Three steps: pick the day, choose who works and where, then enter shift times. People on approved leave are not listed for that day.')); ?>
 			</p>
+			<div class="dc-field dc-field--full" id="dc-assignment-template-field">
+				<label class="dc-field__label" for="dc-assignment-template"><?php p($l->t('Shift template (optional)')); ?></label>
+				<select id="dc-assignment-template" class="dc-input" aria-describedby="dc-assignment-template-hint">
+					<option value=""><?php p($l->t('No template — enter times manually')); ?></option>
+				</select>
+				<p id="dc-assignment-template-hint" class="dc-field__hint">
+					<?php p($l->t('Templates fill start, end, and break. You can still change any field before saving.')); ?>
+				</p>
+			</div>
 			<fieldset class="dc-roster-form__step-group" aria-labelledby="dc-roster-step-day">
 				<h3 id="dc-roster-step-day" class="dc-roster-form__section-heading dc-roster-form__section-heading--step">
 					<span class="dc-roster-form__step-badge" aria-hidden="true">1</span>

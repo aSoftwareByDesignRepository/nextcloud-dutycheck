@@ -39,6 +39,22 @@ class ApiJsonErrorResponseTest extends TestCase
 		self::assertSame(422, ApiJsonErrorResponse::statusForInvalidArgument('EQUAL_DUTY_TIMES'));
 	}
 
+	public function testMapsCompanyMismatchTo403(): void
+	{
+		self::assertSame(403, ApiJsonErrorResponse::statusForInvalidArgument('COMPANY_MISMATCH'));
+		$response = ApiJsonErrorResponse::fromThrowable(new \InvalidArgumentException('COMPANY_MISMATCH'));
+		self::assertSame(403, $response->getStatus());
+		self::assertSame('COMPANY_MISMATCH', $response->getData()['error']['code']);
+	}
+
+	public function testMapsStatusConflictsTo409(): void
+	{
+		self::assertSame(409, ApiJsonErrorResponse::statusForInvalidArgument('PERIOD_STATUS_CONFLICT'));
+		self::assertSame(409, ApiJsonErrorResponse::statusForInvalidArgument('STALE_VERSION'));
+		self::assertSame(409, ApiJsonErrorResponse::statusForInvalidArgument('ABSENCE_STATUS_CONFLICT'));
+		self::assertSame(422, ApiJsonErrorResponse::statusForInvalidArgument('EXPECTED_VERSION_REQUIRED'));
+	}
+
 	public function testMapsIntegrationAbsenceReadonlyTo403(): void
 	{
 		$response = ApiJsonErrorResponse::fromThrowable(
@@ -48,19 +64,19 @@ class ApiJsonErrorResponseTest extends TestCase
 		self::assertSame('INTEGRATION_ABSENCE_READONLY', $response->getData()['error']['code']);
 	}
 
-	public function testMapsIntegrationLegacyConflictTo409(): void
+	public function testMapsIntegrationLegacyConflictTo422(): void
 	{
 		$response = ApiJsonErrorResponse::fromThrowable(
 			new \InvalidArgumentException('INTEGRATION_LEGACY_CONFLICT'),
 		);
-		self::assertSame(409, $response->getStatus());
+		self::assertSame(422, $response->getStatus());
 		self::assertSame('INTEGRATION_LEGACY_CONFLICT', $response->getData()['error']['code']);
 	}
 
-	public function testMapsIntegrationLegacyConflictExceptionTo409WithCount(): void
+	public function testMapsIntegrationLegacyConflictExceptionTo422WithCount(): void
 	{
 		$response = ApiJsonErrorResponse::fromThrowable(new IntegrationLegacyConflictException(12));
-		self::assertSame(409, $response->getStatus());
+		self::assertSame(422, $response->getStatus());
 		$data = $response->getData();
 		self::assertSame('INTEGRATION_LEGACY_CONFLICT', $data['error']['code']);
 		self::assertSame(12, $data['error']['legacyAbsenceCount']);

@@ -18,6 +18,6 @@ final class BackupBeforeUpdateIntegrationTest extends TestCase
 		$output->expects(self::atLeastOnce())->method('info');
 
 		$step->run($output);
-		$this->addToAssertionCount(1);
+		self::assertNotSame('', $step->getName());
 	}
 }

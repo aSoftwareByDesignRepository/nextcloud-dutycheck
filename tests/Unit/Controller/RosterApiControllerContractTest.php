@@ -166,6 +166,20 @@ class RosterApiControllerContractTest extends TestCase
 		self::assertSame(403, $response->getStatus());
 	}
 
+	public function testPublicIcalMapsEmployeeNotFoundToSame403AsBadToken(): void
+	{
+		$this->request->method('getServerProtocol')->willReturn('https');
+		$this->request->method('getParam')->willReturnMap([
+			['token', '', str_repeat('ab', 24)],
+		]);
+		$this->roster->method('publicIcal')->willThrowException(new \InvalidArgumentException('EMPLOYEE_NOT_FOUND'));
+
+		$response = $this->controller->publicIcal(9);
+		self::assertInstanceOf(DataDisplayResponse::class, $response);
+		self::assertSame(403, $response->getStatus());
+		self::assertSame('ICAL_TOKEN_INVALID', $response->render());
+	}
+
 	public function testPublicIcalMapsRateLimitedTo429(): void
 	{
 		$this->request->method('getServerProtocol')->willReturn('https');

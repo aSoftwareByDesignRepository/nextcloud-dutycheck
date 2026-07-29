@@ -11,9 +11,10 @@ SIGN_KEY := $(if $(strip $(APP_CERT_KEY_PATH)),$(APP_CERT_KEY_PATH),$(HOME)/.nex
 SIGN_CRT := $(if $(strip $(APP_CERT_CRT_PATH)),$(APP_CERT_CRT_PATH),$(HOME)/.nextcloud/certificates/$(app_name).crt)
 ready2publish_sign = ../../ready2publish/scripts/sign-nextcloud-appstore-archive.sh
 
-.PHONY: release verify-release verify-signature-manifest sign-release release-signed sign-tarball clean test test-docker
+.PHONY: release verify-release verify-signature-manifest sign-release release-signed sign-tarball clean test test-docker mutation mutation-image
 
 PHPUNIT_DOCKER_IMAGE ?= php:8.3-cli
+INFECTION_DOCKER_IMAGE ?= dutycheck-infection:php8.3
 
 release:
 	@echo "Building $(app_name) v$(version)..."
@@ -23,7 +24,7 @@ release:
 		rsync -a --exclude='.git' --exclude='$(build_dir)' --exclude='.github' \
 			--exclude='node_modules' --exclude='tests' --exclude='.phpunit.result.cache' \
 			--exclude='test-results' --exclude='scripts' --exclude='release/*.tar.gz' --exclude='release/*.asc' \
-			--exclude='appinfo/signature.json' \
+			--exclude='appinfo/signature.json' --exclude='infection.json5' --exclude='infection-security.json5' \
 			./ "$$staging/$(app_name)/" && \
 		tar -czf $(archive_path) -C "$$staging" $(app_name) && \
 		rm -rf "$$staging"
@@ -66,6 +67,20 @@ test:
 # PHP build has no SQLite driver (common on minimal CLI installs).
 test-docker:
 	docker run --rm -v "$$(pwd)":/app -w /app $(PHPUNIT_DOCKER_IMAGE) ./vendor/bin/phpunit
+
+# Build the mutation-testing image (php:8.3-cli + pcov + infection.phar).
+mutation-image:
+	docker build -t $(INFECTION_DOCKER_IMAGE) tests/Mutation/docker
+
+# Mutation testing (Infection) against the unit suite; config in infection.json5.
+# Runs as the invoking user so logs stay writable on the host bind mount.
+# Default target is the security-critical subset (infection-security.json5, MSI ≥ 70).
+# Pass CONFIG=infection.json5 for the broader informational suite (MSI floor 50).
+mutation:
+	docker run --rm -u "$$(id -u):$$(id -g)" -v "$$(pwd)":/app -w /app \
+		$(INFECTION_DOCKER_IMAGE) infection run \
+		--configuration=$(or $(CONFIG),infection-security.json5) \
+		--threads=max --only-covered --no-progress
 
 sign-tarball:
 	@test -f $(archive_path) || (echo "Error: Run 'make release' first"; exit 1)

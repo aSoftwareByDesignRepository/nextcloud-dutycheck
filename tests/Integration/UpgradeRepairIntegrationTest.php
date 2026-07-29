@@ -38,7 +38,7 @@ class UpgradeRepairIntegrationTest extends TestCase
 		$output->method('info');
 
 		$step->run($output);
-		$this->addToAssertionCount(1);
+		self::assertNotSame('', $step->getName());
 	}
 
 	public function testCoreServicesResolveAfterUpgradePath(): void

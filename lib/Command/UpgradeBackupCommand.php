@@ -40,7 +40,7 @@ class UpgradeBackupCommand extends Command
 			->setHelp(
 				<<<'HELP'
 The <info>list</info> action shows snapshots stored under
-<comment>appdata_&lt;instance&gt;/projectcheck/upgrade-backups/</comment>.
+<comment>appdata_&lt;instance&gt;/dutycheck/upgrade-backups/</comment>.
 
 <info>create</info> — manual snapshot before risky changes:
   <comment>occ dutycheck:upgrade-backup create --reason="before manual fix"</comment>

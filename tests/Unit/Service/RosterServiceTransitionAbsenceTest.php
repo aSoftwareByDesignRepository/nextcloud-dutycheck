@@ -68,4 +68,27 @@ class RosterServiceTransitionAbsenceTest extends TestCase
 		$out = $roster->transitionAbsence(42, 'approved', '', 'planner-1');
 		self::assertIsArray($out);
 	}
+
+	public function testTransitionAbsenceFailsClosedOnConcurrentStatusRace(): void
+	{
+		$at = $this->createMock(IArbeitszeitCheckIntegration::class);
+		$at->method('integrationLocksLinkedDutyCheckAbsences')->willReturn(false);
+
+		$qbAbsence = $this->qbFetchAssociative([
+			'id' => 42,
+			'employee_id' => 7,
+			'start_date' => '2026-06-01',
+			'end_date' => '2026-06-02',
+			'status' => 'pending',
+		]);
+		$qbUpdate = $this->qbExecuteStatement(null, 0);
+
+		$db = $this->createMock(IDBConnection::class);
+		$db->method('getQueryBuilder')->willReturnOnConsecutiveCalls($qbAbsence, $qbUpdate);
+
+		$roster = new RosterService($db, null, $at);
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('ABSENCE_STATUS_CONFLICT');
+		$roster->transitionAbsence(42, 'rejected', 'enough chars for reason', 'planner-1');
+	}
 }

@@ -71,7 +71,7 @@ final class SupportUsSectionRenderTest extends TestCase {
 		);
 		self::assertStringContainsString('Support &amp; wir', $html);
 		self::assertStringContainsString('Partner-Angebot anfragen', $html);
-		self::assertStringContainsString('verrechenbare Leistung', $html);
+		self::assertStringContainsString('Verrechenbare Leistung', $html);
 	}
 
 	/**

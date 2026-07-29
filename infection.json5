@@ -1,0 +1,29 @@
+{
+    // Mutation testing for the security-critical business logic.
+    // Run via `make mutation` (Docker: php:8.3-cli + pcov + infection.phar).
+    // Controllers/templates are exercised by integration + browser suites instead.
+    "$schema": "https://raw.githubusercontent.com/infection/infection/0.29.14/resources/schema.json",
+    "source": {
+        "directories": [
+            "lib/Service",
+            "lib/License"
+        ]
+    },
+    "timeout": 30,
+    "tmpDir": "/tmp/dutycheck-infection",
+    "testFramework": "phpunit",
+    "testFrameworkOptions": "--testsuite=unit",
+    "logs": {
+        "text": "tests/Mutation/logs/infection.log",
+        "summary": "tests/Mutation/logs/infection-summary.log"
+    },
+    "mutators": {
+        "@default": true,
+        // Visibility changes on intentional public service APIs are not
+        // behaviour bugs — excluding them focuses MSI on real logic.
+        "PublicVisibility": false,
+        "ProtectedVisibility": false
+    },
+    "minMsi": 50,
+    "minCoveredMsi": 50
+}

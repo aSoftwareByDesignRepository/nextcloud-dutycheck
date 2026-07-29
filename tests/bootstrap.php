@@ -35,8 +35,15 @@ if (!class_exists(\Test\TestCase::class)) {
 	}
 }
 
-if (!class_exists(\Symfony\Component\Console\Command\Command::class, false)) {
+if ($base === null && !class_exists(\Symfony\Component\Console\Command\Command::class, false)) {
 	eval('namespace Symfony\Component\Console\Command; class Command {}');
+}
+
+// The vendored OCP package references private server interfaces that only exist
+// inside a full Nextcloud installation (e.g. IRootFolder extends OC\Hooks\Emitter).
+// Stub them for standalone runs so those interfaces stay mockable.
+if ($base === null && !interface_exists(\OC\Hooks\Emitter::class, false)) {
+	eval('namespace OC\Hooks; interface Emitter {}');
 }
 
 $ocpStubs = dirname(__DIR__, 3) . '/scripts/phpunit-ocp-doctrine-stubs.php';

@@ -27,6 +27,14 @@ class ArbeitszeitCheckTypeMapperTest extends TestCase
 	public function testUnknownTypeApprovedIsNotBlocking(): void
 	{
 		self::assertFalse(ArbeitszeitCheckTypeMapper::isBlockingApproved('custom_unknown', 'approved'));
+		self::assertFalse(ArbeitszeitCheckTypeMapper::isKnownType('custom_unknown'));
+	}
+
+	public function testUnknownStatusIsNonBlockingForOverlap(): void
+	{
+		self::assertFalse(ArbeitszeitCheckTypeMapper::isKnownStatus('weird_future_status'));
+		self::assertFalse(ArbeitszeitCheckTypeMapper::atStatusOverlapsDutyStatuses('weird_future_status', ['pending', 'approved']));
+		self::assertSame('cancelled', ArbeitszeitCheckTypeMapper::toDutyStatus('weird_future_status'));
 	}
 
 	public function testAtStatusMapsToDutyOverlapSet(): void

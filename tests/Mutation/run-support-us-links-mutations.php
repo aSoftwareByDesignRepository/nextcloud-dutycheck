@@ -24,6 +24,14 @@ if (!is_file($phpunit)) {
 }
 
 function run_unit_tests(string $appRoot, string $phpunit): int {
+	$nextcloudRoot = dirname($appRoot, 2);
+	$dockerRunner = $nextcloudRoot . '/docker/run-app-phpunit.sh';
+	// Host PHP cannot reach MariaDB socket; prefer Docker when available.
+	if (!is_file('/.dockerenv') && is_file($dockerRunner)) {
+		$cmd = escapeshellarg($dockerRunner) . ' dutycheck --filter SupportUsLinksTest';
+		passthru($cmd, $code);
+		return (int) $code;
+	}
 	$phpBin = 'php';
 	// Disable CLI opcache so file mutations are visible to the next PHPUnit process.
 	$cmd = escapeshellarg($phpBin)
@@ -32,7 +40,7 @@ function run_unit_tests(string $appRoot, string $phpunit): int {
 		. ' -c ' . escapeshellarg($appRoot . '/phpunit.xml')
 		. ' --filter SupportUsLinksTest';
 	passthru($cmd, $code);
-	return (int)$code;
+	return (int) $code;
 }
 
 function restore(string $source, string $backup): void {

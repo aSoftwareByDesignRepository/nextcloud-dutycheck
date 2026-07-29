@@ -8,13 +8,14 @@ use DateTimeImmutable;
 
 /**
  * Peer detection, mirror reconcile, bootstrap JSON, and conflict helpers.
- * Constants (peer app id, routes, min version) live on {@see ArbeitszeitCheckIntegrationService}.
+ * Constants (peer app id, routes, min version) live on {@see ArbeitszeitCheckIntegrationService}
+ * and {@see IntegrationOpsConstants}.
  */
 interface IArbeitszeitCheckIntegration
 {
 	public function getIntentEnabled(): bool;
 
-	public function setIntentEnabled(bool $enabled, string $actorUid): void;
+	public function setIntentEnabled(bool $enabled, string $actorUid, string $disableReason = ''): void;
 
 	public function getPeerInstalled(): bool;
 
@@ -35,11 +36,28 @@ interface IArbeitszeitCheckIntegration
 
 	public function isBreakerActive(): bool;
 
+	/**
+	 * Seconds until the circuit breaker opens for Sync again (0 when not tripped).
+	 */
+	public function getBreakerRetryAfterSeconds(): int;
+
 	public function getTStaleSeconds(): int;
+
+	public function getTStalePublishBlockSeconds(): int;
 
 	public function getLastReconcileAt(): ?DateTimeImmutable;
 
 	public function isStale(): bool;
+
+	public function getIncludePii(): bool;
+
+	public function setIncludePii(bool $enabled, string $actorUid, string $justification = ''): void;
+
+	public function getBlockPublishWhenStale(): bool;
+
+	public function setBlockPublishWhenStale(bool $enabled, string $actorUid): void;
+
+	public function shouldBlockPublishForStale(): bool;
 
 	/**
 	 * @return array{active: bool, startedAt: mixed}
@@ -47,16 +65,16 @@ interface IArbeitszeitCheckIntegration
 	public function getSyncLeaseInfo(): array;
 
 	/**
-	 * @return array{acquired: bool, token?: string, message?: string}
+	 * @return array{acquired: bool, token?: string, message?: string, startedAt?: mixed}
 	 */
 	public function acquireSyncLease(int $ttlSeconds = 600): array;
 
 	public function releaseSyncLease(string $token): void;
 
 	/**
-	 * @return array{ok: bool, code: string, rows?: int}
+	 * @return array{ok: bool, code: string, rows?: int, complete?: bool}
 	 */
-	public function runReconcile(string $leaseToken, ?int $maxWallSeconds = null): array;
+	public function runReconcile(string $leaseToken, ?int $maxWallSeconds = null, ?string $sinceYmd = null, ?string $onlyUserId = null): array;
 
 	public function countLegacyAbsencesForLinkedEmployees(): int;
 
@@ -80,14 +98,23 @@ interface IArbeitszeitCheckIntegration
 	public function buildBootstrapForUser(string $_userId, bool $readonlyAbsencesForCurrentUser): array;
 
 	/**
+	 * @param list<int>|null $allowedCompanyIds null = unrestricted; non-empty = SQL company filter
 	 * @return list<array<string,mixed>>
 	 */
-	public function listMirrorRowsForPlanner(): array;
+	public function listMirrorRowsForPlanner(?array $allowedCompanyIds = null): array;
 
 	/**
 	 * @return list<array<string,mixed>>
 	 */
 	public function listMirrorRowsForEmployee(string $linkedUserId): array;
+
+	/**
+	 * T1/T2 mirror rows overlapping a period window for WF-23 publish snapshots (never T3).
+	 *
+	 * @param int|null $companyId when set, only employees in that company
+	 * @return list<array{atAbsenceId:int,employeeId:int,type:string,status:string,startDate:string,endDate:string,source:string}>
+	 */
+	public function listImportedAbsencesForPeriodSnapshot(string $periodStartYmd, string $periodEndYmd, ?int $companyId = null): array;
 
 	public function hasImportedBlockingAbsenceOnDate(int $employeeId, string $dateYmd): bool;
 

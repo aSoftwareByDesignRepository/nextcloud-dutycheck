@@ -18,7 +18,7 @@ $urls = (array) ($_['urls'] ?? []);
 		<div>
 			<h2 id="dc-dashboard-setup-title"><?php p($l->t('Setup progress')); ?></h2>
 			<p class="dc-section__sub">
-				<?php p($l->t('Complete these steps before your team can plan duties. Each item links to the right page.')); ?>
+				<?php p($l->t('Finish the highlighted step — then your team can plan duties.')); ?>
 			</p>
 		</div>
 	</header>

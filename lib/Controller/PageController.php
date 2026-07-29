@@ -90,15 +90,16 @@ class PageController extends Controller
 		}
 
 		try {
+			$this->roster->assertPeriodCompanyAccess($userId, $periodId);
 			$bundle = $this->roster->rosterExportBundle($periodId);
 		} catch (\InvalidArgumentException $e) {
-			if ($e->getMessage() === 'PERIOD_NOT_FOUND') {
+			if (in_array($e->getMessage(), ['PERIOD_NOT_FOUND', 'NOT_FOUND', 'FORBIDDEN'], true)) {
 				$response = new TemplateResponse(Application::APP_ID, 'roster-print-error', [
 					'message' => $this->l10n->t('That planning period no longer exists.'),
 					'backUrl' => $backUrl,
 					'htmlLang' => (string) (($this->localeFormat->clientHints())['htmlLang'] ?? 'en-US'),
 				]);
-				$response->setStatus(404);
+				$response->setStatus($e->getMessage() === 'FORBIDDEN' ? 403 : 404);
 				$response->renderAs(TemplateResponse::RENDER_AS_BLANK);
 				return $response;
 			}
@@ -115,6 +116,8 @@ class PageController extends Controller
 			'pageTitle' => $this->l10n->t('Printable roster'),
 			'period' => $bundle['period'],
 			'assignments' => $bundle['assignments'],
+			'snapshotHash' => $bundle['snapshotHash'] ?? null,
+			'snapshotKind' => $bundle['snapshotKind'] ?? null,
 			'generatedAtUtcIso' => $generated->format('Y-m-d\TH:i:s\Z'),
 			'generatedAtUtcDisplay' => $generated->format('Y-m-d H:i:s') . ' UTC',
 			'rosterUrl' => $this->urlGenerator->linkToRoute('dutycheck.page.roster', ['periodId' => $periodId]),

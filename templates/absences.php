@@ -8,6 +8,8 @@
 include __DIR__ . '/common/page-start.php';
 $htmlLang = (string) (($_['clientHints']['htmlLang'] ?? 'en-US'));
 $locksLinked = !empty($_['integrationLocksLinkedDutyCheckAbsences']);
+$urls = (array) ($_['urls'] ?? []);
+$rosterUrl = (string) ($urls['roster'] ?? '');
 ?>
 <section class="dc-card dc-empty dc-empty--quickstart" id="dc-absences-quickstart"<?php if ($locksLinked) { ?> data-dc-hint-suppress="integration" hidden<?php } else { ?> hidden<?php } ?> aria-labelledby="dc-absences-quickstart-title">
 	<header class="dc-section__header">
@@ -39,7 +41,9 @@ $locksLinked = !empty($_['integrationLocksLinkedDutyCheckAbsences']);
 			<p>
 				<?php p($l->t('After approval, open the Roster — overlapping shifts appear as “Must fix” and must be changed or removed before you publish.')); ?>
 			</p>
-			<a class="button" href="#" data-dc-link="roster"><?php p($l->t('Open Roster')); ?></a>
+			<?php if ($rosterUrl !== '' && $rosterUrl !== '#') { ?>
+			<a class="button" href="<?php p($rosterUrl); ?>" data-dc-link="roster"><?php p($l->t('Open Roster')); ?></a>
+			<?php } ?>
 		</li>
 	</ol>
 </section>

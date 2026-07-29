@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\DutyCheck\BackgroundJob;
 
 use OCA\DutyCheck\Integration\IArbeitszeitCheckIntegration;
+use OCA\DutyCheck\Integration\IntegrationOpsConstants;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\TimedJob;
 use Psr\Log\LoggerInterface;
@@ -20,12 +21,15 @@ class ArbeitszeitCheckMirrorReconcileJob extends TimedJob
 		private LoggerInterface $logger,
 	) {
 		parent::__construct($time);
-		$this->setInterval(15 * 60);
+		$this->setInterval(IntegrationOpsConstants::RD_PERIOD_SECONDS);
 	}
 
 	protected function run($argument): void
 	{
 		if (!$this->integration->getIntentEnabled()) {
+			return;
+		}
+		if ($this->integration->isBreakerActive()) {
 			return;
 		}
 		$lease = $this->integration->acquireSyncLease(900);

@@ -18,7 +18,10 @@
 	 *   `SESSION_EXPIRED` error instead of a silently-followed HTML page.
 	 * - Normalises errors so callers can branch on `error.status`,
 	 *   `error.code`, and `error.payload`.
-	 * - Pure-function URL builder so unit tests stay deterministic.
+	 * - Detects AbortError / page unload / AbortSignal cancellation and surfaces
+ *   them as `REQUEST_ABORTED` so messaging never toasts a false “Network error”
+ *   when the user simply clicks another page (in-flight fetches are cancelled).
+ * - Pure-function URL builder so unit tests stay deterministic.
 	 *
 	 * The raw `request(url, options)` API is preserved for legacy callers;
 	 * new code should prefer `get/post/put/del(path, ...)` which speak in
@@ -28,17 +31,137 @@
 
 	const MUTATION_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
+	/**
+	 * Page-lifetime abort + unload tracking.
+	 *
+	 * Clicking another Nextcloud page cancels in-flight fetches. Without this,
+	 * those cancellations surface as scary “Network error” toasts on the way out
+	 * (and briefly flash before the document is torn down). We:
+	 *  1. Abort a shared page controller on pagehide/beforeunload.
+	 *  2. Classify AbortError / aborted signals / unload as REQUEST_ABORTED.
+	 *  3. Recreate the controller after bfcache restore (pageshow.persisted).
+	 */
+	let pageUnloading = false;
+	let pageAbortController = typeof AbortController === 'function'
+		? new AbortController()
+		: null;
+
+	function markPageUnloading() {
+		pageUnloading = true;
+		if (pageAbortController && !pageAbortController.signal.aborted) {
+			try {
+				pageAbortController.abort();
+			} catch (_) {
+				/* ignore */
+			}
+		}
+	}
+
+	function resetPageLifecycle() {
+		pageUnloading = false;
+		if (typeof AbortController === 'function') {
+			pageAbortController = new AbortController();
+		}
+	}
+
+	function isPageUnloading() {
+		return pageUnloading === true;
+	}
+
+	function bindPageLifecycle() {
+		if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') {
+			return;
+		}
+		// Capture phase so we flip the flag before late bubble-phase listeners
+		// try to toast a rejected fetch from the same navigation.
+		window.addEventListener('pagehide', markPageUnloading, true);
+		window.addEventListener('beforeunload', markPageUnloading, true);
+		window.addEventListener('pageshow', (event) => {
+			if (pageUnloading || (event && event.persisted)) {
+				resetPageLifecycle();
+			}
+		});
+	}
+	bindPageLifecycle();
+
+	/**
+	 * True when a thrown/rejected value is an intentional cancel (caller abort,
+	 * page teardown, or browser AbortError), not a connectivity failure.
+	 */
+	function isAborted(err) {
+		if (!err) {
+			return false;
+		}
+		if (err.code === 'REQUEST_ABORTED' || err.name === 'AbortError') {
+			return true;
+		}
+		if (err.cause && (err.cause.name === 'AbortError' || err.cause.code === 20)) {
+			return true;
+		}
+		// DOMException.ABORT_ERR === 20 in browsers that expose numeric codes.
+		if (err.code === 20 || err.code === 'ABORT_ERR') {
+			return true;
+		}
+		return false;
+	}
+
+	function abortedError(cause) {
+		const err = new Error('REQUEST_ABORTED');
+		err.name = 'AbortError';
+		err.payload = { ok: false, error: { code: 'REQUEST_ABORTED' } };
+		err.status = 0;
+		err.code = 'REQUEST_ABORTED';
+		if (cause) {
+			err.cause = cause;
+		}
+		return err;
+	}
+
+	/**
+	 * Merge a caller AbortSignal with the page-lifetime signal so navigation
+	 * always cancels outstanding DutyCheck requests with a clean AbortError.
+	 */
+	function composeAbortSignal(userSignal) {
+		const pageSignal = pageAbortController ? pageAbortController.signal : null;
+		if (!userSignal) {
+			return pageSignal || undefined;
+		}
+		if (!pageSignal) {
+			return userSignal;
+		}
+		if (userSignal.aborted || pageSignal.aborted) {
+			if (typeof AbortController !== 'function') {
+				return userSignal.aborted ? userSignal : pageSignal;
+			}
+			const done = new AbortController();
+			done.abort();
+			return done.signal;
+		}
+		if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.any === 'function') {
+			return AbortSignal.any([userSignal, pageSignal]);
+		}
+		const merged = new AbortController();
+		const onAbort = () => {
+			if (!merged.signal.aborted) {
+				merged.abort();
+			}
+		};
+		userSignal.addEventListener('abort', onAbort, { once: true });
+		pageSignal.addEventListener('abort', onAbort, { once: true });
+		return merged.signal;
+	}
+
 	function csrfToken() {
-		if (window.OC && OC.requestToken) {
-			return String(OC.requestToken);
+		if (window.OC && window.OC.requestToken) {
+			return String(window.OC.requestToken);
 		}
 		const input = document.querySelector('input[name="requesttoken"]');
 		return input ? String(input.value || '') : '';
 	}
 
 	function resolveUrl(path) {
-		return (typeof OC !== 'undefined' && typeof OC.generateUrl === 'function')
-			? OC.generateUrl(path)
+		return (window.OC && typeof window.OC.generateUrl === 'function')
+			? window.OC.generateUrl(path)
 			: path;
 	}
 
@@ -64,18 +187,16 @@
 			const data = await response.json().catch(() => null);
 			const token = data && typeof data.token === 'string' ? data.token : '';
 			if (token && window.OC) {
-				OC.requestToken = token;
-				if (typeof OC.requestToken !== 'undefined') {
-					document
-						.querySelectorAll('head meta[name="requesttoken"], input[name="requesttoken"]')
-						.forEach((el) => {
-							if (el.tagName === 'META') {
-								el.setAttribute('content', token);
-							} else {
-								el.value = token;
-							}
-						});
-				}
+				window.OC.requestToken = token;
+				document
+					.querySelectorAll('head meta[name="requesttoken"], input[name="requesttoken"]')
+					.forEach((el) => {
+						if (el.tagName === 'META') {
+							el.setAttribute('content', token);
+						} else {
+							el.value = token;
+						}
+					});
 			}
 			return token;
 		} catch (cause) {
@@ -189,6 +310,24 @@
 	}
 
 	/**
+	 * Classify a fetch() rejection: intentional cancel vs real connectivity loss.
+	 * During unload, browsers often reject with TypeError("Failed to fetch")
+	 * instead of AbortError — that must not become a user-facing network toast.
+	 */
+	function classifyFetchFailure(cause, signal) {
+		if (isPageUnloading()) {
+			return abortedError(cause);
+		}
+		if (signal && signal.aborted) {
+			return abortedError(cause || signal.reason);
+		}
+		if (isAborted(cause)) {
+			return abortedError(cause);
+		}
+		return networkError(cause);
+	}
+
+	/**
 	 * Whether a non-ok response is a Nextcloud CSRF rejection that we can
 	 * recover from by refreshing the token. Nextcloud returns 412 with a JSON
 	 * body of `{"message":"CSRF check failed"}` for app routes that send an
@@ -248,13 +387,21 @@
 		);
 	}
 
-	async function readBody(response) {
+	async function readBody(response, signal) {
 		const contentType = (response.headers.get('content-type') || '').toLowerCase();
 		const isJson = contentType.includes('application/json');
-		const data = isJson
-			? await response.json().catch(() => ({ ok: false, error: { code: 'INVALID_JSON' } }))
-			: await response.text().catch(() => '');
-		return { isJson, data };
+		try {
+			const data = isJson ? await response.json() : await response.text();
+			return { isJson, data };
+		} catch (cause) {
+			if (isPageUnloading() || (signal && signal.aborted) || isAborted(cause)) {
+				throw abortedError(cause);
+			}
+			if (isJson) {
+				return { isJson, data: { ok: false, error: { code: 'INVALID_JSON' } } };
+			}
+			return { isJson, data: '' };
+		}
 	}
 
 	function resolveAppPath(pathOrUrl, params) {
@@ -289,8 +436,13 @@
 
 		const maxAttempts = isMutation ? 2 : 1;
 		let lastError = null;
+		const signal = composeAbortSignal(opts.signal);
 
 		for (let attempt = 0; attempt < maxAttempts; attempt++) {
+			if (isPageUnloading() || (signal && signal.aborted)) {
+				throw abortedError(signal && signal.reason);
+			}
+
 			const bodyInit = hasBody
 				? (typeof opts.body === 'string'
 					? opts.body
@@ -305,10 +457,10 @@
 					credentials: 'same-origin',
 					headers,
 					body: bodyInit,
-					signal: opts.signal,
+					signal,
 				});
 			} catch (cause) {
-				throw networkError(cause);
+				throw classifyFetchFailure(cause, signal);
 			}
 
 			// Nextcloud redirects state-changing requests to the web root (and
@@ -323,7 +475,7 @@
 				throw err;
 			}
 
-			const { isJson, data } = await readBody(response);
+			const { isJson, data } = await readBody(response, signal);
 
 			if (response.ok) {
 				// Every DutyCheck endpoint answers JSON. A non-JSON 2xx on a write
@@ -386,5 +538,13 @@
 		resolveAppPath,
 		refreshCsrfToken,
 		extractApiError,
+		isAborted,
+		isPageUnloading,
+		/** @internal test/lifecycle hooks — do not call from page scripts. */
+		_markPageUnloading: markPageUnloading,
+		_resetPageLifecycle: resetPageLifecycle,
+		_classifyFetchFailure: classifyFetchFailure,
+		_composeAbortSignal: composeAbortSignal,
+		_abortedError: abortedError,
 	};
 })();

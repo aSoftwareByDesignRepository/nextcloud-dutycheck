@@ -20,8 +20,29 @@ final class UpgradeBackupIntegrityTest extends TestCase
 
 	public function testAssertSnapshotIdAcceptsValidId(): void
 	{
-		UpgradeBackupIntegrity::assertSnapshotId('20260624T120000Z-deadbeef');
-		$this->addToAssertionCount(1);
+		$id = '20260624T120000Z-deadbeef';
+		UpgradeBackupIntegrity::assertSnapshotId($id);
+		self::assertMatchesRegularExpression(UpgradeBackupIntegrity::SNAPSHOT_ID_PATTERN, $id);
+	}
+
+	public function testValidateManifestAcceptsCompleteDutyCheckSnapshot(): void
+	{
+		$tables = ['dc_employees' => ['checksum' => 'abc', 'rowCount' => 0]];
+		$integrity = hash('sha256', json_encode($tables, JSON_THROW_ON_ERROR));
+		UpgradeBackupIntegrity::validateManifest(
+			[
+				'format' => UpgradeBackupCatalog::FORMAT_VERSION,
+				'appId' => UpgradeBackupCatalog::APP_ID,
+				'id' => '20260624T120000Z-deadbeef',
+				'complete' => true,
+				'integrity' => $integrity,
+				'tables' => $tables,
+			],
+			'20260624T120000Z-deadbeef',
+			$tables,
+		);
+		self::assertTrue(UpgradeBackupCatalog::isBackupTable('dc_employees'));
+		self::assertFalse(UpgradeBackupCatalog::isBackupTable('pc_projects'));
 	}
 
 	public function testValidateManifestRejectsIncompleteSnapshot(): void
@@ -34,16 +55,16 @@ final class UpgradeBackupIntegrityTest extends TestCase
 				'id' => '20260624T120000Z-deadbeef',
 				'complete' => false,
 				'integrity' => 'abc',
-				'tables' => ['pc_projects' => ['checksum' => 'abc', 'rowCount' => 0]],
+				'tables' => ['dc_employees' => ['checksum' => 'abc', 'rowCount' => 0]],
 			],
 			'20260624T120000Z-deadbeef',
-			['pc_projects' => ['checksum' => 'abc', 'rowCount' => 0]],
+			['dc_employees' => ['checksum' => 'abc', 'rowCount' => 0]],
 		);
 	}
 
 	public function testValidateManifestRejectsTamperedIntegrityHash(): void
 	{
-		$tables = ['pc_projects' => ['checksum' => 'abc', 'rowCount' => 0]];
+		$tables = ['dc_employees' => ['checksum' => 'abc', 'rowCount' => 0]];
 		$this->expectException(UpgradeBackupException::class);
 		UpgradeBackupIntegrity::validateManifest(
 			[
@@ -61,7 +82,7 @@ final class UpgradeBackupIntegrityTest extends TestCase
 
 	public function testValidateManifestRequiresIntegrityHash(): void
 	{
-		$tables = ['pc_projects' => ['checksum' => 'abc', 'rowCount' => 0]];
+		$tables = ['dc_employees' => ['checksum' => 'abc', 'rowCount' => 0]];
 		$this->expectException(UpgradeBackupException::class);
 		UpgradeBackupIntegrity::validateManifest(
 			[
@@ -80,7 +101,7 @@ final class UpgradeBackupIntegrityTest extends TestCase
 	{
 		$content = json_encode([['id' => 1]], JSON_THROW_ON_ERROR);
 		$this->expectException(UpgradeBackupException::class);
-		UpgradeBackupIntegrity::assertTablePayload('pc_projects', $content, [
+		UpgradeBackupIntegrity::assertTablePayload('dc_employees', $content, [
 			'checksum' => 'deadbeef',
 			'rowCount' => 1,
 		]);
@@ -89,7 +110,7 @@ final class UpgradeBackupIntegrityTest extends TestCase
 	public function testIsAllowedColumnRejectsInvalidNames(): void
 	{
 		self::assertFalse(UpgradeBackupIntegrity::isAllowedColumn('id;drop'));
-		self::assertTrue(UpgradeBackupIntegrity::isAllowedColumn('project_id'));
+		self::assertTrue(UpgradeBackupIntegrity::isAllowedColumn('employee_id'));
 	}
 
 	public function testIsAllowedConfigKeyRejectsInvalidKeys(): void
@@ -103,13 +124,15 @@ final class UpgradeBackupIntegrityTest extends TestCase
 	{
 		self::assertFalse(UpgradeBackupIntegrity::isAllowedAppDataName('../evil'));
 		self::assertFalse(UpgradeBackupIntegrity::isAllowedAppDataName('..'));
-		self::assertTrue(UpgradeBackupIntegrity::isAllowedAppDataName('project_files'));
+		self::assertTrue(UpgradeBackupIntegrity::isAllowedAppDataName('roster_files'));
 	}
 
 	public function testIsAllowedTableNameRejectsInvalidNames(): void
 	{
-		self::assertFalse(UpgradeBackupIntegrity::isAllowedTableName('pc;drop'));
-		self::assertTrue(UpgradeBackupIntegrity::isAllowedTableName('pc_projects'));
+		self::assertFalse(UpgradeBackupIntegrity::isAllowedTableName('dc;drop'));
+		self::assertTrue(UpgradeBackupIntegrity::isAllowedTableName('dc_employees'));
+		self::assertTrue(UpgradeBackupIntegrity::isAllowedTableName('pc_projects')); // regex-only; catalog gate rejects foreign apps
+		self::assertFalse(UpgradeBackupCatalog::isBackupTable('pc_projects'));
 	}
 
 	public function testAssertAppDataFolderNameRejectsInvalid(): void

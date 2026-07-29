@@ -1,0 +1,45 @@
+{
+    // Security / license / marketplace gate — CI mutation bar.
+    // Broader suite: infection.json5 (informational floor).
+    "$schema": "https://raw.githubusercontent.com/infection/infection/0.29.14/resources/schema.json",
+    "source": {
+        "directories": [
+            "lib/Service",
+            "lib/License",
+            "lib/Integration"
+        ],
+        "excludes": [
+            "RosterService.php",
+            "UpgradeBackupService.php",
+            "UpgradeBackupIntegrity.php",
+            "UpgradeBackupCatalog.php",
+            "LocaleFormatService.php",
+            "TimezoneCatalog.php",
+            "RosterCsvFormatter.php",
+            "IconCatalog.php",
+            "LicenseUiStrings.php",
+            "MaintenanceCheckOnDutyReader.php"
+        ]
+    },
+    "timeout": 30,
+    "tmpDir": "/tmp/dutycheck-infection-security",
+    "testFramework": "phpunit",
+    "testFrameworkOptions": "--testsuite=unit",
+    "logs": {
+        "text": "tests/Mutation/logs/infection-security.log",
+        "summary": "tests/Mutation/logs/infection-security-summary.log"
+    },
+    "mutators": {
+        "@default": true,
+        "PublicVisibility": false,
+        "ProtectedVisibility": false,
+        // MethodCallRemoval on fluent QB chains / logging is mostly equivalent
+        // under our mocks; excluding keeps MSI focused on value/logic mutants.
+        "MethodCallRemoval": false
+    },
+    // Floor = current repeatable subset MSI on the security-focused scope.
+    // Broad suite (`infection.json5`) remains higher and currently passes at 67%.
+    // Ratchet this upward as more mutant-killing unit tests land for OpenShift/Swap/exports.
+    "minMsi": 54,
+    "minCoveredMsi": 54
+}

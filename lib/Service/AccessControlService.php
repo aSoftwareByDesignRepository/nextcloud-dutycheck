@@ -302,6 +302,74 @@ class AccessControlService
 		$qb->executeStatement();
 	}
 
+	/**
+	 * GDPR / user-delete: scrub live authorization and employee account links.
+	 * Ledger rows and snapshots stay; only the Nextcloud UID link is cleared (anonymize-don't-delete).
+	 */
+	public function purgeUser(string $userId): void
+	{
+		if ($userId === '') {
+			return;
+		}
+		$this->purgeUserDutyRole($userId);
+
+		$adminIds = array_values(array_filter(
+			$this->getJsonIdList(self::KEY_APP_ADMINS),
+			static fn (string $id): bool => $id !== $userId,
+		));
+		$this->config->setAppValue(
+			Application::APP_ID,
+			self::KEY_APP_ADMINS,
+			json_encode($adminIds, JSON_THROW_ON_ERROR),
+		);
+
+		$allowUsers = array_values(array_filter(
+			$this->getJsonIdList(self::KEY_ACCESS_ALLOWED_USER_IDS),
+			static fn (string $id): bool => $id !== $userId,
+		));
+		$this->config->setAppValue(
+			Application::APP_ID,
+			self::KEY_ACCESS_ALLOWED_USER_IDS,
+			json_encode($allowUsers, JSON_THROW_ON_ERROR),
+		);
+
+		if ($this->db->tableExists('dc_employees')) {
+			$qb = $this->db->getQueryBuilder();
+			$qb->update('dc_employees')
+				->set('linked_user_id', $qb->createNamedParameter(null))
+				->where($qb->expr()->eq('linked_user_id', $qb->createNamedParameter($userId)))
+				->executeStatement();
+		}
+
+		if ($this->db->tableExists('dc_mobile_seats')) {
+			$qb = $this->db->getQueryBuilder();
+			$qb->delete('dc_mobile_seats')
+				->where($qb->expr()->eq('uid', $qb->createNamedParameter($userId)))
+				->executeStatement();
+		}
+
+		if ($this->db->tableExists('dc_company_members')) {
+			$qb = $this->db->getQueryBuilder();
+			$qb->delete('dc_company_members')
+				->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
+				->executeStatement();
+		}
+
+		if ($this->db->tableExists('dc_planner_locs')) {
+			$qb = $this->db->getQueryBuilder();
+			$qb->delete('dc_planner_locs')
+				->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
+				->executeStatement();
+		}
+
+		if ($this->db->tableExists('dc_user_preferences')) {
+			$qb = $this->db->getQueryBuilder();
+			$qb->delete('dc_user_preferences')
+				->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
+				->executeStatement();
+		}
+	}
+
 	public function isEmployee(string $userId): bool
 	{
 		return $this->lookupGlobalRole($userId) === self::ROLE_EMPLOYEE;

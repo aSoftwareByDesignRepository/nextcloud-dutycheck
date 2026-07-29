@@ -42,7 +42,7 @@
 		container.appendChild(toast);
 		const dismissMs = k === 'error' ? 7000 : (k === 'success' ? 8000 : 5000);
 		window.setTimeout(() => {
-			if (toast.parentNode) toast.parentNode.removeChild(toast);
+			if (toast.parentNode) toast.remove();
 		}, dismissMs);
 	}
 
@@ -141,11 +141,26 @@
 	}
 
 	function handleApiError(err, options) {
+		// Navigation / explicit AbortController cancels must never toast.
+		// Callers still receive the rejection so they can skip stale UI updates.
+		if (window.DutyCheckApi && typeof window.DutyCheckApi.isAborted === 'function'
+			&& window.DutyCheckApi.isAborted(err)) {
+			return;
+		}
 		const status = Number((err && err.status) || 0);
 		const code = err && err.code ? String(err.code) : null;
+		if (code === 'REQUEST_ABORTED' || (err && err.name === 'AbortError')) {
+			return;
+		}
 		const friendly = knownCodeMessage(code);
 		const genericMessage = t('dutycheck', 'Something went wrong. Please try again, and contact an administrator if it keeps happening.');
 		if (status === 0 && code === 'NETWORK_ERROR') {
+			// Browser may reject with TypeError("Failed to fetch") during unload
+			// before AbortError is synthesised; never scare the user on the way out.
+			if (window.DutyCheckApi && typeof window.DutyCheckApi.isPageUnloading === 'function'
+				&& window.DutyCheckApi.isPageUnloading()) {
+				return;
+			}
 			announce(t('dutycheck', 'Network error. Please check your connection and retry.'), 'error');
 			return;
 		}

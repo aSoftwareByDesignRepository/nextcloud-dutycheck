@@ -13,6 +13,8 @@ $assignments = (array) ($_['assignments'] ?? []);
 $pageTitle = (string) ($_['pageTitle'] ?? $l->t('Printable roster'));
 $generatedAtUtcIso = (string) ($_['generatedAtUtcIso'] ?? '');
 $generatedAtUtcDisplay = (string) ($_['generatedAtUtcDisplay'] ?? '');
+$snapshotHash = (string) ($_['snapshotHash'] ?? '');
+$snapshotKind = (string) ($_['snapshotKind'] ?? '');
 $rosterUrl = (string) ($_['rosterUrl'] ?? '');
 $htmlLang = (string) ($_['htmlLang'] ?? 'en-US');
 
@@ -132,6 +134,23 @@ foreach ($assignments as $row) {
 					* <?php p($l->t('Continues into the next day.')); ?>
 				</p>
 			<?php endif; ?>
+
+			<footer class="dc-print-integrity" role="contentinfo">
+				<?php if ($snapshotHash !== ''): ?>
+					<p class="dc-print-integrity__hash">
+						<?php p($l->t('Integrity hash')); ?>
+						(<span class="dc-print-integrity__kind"><?php p($snapshotKind !== '' ? $snapshotKind : $l->t('snapshot')); ?></span>):
+						<code class="dc-print-integrity__value"><?php p($snapshotHash); ?></code>
+					</p>
+					<p class="dc-print-integrity__hint">
+						<?php p($l->t('Verify this hash against the period snapshot chain in DutyCheck → Periods.')); ?>
+					</p>
+				<?php else: ?>
+					<p class="dc-print-integrity__hint">
+						<?php p($l->t('No publish or close snapshot yet — this print is a working draft without an integrity hash.')); ?>
+					</p>
+				<?php endif; ?>
+			</footer>
 		</main>
 	</div>
 </body>

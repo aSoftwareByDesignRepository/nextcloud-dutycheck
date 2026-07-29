@@ -7,7 +7,7 @@ namespace OCA\DutyCheck\Integration;
 /**
  * Maps ArbeitszeitCheck absence types/statuses to DutyCheck semantics.
  *
- * @see pm/app-ideas/dutycheck/arbeitszeitcheck-integration.md
+ * @see planning/app-ideas/dutycheck/arbeitszeitcheck-integration.md
  */
 final class ArbeitszeitCheckTypeMapper
 {
@@ -27,6 +27,27 @@ final class ArbeitszeitCheckTypeMapper
 		'business_trip',
 	];
 
+	/** @var list<string> */
+	public const AT_KNOWN_STATUSES = [
+		'pending',
+		'substitute_pending',
+		'approved',
+		'rejected',
+		'cancelled',
+		'substitute_declined',
+	];
+
+	public static function isKnownType(string $atType): bool
+	{
+		return in_array($atType, self::AT_BLOCKING_TYPES, true)
+			|| in_array($atType, self::AT_SOFT_TYPES_DEFAULT, true);
+	}
+
+	public static function isKnownStatus(string $atStatus): bool
+	{
+		return in_array($atStatus, self::AT_KNOWN_STATUSES, true);
+	}
+
 	/**
 	 * DutyCheck `kind` for planner UI (matches existing absence kinds where possible).
 	 */
@@ -44,6 +65,7 @@ final class ArbeitszeitCheckTypeMapper
 
 	/**
 	 * DutyCheck workflow status for display (pending/approved/rejected/cancelled).
+	 * Unknown AT statuses map to cancelled for display so they never look like active leave.
 	 */
 	public static function toDutyStatus(string $atStatus): string
 	{
@@ -52,7 +74,8 @@ final class ArbeitszeitCheckTypeMapper
 			'approved' => 'approved',
 			'rejected' => 'rejected',
 			'cancelled', 'substitute_declined' => 'cancelled',
-			default => 'pending',
+			// Unknown: non-blocking display — never pretend this is pending/approved leave.
+			default => 'cancelled',
 		};
 	}
 
@@ -70,15 +93,21 @@ final class ArbeitszeitCheckTypeMapper
 		if (in_array($atType, self::AT_BLOCKING_TYPES, true)) {
 			return true;
 		}
-		// Unknown type: non-blocking (spec: log elsewhere)
+		// Unknown type: non-blocking (caller must log INTEGRATION_AT_UNKNOWN_ENUM).
 		return false;
 	}
 
 	/**
 	 * Overlap check against dc_absences statuses pending|approved — mirror equivalents.
+	 * Unknown AT statuses never overlap (non-blocking).
+	 *
+	 * @param list<string> $dutyStatuses
 	 */
 	public static function atStatusOverlapsDutyStatuses(string $atStatus, array $dutyStatuses): bool
 	{
+		if (!self::isKnownStatus($atStatus)) {
+			return false;
+		}
 		$duty = self::toDutyStatus($atStatus);
 		foreach ($dutyStatuses as $s) {
 			if ($duty === $s) {

@@ -26,7 +26,7 @@
 
 /* ── Tokens ──────────────────────────────────────────────────── */
 :root {
-	/* Spacing scale */
+	/* Spacing scale (4 px grid — never invent 10/18/20 px) */
 	--dc-space-1: 4px;
 	--dc-space-2: 8px;
 	--dc-space-3: 12px;
@@ -34,6 +34,7 @@
 	--dc-space-5: 24px;
 	--dc-space-6: 32px;
 	--dc-space-7: 48px;
+	--dc-space-8: 64px;
 
 	/* Radii */
 	--dc-radius-sm: 6px;
@@ -50,6 +51,36 @@
 	--dc-line-tight: 1.2;
 	--dc-line-base: 1.45;
 
+	--dc-breakpoint-sm: 480px;
+	--dc-breakpoint-md: 768px;
+	--dc-breakpoint-lg: 1024px;
+
+	--dc-icon-sm: 1rem;
+	--dc-icon-md: 1.125rem;
+	--dc-icon-lg: 1.375rem;
+	--dc-icon-well: 2.25rem;
+	--dc-touch: 44px;
+
+	--dc-tab-num: tabular-nums;
+}
+
+/*
+ * Theme-dependent tokens MUST live on themed surfaces (body / .dc-app / .dc-modal),
+ * not :root. Nextcloud sets --color-main-* on body; resolving color-mix on :root
+ * falls back to light #fff while text inherits dark-theme --color-main-text
+ * → WCAG contrast ~1.1:1. Modals mount on document.body outside #app-content.
+ *
+ * Tints mix INTO --color-main-background (AZC contract) — never into transparent —
+ * so callouts stay visible on every NC theme including high-contrast.
+ */
+body,
+#app-content.dc-app,
+.dc-app,
+.dc-modal,
+.dc-toasts {
+	--dc-overlay-top: var(--header-height, 50px);
+	--dc-overlay-height: calc(100dvh - var(--header-height, 50px));
+
 	/* Shadows */
 	--dc-shadow-sm: 0 1px 2px color-mix(in srgb, var(--color-main-text, #1d1d1d) 8%, transparent);
 	--dc-shadow-md: 0 8px 24px color-mix(in srgb, var(--color-main-text, #1d1d1d) 12%, transparent);
@@ -60,15 +91,25 @@
 	--dc-bg-stripe: color-mix(in srgb, var(--color-main-background, #fff) 92%, var(--color-main-text, #1d1d1d) 8%);
 	--dc-border: color-mix(in srgb, var(--color-main-text, #1d1d1d) 12%, transparent);
 	--dc-border-strong: color-mix(in srgb, var(--color-main-text, #1d1d1d) 24%, transparent);
-	--dc-muted: color-mix(in srgb, var(--color-main-text, #1d1d1d) 60%, transparent);
+	/* Prefer Nextcloud's AA-tested muted token (same approach as BudgetCheck).
+	   Fallback mixes against the background (not transparent) so secondary text
+	   still clears 4.5:1 on tinted surfaces across custom themes. */
+	--dc-muted: var(
+		--color-text-maxcontrast,
+		color-mix(in srgb, var(--color-main-text, #1d1d1d) 67%, var(--color-main-background, #fff))
+	);
+	--dc-text: var(--color-main-text, #1d1d1d);
 
-	/* Severity tints */
-	--dc-tint-info: color-mix(in srgb, var(--color-primary-element, #0082c9) 14%, transparent);
-	--dc-tint-success: color-mix(in srgb, var(--color-success, #46ba61) 18%, transparent);
-	--dc-tint-warning: color-mix(in srgb, var(--color-warning, #c98600) 18%, transparent);
-	--dc-tint-critical: color-mix(in srgb, var(--color-error, #cc4646) 18%, transparent);
+	/* Severity tints — mix into main-background (AZC / design-system §1.5) */
+	--dc-tint-info: color-mix(in srgb, var(--color-primary-element, #0082c9) 16%, var(--color-main-background, #fff));
+	--dc-tint-success: color-mix(in srgb, var(--color-success-text, var(--color-success, #46ba61)) 18%, var(--color-main-background, #fff));
+	/* NC34+ --color-success is a pale *surface*; borders/icons need the ink / element token. */
+	--dc-tint-success-border: color-mix(in srgb, var(--color-element-success, var(--color-success-text, #005416)) 55%, var(--color-main-background, #fff));
+	--dc-tint-warning: color-mix(in srgb, var(--color-warning-text, var(--color-warning, #c98600)) 22%, var(--color-main-background, #fff));
+	--dc-tint-critical: color-mix(in srgb, var(--color-error-text, var(--color-error, #cc4646)) 18%, var(--color-main-background, #fff));
+	--dc-scrim: color-mix(in srgb, var(--color-main-text, #000) 60%, transparent);
 
-	--dc-tab-num: tabular-nums;
+	color: var(--color-main-text, #1d1d1d);
 }
 
 /* ── Skip link / live regions ────────────────────────────────── */
@@ -124,20 +165,55 @@
 	flex-direction: column;
 	align-items: stretch;
 	width: 100%;
-	max-width: 1200px;
-	margin: 0 auto;
-	padding: var(--dc-space-4);
+	max-width: none;
+	margin: 0;
+	padding: max(var(--dc-space-4), env(safe-area-inset-top, 0px))
+		max(var(--dc-space-4), env(safe-area-inset-right, 0px))
+		max(var(--dc-space-5), env(safe-area-inset-bottom, 0px))
+		max(var(--dc-space-4), env(safe-area-inset-left, 0px));
 	box-sizing: border-box;
 	overflow-x: clip;
+}
+/* Shell width modifiers (AZC parity — reading measure stays on prose, not the page) */
+#app-content.dc-app #app-content-wrapper.dc-shell--wide,
+.dc-shell--wide {
+	max-width: none;
+	margin-inline: 0;
+}
+#app-content.dc-app #app-content-wrapper.dc-shell--constrained,
+.dc-shell--constrained {
+	max-width: 72rem;
+	margin-inline: auto;
+}
+#app-content.dc-app #app-content-wrapper.dc-shell--minimal,
+.dc-shell--minimal {
+	max-width: 40rem;
+	margin-inline: auto;
 }
 #app-content.dc-app #dc-main-content.dc-main,
 .dc-main {
 	flex: 1 1 auto;
 	min-width: 0;
+	max-width: 100%;
 	display: flex;
 	flex-direction: column;
 	gap: var(--dc-space-6);
 	outline: none;
+	overflow-x: clip;
+}
+.dc-page-stack {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: var(--dc-space-5);
+	width: 100%;
+	max-width: none;
+	min-width: 0;
+}
+/* Anchor jumps clear the Nextcloud header + page chrome. */
+#app-content.dc-app .dc-card[id],
+.dc-card[id] {
+	scroll-margin-top: 5.5rem;
 }
 #dc-main-content.dc-main:focus-visible {
 	outline: 3px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 60%, transparent);
@@ -180,6 +256,9 @@
 .dc-breadcrumb__current {
 	font-weight: 500;
 	color: var(--color-main-text, #1d1d1d);
+	/* Long translated titles must wrap, not push the shell into overflow clip. */
+	overflow-wrap: anywhere;
+	min-width: 0;
 }
 .dc-breadcrumb__sep { color: var(--dc-muted); }
 
@@ -207,16 +286,28 @@
 .dc-page-header__actions {
 	grid-column: 1 / -1;
 }
+/*
+ * The title column is a `1fr` grid track; without `min-width: 0` its
+ * min-content size wins and the shell's `overflow-x: clip` cuts the h1
+ * mid-glyph on very narrow viewports (split panes, <340px). `anywhere`
+ * also lets long single-word titles participate in min-content shrinking.
+ */
+.dc-page-header__text {
+	min-width: 0;
+}
 .dc-page-header__text h1 {
 	margin: 0;
 	font-size: var(--dc-fs-2xl);
 	line-height: var(--dc-line-tight);
+	overflow-wrap: anywhere;
 }
 .dc-page-header__lead {
 	margin: var(--dc-space-1) 0 0 0;
 	color: var(--dc-muted);
 	font-size: var(--dc-fs-sm);
 	line-height: var(--dc-line-base);
+	max-width: 60ch;
+	overflow-wrap: anywhere;
 }
 .dc-page-header__actions {
 	display: flex;
@@ -227,27 +318,86 @@
 }
 
 /* ── Role / scope strip ──────────────────────────────────────── */
-.dc-scope-strip {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
+/*
+ * Neutralise Nextcloud core apps.css definition-list chrome:
+ *   dl { padding: 12px 0 }
+ *   dt, dd { display: inline-block; padding: 12px; padding-inline-start: 0 }
+ *   dt { width: 130px; white-space: nowrap; text-align: end }
+ * Without these resets, "Role" sits end-aligned in a 130px box and looks like
+ * a missing icon / left gap. Use logical start alignment for RTL.
+ */
+#app-content.dc-app .dc-scope-strip,
+.dc-app .dc-scope-strip {
+	display: grid;
+	grid-template-columns: 1fr;
 	gap: var(--dc-space-3);
 	padding: var(--dc-space-3) var(--dc-space-4);
 	background: var(--dc-bg-card);
 	border: 1px solid var(--dc-border);
 	border-radius: var(--dc-radius-md);
 	font-size: var(--dc-fs-sm);
+	margin: 0;
 }
-.dc-scope-strip__label {
+#app-content.dc-app .dc-scope-strip__item,
+.dc-app .dc-scope-strip__item {
+	display: grid;
+	grid-template-columns: minmax(5.5rem, auto) minmax(0, 1fr);
+	gap: var(--dc-space-2) var(--dc-space-3);
+	align-items: center;
+	justify-items: stretch;
+	min-width: 0;
+}
+#app-content.dc-app .dc-scope-strip dt,
+#app-content.dc-app .dc-scope-strip dd,
+#app-content.dc-app .dc-scope-strip__label,
+#app-content.dc-app .dc-scope-strip__value,
+.dc-app .dc-scope-strip dt,
+.dc-app .dc-scope-strip dd,
+.dc-app .dc-scope-strip__label,
+.dc-app .dc-scope-strip__value {
+	display: block;
+	float: none;
+	width: auto;
+	max-width: 100%;
+	padding: 0;
+	margin: 0;
+	text-align: start;
+	white-space: normal;
+}
+#app-content.dc-app .dc-scope-strip__label,
+.dc-app .dc-scope-strip__label {
 	color: var(--dc-muted);
 	font-weight: 600;
 	text-transform: uppercase;
 	letter-spacing: 0.05em;
 	font-size: var(--dc-fs-xs);
+	line-height: var(--dc-line-tight);
 }
-.dc-scope-strip__value {
+#app-content.dc-app .dc-scope-strip__value,
+.dc-app .dc-scope-strip__value {
 	font-weight: 600;
 	color: var(--color-main-text, #1d1d1d);
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+@media (min-width: 640px) {
+	#app-content.dc-app .dc-scope-strip,
+	.dc-app .dc-scope-strip {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: var(--dc-space-4);
+	}
+	#app-content.dc-app .dc-scope-strip__item,
+	.dc-app .dc-scope-strip__item {
+		grid-template-columns: 1fr;
+		gap: var(--dc-space-1);
+		padding-inline-start: var(--dc-space-4);
+		border-inline-start: 1px solid var(--dc-border);
+	}
+	#app-content.dc-app .dc-scope-strip__item:first-child,
+	.dc-app .dc-scope-strip__item:first-child {
+		padding-inline-start: 0;
+		border-inline-start: 0;
+	}
 }
 
 /* ── Cards and sections ──────────────────────────────────────── */
@@ -257,17 +407,26 @@
 	border-radius: var(--dc-radius-md);
 	box-shadow: var(--dc-shadow-sm);
 	padding: var(--dc-space-4);
+	min-width: 0;
+	max-width: 100%;
+	box-sizing: border-box;
 }
 .dc-section {
 	display: flex;
 	flex-direction: column;
 	gap: var(--dc-space-4);
+	min-width: 0;
+	max-width: 100%;
 }
 .dc-section__header {
 	display: grid;
 	grid-template-columns: 1fr;
 	align-items: start;
 	gap: var(--dc-space-3) var(--dc-space-4);
+}
+/* Same min-content escape hatch as the page header (see .dc-page-header__text). */
+.dc-section__header > div {
+	min-width: 0;
 }
 .dc-section__controls {
 	justify-self: stretch;
@@ -280,6 +439,7 @@
 	margin: 0;
 	font-size: var(--dc-fs-xl);
 	line-height: var(--dc-line-tight);
+	overflow-wrap: anywhere;
 }
 .dc-section__sub {
 	margin: var(--dc-space-1) 0 0;
@@ -300,7 +460,7 @@
 	display: inline-flex;
 	align-items: center;
 	gap: var(--dc-space-1);
-	padding: 2px 10px;
+	padding: var(--dc-space-1) var(--dc-space-3);
 	font-size: var(--dc-fs-xs);
 	font-weight: 600;
 	border-radius: 999px;
@@ -309,7 +469,9 @@
 	background: var(--dc-bg-stripe);
 	color: var(--color-main-text, #1d1d1d);
 	border: 1px solid var(--dc-border);
-	white-space: nowrap;
+	white-space: normal;
+	overflow-wrap: anywhere;
+	max-width: 100%;
 }
 .dc-badge--info { background: var(--dc-tint-info); border-color: transparent; }
 .dc-badge--success { background: var(--dc-tint-success); border-color: transparent; }
@@ -347,17 +509,20 @@
 	background: currentColor;
 	opacity: 0.7;
 }
+/* Semantic text colors: modern Nextcloud ships --color-{success,error,…} as
+   pale *background* tints; the AA-contrast text companions are the
+   --color-*-text variables. Fall back to a darkened mix for legacy themes. */
 .dc-status-badge--open,
 .dc-status-badge--pending {
 	background: var(--dc-tint-info);
 	border-color: transparent;
-	color: color-mix(in srgb, var(--color-primary-element, #0082c9) 80%, var(--color-main-text, #1d1d1d) 20%);
+	color: var(--color-info-text, color-mix(in srgb, var(--color-primary-element, #0082c9) 80%, var(--color-main-text, #1d1d1d) 20%));
 }
 .dc-status-badge--published,
 .dc-status-badge--approved {
 	background: var(--dc-tint-success);
 	border-color: transparent;
-	color: color-mix(in srgb, var(--color-success, #46ba61) 70%, var(--color-main-text, #1d1d1d) 30%);
+	color: var(--color-success-text, color-mix(in srgb, var(--color-success, #46ba61) 70%, var(--color-main-text, #1d1d1d) 30%));
 }
 .dc-status-badge--closed,
 .dc-status-badge--cancelled {
@@ -368,7 +533,7 @@
 .dc-status-badge--rejected {
 	background: var(--dc-tint-critical);
 	border-color: transparent;
-	color: color-mix(in srgb, var(--color-error, #cc4646) 75%, var(--color-main-text, #1d1d1d) 25%);
+	color: var(--color-error-text, color-mix(in srgb, var(--color-error, #cc4646) 75%, var(--color-main-text, #1d1d1d) 25%));
 }
 
 /* Planning issue severity (must fix / confirm to continue) */
@@ -391,7 +556,8 @@
 }
 .dc-hint-link:hover,
 .dc-hint-link:focus-visible {
-	color: var(--color-primary-element-text, #00679e);
+	/* NOT --color-primary-element-text: that is the on-primary (white) color. */
+	color: var(--color-primary-element-hover, #00507a);
 	text-decoration-thickness: 2px;
 }
 .dc-hint-link:focus-visible {
@@ -401,15 +567,15 @@
 }
 .dc-severity--hard {
 	background: var(--dc-tint-critical);
-	color: color-mix(in srgb, var(--color-error, #cc4646) 80%, var(--color-main-text, #1d1d1d) 20%);
+	color: var(--color-error-text, color-mix(in srgb, var(--color-error, #cc4646) 80%, var(--color-main-text, #1d1d1d) 20%));
 }
 .dc-severity--soft {
 	background: var(--dc-tint-warning);
-	color: color-mix(in srgb, var(--color-warning, #c98600) 70%, var(--color-main-text, #1d1d1d) 30%);
+	color: var(--color-warning-text, color-mix(in srgb, var(--color-warning, #c98600) 70%, var(--color-main-text, #1d1d1d) 30%));
 }
 .dc-severity--info {
 	background: var(--dc-tint-info);
-	color: color-mix(in srgb, var(--color-primary-element, #0082c9) 80%, var(--color-main-text, #1d1d1d) 20%);
+	color: var(--color-info-text, color-mix(in srgb, var(--color-primary-element, #0082c9) 80%, var(--color-main-text, #1d1d1d) 20%));
 }
 
 .dc-pill {
@@ -505,7 +671,7 @@
 .dc-callout__actions .button {
 	min-height: 44px;
 }
-.dc-callout__hint { color: var(--dc-muted); font-size: var(--dc-fs-sm); }
+.dc-callout__hint { color: var(--color-main-text, #1d1d1d); font-size: var(--dc-fs-sm); }
 .dc-loading {
 	color: var(--dc-muted);
 	font-style: italic;
@@ -552,45 +718,75 @@
 	margin-top: auto;
 }
 
-/* Setup progress (dashboard — not dismissable until complete) */
+/* Setup progress (dashboard — not dismissable until complete)
+ *
+ * NC34+ ships --color-success / --color-error / --color-warning as pale
+ * *surface* tints. Never put --color-primary-element-text (white) on them —
+ * measured white-on-#D8F3DA ≈ 1.18:1 (fails WCAG 1.4.11). Use the
+ * --color-*-text companions (same contract as .dc-status-badge--*).
+ */
 .dc-setup-checklist {
 	list-style: none;
 	padding: 0;
 	margin: 0;
 	display: flex;
 	flex-direction: column;
-	gap: var(--dc-space-3);
+	gap: var(--dc-space-2);
 }
 .dc-setup-checklist__item {
 	display: grid;
-	grid-template-columns: 2.75rem 1fr;
+	grid-template-columns: var(--dc-touch) 1fr;
 	gap: var(--dc-space-3);
 	align-items: start;
-	padding: var(--dc-space-4);
+	padding: var(--dc-space-3) var(--dc-space-4);
 	border: 1px solid var(--dc-border);
 	border-radius: var(--dc-radius-sm);
 	background: var(--dc-bg-card);
 }
+/* Done rows collapse — one glance, no competing CTAs. */
 .dc-setup-checklist__item.is-done {
 	border-color: var(--dc-tint-success-border, var(--dc-border));
 	background: var(--dc-tint-success);
+	align-items: center;
+	padding-block: var(--dc-space-2);
+}
+.dc-setup-checklist__item.is-done .dc-setup-checklist__hint {
+	display: none;
+}
+.dc-setup-checklist__item.is-current {
+	border-color: var(--color-primary-element, #00679e);
+	border-width: 2px;
+	padding: var(--dc-space-4);
+	background: var(--dc-bg-card);
+	box-shadow: var(--dc-shadow-sm);
 }
 .dc-setup-checklist__status {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	width: 2.75rem;
-	height: 2.75rem;
+	width: var(--dc-touch);
+	height: var(--dc-touch);
 	border-radius: 50%;
 	font-size: 1.25rem;
 	font-weight: 700;
 	line-height: 1;
+	flex-shrink: 0;
 	background: var(--color-background-dark, #e8e8e8);
 	color: var(--color-main-text, #1d1d1d);
+	border: 2px solid transparent;
+	box-sizing: border-box;
 }
 .dc-setup-checklist__item.is-done .dc-setup-checklist__status {
-	background: var(--color-success, #2d7a46);
-	color: #fff;
+	/* Pale success surface + dark success ink (≥ 4.5:1). Ring uses the
+	   saturated element token so the mark stays visible without colour alone. */
+	background: var(--color-success, var(--dc-tint-success));
+	color: var(--color-success-text, color-mix(in srgb, var(--color-success, #46ba61) 70%, var(--color-main-text, #1d1d1d) 30%));
+	border-color: var(--color-element-success, var(--color-success-text, #005416));
+}
+.dc-setup-checklist__item.is-current .dc-setup-checklist__status {
+	background: var(--color-primary-element, #00679e);
+	color: var(--color-primary-element-text, #fff);
+	border-color: var(--color-primary-element, #00679e);
 }
 .dc-setup-checklist__body {
 	display: flex;
@@ -601,15 +797,44 @@
 .dc-setup-checklist__body strong {
 	font-size: var(--dc-fs-md);
 	line-height: var(--dc-line-tight);
+	color: var(--color-main-text, #1d1d1d);
+}
+.dc-setup-checklist__item.is-done .dc-setup-checklist__body strong {
+	font-weight: 600;
+	color: var(--color-success-text, var(--color-main-text, #1d1d1d));
 }
 .dc-setup-checklist__hint {
 	margin: 0;
 	color: var(--dc-muted);
 	font-size: var(--dc-fs-sm);
 }
+.dc-setup-checklist__item.is-current .dc-setup-checklist__hint {
+	/* Hint sits on card white/dark bg — muted is fine; keep readable size. */
+	font-size: var(--dc-fs-md);
+	color: var(--color-main-text, #1d1d1d);
+}
 .dc-setup-checklist__body .button {
 	align-self: flex-start;
-	min-height: 44px;
+	min-height: var(--dc-touch);
+	min-width: var(--dc-touch);
+}
+.dc-setup-checklist__body .button.primary {
+	font-size: var(--dc-fs-md);
+	font-weight: 700;
+	padding-inline: var(--dc-space-5);
+}
+@media (max-width: 480px) {
+	.dc-setup-checklist__body .button.primary {
+		width: 100%;
+		justify-content: center;
+	}
+}
+@media (forced-colors: active) {
+	.dc-setup-checklist__item.is-done .dc-setup-checklist__status,
+	.dc-setup-checklist__item.is-current .dc-setup-checklist__status {
+		border: 2px solid CanvasText;
+		forced-color-adjust: none;
+	}
 }
 
 /* ── Quickstart card variant (dismissable) ───────────────────── */
@@ -708,6 +933,58 @@
 	margin: 0;
 	max-width: 65ch;
 }
+.dc-at-banner .dc-callout__actions {
+	flex-wrap: wrap;
+	gap: var(--dc-space-2);
+}
+.dc-at-banner .dc-callout__actions .button {
+	min-height: 44px;
+	min-width: 44px;
+}
+.dc-at-integration__controls .dc-field {
+	max-width: 48rem;
+}
+@media (max-width: 720px) {
+	.dc-at-integration__banner-row {
+		flex-direction: column;
+	}
+	.dc-at-integration__actions {
+		flex-direction: column;
+		align-items: stretch;
+	}
+	.dc-at-integration__actions .button,
+	.dc-at-integration__actions a.button {
+		width: 100%;
+		justify-content: center;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.dc-at-integration__actions .button[disabled] {
+		transition: none;
+	}
+}
+@media (forced-colors: active) {
+	.dc-at-banner,
+	.dc-at-integration__banner {
+		border: 2px solid CanvasText;
+	}
+	.dc-at-banner :focus-visible,
+	.dc-at-integration__actions .button:focus-visible,
+	.dc-at-integration__retry:focus-visible {
+		outline: 2px solid CanvasText;
+		outline-offset: 2px;
+	}
+}
+@media print {
+	/* REQ-UX-13: hide dismissible banner region; keep table source column. */
+	.dc-at-banner,
+	.dc-at-integration__banner {
+		display: none !important;
+	}
+	.dc-at-integration {
+		break-inside: avoid;
+	}
+}
 .dc-at-integration__divider {
 	margin: var(--dc-space-1) 0;
 }
@@ -745,9 +1022,16 @@
 .dc-form-grid,
 .dc-filter-grid {
 	display: grid;
-	grid-template-columns: 1fr;
+	grid-template-columns: minmax(0, 1fr);
 	gap: var(--dc-space-3);
 	align-items: start;
+	min-width: 0;
+	max-width: 100%;
+	width: 100%;
+	box-sizing: border-box;
+}
+.dc-form-grid--nested {
+	margin-block-start: var(--dc-space-4);
 }
 .dc-form-grid > .dc-field--full,
 .dc-filter-grid > .dc-field--full {
@@ -765,7 +1049,7 @@
 .dc-field {
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
+	gap: var(--dc-space-1);
 	min-width: 0;
 }
 .dc-field__label {
@@ -792,7 +1076,7 @@
 .dc-field__error {
 	margin: var(--dc-space-1) 0 0;
 	font-size: var(--dc-fs-xs);
-	color: var(--color-error, #cc4646);
+	color: var(--color-error-text, var(--color-error, #cc4646));
 	font-weight: 600;
 }
 
@@ -822,6 +1106,8 @@
 #app-content.dc-app select,
 #app-content.dc-app textarea {
 	width: 100%;
+	max-width: 100%;
+	min-width: 0;
 	min-height: 44px;
 	padding: var(--dc-space-2) var(--dc-space-3);
 	border-radius: var(--dc-radius-sm);
@@ -836,7 +1122,7 @@
 	resize: vertical;
 }
 .dc-input:focus-visible,
-#app-content.dc-app input:focus-visible,
+#app-content.dc-app input:not([type='checkbox']):not([type='radio']):focus-visible,
 #app-content.dc-app select:focus-visible,
 #app-content.dc-app textarea:focus-visible {
 	outline: 3px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 60%, transparent);
@@ -849,34 +1135,77 @@ input[type=number], input[type=month], input[type=date], input[type=time],
 	font-variant-numeric: var(--dc-tab-num);
 }
 
-/* Checkbox + copy in an input-sized box (same border/padding rhythm as .dc-input) */
+/*
+ * Checkbox + copy in an input-sized box (same border/padding rhythm as .dc-input).
+ *
+ * Nextcloud core applies `min-height: var(--default-clickable-area)` to ALL
+ * `input` elements. Without an explicit min-width/min-height reset the native
+ * control stretches to ~44px and washes out or clips under dark / high-contrast
+ * themes. Match AZC settings + DeskCheck form-controls: fixed 1.25rem box,
+ * theme tokens for fill/border, accent-color for the checkmark.
+ */
 .dc-checkbox,
 label.dc-checkbox {
 	display: inline-flex !important;
 	align-items: center;
 	gap: var(--dc-space-3);
 	width: 100%;
+	max-width: 100%;
+	min-width: 0;
 	box-sizing: border-box;
-	min-height: 44px;
+	min-height: var(--dc-touch, 44px);
 	padding: var(--dc-space-2) var(--dc-space-3);
 	border: 1px solid var(--dc-border-strong);
 	border-radius: var(--dc-radius-sm);
 	background: var(--dc-bg-card);
-	color: var(--color-main-text, #1d1d1d);
+	color: var(--dc-text, var(--color-main-text, #1d1d1d));
 	cursor: pointer;
 	margin: 0;
+	-webkit-tap-highlight-color: transparent;
 }
-.dc-checkbox input[type='checkbox'] {
+.dc-checkbox input[type='checkbox'],
+.dc-check input[type='checkbox'],
+.dc-field--radio input[type='radio'] {
 	flex-shrink: 0;
 	width: 1.25rem;
 	height: 1.25rem;
+	/* Beat NC core `input { min-height: var(--default-clickable-area) }` */
+	min-width: 1.25rem;
+	min-height: 1.25rem;
+	max-width: 1.25rem;
+	max-height: 1.25rem;
 	margin: 0;
+	padding: 0;
 	cursor: pointer;
+	box-sizing: border-box;
 	accent-color: var(--color-primary-element, #0082c9);
+	/* Theme-aware native chrome (light / dark / high-contrast / custom primary) */
+	background-color: var(--dc-bg-card, var(--color-main-background, #fff));
+	border: 1px solid var(--dc-border-strong, var(--color-border-dark, #999));
+	border-radius: 3px;
+	color: var(--dc-text, var(--color-main-text, #1d1d1d));
+	/* Follow body[data-theme-*] so the UA paints the glyph for the active scheme */
+	color-scheme: inherit;
+	appearance: auto;
+	-webkit-appearance: auto;
+}
+.dc-field--radio input[type='radio'] {
+	border-radius: 50%;
+	margin: 0.2em 0 0;
+}
+.dc-checkbox input[type='checkbox']:focus-visible,
+.dc-check input[type='checkbox']:focus-visible,
+.dc-field--radio input[type='radio']:focus-visible {
+	outline: 3px solid var(--color-primary-element, #0082c9);
+	outline-offset: 2px;
+	border-color: var(--color-primary-element, #0082c9);
 }
 .dc-checkbox:has(input:disabled) {
 	cursor: not-allowed;
 	opacity: 0.72;
+}
+.dc-checkbox:has(input:disabled) input {
+	cursor: not-allowed;
 }
 .dc-checkbox:focus-within {
 	outline: 3px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 60%, transparent);
@@ -888,6 +1217,7 @@ label.dc-checkbox {
 	min-width: 0;
 	line-height: var(--dc-line-base);
 	font-size: var(--dc-fs-sm);
+	color: inherit;
 }
 
 /* Radio inside .dc-field--radio */
@@ -896,14 +1226,7 @@ label.dc-checkbox {
 	align-items: flex-start;
 	gap: var(--dc-space-3);
 	padding: var(--dc-space-1) 0;
-}
-.dc-field--radio input[type='radio'] {
-	flex-shrink: 0;
-	width: 1.25rem;
-	height: 1.25rem;
-	margin: 0.2em 0 0;
-	cursor: pointer;
-	accent-color: var(--color-primary-element, #0082c9);
+	color: var(--dc-text, var(--color-main-text, #1d1d1d));
 }
 
 .dc-form-actions,
@@ -1038,7 +1361,7 @@ label.dc-checkbox {
 	font-weight: 700;
 	letter-spacing: 0.02em;
 	text-transform: uppercase;
-	color: var(--color-text-maxcontrast, #767676);
+	color: var(--dc-muted);
 }
 .dc-timezone-picker__option {
 	display: flex;
@@ -1066,17 +1389,17 @@ label.dc-checkbox {
 .dc-timezone-picker__option-offset {
 	flex-shrink: 0;
 	font-size: var(--dc-fs-xs);
-	color: var(--color-text-maxcontrast, #767676);
+	color: var(--dc-muted);
 }
 .dc-timezone-picker__empty {
 	padding: var(--dc-space-3);
 	font-size: var(--dc-fs-sm);
-	color: var(--color-text-maxcontrast, #767676);
+	color: var(--dc-muted);
 }
 .dc-timezone-picker__status {
 	margin: 0;
 	font-size: var(--dc-fs-xs);
-	color: var(--color-text-maxcontrast, #767676);
+	color: var(--dc-muted);
 	line-height: var(--dc-line-base);
 }
 .dc-timezone-picker__status--error {
@@ -1271,9 +1594,9 @@ label.dc-checkbox {
 	background: color-mix(in srgb, var(--color-error, #c00) 12%, var(--color-main-background, #fff));
 }
 .dc-roster-form__feedback--success {
-	border-color: var(--color-success, #46ba61);
+	border-color: var(--color-element-success, var(--color-success-text, var(--color-success, #46ba61)));
 	border-inline-start-width: 4px;
-	background: color-mix(in srgb, var(--color-success, #46ba61) 14%, var(--color-main-background, #fff));
+	background: color-mix(in srgb, var(--color-success-text, var(--color-success, #46ba61)) 14%, var(--color-main-background, #fff));
 	font-weight: 600;
 }
 .dc-roster-form__feedback--info {
@@ -1388,10 +1711,13 @@ label.dc-checkbox {
 	gap: var(--dc-space-2);
 }
 .dc-entity-results li:hover,
-.dc-entity-results li:focus-visible,
 .dc-entity-results li[aria-selected='true'] {
 	background: var(--dc-tint-info);
-	outline: none;
+}
+.dc-entity-results li:focus-visible {
+	background: var(--dc-tint-info);
+	outline: 3px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 60%, transparent);
+	outline-offset: -3px;
 }
 .dc-entity-results__title {
 	font-weight: 600;
@@ -1423,6 +1749,7 @@ label.dc-checkbox {
 	justify-content: center;
 	gap: var(--dc-space-2);
 	min-height: 44px;
+	max-width: 100%;
 	padding: var(--dc-space-2) var(--dc-space-4);
 	box-sizing: border-box;
 	line-height: 1.25;
@@ -1440,8 +1767,10 @@ label.dc-checkbox {
 }
 .dc-app .button.button--text,
 #app-content.dc-app button.button--text {
-	min-height: 0;
-	padding: 0;
+	/* WCAG 2.5.8: text-style actions still need a 44×44 hit target. */
+	min-height: 44px;
+	min-width: 44px;
+	padding: var(--dc-space-2) var(--dc-space-3);
 	border: 0;
 	background: transparent;
 	color: var(--color-primary-element, var(--color-main-text));
@@ -1449,6 +1778,11 @@ label.dc-checkbox {
 	text-underline-offset: 2px;
 	font-weight: 500;
 	white-space: normal;
+}
+.dc-app .button.button--text:focus-visible,
+#app-content.dc-app button.button--text:focus-visible {
+	outline: 3px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 60%, transparent);
+	outline-offset: 2px;
 }
 
 #app-content.dc-app button.dc-btn-icon,
@@ -1588,15 +1922,18 @@ label.dc-checkbox {
 .dc-table tbody tr[aria-selected='true'] td {
 	background: var(--dc-tint-info);
 }
-.dc-table tbody tr[role='button'] {
+.dc-table tbody tr.dc-row--selectable {
 	cursor: pointer;
 }
-.dc-table tbody tr[role='button']:hover td {
+.dc-table tbody tr.dc-row--selectable:hover td {
 	background: color-mix(in srgb, var(--dc-tint-info) 70%, var(--dc-bg-card) 30%);
 }
-.dc-table tbody tr[role='button']:focus-visible {
-	outline: 3px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 60%, transparent);
-	outline-offset: -3px;
+/* Keyboard selection happens via the real button inside the row. */
+.dc-table .dc-period-select {
+	font-variant-numeric: tabular-nums;
+}
+.dc-table .dc-period-select[aria-current='true'] {
+	font-weight: 700;
 }
 .dc-table .dc-row-actions {
 	display: flex;
@@ -1617,6 +1954,11 @@ label.dc-checkbox {
 	font-size: var(--dc-fs-xs);
 	line-height: var(--dc-line-base);
 }
+.dc-row--flash {
+	outline: 2px solid var(--color-primary-element);
+	outline-offset: 2px;
+	background-color: var(--color-background-hover);
+}
 
 /* Duty times: fixed-width numerals for scanability (24-hour display) */
 .dc-time-cell__value {
@@ -1634,7 +1976,7 @@ label.dc-checkbox {
 .dc-summary-tile {
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
+	gap: var(--dc-space-1);
 	padding: var(--dc-space-4);
 	border: 1px solid var(--dc-border);
 	border-radius: var(--dc-radius-md);
@@ -1653,6 +1995,17 @@ label.dc-checkbox {
 	letter-spacing: 0.05em;
 	color: var(--dc-muted);
 	font-weight: 600;
+}
+.dc-summary-tile--primary .dc-summary-tile__label,
+.dc-summary-tile--primary .dc-summary-tile__hint,
+.dc-summary-tile--success .dc-summary-tile__label,
+.dc-summary-tile--success .dc-summary-tile__hint,
+.dc-summary-tile--warning .dc-summary-tile__label,
+.dc-summary-tile--warning .dc-summary-tile__hint,
+.dc-summary-tile--critical .dc-summary-tile__label,
+.dc-summary-tile--critical .dc-summary-tile__hint {
+	/* Secondary copy on tinted tiles must clear 4.5:1 — muted does not. */
+	color: var(--color-main-text, #1d1d1d);
 }
 .dc-summary-tile__value {
 	font-size: var(--dc-fs-2xl);
@@ -1750,6 +2103,10 @@ label.dc-checkbox {
 .dc-nav__item.is-active .dc-nav__icon {
 	color: var(--color-primary-element, #0082c9);
 }
+/* Muted hints fail AA on the primary tint pill — use main text on active. */
+.dc-nav__item.is-active .dc-nav__hint {
+	color: var(--color-main-text, #1d1d1d);
+}
 .dc-nav__icon {
 	display: inline-flex;
 	align-items: center;
@@ -1766,6 +2123,9 @@ label.dc-checkbox {
 	font-size: var(--dc-fs-xs);
 	color: var(--dc-muted);
 	line-height: var(--dc-line-base);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 /* ── Conflicts & warnings ────────────────────────────────────── */
@@ -1815,13 +2175,13 @@ label.dc-checkbox {
 .dc-conflict__ack {
 	display: block;
 	margin-top: var(--dc-space-1);
-	color: var(--dc-muted);
+	color: var(--color-main-text, #1d1d1d);
 	font-size: var(--dc-fs-xs);
 }
 .dc-conflict__ack-invalid {
 	display: block;
 	margin-top: var(--dc-space-1);
-	color: color-mix(in srgb, var(--color-warning, #c98600) 80%, var(--color-main-text, #1d1d1d) 20%);
+	color: var(--color-warning-text, color-mix(in srgb, var(--color-warning, #c98600) 80%, var(--color-main-text, #1d1d1d) 20%));
 	font-size: var(--dc-fs-xs);
 	font-weight: 600;
 }
@@ -1832,7 +2192,7 @@ label.dc-checkbox {
 	inset: 0;
 	display: grid;
 	place-items: center;
-	background: color-mix(in srgb, var(--color-main-text, #000) 60%, transparent);
+	background: var(--dc-scrim);
 	z-index: 10000;
 	padding: max(var(--dc-space-4), env(safe-area-inset-top, 0px)) max(var(--dc-space-4), env(safe-area-inset-right, 0px)) max(var(--dc-space-4), env(safe-area-inset-bottom, 0px)) max(var(--dc-space-4), env(safe-area-inset-left, 0px));
 	box-sizing: border-box;
@@ -1919,7 +2279,7 @@ label.dc-checkbox {
 .dc-toast {
 	background: var(--dc-bg-card);
 	border: 1px solid var(--dc-border);
-	border-left: 4px solid var(--color-primary-element, #0082c9);
+	border-inline-start: 4px solid var(--color-primary-element, #0082c9);
 	padding: var(--dc-space-3) var(--dc-space-4);
 	border-radius: var(--dc-radius-sm);
 	box-shadow: var(--dc-shadow-sm);
@@ -1928,12 +2288,12 @@ label.dc-checkbox {
 	align-items: center;
 	color: var(--color-main-text, #1d1d1d);
 }
-.dc-toast--success { border-left-color: var(--color-success, #46ba61); }
-.dc-toast--info { border-left-color: var(--color-primary-element, #0082c9); }
-.dc-toast--error { border-left-color: var(--color-error, #cc4646); }
-.dc-toast--warning { border-left-color: var(--color-warning, #c98600); }
+.dc-toast--success { border-inline-start-color: var(--color-element-success, var(--color-success-text, var(--color-success, #46ba61))); }
+.dc-toast--info { border-inline-start-color: var(--color-primary-element, #0082c9); }
+.dc-toast--error { border-inline-start-color: var(--color-error, #cc4646); }
+.dc-toast--warning { border-inline-start-color: var(--color-warning, #c98600); }
 .dc-toast__close {
-	margin-left: auto;
+	margin-inline-start: auto;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -1949,10 +2309,14 @@ label.dc-checkbox {
 	border-radius: var(--dc-radius-sm);
 	color: inherit;
 }
+.dc-toast__close:focus-visible {
+	outline: 2px solid var(--color-main-text, #1d1d1d);
+	outline-offset: 2px;
+}
 
 /* ── Calendar subscription (employee self-service) ───────────── */
 .dc-ical-panel {
-	border-inline-start: 4px solid color-mix(in srgb, var(--color-warning, #c98600) 55%, transparent);
+	border-inline-start: 4px solid color-mix(in srgb, var(--color-warning, #c98600) 55%, var(--color-main-background, #fff));
 	padding-inline-start: var(--dc-space-4);
 }
 .dc-ical-panel__body {
@@ -2068,7 +2432,7 @@ label.dc-checkbox {
 }
 
 .dc-table tbody tr.dc-table__fetch-error-row td.dc-table__fetch-error-cell {
-	color: var(--color-error, #c0392b);
+	color: var(--color-error-text, var(--color-error, #c0392b));
 	background: var(--dc-tint-critical);
 	font-size: var(--dc-fs-sm);
 	line-height: var(--dc-line-base);
@@ -2131,14 +2495,68 @@ label.dc-checkbox {
 	color: var(--color-error, #cc4646);
 }
 
-/* ── Focus ring (keyboard) ───────────────────────────────────── */
+/* ── Focus ring (keyboard) — solid primary for ≥3:1 against surfaces ── */
 a:focus-visible,
 button:focus-visible,
 [role='button']:focus-visible,
 .dc-app a:focus-visible,
-.dc-app button:focus-visible {
-	outline: 3px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 60%, transparent);
+.dc-app button:focus-visible,
+.dc-modal a:focus-visible,
+.dc-modal button:focus-visible {
+	outline: 3px solid var(--color-primary-element, #0082c9);
 	outline-offset: 2px;
+}
+
+@media (prefers-contrast: more) {
+	a:focus-visible,
+	button:focus-visible,
+	[role='button']:focus-visible,
+	.dc-app a:focus-visible,
+	.dc-app button:focus-visible,
+	.dc-modal a:focus-visible,
+	.dc-modal button:focus-visible,
+	.dc-input:focus-visible,
+	#app-content.dc-app input:not([type='checkbox']):not([type='radio']):focus-visible,
+	#app-content.dc-app select:focus-visible,
+	#app-content.dc-app textarea:focus-visible,
+	.dc-checkbox input[type='checkbox']:focus-visible,
+	.dc-check input[type='checkbox']:focus-visible,
+	.dc-field--radio input[type='radio']:focus-visible {
+		outline-width: 3px;
+		outline-color: var(--color-main-text, #1d1d1d);
+	}
+}
+
+@media (forced-colors: active) {
+	.dc-card,
+	.dc-callout,
+	.dc-badge,
+	.dc-status-badge,
+	.dc-conflict,
+	.dc-modal__dialog,
+	.dc-toast,
+	.dc-checkbox,
+	label.dc-checkbox {
+		border: 1px solid CanvasText;
+	}
+	.dc-checkbox input[type='checkbox'],
+	.dc-check input[type='checkbox'],
+	.dc-field--radio input[type='radio'] {
+		/* Keep the 1.25rem box; let the UA map fill/border to system colours */
+		border: 1px solid CanvasText;
+		background-color: Canvas;
+		accent-color: Highlight;
+	}
+	a:focus-visible,
+	button:focus-visible,
+	[role='button']:focus-visible,
+	.dc-checkbox:focus-within,
+	.dc-checkbox input[type='checkbox']:focus-visible,
+	.dc-check input[type='checkbox']:focus-visible,
+	.dc-field--radio input[type='radio']:focus-visible {
+		outline: 3px solid CanvasText;
+		outline-offset: 2px;
+	}
 }
 
 /* ── Reduced motion ──────────────────────────────────────────── */
@@ -2473,7 +2891,7 @@ form.dc-form-grid[aria-busy='true'] .button {
 
 /* ── Administrator: roster export (screen) ─────────────────── */
 .dc-roster-export {
-	border-left: 4px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 45%, transparent);
+	border-inline-start: 4px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 45%, var(--color-main-background, #fff));
 	background: var(--dc-tint-info);
 }
 .dc-roster-export__actions {
@@ -2506,7 +2924,7 @@ form.dc-form-grid[aria-busy='true'] .button {
 	color: var(--color-main-text, #1d1d1d);
 }
 .dc-app--roster-print {
-	max-width: 1200px;
+	max-width: 72rem;
 	margin: 0 auto;
 	padding: var(--dc-space-5) var(--dc-space-4) var(--dc-space-7);
 	box-sizing: border-box;
@@ -2600,7 +3018,7 @@ form.dc-form-grid[aria-busy='true'] .button {
 .dc-print-overnight {
 	font-weight: 700;
 	color: var(--color-main-text, #1d1d1d);
-	margin-left: 2px;
+	margin-inline-start: var(--dc-space-1);
 }
 .dc-print-legend {
 	font-size: var(--dc-fs-xs);
@@ -2664,6 +3082,14 @@ form.dc-form-grid[aria-busy='true'] .button {
 	a[href]::after {
 		content: none !important;
 	}
+	/* REQ-UX-13: must win over the global wipe — expand AT recovery / source outbound URLs. */
+	.dc-table a[href]::after,
+	.dc-conflict__actions a[href]::after,
+	.dc-row-actions a[href]::after {
+		content: " (" attr(href) ")" !important;
+		font-size: 0.85em;
+		word-break: break-all;
+	}
 }
 @media (prefers-reduced-motion: reduce) {
 	.dc-roster-export,
@@ -2676,46 +3102,46 @@ form.dc-form-grid[aria-busy='true'] .button {
 /**
  * Support & Us — shared family styles (WCAG 2.1 AA, responsive).
  * Prefix: dc
- * Uses Nextcloud CSS variables only (no hardcoded brand purple / cream biases).
+ * Uses Nextcloud CSS variables + DutyCheck spacing tokens.
  */
 
 .dc-support-us {
-	margin-block-start: 1.5rem;
+	margin-block-start: var(--dc-space-5);
 }
 
 .dc-support-us__header {
-	margin-block-end: 1rem;
+	margin-block-end: var(--dc-space-4);
 }
 
 .dc-support-us__title {
-	margin: 0 0 0.35rem;
-	font-size: 1.25rem;
-	line-height: 1.35;
+	margin: 0 0 var(--dc-space-1);
+	font-size: var(--dc-fs-lg);
+	line-height: var(--dc-line-tight);
 	color: var(--color-main-text);
 }
 
 .dc-support-us__intro {
 	margin: 0;
 	max-width: 48rem;
-	font-size: 0.95rem;
-	line-height: 1.55;
+	font-size: var(--dc-fs-sm);
+	line-height: var(--dc-line-base);
 	color: var(--color-text-maxcontrast);
 }
 
 .dc-support-us__body {
 	display: flex;
 	flex-direction: column;
-	gap: 1.25rem;
+	gap: var(--dc-space-5);
 }
 
 .dc-support-us__primary {
 	display: flex;
 	flex-direction: column;
 	align-items: flex-start;
-	gap: 0.55rem;
-	padding: 1rem 1.1rem;
+	gap: var(--dc-space-2);
+	padding: var(--dc-space-4);
 	border: 1px solid var(--color-border-maxcontrast, var(--color-border));
-	border-radius: var(--border-radius-large, var(--border-radius, 8px));
+	border-radius: var(--border-radius-large, var(--dc-radius-md));
 	background:
 		linear-gradient(
 			160deg,
@@ -2726,17 +3152,17 @@ form.dc-form-grid[aria-busy='true'] .button {
 
 .dc-support-us__offer-title {
 	margin: 0;
-	font-size: 1.05rem;
+	font-size: var(--dc-fs-md);
 	font-weight: 600;
-	line-height: 1.35;
+	line-height: var(--dc-line-tight);
 	color: var(--color-main-text);
 }
 
 .dc-support-us__benefit {
 	margin: 0;
 	max-width: 42rem;
-	font-size: 0.95rem;
-	line-height: 1.5;
+	font-size: var(--dc-fs-sm);
+	line-height: var(--dc-line-base);
 	/* On the primary-tinted panel: main-text keeps WCAG AA contrast. */
 	color: var(--color-main-text);
 }
@@ -2744,16 +3170,16 @@ form.dc-form-grid[aria-busy='true'] .button {
 .dc-support-us__coverage {
 	margin: 0;
 	max-width: 42rem;
-	font-size: 0.875rem;
-	line-height: 1.45;
+	font-size: var(--dc-fs-sm);
+	line-height: var(--dc-line-base);
 	color: var(--color-main-text);
 }
 
 .dc-support-us__hint {
 	margin: 0;
 	max-width: 40rem;
-	font-size: 0.875rem;
-	line-height: 1.5;
+	font-size: var(--dc-fs-sm);
+	line-height: var(--dc-line-base);
 	color: var(--color-main-text);
 }
 
@@ -2765,61 +3191,71 @@ form.dc-form-grid[aria-busy='true'] .button {
 
 .dc-support-us__secondary {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-	gap: 0.85rem;
+	/* min() keeps tracks from forcing horizontal page scroll below 16rem. */
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+	gap: var(--dc-space-3);
+	width: 100%;
+	min-width: 0;
+	max-width: 100%;
 }
 
 .dc-support-us__option {
 	display: flex;
 	flex-direction: column;
-	align-items: flex-start;
-	gap: 0.45rem;
-	padding: 0.85rem 1rem;
+	align-items: stretch;
+	gap: var(--dc-space-2);
+	padding: var(--dc-space-3) var(--dc-space-4);
 	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius-large, var(--border-radius, 8px));
+	border-radius: var(--border-radius-large, var(--dc-radius-md));
 	background: var(--color-main-background);
 	box-sizing: border-box;
+	min-width: 0;
+	max-width: 100%;
+	width: 100%;
 }
 
 .dc-support-us__option-hint {
 	margin: 0;
-	font-size: 0.875rem;
-	line-height: 1.45;
+	font-size: var(--dc-fs-sm);
+	line-height: var(--dc-line-base);
 	color: var(--color-text-maxcontrast);
 }
 
 .dc-support-us__cta {
-	min-height: 2.75rem;
+	min-height: var(--dc-touch);
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	padding-inline: 1rem;
+	padding-inline: var(--dc-space-4);
 	text-align: center;
 	text-decoration: none;
 	box-sizing: border-box;
+	max-width: 100%;
+	white-space: normal;
+	overflow-wrap: anywhere;
 }
 
 .dc-support-us__cta:focus-visible,
 .dc-support-us__hint a:focus-visible,
 .dc-support-us__more a:focus-visible,
 .dc-support-us__contact a:focus-visible {
-	outline: 2px solid var(--color-main-text);
+	outline: 3px solid var(--color-primary-element, var(--color-main-text));
 	outline-offset: 2px;
 }
 
 .dc-support-us__tertiary {
 	display: flex;
 	flex-direction: column;
-	gap: 0.35rem;
-	padding-block-start: 0.25rem;
+	gap: var(--dc-space-1);
+	padding-block-start: var(--dc-space-1);
 	border-block-start: 1px solid var(--color-border);
 }
 
 .dc-support-us__more,
 .dc-support-us__contact {
 	margin: 0;
-	font-size: 0.875rem;
-	line-height: 1.5;
+	font-size: var(--dc-fs-sm);
+	line-height: var(--dc-line-base);
 	color: var(--color-text-maxcontrast);
 }
 
@@ -2832,7 +3268,7 @@ form.dc-form-grid[aria-busy='true'] .button {
 
 @media (max-width: 640px) {
 	.dc-support-us__secondary {
-		grid-template-columns: 1fr;
+		grid-template-columns: minmax(0, 1fr);
 	}
 
 	.dc-support-us__cta {
@@ -2842,6 +3278,36 @@ form.dc-form-grid[aria-busy='true'] .button {
 	.dc-support-us__primary,
 	.dc-support-us__option {
 		width: 100%;
+		max-width: 100%;
+	}
+}
+
+/*
+ * Narrow phones: long translated button labels must wrap (not force shell
+ * scrollWidth). Keep desktop nowrap for compact toolbars.
+ */
+@media (max-width: 767px) {
+	#app-content.dc-app .button,
+	#app-content.dc-app a.button,
+	#app-content.dc-app button,
+	.dc-app .button,
+	.dc-app a.button {
+		white-space: normal;
+	}
+	.dc-form-actions .button,
+	.dc-form-actions a.button,
+	.dc-action-row .button,
+	.dc-section__controls .button {
+		flex: 1 1 auto;
+		justify-content: center;
+	}
+	.dc-settings-panel,
+	.dc-at-integration,
+	.dc-support-us,
+	.dc-license-section {
+		min-width: 0;
+		max-width: 100%;
+		overflow-x: clip;
 	}
 }
 
@@ -2851,3 +3317,326 @@ form.dc-form-grid[aria-busy='true'] .button {
 	}
 }
 /* === support-us:dc end === */
+
+
+/* My roster: accessible swap dialog (replaces window.prompt) */
+/* Nextcloud core server.css applies a legacy HTML5 reset (`dialog { display: block }`)
+   that defeats the UA's `dialog:not([open]) { display: none }` — re-hide closed dialogs. */
+.dc-dialog:not([open]) {
+	display: none;
+}
+.dc-dialog {
+	border: 1px solid var(--dc-border);
+	border-radius: var(--dc-radius-md);
+	padding: 0;
+	max-width: min(28rem, calc(100vw - 2rem));
+	width: 100%;
+	background: var(--dc-bg-card);
+	color: var(--color-main-text, #1d1d1d);
+	box-shadow: var(--dc-shadow-md);
+}
+.dc-dialog::backdrop {
+	/* Theme-safe overlay: never a hardcoded blue cast. */
+	background: color-mix(in srgb, var(--color-main-text, #000) 45%, transparent);
+}
+.dc-dialog__panel {
+	display: flex;
+	flex-direction: column;
+	gap: var(--dc-space-3);
+	padding: var(--dc-space-5) var(--dc-space-5) var(--dc-space-4);
+	margin: 0;
+}
+.dc-dialog__title {
+	margin: 0;
+	font-size: var(--dc-fs-lg);
+	line-height: var(--dc-line-tight);
+}
+.dc-dialog__intro {
+	margin: 0;
+	color: var(--dc-muted);
+	line-height: var(--dc-line-base);
+}
+.dc-dialog__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--dc-space-2);
+	justify-content: flex-end;
+	margin-top: var(--dc-space-1);
+}
+.dc-dialog__actions .button {
+	min-height: 44px;
+}
+
+/* Settings: in-page jump nav so long governance pages stay scannable */
+.dc-settings-toc {
+	display: flex;
+	flex-direction: column;
+	gap: var(--dc-space-3);
+}
+.dc-settings-toc__list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: var(--dc-space-2);
+}
+.dc-settings-toc__link {
+	display: flex;
+	align-items: center;
+	min-height: 44px;
+	padding: var(--dc-space-2) var(--dc-space-3);
+	border: 1px solid var(--dc-border);
+	border-radius: var(--dc-radius-sm);
+	background: var(--dc-bg-soft);
+	color: var(--color-main-text, #1d1d1d);
+	text-decoration: none;
+	font-weight: 600;
+	line-height: var(--dc-line-tight);
+	overflow-wrap: anywhere;
+}
+.dc-settings-toc__link:hover {
+	background: var(--dc-tint-info);
+	border-color: transparent;
+}
+.dc-settings-toc__link:focus-visible {
+	outline: 3px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 60%, transparent);
+	outline-offset: 2px;
+}
+@media (min-width: 640px) {
+	.dc-settings-toc__list {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+@media (min-width: 960px) {
+	.dc-settings-toc__list {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+/* Wave A planner: copy-period + ack stats — use design tokens, never raw hex */
+.dc-roster-copy-period {
+	margin-top: var(--dc-space-4);
+	padding-top: var(--dc-space-3);
+	border-top: 1px solid var(--dc-border);
+}
+.dc-roster-copy-period__row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--dc-space-2);
+	align-items: center;
+}
+.dc-roster-copy-period__row .dc-input {
+	min-width: min(100%, 16rem);
+	flex: 1 1 12rem;
+}
+.dc-roster-ack-stats {
+	margin-top: var(--dc-space-2);
+	display: inline-block;
+}
+.dc-table__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--dc-space-1);
+	align-items: center;
+}
+@media (max-width: 719px) {
+	.dc-roster-copy-period__row {
+		flex-direction: column;
+		align-items: stretch;
+	}
+}
+
+/* Settings: named location checklists (planner scope) */
+.dc-fieldset {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	min-width: 0;
+}
+.dc-check-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+	gap: var(--dc-space-2) var(--dc-space-4);
+	margin-top: var(--dc-space-2);
+}
+.dc-check {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--dc-space-2);
+	min-height: var(--dc-touch);
+	padding: var(--dc-space-1) var(--dc-space-1);
+	line-height: var(--dc-line-base);
+	cursor: pointer;
+}
+.dc-check input[type='checkbox'] {
+	/* size / theme chrome shared with .dc-checkbox above */
+	margin-top: 0.15rem;
+}
+.dc-check:focus-within {
+	outline: 2px solid var(--color-primary-element, #0082c9);
+	outline-offset: 2px;
+	border-radius: var(--dc-radius-sm);
+}
+
+/* Roster planning grid (employee × day) */
+.dc-roster-view-toggle {
+	display: inline-flex;
+	gap: var(--dc-space-1);
+	margin-inline-end: var(--dc-space-2);
+}
+.dc-roster-grid-wrap {
+	margin-top: var(--dc-space-3);
+	overflow-x: auto;
+}
+.dc-roster-grid {
+	min-width: min(100%, 48rem);
+	outline: none;
+}
+.dc-roster-grid:focus-visible {
+	outline: 2px solid var(--color-primary-element, #0082c9);
+	outline-offset: 2px;
+}
+.dc-roster-grid__table {
+	display: grid;
+	gap: 0;
+	border: 1px solid var(--color-border, var(--dc-border));
+	border-radius: var(--dc-radius-md);
+	background: var(--color-main-background);
+}
+.dc-roster-grid__row {
+	display: grid;
+	grid-template-columns: minmax(7rem, 10rem) repeat(auto-fit, minmax(4.5rem, 1fr));
+	border-bottom: 1px solid var(--color-border, var(--dc-border));
+}
+.dc-roster-grid__row:last-child {
+	border-bottom: 0;
+}
+.dc-roster-grid__row--head {
+	background: color-mix(in srgb, var(--color-primary-element, #0082c9) 8%, var(--color-main-background));
+	font-weight: 600;
+}
+.dc-roster-grid__corner,
+.dc-roster-grid__colhead,
+.dc-roster-grid__rowhead,
+.dc-roster-grid__cell {
+	min-height: var(--dc-touch);
+	padding: var(--dc-space-1) var(--dc-space-2);
+	border-inline-end: 1px solid var(--color-border, var(--dc-border));
+}
+.dc-roster-grid__cell:last-child,
+.dc-roster-grid__colhead:last-child {
+	border-inline-end: 0;
+}
+.dc-roster-grid__cell {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	justify-content: center;
+	gap: var(--dc-space-1);
+	cursor: pointer;
+}
+.dc-roster-grid__cell:focus-visible,
+.dc-roster-grid__cell.is-selected {
+	outline: 2px solid var(--color-primary-element, #0082c9);
+	outline-offset: -2px;
+	background: color-mix(in srgb, var(--color-primary-element, #0082c9) 12%, var(--color-main-background));
+}
+.dc-roster-grid__cell--empty {
+	background: color-mix(in srgb, var(--color-main-background) 92%, var(--color-border, var(--dc-border)));
+}
+.dc-roster-grid__shift {
+	display: block;
+	min-height: calc(var(--dc-touch) - var(--dc-space-2));
+	border: 0;
+	border-radius: var(--dc-radius-sm);
+	background: color-mix(in srgb, var(--color-success, #2e7d32) 18%, var(--color-main-background));
+	color: var(--color-main-text);
+	font: inherit;
+	cursor: inherit;
+	text-align: center;
+	padding: var(--dc-space-1) var(--dc-space-1);
+	pointer-events: none;
+}
+.dc-roster-grid__more {
+	font-size: 0.75rem;
+	color: var(--color-text-maxcontrast);
+	text-align: center;
+}
+.dc-roster-bulk-bar {
+	margin-top: var(--dc-space-3);
+	padding: var(--dc-space-3);
+	border: 1px solid var(--color-border, var(--dc-border));
+	border-radius: var(--dc-radius-md);
+	background: var(--color-main-background);
+}
+.dc-roster-bulk-bar__row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--dc-space-2);
+	align-items: center;
+	margin-top: var(--dc-space-2);
+}
+.dc-settings-privacy__list {
+	margin: 0 0 var(--dc-space-4);
+	padding-inline-start: 1.25rem;
+	line-height: 1.5;
+}
+.dc-settings-privacy__glossary {
+	display: grid;
+	gap: var(--dc-space-3);
+	margin: 0;
+	padding: 0;
+	min-width: 0;
+	max-width: 100%;
+}
+/* Same Nextcloud core dt/dd reset as .dc-scope-strip (130px end-aligned labels). */
+#app-content.dc-app .dc-settings-privacy__glossary dt,
+#app-content.dc-app .dc-settings-privacy__glossary dd,
+.dc-app .dc-settings-privacy__glossary dt,
+.dc-app .dc-settings-privacy__glossary dd {
+	display: block;
+	float: none;
+	width: auto;
+	max-width: 100%;
+	padding: 0;
+	text-align: start;
+	white-space: normal;
+}
+.dc-settings-privacy__glossary dt {
+	font-weight: 600;
+	overflow-wrap: anywhere;
+	margin: 0;
+	min-width: 0;
+}
+.dc-settings-privacy__glossary dd {
+	margin: 0.15rem 0 0;
+	color: var(--color-text-maxcontrast);
+	overflow-wrap: anywhere;
+	min-width: 0;
+}
+.dc-print-integrity {
+	margin-top: var(--dc-space-4);
+	padding-top: var(--dc-space-3);
+	border-top: 1px solid var(--color-border, var(--dc-border));
+	font-size: var(--dc-fs-sm);
+}
+.dc-print-integrity__value {
+	word-break: break-all;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (max-width: 719px) {
+	.dc-roster-grid__row {
+		grid-template-columns: minmax(5.5rem, 7rem) repeat(auto-fit, minmax(3.75rem, 1fr));
+	}
+	.dc-roster-view-toggle {
+		width: 100%;
+		margin: 0 0 var(--dc-space-2);
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.dc-roster-grid__cell,
+	.dc-roster-grid__shift {
+		transition: none;
+	}
+}

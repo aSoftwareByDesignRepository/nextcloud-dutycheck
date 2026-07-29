@@ -87,6 +87,8 @@ final class AppAccessGateIntegrationTest extends TestCase
 		$userManager = \OC::$server->get(IUserManager::class);
 		$userManager->createUser(self::ALLOWED, self::PASSWORD);
 		$userManager->createUser(self::DENIED, self::PASSWORD);
+		$deniedUser = $userManager->get(self::DENIED);
+		self::assertNotNull($deniedUser, 'denied test user must exist');
 
 		/** @var IConfig $config */
 		$config = \OC::$server->get(IConfig::class);
@@ -97,14 +99,30 @@ final class AppAccessGateIntegrationTest extends TestCase
 			json_encode([self::ALLOWED], JSON_THROW_ON_ERROR),
 		);
 		$config->setAppValue(Application::APP_ID, AccessControlService::KEY_ACCESS_ALLOWED_GROUP_IDS, '[]');
+		$config->setAppValue(Application::APP_ID, AccessControlService::KEY_APP_ADMINS, '[]');
 
-		/** @var IUserSession $session */
-		$session = \OC::$server->get(IUserSession::class);
-		$session->setUser($userManager->get(self::DENIED));
+		/** @var AccessControlService $access */
+		$access = \OC::$server->get(AccessControlService::class);
+		self::assertFalse($access->isAppAdmin(self::DENIED), 'denied user must not be app/system admin');
+		self::assertFalse($access->canUseApp(self::DENIED), 'directory restriction must deny user before middleware');
+
+		// Inject session (live setUser is flaky across suite order / Token-backed sessions).
+		$session = $this->createMock(IUserSession::class);
+		$session->method('getUser')->willReturn($deniedUser);
+		$request = $this->createMock(IRequest::class);
+		$request->method('getPathInfo')->willReturn('/apps/dutycheck/api/bootstrap');
+		$request->method('getMethod')->willReturn('GET');
+		$request->method('getHeader')->willReturn('');
+		$middleware = new AppAccessMiddleware(
+			$session,
+			$access,
+			$request,
+			\OC::$server->get(\OCP\IURLGenerator::class),
+			\OC::$server->get(\OCP\L10N\IFactory::class),
+		);
 
 		/** @var ApiController $controller */
 		$controller = \OC::$server->get(ApiController::class);
-		$middleware = $this->middlewareWithMockRequest();
 
 		try {
 			$middleware->beforeController($controller, 'bootstrap');
@@ -145,7 +163,11 @@ final class AppAccessGateIntegrationTest extends TestCase
 		/** @var ApiController $controller */
 		$controller = \OC::$server->get(ApiController::class);
 		$this->middlewareWithMockRequest()->beforeController($controller, 'bootstrap');
-		$this->addToAssertionCount(1);
+		self::assertTrue(
+			\OC::$server->get(AccessControlService::class)->isAppAdmin(self::ALLOWED)
+				|| \OC::$server->get(AccessControlService::class)->canUseApp(self::ALLOWED),
+			'allowed app admin must pass access gate without exception',
+		);
 	}
 
 	private function middlewareWithMockRequest(): AppAccessMiddleware

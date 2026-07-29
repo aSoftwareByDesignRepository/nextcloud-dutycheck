@@ -101,17 +101,23 @@ $urlsJson = htmlspecialchars(json_encode($urls, JSON_THROW_ON_ERROR | JSON_UNESC
 				</div>
 				<div id="dc-page-actions" class="dc-page-header__actions" aria-live="polite"></div>
 			</div>
-			<div class="dc-scope-strip" aria-label="<?php p($l->t('Active session context')); ?>">
-				<span class="dc-scope-strip__label"><?php p($l->t('Role')); ?></span>
-				<span class="dc-badge dc-badge--<?php p($role === 'admin' ? 'critical' : (($role === 'planner' || $role === 'planner_employee') ? 'info' : (($role === 'self_service') ? 'neutral' : 'success'))); ?>">
-					<?php p($roleLabel); ?>
-				</span>
-				<span aria-hidden="true" class="dc-scope-strip__sep">·</span>
-				<span class="dc-scope-strip__label"><?php p($l->t('Timezone')); ?></span>
-				<span class="dc-scope-strip__value"><?php p($timezone); ?></span>
-				<span aria-hidden="true" class="dc-scope-strip__sep">·</span>
-				<span class="dc-scope-strip__label"><?php p($l->t('Time format')); ?></span>
-				<span class="dc-scope-strip__value"><?php p($l->t('24-hour (HH:mm)')); ?></span>
-			</div>
+			<dl class="dc-scope-strip" aria-label="<?php p($l->t('Active session context')); ?>">
+				<div class="dc-scope-strip__item">
+					<dt class="dc-scope-strip__label"><?php p($l->t('Role')); ?></dt>
+					<dd class="dc-scope-strip__value">
+						<span class="dc-badge dc-badge--<?php p($role === 'admin' ? 'critical' : (($role === 'planner' || $role === 'planner_employee') ? 'info' : (($role === 'self_service') ? 'neutral' : 'success'))); ?>">
+							<?php p($roleLabel); ?>
+						</span>
+					</dd>
+				</div>
+				<div class="dc-scope-strip__item">
+					<dt class="dc-scope-strip__label"><?php p($l->t('Timezone')); ?></dt>
+					<dd class="dc-scope-strip__value"><?php p($timezone); ?></dd>
+				</div>
+				<div class="dc-scope-strip__item">
+					<dt class="dc-scope-strip__label"><?php p($l->t('Time format')); ?></dt>
+					<dd class="dc-scope-strip__value"><?php p($l->t('24-hour (HH:mm)')); ?></dd>
+				</div>
+			</dl>
 		</header>
 		<main id="dc-main-content" class="dc-main" tabindex="-1" aria-labelledby="dc-page-title">

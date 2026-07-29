@@ -3,9 +3,12 @@
 
 	const Api = window.DutyCheckApi;
 	const Msg = window.DutyCheckMessaging;
-	const C = window.DutyCheckComponents;
+	const C = window.DutyCheckComponents || window.DutyCheckDom || {};
 	const TzPicker = window.DutyCheckTimezonePicker;
 	const create = C.createElement;
+	if (typeof create !== 'function') {
+		throw new Error('DutyCheck components failed to load');
+	}
 
 	let editingId = null;
 	/** @type {{ setValue: (tz: string) => void, getValue: () => string, reset: () => void } | null} */
@@ -153,7 +156,11 @@
 		}
 		document.getElementById('dc-location-form')?.addEventListener('submit', async (event) => {
 			event.preventDefault();
-			const formData = new FormData(event.currentTarget);
+			const form = event.currentTarget;
+			if (form.dataset.dcBusy === '1') {
+				return;
+			}
+			const formData = new FormData(form);
 			const name = String(formData.get('name') || '').trim();
 			const timezone = timezonePicker
 				? timezonePicker.getValue()
@@ -167,6 +174,12 @@
 				document.getElementById('dc-location-timezone-input')?.focus();
 				return;
 			}
+			const submitBtn = form.querySelector('button[type="submit"]');
+			form.dataset.dcBusy = '1';
+			if (submitBtn) {
+				submitBtn.disabled = true;
+				submitBtn.setAttribute('aria-busy', 'true');
+			}
 			try {
 				await save({ name, timezone, active: formData.get('active') !== null }, editingId);
 			} catch (err) {
@@ -176,6 +189,12 @@
 					return;
 				}
 				Msg.handleApiError(err);
+			} finally {
+				delete form.dataset.dcBusy;
+				if (submitBtn) {
+					submitBtn.disabled = false;
+					submitBtn.removeAttribute('aria-busy');
+				}
 			}
 		});
 		document.getElementById('dc-location-form-reset')?.addEventListener('click', resetForm);

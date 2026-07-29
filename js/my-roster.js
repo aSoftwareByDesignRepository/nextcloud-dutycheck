@@ -3,11 +3,14 @@
 
 	const Api = window.DutyCheckApi;
 	const Msg = window.DutyCheckMessaging;
-	const C = window.DutyCheckComponents;
+	const C = window.DutyCheckComponents || window.DutyCheckDom || {};
 	const D = window.DutyCheckDates;
 	const create = C.createElement;
+	if (typeof create !== 'function') {
+		throw new Error('DutyCheck components failed to load');
+	}
 
-	const TABLE_COLSPAN = 7;
+	const TABLE_COLSPAN = 8;
 	const QUICK_RANGES = ['upcoming', 'today', 'week', 'next-week', '14d', 'month'];
 	const DEFAULT_RANGE = 'upcoming';
 
@@ -19,6 +22,36 @@
 
 	/** Whether the server already stores an iCal secret (URL is usually masked in the UI). */
 	let icalHasToken = false;
+
+	function integrationBootstrapFromDom() {
+		const root = document.getElementById('app-content');
+		const raw = root?.dataset?.dcIntegrationBootstrap || '';
+		if (!raw) return null;
+		try {
+			return JSON.parse(raw);
+		} catch {
+			return null;
+		}
+	}
+
+	function applyIcalAtDisclosure() {
+		const box = document.getElementById('dc-ical-at-disclosure');
+		const link = document.getElementById('dc-ical-open-azc');
+		if (!box) return;
+		const integ = integrationBootstrapFromDom();
+		const effective = Boolean(integ?.effective || integ?.readonlyAbsencesForCurrentUser || integ?.integrationLocksLinkedDutyCheckAbsences);
+		box.hidden = !effective;
+		if (link) {
+			const url = integ?.peerEmployeeOutboundUrl;
+			if (effective && url) {
+				link.href = String(url);
+				link.hidden = false;
+			} else {
+				link.removeAttribute('href');
+				link.hidden = true;
+			}
+		}
+	}
 
 	function showAccountAlert(message) {
 		const el = document.getElementById('dc-employee-account-alert');
@@ -231,8 +264,137 @@
 				td.dataset.cell = cell.label;
 				tr.appendChild(td);
 			}
+
+			const tdAck = create('td');
+			tdAck.dataset.cell = t('dutycheck', 'Confirm');
+			if (row.acknowledged || row.acknowledgedAt) {
+				tdAck.appendChild(create('span', {
+					class: 'dc-badge dc-badge--success',
+					text: t('dutycheck', 'Seen'),
+					attrs: { 'aria-label': t('dutycheck', 'You have confirmed this shift') },
+				}));
+			} else {
+				const btn = create('button', {
+					class: 'button primary',
+					text: t('dutycheck', 'Got it'),
+					attrs: {
+						type: 'button',
+						'aria-label': t('dutycheck', 'Confirm you have seen this shift'),
+					},
+				});
+				btn.style.minHeight = '44px';
+				btn.style.minWidth = '44px';
+				btn.addEventListener('click', async () => {
+					btn.disabled = true;
+					try {
+						await Api.post(`/apps/dutycheck/api/my/assignments/${row.id}/acknowledge`, {});
+						row.acknowledged = true;
+						row.acknowledgedAt = new Date().toISOString();
+						tdAck.replaceChildren(create('span', {
+							class: 'dc-badge dc-badge--success',
+							text: t('dutycheck', 'Seen'),
+						}));
+						C?.announce?.(t('dutycheck', 'Shift confirmed'));
+					} catch (err) {
+						btn.disabled = false;
+						Messaging?.showError?.(err) || console.error(err);
+					}
+				});
+				tdAck.appendChild(btn);
+			}
+			tr.appendChild(tdAck);
+
+			const tdSwap = create('td');
+			tdSwap.dataset.cell = t('dutycheck', 'Swap');
+			const swapBtn = create('button', {
+				type: 'button',
+				class: 'button button--text',
+				text: t('dutycheck', 'Request swap'),
+			});
+			swapBtn.style.minHeight = '44px';
+			swapBtn.addEventListener('click', () => {
+				openSwapDialog(row.id, swapBtn);
+			});
+			tdSwap.appendChild(swapBtn);
+			tr.appendChild(tdSwap);
 			tbody.appendChild(tr);
 		}
+	}
+
+	let swapCandidatesLoaded = false;
+	let swapCandidates = [];
+
+	async function ensureSwapCandidates() {
+		if (swapCandidatesLoaded) return swapCandidates;
+		try {
+			const res = await Api.get('/apps/dutycheck/api/my/swap-candidates');
+			swapCandidates = Array.isArray(res?.data) ? res.data : [];
+		} catch (err) {
+			swapCandidates = [];
+			Msg.handleApiError(err);
+		}
+		swapCandidatesLoaded = true;
+		return swapCandidates;
+	}
+
+	async function openSwapDialog(assignmentId, triggerBtn) {
+		const dialog = document.getElementById('dc-swap-dialog');
+		const form = document.getElementById('dc-swap-form');
+		const select = document.getElementById('dc-swap-colleague');
+		const idInput = document.getElementById('dc-swap-assignment-id');
+		const reason = document.getElementById('dc-swap-reason');
+		if (!dialog || !form || !select || !idInput) {
+			Msg.announce(t('dutycheck', 'Swap dialog is not available.'), 'error');
+			return;
+		}
+		idInput.value = String(assignmentId);
+		if (reason) reason.value = '';
+		const rows = await ensureSwapCandidates();
+		select.replaceChildren();
+		const pool = document.createElement('option');
+		pool.value = '';
+		pool.textContent = t('dutycheck', 'Open pool (anyone can claim)');
+		select.appendChild(pool);
+		for (const row of rows) {
+			const opt = document.createElement('option');
+			opt.value = String(row.id);
+			opt.textContent = row.displayName || `#${row.id}`;
+			select.appendChild(opt);
+		}
+		select.value = '';
+		if (typeof dialog.showModal === 'function') {
+			dialog.showModal();
+		} else {
+			dialog.setAttribute('open', 'open');
+		}
+		form.onsubmit = async (event) => {
+			event.preventDefault();
+			const submitter = event.submitter;
+			const action = submitter && submitter.value ? submitter.value : 'confirm';
+			if (action === 'cancel') {
+				dialog.close();
+				return;
+			}
+			const toRaw = String(select.value || '').trim();
+			const toEmployeeId = toRaw === '' ? null : Number.parseInt(toRaw, 10);
+			if (toEmployeeId !== null && (!Number.isFinite(toEmployeeId) || toEmployeeId <= 0)) {
+				Msg.announce(t('dutycheck', 'Choose a colleague, or keep Open pool.'), 'error');
+				return;
+			}
+			triggerBtn.disabled = true;
+			try {
+				await Api.post('/apps/dutycheck/api/swaps', {
+					assignmentId,
+					toEmployeeId,
+					reason: reason ? String(reason.value || '') : '',
+				});
+				dialog.close();
+				Msg.announce(t('dutycheck', 'Swap request sent to planners.'), 'success');
+			} catch (err) {
+				triggerBtn.disabled = false;
+				Msg.handleApiError(err);
+			}
+		};
 	}
 
 	function syncIcalActionButton() {
@@ -431,6 +593,52 @@
 		});
 	}
 
+
+	async function loadOpenShifts() {
+		const list = document.getElementById('dc-open-shifts-list');
+		const empty = document.getElementById('dc-open-shifts-empty');
+		if (!list) return;
+		list.replaceChildren();
+		try {
+			const res = await Api.get('/apps/dutycheck/api/open-shifts');
+			const rows = Array.isArray(res?.data) ? res.data : [];
+			if (empty) empty.hidden = rows.length > 0;
+			for (const row of rows) {
+				const li = create('li', { class: 'dc-conflicts__item' });
+				const when = D?.formatDisplayDate?.(row.dutyDate) || row.dutyDate;
+				const times = D?.formatClock24Range?.(row.startTime, row.endTime)
+					|| `${row.startTime} – ${row.endTime}`;
+				li.appendChild(create('p', {
+					text: t('dutycheck', '{date} · {times}').replace('{date}', String(when)).replace('{times}', String(times)),
+				}));
+				const btn = create('button', {
+					type: 'button',
+					class: 'button primary',
+					text: t('dutycheck', 'Claim shift'),
+				});
+				btn.style.minHeight = '44px';
+				btn.addEventListener('click', async () => {
+					btn.disabled = true;
+					try {
+						await Api.post(`/apps/dutycheck/api/open-shifts/${row.id}/claim`, {});
+						Msg.announce(t('dutycheck', 'Claim sent — a planner must approve before it is on your roster.'), 'success');
+						await loadOpenShifts();
+					} catch (err) {
+						btn.disabled = false;
+						Msg.handleApiError(err);
+					}
+				});
+				li.appendChild(btn);
+				list.appendChild(li);
+			}
+		} catch (err) {
+			if (empty) {
+				empty.hidden = false;
+				empty.textContent = t('dutycheck', 'Could not load open shifts.');
+			}
+		}
+	}
+
 	document.addEventListener('DOMContentLoaded', async () => {
 		D?.applyLocaleToTemporalInputs?.(document);
 		hideAccountAlert();
@@ -438,7 +646,9 @@
 		bindQuickFilters();
 		bindCustomRangeForm();
 		await fetchAndRender();
+		await loadOpenShifts();
 		await loadIcalMeta();
+		applyIcalAtDisclosure();
 		document.getElementById('dc-ical-rotate-button')?.addEventListener('click', rotateIcalToken);
 		document.getElementById('dc-ical-copy-button')?.addEventListener('click', copyIcalUrl);
 	});

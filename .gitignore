@@ -1,5 +1,6 @@
 # Dependencies
 /vendor/
+/node_modules/
 
 # PHPUnit
 .phpunit.result.cache
@@ -8,6 +9,8 @@
 tests/coverage/
 tests/results.xml
 test-results/
+playwright-report/
+tests/e2e/.env
 
 # IDE
 .vscode/

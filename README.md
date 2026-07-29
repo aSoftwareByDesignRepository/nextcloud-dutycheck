@@ -1,11 +1,11 @@
 # DutyCheck (Nextcloud app)
 
-DutyCheck is a Nextcloud app for duty roster planning: period-based schedules, validation, publish/close workflows, absence handling, and audit-oriented snapshots. The server enforces conflict and lifecycle rules; the UI is role-aware and accessibility-oriented.
+DutyCheck is a Nextcloud app for duty roster planning: period-based schedules, conflict checks, publish/close workflows, absence handling, and audit-oriented snapshots. The server enforces conflict and lifecycle rules; the UI is role-aware and accessibility-oriented.
 
 ## Requirements
 
-- Nextcloud 32 or 33
-- PHP 8.2–8.4
+- Nextcloud 32–34
+- PHP 8.2–8.5
 - MySQL or PostgreSQL
 
 Optional: [ArbeitszeitCheck](https://github.com/aSoftwareByDesignRepository/nextcloud-arbeitszeitcheck) for absence mirroring when enabled in settings.

@@ -12,6 +12,7 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Read-only SELECT against `at_absences` (ArbeitszeitCheck). No OCA\* imports.
+ * T3 columns are selected only when {@see AbsenceReadOptions::$includePii} is true.
  */
 final class ArbeitszeitCheckAbsenceReader implements IArbeitszeitCheckAbsenceReader
 {
@@ -29,13 +30,16 @@ final class ArbeitszeitCheckAbsenceReader implements IArbeitszeitCheckAbsenceRea
 		array $userIds,
 		string $fromYmd,
 		string $toYmd,
+		?AbsenceReadOptions $options = null,
 	): array {
 		if ($userIds === []) {
 			return [];
 		}
 
+		$includePii = $options?->includePii === true;
+
 		$qb = $this->db->getQueryBuilder();
-		$qb->select(
+		$select = [
 			'id',
 			'user_id',
 			'type',
@@ -45,7 +49,12 @@ final class ArbeitszeitCheckAbsenceReader implements IArbeitszeitCheckAbsenceRea
 			'status',
 			'created_at',
 			'updated_at',
-		)
+		];
+		if ($includePii) {
+			$select[] = 'reason';
+			$select[] = 'approver_comment';
+		}
+		$qb->select(...$select)
 			->from('at_absences')
 			->where($qb->expr()->lte('start_date', $qb->createNamedParameter($toYmd)))
 			->andWhere($qb->expr()->gte('end_date', $qb->createNamedParameter($fromYmd)));
@@ -68,7 +77,7 @@ final class ArbeitszeitCheckAbsenceReader implements IArbeitszeitCheckAbsenceRea
 
 		$out = [];
 		foreach ($rows as $r) {
-			$row = $this->normalizeRow($r);
+			$row = $this->normalizeRow($r, $includePii);
 			if ($row !== null) {
 				$out[] = $row;
 			}
@@ -80,7 +89,7 @@ final class ArbeitszeitCheckAbsenceReader implements IArbeitszeitCheckAbsenceRea
 	 * @param array<string,mixed> $r
 	 * @return ?array<string,mixed>
 	 */
-	private function normalizeRow(array $r): ?array
+	private function normalizeRow(array $r, bool $includePii): ?array
 	{
 		$id = isset($r['id']) ? (int) $r['id'] : 0;
 		if ($id < 1) {
@@ -129,7 +138,7 @@ final class ArbeitszeitCheckAbsenceReader implements IArbeitszeitCheckAbsenceRea
 			return null;
 		}
 
-		return [
+		$out = [
 			'atAbsenceId' => $id,
 			'userId' => $userId,
 			'type' => $type,
@@ -140,6 +149,14 @@ final class ArbeitszeitCheckAbsenceReader implements IArbeitszeitCheckAbsenceRea
 			'createdAt' => $createdAt,
 			'updatedAt' => $updatedAt,
 		];
+		if ($includePii) {
+			// Never log these values; only return to caller for mirror upsert.
+			$out['reason'] = isset($r['reason']) && is_string($r['reason']) ? $r['reason'] : null;
+			$out['approverComment'] = isset($r['approver_comment']) && is_string($r['approver_comment'])
+				? $r['approver_comment']
+				: null;
+		}
+		return $out;
 	}
 
 	private function dateToYmd(mixed $v): ?string

@@ -3,9 +3,12 @@
 
 	const Api = window.DutyCheckApi;
 	const Msg = window.DutyCheckMessaging;
-	const C = window.DutyCheckComponents;
+	const C = window.DutyCheckComponents || window.DutyCheckDom || {};
 	const D = window.DutyCheckDates;
 	const create = C.createElement;
+	if (typeof create !== 'function') {
+		throw new Error('DutyCheck components failed to load');
+	}
 
 	const KIND_LABELS = {
 		vacation: t('dutycheck', 'Vacation'),
@@ -34,6 +37,8 @@
 		locksLinked: false,
 		linkedEmployeeIds: new Set(),
 	};
+	/** @type {Array<object>} */
+	let lastPlannerEmployees = [];
 
 	function buildLinkedEmployeeIdSet(employees) {
 		const s = new Set();
@@ -149,7 +154,17 @@
 		tbody.replaceChildren();
 		if (!absences.length) {
 			const tr = create('tr');
-			const td = create('td', { text: t('dutycheck', 'No absence records yet.') });
+			const integ = integrationBootstrapFromDom();
+			const locks = integrationLocksLinked(integ);
+			let emptyMsg = t('dutycheck', 'No absence records yet.');
+			if (locks) {
+				const last = integ?.integrationLastReconcileAt
+					? String(integ.integrationLastReconcileAt)
+					: t('dutycheck', 'Never synced — the connector will run shortly.');
+				emptyMsg = t('dutycheck', 'No absences in this list yet. Linked employees request time off in ArbeitszeitCheck. Last sync: {time}.')
+					.replace('{time}', last);
+			}
+			const td = create('td', { text: emptyMsg });
 			td.colSpan = TABLE_COLS;
 			tr.appendChild(td);
 			tbody.appendChild(tr);
@@ -213,14 +228,50 @@
 					wrap.appendChild(btn);
 				}
 			} else if (fromAt) {
+				const bits = [t('dutycheck', 'Imported absences are read-only. Approve or reject them in ArbeitszeitCheck.')];
+				if (absence.piiHidden) {
+					bits.push(t('dutycheck', 'Details for this absence are only available in ArbeitszeitCheck.'));
+				}
 				wrap.appendChild(create('span', {
 					class: 'dc-row-meta',
-					text: t('dutycheck', 'Imported absences are read-only. Approve or reject them in ArbeitszeitCheck.'),
+					text: bits.join(' '),
 				}));
+				const peerUrl = String(integrationBootstrapFromDom()?.peerPlannerOutboundUrl || '').trim();
+				if (peerUrl && peerUrl !== '#' && !/^javascript:/i.test(peerUrl)) {
+					const openPeer = create('a', {
+						class: 'button',
+						href: peerUrl,
+						text: t('dutycheck', 'Open ArbeitszeitCheck'),
+						attrs: {
+							target: '_blank',
+							rel: 'noopener noreferrer',
+							'aria-label': t('dutycheck', 'Open ArbeitszeitCheck'),
+						},
+					});
+					wrap.appendChild(openPeer);
+				}
 			} else if (dcRowReadOnlyIntegration) {
+				const legacyTargets = (STATUS_TRANSITIONS[status] || []).filter(
+					(target) => target === 'cancelled' || target === 'rejected',
+				);
+				for (const target of legacyTargets) {
+					const danger = target === 'rejected' || target === 'cancelled';
+					const btn = create('button', {
+						type: 'button',
+						class: danger ? 'button danger' : 'button',
+						text: actionLabel(target),
+						attrs: {
+							'aria-label': t('dutycheck', '{action} absence for {name}')
+								.replace('{action}', actionLabel(target))
+								.replace('{name}', String(absence.employeeName || '')),
+						},
+					});
+					btn.addEventListener('click', () => transitionAbsence(absence.id, target));
+					wrap.appendChild(btn);
+				}
 				wrap.appendChild(create('span', {
 					class: 'dc-row-meta',
-					text: t('dutycheck', 'This person is linked — change this absence in ArbeitszeitCheck while integration is on. DutyCheck only lists it for roster planning.'),
+					text: t('dutycheck', 'Legacy DutyCheck row for a linked person — cancel it here to clear conflicts. New absences belong in ArbeitszeitCheck.'),
 				}));
 			}
 			actionsTd.appendChild(wrap);
@@ -229,11 +280,32 @@
 		}
 	}
 
+	function bannerDismissStorageKey(key) {
+		return 'dc.at.banner.dismiss.' + String(key || 'dc-at-integration-banner-v1');
+	}
+
+	function isBannerDismissed(key) {
+		try {
+			return window.localStorage.getItem(bannerDismissStorageKey(key)) === '1';
+		} catch {
+			return false;
+		}
+	}
+
+	function dismissBanner(key) {
+		try {
+			window.localStorage.setItem(bannerDismissStorageKey(key), '1');
+		} catch {
+			/* private mode */
+		}
+	}
+
 	function renderPlannerIntegrationBanner(integration, employees) {
 		const el = document.getElementById('dc-absences-integration-banner');
 		if (!el) return;
 		const locks = integrationLocksLinked(integration);
-		if (!locks) {
+		const dismissKey = integration?.bannerDismissKey || 'dc-at-integration-banner-v1';
+		if (!locks || isBannerDismissed(dismissKey)) {
 			el.hidden = true;
 			el.removeAttribute('role');
 			el.removeAttribute('aria-labelledby');
@@ -243,10 +315,11 @@
 		const titleId = 'dc-absences-integration-banner-title';
 		el.setAttribute('role', 'region');
 		el.setAttribute('aria-labelledby', titleId);
+		el.classList.add('dc-at-banner');
 		el.hidden = false;
-		const title = create('h2', { id: titleId, class: 'dc-callout__title', text: t('dutycheck', 'ArbeitszeitCheck integration') });
+		const title = create('h2', { id: titleId, class: 'dc-callout__title', text: t('dutycheck', 'Absences for linked staff live in ArbeitszeitCheck') });
 		const intro = create('p', {
-			text: t('dutycheck', 'Absences for linked people are kept in ArbeitszeitCheck. This page lists them so you can spot roster clashes. You can add absences here only for people who are not linked.'),
+			text: t('dutycheck', 'You can still plan shifts here. To add or change time off, open ArbeitszeitCheck.'),
 		});
 		const parts = [title, intro];
 		const { unlinked, total } = rosterUnlinkedStats(employees);
@@ -272,34 +345,54 @@
 			}));
 		}
 		if (integration?.integrationStale) {
+			const last = integration?.integrationLastReconcileAt
+				? String(integration.integrationLastReconcileAt)
+				: t('dutycheck', 'Never synced — the connector will run shortly.');
 			parts.push(create('p', {
 				class: 'dc-callout__hint',
-				text: t('dutycheck', 'Stale mirror — run sync or wait for the scheduled job.'),
+				text: t('dutycheck', 'Absence data may be out of date. Last sync: {time}.').replace('{time}', last),
 			}));
 		}
 		const urls = C.getAppUrls();
 		const peerUrl = integration?.peerPlannerOutboundUrl;
 		const employeesUrl = urls?.employees;
-		if (peerUrl || employeesUrl) {
-			const actions = create('div', { class: 'dc-callout__actions' });
-			if (peerUrl) {
-				actions.appendChild(create('a', {
-					class: 'button primary',
-					href: peerUrl,
-					text: t('dutycheck', 'Open ArbeitszeitCheck'),
-					attrs: { 'aria-describedby': titleId },
-				}));
-			}
-			if (employeesUrl) {
-				actions.appendChild(create('a', {
-					class: 'button',
-					href: employeesUrl,
-					text: t('dutycheck', 'Employees — link accounts'),
-					attrs: { 'aria-describedby': titleId },
-				}));
-			}
-			parts.push(actions);
+		const actions = create('div', { class: 'dc-callout__actions' });
+		if (peerUrl) {
+			actions.appendChild(create('a', {
+				class: 'button primary',
+				href: peerUrl,
+				text: t('dutycheck', 'Open ArbeitszeitCheck'),
+				attrs: { 'aria-label': t('dutycheck', 'Open ArbeitszeitCheck'), 'aria-describedby': titleId },
+			}));
 		}
+		if (employeesUrl) {
+			actions.appendChild(create('a', {
+				class: 'button',
+				href: employeesUrl,
+				text: t('dutycheck', 'Employees — link accounts'),
+				attrs: { 'aria-describedby': titleId },
+			}));
+		}
+		const dismissBtn = create('button', {
+			class: 'button',
+			type: 'button',
+			text: t('dutycheck', 'Hide this notice'),
+			attrs: { 'aria-label': t('dutycheck', 'Hide this notice') },
+		});
+		dismissBtn.addEventListener('click', () => {
+			dismissBanner(dismissKey);
+			el.hidden = true;
+			el.replaceChildren();
+			const h1 = document.querySelector('#app-content h1, main h1, h1');
+			if (h1 && typeof h1.focus === 'function') {
+				if (!h1.hasAttribute('tabindex')) {
+					h1.setAttribute('tabindex', '-1');
+				}
+				h1.focus();
+			}
+		});
+		actions.appendChild(dismissBtn);
+		parts.push(actions);
 		el.replaceChildren(...parts);
 	}
 
@@ -311,6 +404,7 @@
 		try {
 			const rosterResponse = await Api.get('/apps/dutycheck/api/roster');
 			const employees = rosterResponse?.data?.employees || [];
+			lastPlannerEmployees = employees;
 			renderPlannerIntegrationBanner(integ, employees);
 			fillEmployeeSelect(employees, locksLinked);
 			updatePlannerOnBehalfSection(employees, locksLinked);
@@ -372,6 +466,9 @@
 		const form = document.getElementById('dc-absence-form');
 		form?.addEventListener('submit', async (event) => {
 			event.preventDefault();
+			if (form.dataset.dcBusy === '1') {
+				return;
+			}
 			const data = new FormData(form);
 			const startDate = String(data.get('startDate') || '');
 			const endDate = String(data.get('endDate') || '');
@@ -387,6 +484,12 @@
 			if (startDate > endDate) {
 				Msg.announce(t('dutycheck', 'End date must be on or after start date.'), 'error');
 				return;
+			}
+			const submitBtn = form.querySelector('button[type="submit"]');
+			form.dataset.dcBusy = '1';
+			if (submitBtn) {
+				submitBtn.disabled = true;
+				submitBtn.setAttribute('aria-busy', 'true');
 			}
 			try {
 				const response = await Api.post('/apps/dutycheck/api/absences', {
@@ -414,7 +517,48 @@
 					return;
 				}
 				Msg.handleApiError(err);
+			} finally {
+				delete form.dataset.dcBusy;
+				if (submitBtn) {
+					submitBtn.disabled = false;
+					submitBtn.removeAttribute('aria-busy');
+				}
 			}
 		});
 	});
+
+	// WF-30 / REQ-URL-02: refresh bootstrap on tab focus and every 5 minutes.
+	let lastBootstrapRefresh = 0;
+	const BOOTSTRAP_REFRESH_MS = 5 * 60 * 1000;
+	async function refreshIntegrationBootstrap(force = false) {
+		const now = Date.now();
+		if (!force && now - lastBootstrapRefresh < BOOTSTRAP_REFRESH_MS) {
+			return;
+		}
+		lastBootstrapRefresh = now;
+		try {
+			const response = await Api.get('/apps/dutycheck/api/bootstrap');
+			const next = response?.data?.arbeitszeitCheckIntegration;
+			if (!next || typeof next !== 'object') {
+				return;
+			}
+			const root = document.getElementById('app-content');
+			if (root) {
+				root.dataset.dcIntegrationBootstrap = JSON.stringify(next);
+			}
+			const employees = lastPlannerEmployees;
+			const locksLinked = integrationLocksLinked(next);
+			renderPlannerIntegrationBanner(next, employees);
+			fillEmployeeSelect(employees, locksLinked);
+			updatePlannerOnBehalfSection(employees, locksLinked);
+		} catch {
+			/* keep last good bootstrap */
+		}
+	}
+	document.addEventListener('visibilitychange', () => {
+		if (document.visibilityState === 'visible') {
+			refreshIntegrationBootstrap(true);
+		}
+	});
+	window.setInterval(() => refreshIntegrationBootstrap(false), BOOTSTRAP_REFRESH_MS);
 })();

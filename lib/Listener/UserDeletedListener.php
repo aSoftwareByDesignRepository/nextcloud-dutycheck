@@ -23,6 +23,6 @@ class UserDeletedListener implements IEventListener
 		if (!$event instanceof UserDeletedEvent) {
 			return;
 		}
-		$this->access->purgeUserDutyRole($event->getUser()->getUID());
+		$this->access->purgeUser($event->getUser()->getUID());
 	}
 }

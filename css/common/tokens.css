@@ -7,11 +7,22 @@
  * names alive for any third-party consumers and historical inline styles so
  * a missing --dc-color-* token never falls back to `unset` and renders an
  * inaccessible black-on-black surface.
+ *
+ * Theme-dependent mixes must resolve on body-themed surfaces (same as app.css),
+ * not bare :root — otherwise dark-theme text (#ebebeb) paints on light fallbacks.
  */
-:root {
+#app-content.dc-app,
+.dc-app,
+.dc-modal,
+.dc-toasts,
+body {
 	--dc-color-bg-default: var(--color-main-background, #fff);
 	--dc-color-border-default: color-mix(in srgb, var(--color-main-text, #1d1d1d) 12%, transparent);
-	--dc-color-text-muted: color-mix(in srgb, var(--color-main-text, #1d1d1d) 60%, transparent);
+	/* Prefer Nextcloud's AA-tested muted token; mix against background as fallback. */
+	--dc-color-text-muted: var(
+		--color-text-maxcontrast,
+		color-mix(in srgb, var(--color-main-text, #1d1d1d) 67%, var(--color-main-background, #fff))
+	);
 	--dc-color-primary: var(--color-primary-element, var(--color-primary, #0082c9));
 	--dc-color-success: var(--color-success, #46ba61);
 	--dc-color-warning: var(--color-warning, #c98600);
@@ -19,4 +30,9 @@
 	--dc-color-overlay: color-mix(in srgb, var(--color-main-text, #000) 60%, transparent);
 	--dc-color-shadow-soft: color-mix(in srgb, var(--color-main-text, #000) 4%, transparent);
 	--dc-color-shadow-strong: color-mix(in srgb, var(--color-main-text, #000) 22%, transparent);
+	/* Alias legacy consumers onto the AZC-aligned tint contract */
+	--dc-color-tint-info: color-mix(in srgb, var(--color-primary-element, #0082c9) 16%, var(--color-main-background, #fff));
+	--dc-color-tint-success: color-mix(in srgb, var(--color-success-text, var(--color-success, #46ba61)) 18%, var(--color-main-background, #fff));
+	--dc-color-tint-warning: color-mix(in srgb, var(--color-warning-text, var(--color-warning, #c98600)) 22%, var(--color-main-background, #fff));
+	--dc-color-tint-critical: color-mix(in srgb, var(--color-error-text, var(--color-error, #cc4646)) 18%, var(--color-main-background, #fff));
 }

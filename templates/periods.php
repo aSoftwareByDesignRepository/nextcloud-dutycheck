@@ -81,6 +81,7 @@ $isAppAdmin = !empty($_['isAppAdmin']);
 		</div>
 		<div class="dc-section__controls">
 			<span id="dc-publish-readiness" class="dc-pill" aria-live="polite"></span>
+			<span id="dc-period-ack-stats" class="dc-pill" role="status" aria-live="polite" hidden></span>
 		</div>
 	</header>
 	<div class="dc-table-wrap">
