@@ -5,6 +5,7 @@ declare(strict_types=1);
 return [
 	'routes' => [
 		['name' => 'page#index', 'url' => '/', 'verb' => 'GET'],
+		['name' => 'page#needsRole', 'url' => '/needs-role', 'verb' => 'GET'],
 		['name' => 'page#dashboard', 'url' => '/dashboard', 'verb' => 'GET'],
 		['name' => 'page#roster', 'url' => '/roster', 'verb' => 'GET'],
 		['name' => 'page#rosterPrint', 'url' => '/roster/print', 'verb' => 'GET'],
@@ -15,6 +16,10 @@ return [
 		['name' => 'page#myRoster', 'url' => '/my-roster', 'verb' => 'GET'],
 		['name' => 'page#myAbsences', 'url' => '/my-absences', 'verb' => 'GET'],
 		['name' => 'page#settings', 'url' => '/settings', 'verb' => 'GET'],
+		// Keep the requirement literal (route files load without the app autoloader).
+		// tests/Unit/Controller/SettingsPagesContractTest pins it to SettingsSectionCatalog::routeRequirement().
+		['name' => 'page#settingsSection', 'url' => '/settings/{section}', 'verb' => 'GET',
+			'requirements' => ['section' => 'access|duty-roles|planning|companies|conflicts|shift-templates|qualifications|planner-scope|operations|integration|privacy|license|support']],
 		['name' => 'api#bootstrap', 'url' => '/api/bootstrap', 'verb' => 'GET'],
 		['name' => 'catalogApi#timezones', 'url' => '/api/catalog/timezones', 'verb' => 'GET'],
 		['name' => 'rosterApi#dashboard', 'url' => '/api/dashboard', 'verb' => 'GET'],
@@ -64,6 +69,7 @@ return [
 		['name' => 'license#seats', 'url' => '/api/license/seats', 'verb' => 'GET'],
 		['name' => 'license#assignSeat', 'url' => '/api/license/seats', 'verb' => 'POST'],
 		['name' => 'license#removeSeat', 'url' => '/api/license/seats/{uid}', 'verb' => 'DELETE'],
+		['name' => 'license#searchUsers', 'url' => '/api/license/search/users', 'verb' => 'GET'],
 		['name' => 'mobile#bootstrap', 'url' => '/api/mobile/bootstrap', 'verb' => 'GET'],
 		['name' => 'mobile#myRoster', 'url' => '/api/mobile/my/roster', 'verb' => 'GET'],
 		['name' => 'mobile#acknowledgeAssignment', 'url' => '/api/mobile/my/assignments/{id}/acknowledge', 'verb' => 'POST'],

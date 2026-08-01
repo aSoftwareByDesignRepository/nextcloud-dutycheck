@@ -1166,15 +1166,31 @@
 			}
 		});
 		if (memberForm) {
+			const memberUserSearchInput = document.getElementById('dc-company-member-user-search');
+			const memberSubmitBtn = document.getElementById('dc-company-member-submit');
+			const setSelectedMember = (user) => {
+				if (memberForm.userId) memberForm.userId.value = user ? user.id : '';
+				if (memberSubmitBtn) memberSubmitBtn.disabled = !user;
+			};
+			wireSearch('dc-company-member-user-search', 'dc-company-member-user-results', fetchUsers, (item) => {
+				setSelectedMember(item);
+			}, { silentPick: true, retainInputOnPick: true });
 			memberForm.addEventListener('submit', async (event) => {
 				event.preventDefault();
 				const companyId = Number(memberForm.companyId.value || 0);
+				const userId = String(memberForm.userId?.value || '').trim();
+				if (!userId) {
+					Msg.announce(t('dutycheck', 'Search and pick a colleague first.'), 'error');
+					memberUserSearchInput?.focus();
+					return;
+				}
 				try {
 					await Api.post(`/apps/dutycheck/api/admin/companies/${companyId}/members`, {
-						userId: String(memberForm.userId.value || '').trim(),
+						userId,
 						role: String(memberForm.role.value || 'member'),
 					});
-					memberForm.userId.value = '';
+					if (memberUserSearchInput) memberUserSearchInput.value = '';
+					setSelectedMember(null);
 					Msg.announce(t('dutycheck', 'Member added.'), 'success');
 					await refreshMembers(companyId);
 				} catch (err) {
@@ -1365,7 +1381,20 @@
 		if (!form) return;
 		const status = document.getElementById('dc-scope-status');
 		const loadBtn = document.getElementById('dc-scope-load');
+		const saveBtn = document.getElementById('dc-scope-save');
 		const locsHost = document.getElementById('dc-scope-locs');
+		const userSearchInput = document.getElementById('dc-scope-user-search');
+
+		const setSelectedScopeUser = (user) => {
+			if (form.userId) form.userId.value = user ? user.id : '';
+			if (loadBtn) loadBtn.disabled = !user;
+			if (saveBtn) saveBtn.disabled = !user;
+		};
+		wireSearch('dc-scope-user-search', 'dc-scope-user-results', fetchUsers, (item) => {
+			setSelectedScopeUser(item);
+			setCheckedIds([]);
+			if (status) status.hidden = true;
+		}, { silentPick: true, retainInputOnPick: true });
 
 		async function showStatus(msg) {
 			if (status) {
@@ -1440,6 +1469,11 @@
 		form.addEventListener('submit', async (event) => {
 			event.preventDefault();
 			const userId = String(form.userId.value || '').trim();
+			if (!userId) {
+				Msg.announce(t('dutycheck', 'Search and pick a colleague first.'), 'error');
+				userSearchInput?.focus();
+				return;
+			}
 			const locationIds = selectedLocationIds();
 			try {
 				await Api.post(`/apps/dutycheck/api/admin/planner-scope/${encodeURIComponent(userId)}`, { locationIds });
@@ -1505,6 +1539,16 @@
 	}
 
 	document.addEventListener('DOMContentLoaded', async () => {
+		// Forward legacy /settings#anchor bookmarks to the owning sub-page
+		// before any section wiring fires network requests.
+		const legacyRedirect = window.DutyCheckSettingsLegacyRedirect;
+		if (legacyRedirect) {
+			const redirectUrl = legacyRedirect.resolve(document, window.location);
+			if (redirectUrl) {
+				window.location.replace(redirectUrl);
+				return;
+			}
+		}
 		await wireAtIntegration();
 		await wirePlanningDefaults();
 		await wireCompanies();
@@ -1526,17 +1570,17 @@
 			state.allowedUsers = dedupeById([...state.allowedUsers, item]);
 			renderAll();
 			recomputeDirty();
-		}, { allowDirectEntry: true });
+		});
 		const finalizeAllowedGroupInput = wireSearch('dc-policy-group-search', 'dc-policy-group-results', fetchGroups, (item) => {
 			state.allowedGroups = dedupeById([...state.allowedGroups, item]);
 			renderAll();
 			recomputeDirty();
-		}, { allowDirectEntry: true });
+		});
 		const finalizeAdminInput = wireSearch('dc-policy-admin-search', 'dc-policy-admin-results', fetchUsers, (item) => {
 			state.appAdmins = dedupeById([...state.appAdmins, item]);
 			renderAll();
 			recomputeDirty();
-		}, { allowDirectEntry: true });
+		});
 		form.accessRestrictionEnabled.addEventListener('change', () => {
 			state.restrictionEnabled = Boolean(form.accessRestrictionEnabled.checked);
 			renderPolicyStateBadge();

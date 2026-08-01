@@ -253,6 +253,13 @@ body,
 	text-decoration: none;
 }
 .dc-breadcrumb__brand:hover { text-decoration: underline; }
+.dc-breadcrumb__parent {
+	color: inherit;
+	text-decoration: none;
+	overflow-wrap: anywhere;
+	min-width: 0;
+}
+.dc-breadcrumb__parent:hover { text-decoration: underline; }
 .dc-breadcrumb__current {
 	font-weight: 500;
 	color: var(--color-main-text, #1d1d1d);
@@ -672,6 +679,14 @@ body,
 	min-height: 44px;
 }
 .dc-callout__hint { color: var(--color-main-text, #1d1d1d); font-size: var(--dc-fs-sm); }
+/* Tinted callout backgrounds cost ~1 contrast step: muted ink tuned for the
+   main background drops below 4.5:1 (WCAG 1.4.3) on them, so any muted copy
+   nested in a callout is promoted to full-contrast ink. */
+.dc-callout .dc-field__hint,
+.dc-callout .dc-section__sub,
+.dc-callout .dc-loading {
+	color: var(--color-main-text, #1d1d1d);
+}
 .dc-loading {
 	color: var(--dc-muted);
 	font-style: italic;
@@ -3367,51 +3382,104 @@ form.dc-form-grid[aria-busy='true'] .button {
 	min-height: 44px;
 }
 
-/* Settings: in-page jump nav so long governance pages stay scannable */
-.dc-settings-toc {
+/* Settings sub-pages: in-page chip bar (DeskCheck parity). Critical when
+   Nextcloud collapses #app-navigation on narrow viewports — without it,
+   sibling settings pages would be unreachable on phones/tablets. */
+.dc-settings-nav {
 	display: flex;
-	flex-direction: column;
-	gap: var(--dc-space-3);
-}
-.dc-settings-toc__list {
-	list-style: none;
-	margin: 0;
-	padding: 0;
-	display: grid;
-	grid-template-columns: 1fr;
+	flex-wrap: wrap;
 	gap: var(--dc-space-2);
+	margin: 0 0 var(--dc-space-5);
+	padding: 0 0 var(--dc-space-3);
+	border-bottom: 1px solid var(--dc-border);
 }
-.dc-settings-toc__link {
-	display: flex;
+.dc-app .dc-settings-nav__link {
+	display: inline-flex;
 	align-items: center;
+	justify-content: center;
 	min-height: 44px;
 	padding: var(--dc-space-2) var(--dc-space-3);
 	border: 1px solid var(--dc-border);
 	border-radius: var(--dc-radius-sm);
-	background: var(--dc-bg-soft);
-	color: var(--color-main-text, #1d1d1d);
+	background: var(--color-main-background, #fff);
+	color: var(--color-main-text, #222);
 	text-decoration: none;
 	font-weight: 600;
-	line-height: var(--dc-line-tight);
-	overflow-wrap: anywhere;
+	font-size: var(--dc-fs-sm);
+	line-height: 1.2;
 }
-.dc-settings-toc__link:hover {
-	background: var(--dc-tint-info);
-	border-color: transparent;
+.dc-app .dc-settings-nav__link:hover {
+	border-color: var(--color-primary-element, #0082c9);
+	background: var(--dc-bg-stripe);
+	color: var(--color-main-text, #222);
 }
-.dc-settings-toc__link:focus-visible {
+.dc-app .dc-settings-nav__link:focus-visible {
 	outline: 3px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 60%, transparent);
 	outline-offset: 2px;
 }
-@media (min-width: 640px) {
-	.dc-settings-toc__list {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
+.dc-app .dc-settings-nav__link.is-active,
+.dc-app .dc-settings-nav__link[aria-current="page"] {
+	/* Keep main-text ink (not primary) — primary-on-dark-tint failed axe at 4.28:1. */
+	border-color: var(--color-primary-element, #0082c9);
+	background: var(--dc-tint-info);
+	color: var(--color-main-text, #222);
+	font-weight: 700;
+}
+.dc-inline-link {
+	color: var(--color-primary-element, #0082c9);
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+.dc-inline-link:focus-visible {
+	outline: 3px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 60%, transparent);
+	outline-offset: 2px;
+}
+@media (max-width: 640px) {
+	.dc-settings-nav {
+		flex-direction: column;
+	}
+	.dc-app .dc-settings-nav__link {
+		width: 100%;
+		justify-content: flex-start;
 	}
 }
-@media (min-width: 960px) {
-	.dc-settings-toc__list {
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-	}
+
+/* Settings sub-pages: sidebar sub-navigation expanded while on a settings page.
+   One entry per sub-page; the active child carries aria-current="page". */
+.dc-nav__sublist {
+	list-style: none;
+	margin: 2px 0 var(--dc-space-2) var(--dc-space-3);
+	/* Indent past the 24px icon column so children read as nested; the
+	   vertical guide line makes the hierarchy obvious at a glance. */
+	padding: 0 0 0 calc(24px + var(--dc-space-2) - 2px);
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	border-left: 2px solid var(--dc-border);
+}
+.dc-nav__subitem { margin: 0; }
+.dc-nav__sublink {
+	display: flex;
+	align-items: center;
+	min-height: 44px;
+	padding: var(--dc-space-1) var(--dc-space-3);
+	border-radius: var(--dc-radius-sm);
+	color: var(--color-main-text, #1d1d1d);
+	text-decoration: none;
+	font-size: var(--dc-fs-sm);
+	line-height: var(--dc-line-tight);
+	overflow-wrap: anywhere;
+}
+.dc-nav__sublink:hover {
+	background: var(--dc-bg-stripe);
+}
+.dc-nav__sublink:focus-visible {
+	outline: 3px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 60%, transparent);
+	outline-offset: 2px;
+}
+.dc-nav__subitem.is-active .dc-nav__sublink {
+	background: var(--dc-tint-info);
+	font-weight: 600;
 }
 
 /* Wave A planner: copy-period + ack stats — use design tokens, never raw hex */

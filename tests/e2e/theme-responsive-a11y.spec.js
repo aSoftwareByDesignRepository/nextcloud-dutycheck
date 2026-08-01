@@ -25,7 +25,8 @@ const routes = [
 	{ id: 'dashboard', path: '/apps/dutycheck/', ready: '#dc-main-content' },
 	{ id: 'roster', path: '/apps/dutycheck/roster', ready: '#dc-main-content' },
 	{ id: 'absences', path: '/apps/dutycheck/absences', ready: '#dc-main-content' },
-	{ id: 'settings', path: '/apps/dutycheck/settings', ready: '#dc-main-content' },
+	// Split settings: land on the default sub-page directly (deterministic URL).
+	{ id: 'settings', path: '/apps/dutycheck/settings/access', ready: '#dc-main-content' },
 ]
 
 const overflowViewports = [
@@ -220,7 +221,7 @@ test.describe('DutyCheck custom accent colour', () => {
 		test.skip(candidates.length === 0, 'Requires E2E_* or NC_ADMIN_* credentials')
 
 		await loginWithFallback(page, candidates)
-		await gotoReady(page, '/apps/dutycheck/settings')
+		await gotoReady(page, '/apps/dutycheck/settings/access')
 
 		const readPrimary = () => page.evaluate(() => {
 			const probe = getComputedStyle(document.body).getPropertyValue('--color-primary-element').trim()

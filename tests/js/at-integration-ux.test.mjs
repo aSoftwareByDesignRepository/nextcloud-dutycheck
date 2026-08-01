@@ -62,7 +62,10 @@ test('print CSS hides integration banners and expands AT outbound URLs after glo
 });
 
 test('templates must not ship empty peer href placeholders', () => {
-	for (const rel of ['templates/settings.php', 'templates/my-roster.php']) {
+	// Settings split: the AT integration section lives on its own sub-page.
+	const integrationPartial = 'templates/parts/settings/integration.php';
+	assert.match(read(integrationPartial), /id="dc-at-open-peer"/, 'peer link must live on the integration sub-page');
+	for (const rel of [integrationPartial, 'templates/my-roster.php']) {
 		const src = read(rel);
 		assert.doesNotMatch(src, /id="dc-at-open-peer"[^>]*href=""/);
 		assert.doesNotMatch(src, /id="dc-ical-open-azc"[^>]*href=""/);

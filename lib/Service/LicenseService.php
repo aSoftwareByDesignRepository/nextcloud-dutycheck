@@ -326,6 +326,52 @@ class LicenseService
 	}
 
 	/**
+	 * Directory search for the license seat picker.
+	 *
+	 * Contract matches InvoiceCheck / ProjectCheck / TicketCheck license UIs:
+	 * `{ id, displayName, hasSeat }`. Search merges uid + display-name hits so
+	 * admins can find people by login or by name.
+	 *
+	 * @return list<array{id: string, displayName: string, hasSeat: bool}>
+	 */
+	public function searchUsersForSeats(string $query, int $limit = 25): array
+	{
+		$query = trim($query);
+		if (mb_strlen($query) < 2) {
+			return [];
+		}
+		$limit = max(1, min(50, $limit));
+		$byId = $this->userManager->search($query, $limit, 0);
+		$byName = $this->userManager->searchDisplayName($query, $limit, 0);
+		$assigned = [];
+		foreach ($this->seats->findAllRanked() as $seat) {
+			$assigned[$seat->getUid()] = true;
+		}
+		$merged = [];
+		foreach (array_merge($byId, $byName) as $user) {
+			if ($user === null) {
+				continue;
+			}
+			if (method_exists($user, 'isEnabled') && !$user->isEnabled()) {
+				continue;
+			}
+			$uid = (string)$user->getUID();
+			if ($uid === '' || isset($merged[$uid])) {
+				continue;
+			}
+			$merged[$uid] = [
+				'id' => $uid,
+				'displayName' => (string)$user->getDisplayName(),
+				'hasSeat' => isset($assigned[$uid]),
+			];
+			if (count($merged) >= $limit) {
+				break;
+			}
+		}
+		return array_values($merged);
+	}
+
+	/**
 	 * @return array<string, mixed>
 	 */
 	private function seatRow(MobileSeat $seat): array

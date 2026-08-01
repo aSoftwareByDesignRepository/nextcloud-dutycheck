@@ -58,12 +58,64 @@ final class DesignSystemCssContractTest extends TestCase
 		);
 	}
 
-	public function testSettingsJumpNavStylesExist(): void
+	public function testMutedCopyInsideCalloutsUsesFullContrastInk(): void
 	{
-		self::assertStringContainsString('.dc-settings-toc', $this->appCss);
-		self::assertStringContainsString('.dc-settings-toc__link', $this->appCss);
+		// Tinted callout backgrounds push --dc-muted below 4.5:1 (axe caught
+		// #6b6b6b on #d6e7ef = 4.19:1); nested muted copy must be promoted.
+		self::assertMatchesRegularExpression(
+			'/\.dc-callout \.dc-field__hint,\s*\.dc-callout \.dc-section__sub,\s*\.dc-callout \.dc-loading\s*\{[^}]*color:\s*var\(--color-main-text/s',
+			$this->appCss,
+			'Muted copy nested in .dc-callout must use full-contrast ink (WCAG 1.4.3)',
+		);
+	}
+
+	public function testSettingsSubNavStylesExist(): void
+	{
+		// Split settings pages: sidebar sub-navigation replaced the in-page TOC.
+		self::assertStringContainsString('.dc-nav__sublist', $this->appCss);
+		self::assertStringContainsString('.dc-nav__sublink', $this->appCss);
+		self::assertStringNotContainsString('.dc-settings-toc', $this->appCss);
+		self::assertMatchesRegularExpression(
+			'/\.dc-nav__sublink\s*\{[^}]*min-height:\s*44px/s',
+			$this->appCss,
+			'Sub-nav links must keep the 44px touch target (WCAG 2.5.5)',
+		);
+		self::assertMatchesRegularExpression(
+			'/\.dc-nav__sublink:focus-visible\s*\{[^}]*outline/s',
+			$this->appCss,
+			'Sub-nav links need a visible keyboard focus indicator',
+		);
+		self::assertMatchesRegularExpression(
+			'/\.dc-nav__subitem\.is-active\s+\.dc-nav__sublink\s*\{[^}]*background/s',
+			$this->appCss,
+			'Active sub-nav entry must be visually distinct',
+		);
+		self::assertStringContainsString('.dc-breadcrumb__parent', $this->appCss);
 		self::assertStringContainsString('min-height: 44px', $this->appCss);
 		self::assertStringContainsString('scroll-margin-top:', $this->appCss);
+		// DeskCheck-parity chip bar (needed when #app-navigation collapses).
+		self::assertStringContainsString('.dc-settings-nav', $this->appCss);
+		self::assertStringContainsString('.dc-settings-nav__link', $this->appCss);
+		self::assertMatchesRegularExpression(
+			'/\.dc-app \.dc-settings-nav__link\s*\{[^}]*min-height:\s*44px/s',
+			$this->appCss,
+			'In-page settings chips must keep a 44px hit target',
+		);
+		self::assertMatchesRegularExpression(
+			'/\.dc-app \.dc-settings-nav__link:focus-visible\s*\{[^}]*outline/s',
+			$this->appCss,
+			'In-page settings chips need a visible focus ring',
+		);
+		self::assertMatchesRegularExpression(
+			'/\.dc-app \.dc-settings-nav__link\[aria-current="page"\]\s*\{[^}]*color:\s*var\(--color-main-text/s',
+			$this->appCss,
+			'Active chip must keep main-text ink (primary-on-tint fails WCAG 1.4.3 in dark themes)',
+		);
+		self::assertMatchesRegularExpression(
+			'/\.dc-app \.dc-settings-nav__link\[aria-current="page"\]\s*\{[^}]*background:\s*var\(--dc-tint-info/s',
+			$this->appCss,
+			'Active in-page settings chip must be visually distinct',
+		);
 	}
 
 	public function testScopeStripUsesDefinitionListLayout(): void
@@ -240,6 +292,11 @@ final class DesignSystemCssContractTest extends TestCase
 		);
 		self::assertStringContainsString('var(--dc-muted', $licenseCss);
 		self::assertStringContainsString('var(--dc-touch', $licenseCss);
+		self::assertMatchesRegularExpression(
+			'/\.dc-license-status \.dc-license-meter-label[^{]*\{[^}]*color:\s*var\(--color-main-text/s',
+			$licenseCss,
+			'Meter labels on --color-background-darker must use main-text ink (WCAG 1.4.3)',
+		);
 	}
 
 	public function testSupportUsGridPreventsNarrowOverflow(): void

@@ -42,6 +42,8 @@ $roleLabel = (string) ($_['roleLabel'] ?? $l->t('Member'));
 $isEmployee = !empty($_['isEmployee']);
 $hasLinkedEmployee = !empty($_['hasLinkedEmployee']);
 $isAppAdmin = !empty($_['isAppAdmin']);
+$settingsSection = (string) ($_['settingsSection'] ?? '');
+$breadcrumbParent = is_array($_['breadcrumbParent'] ?? null) ? $_['breadcrumbParent'] : null;
 
 $pageIcons = [
 	'dashboard' => 'layout-grid',
@@ -66,6 +68,7 @@ $urlsJson = htmlspecialchars(json_encode($urls, JSON_THROW_ON_ERROR | JSON_UNESC
 	data-dc-time-24h="1"
 	data-dc-time-input-lang="en-GB"
 	data-dc-page="<?php p($pageId); ?>"
+	data-dc-settings-section="<?php p($settingsSection); ?>"
 	data-dc-role="<?php p($role); ?>"
 	data-dc-is-app-admin="<?php p($isAppAdmin ? '1' : '0'); ?>"
 	data-dc-is-employee="<?php p($isEmployee ? '1' : '0'); ?>"
@@ -85,8 +88,16 @@ $urlsJson = htmlspecialchars(json_encode($urls, JSON_THROW_ON_ERROR | JSON_UNESC
 							<?php p($l->t('DutyCheck')); ?>
 						</a>
 					</li>
+				<?php if ($breadcrumbParent !== null): ?>
 					<li class="dc-breadcrumb__sep" aria-hidden="true">/</li>
-					<li class="dc-breadcrumb__current" aria-current="page"><?php p($pageTitle); ?></li>
+					<li>
+						<a class="dc-breadcrumb__parent" href="<?php p((string) ($breadcrumbParent['url'] ?? '#')); ?>">
+							<?php p((string) ($breadcrumbParent['label'] ?? '')); ?>
+						</a>
+					</li>
+				<?php endif; ?>
+				<li class="dc-breadcrumb__sep" aria-hidden="true">/</li>
+				<li class="dc-breadcrumb__current" aria-current="page"><?php p($pageTitle); ?></li>
 				</ol>
 			</nav>
 			<div class="dc-page-header__main">

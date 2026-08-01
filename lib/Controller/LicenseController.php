@@ -107,6 +107,26 @@ class LicenseController extends Controller
 		}
 	}
 
+	/**
+	 * Directory search for seat assignment (app admins only).
+	 * Returns `{ ok: true, items: [...] }` — the contract license-settings.js expects.
+	 */
+	#[NoAdminRequired]
+	public function searchUsers(): JSONResponse
+	{
+		try {
+			$this->requireAppAdmin();
+			$q = trim((string)$this->request->getParam('q', $this->request->getParam('query', '')));
+			$limit = (int)$this->request->getParam('limit', 25);
+			return new JSONResponse([
+				'ok' => true,
+				'items' => $this->license->searchUsersForSeats($q, $limit),
+			]);
+		} catch (LicenseException $e) {
+			return $this->fromLicenseException($e);
+		}
+	}
+
 	private function requireAppAdmin(): string
 	{
 		$user = $this->userSession->getUser();

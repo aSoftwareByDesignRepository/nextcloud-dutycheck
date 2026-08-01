@@ -95,15 +95,13 @@ class AccessControlService
 	}
 
 	/**
-	 * Whether the user may open DutyCheck at all (navigation entry, routes, APIs except public iCal).
+	 * Directory door only (portfolio Open/Restricted). Roles and employee links
+	 * are enforced separately by requirePlannerOrAdmin / requireEmployee and
+	 * needsRoleEnrollment for calm enrollment UX.
 	 *
 	 * - Nextcloud system administrators and DutyCheck app administrators: always allowed.
-	 * - Directory restriction (if enabled): must match allow-listed users or groups (admins still bypass).
-	 * - An active `dc_employees` row with `linked_user_id` set to this user: allowed for self-service
-	 *   (my roster, my absences, iCal) even when no `dc_user_roles` row exists yet. The catalog link is
-	 *   treated as the organisation’s explicit invitation to that account.
-	 * - Duty roles {@see self::ROLE_PLANNER} and {@see self::ROLE_ADMIN}: allowed without a link.
-	 * - Duty role {@see self::ROLE_EMPLOYEE}: allowed only when linked as above (same as self-service APIs).
+	 * - Directory restriction (if enabled): must match allow-listed users or groups.
+	 * - Open mode: every logged-in user may open the app shell (menu visible).
 	 */
 	public function canUseApp(string $userId): bool
 	{
@@ -114,6 +112,32 @@ class AccessControlService
 			return true;
 		}
 		if ($this->isAccessRestrictionEnabled() && !$this->userMatchesAllowList($userId)) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * True when the door is open but the user has no planner/admin role and no
+	 * active employee catalog link yet.
+	 */
+	public function needsRoleEnrollment(string $userId): bool
+	{
+		if ($userId === '' || $this->isAppAdmin($userId)) {
+			return false;
+		}
+		if (!$this->canUseApp($userId)) {
+			return false;
+		}
+		return !$this->hasDutyMembership($userId);
+	}
+
+	/**
+	 * Planner/admin role or active linked employee row (self-service invitation).
+	 */
+	public function hasDutyMembership(string $userId): bool
+	{
+		if ($userId === '') {
 			return false;
 		}
 		if ($this->hasActiveLinkedEmployee($userId)) {
@@ -129,15 +153,18 @@ class AccessControlService
 		return true;
 	}
 
+	/**
+	 * Door denial only. Role/membership denials use requirePlannerOrAdmin /
+	 * requireEmployee / needsRoleEnrollment — never fold them into the door.
+	 */
 	public function denialReasonWhenCannotUseApp(string $userId): string
 	{
 		if ($this->isAccessRestrictionEnabled() && !$this->userMatchesAllowList($userId)) {
 			return self::DENIAL_RESTRICTION;
 		}
-		if ($this->lookupGlobalRole($userId) === self::ROLE_EMPLOYEE && !$this->hasActiveLinkedEmployee($userId)) {
-			return self::DENIAL_EMPLOYEE_NOT_LINKED;
-		}
-		return self::DENIAL_NO_MEMBERSHIP;
+		// Fallback when middleware is invoked without a matching allow-list miss
+		// (empty uid already rejected by canUseApp). Keep machine-stable code.
+		return self::DENIAL_RESTRICTION;
 	}
 
 	public function isPlannerOrAdmin(string $userId): bool

@@ -65,6 +65,7 @@ class LicenseUiStrings
 			'seatsIntro' => $l->t('Assign named seats to Nextcloud accounts. Each assigned person can sign in to the official DutyCheck mobile app.'),
 			'seatSearchLabel' => $l->t('Search a Nextcloud user to assign a seat'),
 			'seatSearchPlaceholder' => $l->t('Type at least 2 characters…'),
+			'seatSearchLoading' => $l->t('Searching…'),
 			'seatSearchNoResults' => $l->t('No matching users, or everyone found already has a seat.'),
 			'seatSearchErrorAuth' => $l->t('Search could not run. Sign in again, then return to this page.'),
 			'seatSearchErrorPermission' => $l->t('You are not allowed to search the directory.'),

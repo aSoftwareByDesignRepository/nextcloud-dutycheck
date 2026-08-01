@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.1.37 - 2026-07-31
+
+### UX / navigation
+
+- **Settings split into sub-pages (DeskCheck pattern).** The single long settings document is now 13 focused pages (`/settings/{section}`), each with its own title, lead, and sidebar sub-navigation entry (`aria-current` on the active one). `SettingsSectionCatalog` is the single source of truth; routes, controller, template dispatch, and client JS all derive from it and contract tests pin them together.
+- **No dead bookmarks.** `/settings` 303-redirects to `/settings/access`; old `/settings#anchor` links are forwarded client-side (`settings-legacy-redirect.js`) to the owning sub-page with the fragment preserved, so the browser still scrolls to the section.
+- The in-page “On this page” jump nav is gone (replaced by the sidebar sub-navigation); breadcrumb gains a Settings parent on sub-pages.
+- **In-page settings chip bar** (DeskCheck parity) so sibling pages stay reachable when Nextcloud collapses `#app-navigation` on phones/tablets. Short `navLabel()` chips in the sidebar and chip bar; longer `label()` titles stay on the page H1.
+- Access-page copy no longer says “section below” — it deep-links to Duty roles and Employees.
+
+### Accessibility
+
+- Muted copy nested in tinted callouts (`.dc-callout .dc-field__hint` et al.) is promoted to full-contrast ink — axe measured `#6b6b6b` on `#d6e7ef` at **4.19:1** (fails WCAG 1.4.3); CSS contract test locks the rule.
+
+### i18n
+
+- Locale catalogs repaired: six directory-picker strings translated into all 9 non-English locales, four stale keys dropped, key order normalized, regional variants (`de_DE`, `fr_FR`, …) re-mirrored; parity/placeholder/runtime checks green at 1031 keys × 10 locales.
+
+### Tests
+
+- New: `SettingsSectionCatalogTest`, `SettingsPagesContractTest` (cross-artifact drift), `SettingsTemplateRenderTest` (renders every partial; escaping + anchor checks), `settings-pages.test.mjs` (executes the redirect module: fail-closed on malformed payloads, prototype-pollution-safe hash handling), and `run-settings-pages-mutations.php` (catalog/dispatcher/JS/nav mutations — all killed).
+- Playwright: axe smoke covers all 13 settings sub-pages plus redirect/anchor-forward/sidebar/chip-bar journeys; theme matrix pins `/settings/access`.
+- License status strip: meter labels use full-contrast ink on `--color-background-darker` (axe caught `#999` on `#3b3b3b` at 3.93:1).
+- Version lockstep **0.1.37**.
+
 ## 0.1.36 - 2026-07-29
 
 ### Accessibility / UX

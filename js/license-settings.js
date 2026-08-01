@@ -654,6 +654,36 @@
 		});
 	}
 
+	/**
+	 * Normalize directory hits from either license#searchUsers (`items`) or a
+	 * legacy directory endpoint (`users`). Keeps only enabled-looking rows with an id.
+	 * @param {Array<Record<string, mixed>>} raw
+	 * @returns {Array<{id:string, displayName:string, hasSeat?:boolean}>}
+	 */
+	function normalizeSearchHits(raw) {
+		var out = [];
+		var seen = Object.create(null);
+		(raw || []).forEach(function (row) {
+			if (!row || typeof row !== 'object') {
+				return;
+			}
+			var id = String(row.id || row.uid || '').trim();
+			if (id === '' || seen[id]) {
+				return;
+			}
+			if (row.enabled === false) {
+				return;
+			}
+			seen[id] = true;
+			out.push({
+				id: id,
+				displayName: String(row.displayName || id),
+				hasSeat: row.hasSeat === true || isAlreadySeated(id),
+			});
+		});
+		return out;
+	}
+
 	function closeSuggest() {
 		if (!seatSuggestEl) {
 			return;
@@ -760,7 +790,7 @@
 			return;
 		}
 		var filtered = (items || []).filter(function (it) {
-			return it && it.id && !isAlreadySeated(it.id);
+			return it && it.id && !it.hasSeat && !isAlreadySeated(it.id);
 		});
 		if (filtered.length === 0) {
 			var noneP = document.createElement('p');
@@ -823,11 +853,30 @@
 			var myGeneration = searchGeneration;
 			searchDebounce = window.setTimeout(function () {
 				if (!api.searchUsers) {
+					renderSuggestions([], tr('seatSearchErrorServer', 'The server could not run the search. Try again in a moment.'));
 					return;
+				}
+				if (seatSuggestEl) {
+					while (seatSuggestEl.firstChild) {
+						seatSuggestEl.removeChild(seatSuggestEl.firstChild);
+					}
+					var loadingP = document.createElement('p');
+					loadingP.className = 'dc-license-seat-search__note';
+					loadingP.setAttribute('role', 'status');
+					loadingP.textContent = tr('seatSearchLoading', 'Searching…');
+					seatSuggestEl.appendChild(loadingP);
+					seatSuggestEl.hidden = false;
+				}
+				if (seatSearchInput) {
+					seatSearchInput.setAttribute('aria-expanded', 'true');
+					seatSearchInput.setAttribute('aria-busy', 'true');
 				}
 				var url = new URL(api.searchUsers, window.location.origin);
 				url.searchParams.set('q', q);
 				request(url.toString(), { method: 'GET' }).then(function (res) {
+					if (seatSearchInput) {
+						seatSearchInput.removeAttribute('aria-busy');
+					}
 					if (myGeneration !== searchGeneration) {
 						return;
 					}
@@ -850,7 +899,12 @@
 						renderSuggestions([], tr('seatSearchErrorServer', 'The server could not run the search. Try again in a moment.'));
 						return;
 					}
-					renderSuggestions(Array.isArray(res.data.items) ? res.data.items : [], null);
+					// Prefer `items` (license#searchUsers / InvoiceCheck contract).
+					// Also accept `users` so a mis-wired directory endpoint still works.
+					var raw = Array.isArray(res.data.items)
+						? res.data.items
+						: (Array.isArray(res.data.users) ? res.data.users : []);
+					renderSuggestions(normalizeSearchHits(raw), null);
 				});
 			}, 300);
 		});

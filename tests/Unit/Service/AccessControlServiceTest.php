@@ -100,19 +100,24 @@ class AccessControlServiceTest extends TestCase
 		self::assertTrue($access->canUseApp('planner-unlinked'));
 	}
 
-	public function testCanUseAppDeniesEmployeeRoleWithoutLink(): void
+	public function testCanUseAppAllowsEmployeeRoleWithoutLinkThroughOpenDoor(): void
 	{
 		$db = $this->createMock(IDBConnection::class);
+		// needsRoleEnrollment + hasDutyMembership each hit link lookup then role lookup.
 		$db->method('getQueryBuilder')->willReturnOnConsecutiveCalls(
+			$this->queryBuilderWithResults($this->resultWithFetchOne(false)),
+			$this->queryBuilderWithResults($this->resultWithFetchRow(['role' => 'employee'])),
 			$this->queryBuilderWithResults($this->resultWithFetchOne(false)),
 			$this->queryBuilderWithResults($this->resultWithFetchRow(['role' => 'employee'])),
 		);
 
 		$access = $this->service($db);
-		self::assertFalse($access->canUseApp('employee-unlinked'));
+		self::assertTrue($access->canUseApp('employee-unlinked'), 'Open mode opens the door without membership');
+		self::assertTrue($access->needsRoleEnrollment('employee-unlinked'));
+		self::assertFalse($access->hasDutyMembership('employee-unlinked'));
 	}
 
-	public function testCanUseAppDeniesNoRoleAndNoLink(): void
+	public function testCanUseAppAllowsNoRoleThroughOpenDoorButNeedsEnrollment(): void
 	{
 		$db = $this->createMock(IDBConnection::class);
 		$db->method('getQueryBuilder')->willReturnOnConsecutiveCalls(
@@ -121,7 +126,8 @@ class AccessControlServiceTest extends TestCase
 		);
 
 		$access = $this->service($db);
-		self::assertFalse($access->canUseApp('nobody'));
+		self::assertTrue($access->canUseApp('nobody'), 'Open mode must open the door without a DutyCheck role');
+		self::assertTrue($access->needsRoleEnrollment('nobody'));
 	}
 
 	public function testSaveAppPolicyParsesStringFalseAsDisabledRestriction(): void

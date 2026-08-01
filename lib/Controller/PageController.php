@@ -7,12 +7,18 @@ namespace OCA\DutyCheck\Controller;
 use OCA\DutyCheck\AppInfo\Application;
 use OCA\DutyCheck\Integration\IArbeitszeitCheckIntegration;
 use OCA\DutyCheck\Service\AccessControlService;
+use OCA\DutyCheck\Service\LicenseService;
+use OCA\DutyCheck\Service\LicenseUiStrings;
 use OCA\DutyCheck\Service\LocaleFormatService;
 use OCA\DutyCheck\Service\RosterService;
+use OCA\DutyCheck\Service\SettingsSectionCatalog;
+use OCA\DutyCheck\Support\SupportUsLinks;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\NotFoundResponse;
 use OCP\AppFramework\Http\RedirectResponse;
+use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -30,19 +36,51 @@ class PageController extends Controller
 		private IL10N $l10n,
 		private RosterService $roster,
 		private IArbeitszeitCheckIntegration $arbeitszeitCheckIntegration,
+		private SettingsSectionCatalog $settingsSections,
+		private LicenseService $licenseService,
 	) {
 		parent::__construct($appName, $request);
 	}
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function index(): RedirectResponse
+	public function index(): RedirectResponse|TemplateResponse
 	{
 		$userId = $this->access->currentUserId();
+		if ($this->access->needsRoleEnrollment($userId)) {
+			return $this->needsRolePage();
+		}
 		$route = $this->access->isPlannerOrAdmin($userId)
 			? 'dutycheck.page.dashboard'
 			: 'dutycheck.page.myRoster';
 		return new RedirectResponse($this->urlGenerator->linkToRoute($route));
+	}
+
+	/**
+	 * Calm enrollment shell (HTTP 200): door open, membership still required.
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function needsRole(): TemplateResponse|RedirectResponse
+	{
+		$userId = $this->access->currentUserId();
+		if (!$this->access->needsRoleEnrollment($userId)) {
+			return new RedirectResponse($this->urlGenerator->linkToRoute('dutycheck.page.index'));
+		}
+		return $this->needsRolePage();
+	}
+
+	private function needsRolePage(): TemplateResponse
+	{
+		Util::addStyle(Application::APP_ID, 'common/tokens');
+		Util::addStyle(Application::APP_ID, 'app');
+		$l = $this->l10n;
+		return new TemplateResponse(Application::APP_ID, 'needs-role', [
+			'l' => $l,
+			'message' => $l->t('You are not enrolled in DutyCheck yet.'),
+			'hint' => $l->t('Ask a DutyCheck administrator to link your account as an employee or assign you a planner role before you can use rosters and absences.'),
+			'homeUrl' => $this->urlGenerator->linkToDefaultPageUrl(),
+		]);
 	}
 
 	#[NoAdminRequired]
@@ -183,12 +221,99 @@ class PageController extends Controller
 		return $this->page('my-absences', 'my-absences', $this->l10n->t('See your requests first, then send a new one if you need time off.'));
 	}
 
+	/**
+	 * Legacy single-page settings URL — now redirects to the default sub-page.
+	 * The route (and its name, dutycheck.page.settings) is kept so every old
+	 * bookmark and cross-app link keeps resolving.
+	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function settings(): TemplateResponse
+	public function settings(): RedirectResponse
 	{
 		$this->access->requirePlannerOrAdmin($this->access->currentUserId());
-		return $this->page('settings', 'settings', $this->l10n->t('App policy, privacy, and access controls.'));
+		return new RedirectResponse($this->urlGenerator->linkToRoute(
+			'dutycheck.page.settingsSection',
+			['section' => SettingsSectionCatalog::DEFAULT_SECTION],
+		));
+	}
+
+	/**
+	 * One settings sub-page per former section (DeskCheck pattern).
+	 *
+	 * The route requirement already restricts {section} to the allowlist; the
+	 * catalog check below is defense in depth so a route change can never open
+	 * an unvalidated template dispatch.
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function settingsSection(string $section): Response
+	{
+		$this->access->requirePlannerOrAdmin($this->access->currentUserId());
+		$section = strtolower(trim($section));
+		if (!$this->settingsSections->isSection($section)) {
+			return new NotFoundResponse();
+		}
+
+		$extra = [
+			'settingsSection' => $section,
+			'pageTitle' => $this->settingsSections->label($this->l10n, $section),
+		];
+		if ($section === 'license') {
+			$extra = array_merge($extra, $this->licenseSettingsExtras());
+			Util::addStyle(Application::APP_ID, 'license-settings');
+			Util::addScript(Application::APP_ID, 'license-settings');
+		}
+		if ($section === 'support') {
+			$extra['supportUsLinks'] = new SupportUsLinks(
+				'DutyCheck',
+				true,
+				$this->urlGenerator->linkToRouteAbsolute(
+					'dutycheck.page.settingsSection',
+					['section' => 'license'],
+				) . '#dutycheck-license',
+			);
+		}
+
+		return $this->page(
+			'settings',
+			'settings',
+			$this->settingsSections->help($this->l10n, $section),
+			$extra,
+		);
+	}
+
+	/**
+	 * License panel data for the license sub-page. Failures inside the license
+	 * subsystem must never take the settings shell down, so status/seats fall
+	 * back to null and the panel renders its "not configured" state.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function licenseSettingsExtras(): array
+	{
+		$licenseStatus = null;
+		$licenseSeatsList = null;
+		try {
+			$licenseStatus = $this->licenseService->status();
+			$licenseSeatsList = $this->licenseService->listSeats(50, 0);
+		} catch (\Throwable) {
+			$licenseStatus = null;
+			$licenseSeatsList = null;
+		}
+		$licenseApiUrl = $this->urlGenerator->linkToRouteAbsolute('dutycheck.license.show');
+		$licenseSeatsUrl = $this->urlGenerator->linkToRouteAbsolute('dutycheck.license.seats');
+		return [
+			'licenseStatus' => $licenseStatus,
+			'licenseSeatsList' => $licenseSeatsList,
+			'licenseI18n' => LicenseUiStrings::forPanel($this->l10n),
+			'licenseApiUrl' => $licenseApiUrl,
+			'licenseClearUrl' => $licenseApiUrl,
+			'licenseSeatsUrl' => $licenseSeatsUrl,
+			'licenseAssignSeatUrl' => $licenseSeatsUrl,
+			'licenseRemoveSeatBase' => rtrim($licenseSeatsUrl, '/') . '/',
+			'licenseSearchUsersUrl' => $this->urlGenerator->linkToRouteAbsolute('dutycheck.license.searchUsers'),
+			'requesttoken' => Util::callRegister(),
+		];
 	}
 
 	private function page(string $template, string $script, string $help, array $extra = []): TemplateResponse
@@ -204,6 +329,9 @@ class PageController extends Controller
 		Util::addScript(Application::APP_ID, 'common/components');
 		if ($template === 'locations') {
 			Util::addScript(Application::APP_ID, 'common/timezone-picker');
+		}
+		if ($template === 'settings') {
+			Util::addScript(Application::APP_ID, 'settings-legacy-redirect');
 		}
 		Util::addScript(Application::APP_ID, $script);
 
@@ -228,6 +356,27 @@ class PageController extends Controller
 			$roleLabel = $this->l10n->t('Employee');
 		}
 
+		$settingsSectionUrls = [];
+		foreach (SettingsSectionCatalog::SECTIONS as $sectionId) {
+			$settingsSectionUrls[$sectionId] = $this->urlGenerator->linkToRoute(
+				'dutycheck.page.settingsSection',
+				['section' => $sectionId],
+			);
+		}
+		$settingsSectionLabels = [];
+		foreach (SettingsSectionCatalog::SECTIONS as $sectionId) {
+			// Short chip / sidebar labels; page H1 still uses label() via $extra.
+			$settingsSectionLabels[$sectionId] = $this->settingsSections->navLabel($this->l10n, $sectionId);
+		}
+
+		$breadcrumbParent = null;
+		if (($extra['settingsSection'] ?? '') !== '') {
+			$breadcrumbParent = [
+				'label' => $this->l10n->t('Settings'),
+				'url' => $this->urlGenerator->linkToRoute('dutycheck.page.settings'),
+			];
+		}
+
 		$integrationBootstrap = $this->arbeitszeitCheckIntegration->buildBootstrapForUser($userId, $hasLinkedEmployee);
 		$integrationBootstrapJson = htmlspecialchars(
 			json_encode(
@@ -242,6 +391,8 @@ class PageController extends Controller
 			'pageId' => $template,
 			'pageTitle' => $this->titleForPage($template),
 			'pageHelp' => $help,
+			'breadcrumbParent' => $breadcrumbParent,
+			'settingsSectionLabels' => $settingsSectionLabels,
 			'currentUserId' => $userId,
 			'isEmployee' => $isEmployee,
 			'hasLinkedEmployee' => $hasLinkedEmployee,
@@ -264,6 +415,7 @@ class PageController extends Controller
 				'myRoster' => $this->urlGenerator->linkToRoute('dutycheck.page.myRoster'),
 				'myAbsences' => $this->urlGenerator->linkToRoute('dutycheck.page.myAbsences'),
 				'settings' => $this->urlGenerator->linkToRoute('dutycheck.page.settings'),
+				'settingsSections' => $settingsSectionUrls,
 				'home' => $this->urlGenerator->linkToDefaultPageUrl(),
 				'rosterExportCsv' => $this->urlGenerator->linkToRoute('dutycheck.rosterApi.exportRosterCsv'),
 				'rosterPrint' => $this->urlGenerator->linkToRoute('dutycheck.page.rosterPrint'),

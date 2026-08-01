@@ -102,6 +102,14 @@
 	box-sizing: border-box;
 }
 
+/* Muted ink on --color-background-darker fails WCAG 1.4.3 in dark themes
+   (#999 on #3b3b3b ≈ 3.93:1). Promote labels/values to full-contrast ink. */
+.dc-license-status .dc-license-meter-label,
+.dc-license-status .dc-license-meter-text,
+.dc-license-status .dc-license-status__valid-until {
+	color: var(--color-main-text);
+}
+
 .dc-license-status__row {
 	display: flex;
 	flex-wrap: wrap;

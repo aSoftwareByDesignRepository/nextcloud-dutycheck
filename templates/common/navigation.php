@@ -36,11 +36,40 @@ $planningItems = [
 	['id' => 'absences', 'label' => $l->t('Absences'), 'hint' => $l->t('Review and transition requests'), 'icon' => 'calendar-off', 'url' => $urls['absences'] ?? '#'],
 ];
 $catalogItems = [
-	['id' => 'employees', 'label' => $l->t('Employees'), 'hint' => $l->t('Directory and linked user IDs'), 'icon' => 'users', 'url' => $urls['employees'] ?? '#'],
+	['id' => 'employees', 'label' => $l->t('Employees'), 'hint' => $l->t('Directory and linked Nextcloud accounts'), 'icon' => 'users', 'url' => $urls['employees'] ?? '#'],
 	['id' => 'locations', 'label' => $l->t('Locations'), 'hint' => $l->t('Timezone-aware duty locations'), 'icon' => 'map-pin', 'url' => $urls['locations'] ?? '#'],
 ];
+// Settings sub-pages (split layout): shown as an expanded sub-list under the
+// Settings entry while the admin is on any settings page. Labels and URLs come
+// from the controller (SettingsSectionCatalog), so nav and routes cannot drift.
+$settingsSection = (string) ($_['settingsSection'] ?? '');
+$settingsSectionUrls = (array) ($urls['settingsSections'] ?? []);
+$settingsSectionLabels = (array) ($_['settingsSectionLabels'] ?? []);
+$settingsChildren = [];
+if ($isAppAdmin && $pageId === 'settings') {
+	foreach ($settingsSectionLabels as $sectionId => $sectionLabel) {
+		$childHref = (string) ($settingsSectionUrls[$sectionId] ?? '');
+		if ($childHref === '' || $childHref === '#') {
+			continue;
+		}
+		$settingsChildren[] = [
+			'id' => (string) $sectionId,
+			'label' => (string) $sectionLabel,
+			'url' => $childHref,
+			'active' => $settingsSection === (string) $sectionId,
+		];
+	}
+}
+
 $governanceItems = $isAppAdmin
-	? [['id' => 'settings', 'label' => $l->t('Settings'), 'hint' => $l->t('Security and governance'), 'icon' => 'shield-check', 'url' => $urls['settings'] ?? '#']]
+	? [[
+		'id' => 'settings',
+		'label' => $l->t('Settings'),
+		'hint' => $l->t('Security and governance'),
+		'icon' => 'shield-check',
+		'url' => $urls['settings'] ?? '#',
+		'children' => $settingsChildren,
+	]]
 	: [];
 
 $renderGroup = function (string $title, array $items) use ($pageId, $l): void {
@@ -52,11 +81,15 @@ $renderGroup = function (string $title, array $items) use ($pageId, $l): void {
 		<p id="dc-nav-group-<?php p(strtolower(preg_replace('/[^a-z0-9]+/i', '-', $title))); ?>" class="dc-nav__group-title"><?php p($title); ?></p>
 		<ul class="dc-nav__list">
 			<?php foreach ($items as $item):
+				$children = (array) ($item['children'] ?? []);
 				$active = $pageId === $item['id'];
+				// With an expanded sub-list, aria-current belongs to the active
+				// child link only; the parent keeps the visual active state.
+				$parentAriaCurrent = $active && $children === [];
 				?>
 				<li class="dc-nav__item <?php p($active ? 'is-active active' : ''); ?>">
 					<a class="dc-nav__link" href="<?php p((string) $item['url']); ?>"
-						<?php if ($active): ?>aria-current="page"<?php endif; ?>>
+						<?php if ($parentAriaCurrent): ?>aria-current="page"<?php endif; ?>>
 						<span class="dc-nav__icon" aria-hidden="true">
 							<?php print_unescaped(IconCatalog::render((string) ($item['icon'] ?? 'layout-grid'), 'dc-icon')); ?>
 						</span>
@@ -65,6 +98,20 @@ $renderGroup = function (string $title, array $items) use ($pageId, $l): void {
 							<span class="dc-nav__hint"><?php p((string) ($item['hint'] ?? '')); ?></span>
 						</span>
 					</a>
+					<?php if ($children !== []): ?>
+						<ul class="dc-nav__sublist">
+							<?php foreach ($children as $child):
+								$childActive = !empty($child['active']);
+								?>
+								<li class="dc-nav__subitem <?php p($childActive ? 'is-active active' : ''); ?>">
+									<a class="dc-nav__sublink" href="<?php p((string) $child['url']); ?>"
+										<?php if ($childActive): ?>aria-current="page"<?php endif; ?>>
+										<?php p((string) $child['label']); ?>
+									</a>
+								</li>
+							<?php endforeach; ?>
+						</ul>
+					<?php endif; ?>
 				</li>
 			<?php endforeach; ?>
 		</ul>
