@@ -1,6 +1,17 @@
 # Changelog
 
-## 0.1.37 - 2026-07-31
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## 0.1.39 - 2026-08-02
+
+### Changed
+
+- **German locales (de / de_DE):** formal Sie-address and clearer duty-planning, period, conflict, and license copy.
+
+## 0.1.38 - 2026-07-31
 
 ### UX / navigation
 
@@ -23,7 +34,7 @@
 - New: `SettingsSectionCatalogTest`, `SettingsPagesContractTest` (cross-artifact drift), `SettingsTemplateRenderTest` (renders every partial; escaping + anchor checks), `settings-pages.test.mjs` (executes the redirect module: fail-closed on malformed payloads, prototype-pollution-safe hash handling), and `run-settings-pages-mutations.php` (catalog/dispatcher/JS/nav mutations — all killed).
 - Playwright: axe smoke covers all 13 settings sub-pages plus redirect/anchor-forward/sidebar/chip-bar journeys; theme matrix pins `/settings/access`.
 - License status strip: meter labels use full-contrast ink on `--color-background-darker` (axe caught `#999` on `#3b3b3b` at 3.93:1).
-- Version lockstep **0.1.37**.
+- Version lockstep **0.1.38**.
 
 ## 0.1.36 - 2026-07-29
 

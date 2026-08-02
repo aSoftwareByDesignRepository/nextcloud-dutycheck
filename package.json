@@ -1,21 +1,21 @@
 {
-  "name": "dutycheck",
-  "version": "0.1.37",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "db:naming-check": "bash ../../scripts/check-custom-apps-db.sh --app=dutycheck --gate=critical",
-    "mutate:integrity": "php tests/Mutation/run-integrity-closeout-mutations.php",
-    "mutate:api-abort": "php tests/Mutation/run-api-abort-mutations.php",
-    "mutate:settings-pages": "php tests/Mutation/run-settings-pages-mutations.php",
-    "test:js": "node --test tests/js/*.test.mjs",
-    "e2e": "playwright test",
-    "test:a11y": "playwright test tests/e2e/a11y-smoke.spec.js",
-    "test:theme-a11y": "playwright test tests/e2e/theme-responsive-a11y.spec.js",
-    "test:ui-gauntlet": "playwright test tests/e2e/a11y-smoke.spec.js tests/e2e/theme-responsive-a11y.spec.js tests/e2e/nav-abort-no-network-toast.spec.js tests/e2e/setup-progress-a11y.spec.js"
-  },
-  "devDependencies": {
-    "@axe-core/playwright": "^4.10.2",
-    "@playwright/test": "^1.55.0"
-  }
+    "name": "dutycheck",
+    "version": "0.1.39",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "db:naming-check": "bash ../../scripts/check-custom-apps-db.sh --app=dutycheck --gate=critical",
+        "mutate:integrity": "php tests/Mutation/run-integrity-closeout-mutations.php",
+        "mutate:api-abort": "php tests/Mutation/run-api-abort-mutations.php",
+        "mutate:settings-pages": "php tests/Mutation/run-settings-pages-mutations.php",
+        "test:js": "node --test tests/js/*.test.mjs",
+        "e2e": "playwright test",
+        "test:a11y": "playwright test tests/e2e/a11y-smoke.spec.js",
+        "test:theme-a11y": "playwright test tests/e2e/theme-responsive-a11y.spec.js",
+        "test:ui-gauntlet": "playwright test tests/e2e/a11y-smoke.spec.js tests/e2e/theme-responsive-a11y.spec.js tests/e2e/nav-abort-no-network-toast.spec.js tests/e2e/setup-progress-a11y.spec.js"
+    },
+    "devDependencies": {
+        "@axe-core/playwright": "^4.10.2",
+        "@playwright/test": "^1.55.0"
+    }
 }
