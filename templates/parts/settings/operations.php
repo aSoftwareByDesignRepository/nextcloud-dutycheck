@@ -22,7 +22,7 @@
 		<div class="dc-field dc-field--full">
 			<label class="dc-checkbox" for="dc-ops-mc-hook">
 				<input id="dc-ops-mc-hook" type="checkbox" name="mcOnDutyHookEnabled">
-				<span class="dc-checkbox__text"><?php p($l->t('Enable MaintenanceCheck on-duty read hook (feature-flagged)')); ?></span>
+				<span class="dc-checkbox__text"><?php p($l->t('Enable on-duty read hook for compatible companion apps (feature-flagged)')); ?></span>
 			</label>
 		</div>
 		<div class="dc-field dc-field--full">

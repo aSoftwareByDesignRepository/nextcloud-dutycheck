@@ -148,7 +148,7 @@ final class SettingsSectionCatalog
 			'shift-templates' => $l->t('Named start/end/break presets for the roster “Add assignment” dialog. Optional location keeps a template site-specific.'),
 			'qualifications' => $l->t('Catalog of skills or certificates. Missing required qualifications block assign/publish. Expired quals are soft warnings.'),
 			'planner-scope' => $l->t('Limit a planner to specific locations. Leave none selected for unrestricted (legacy global planners). App admins are never scoped.'),
-			'operations' => $l->t('Optional soft-cap approach notices, MaintenanceCheck on-duty hook, and cold-archive retention for old snapshots (never deletes the latest close snapshot of a still-closed period).'),
+			'operations' => $l->t('Optional soft-cap approach notices, on-duty read hook for compatible companion apps, and cold-archive retention for old snapshots (never deletes the latest close snapshot of a still-closed period).'),
 			'integration' => $l->t('Mirror absences from ArbeitszeitCheck for roster conflicts. DutyCheck never writes to ArbeitszeitCheck.'),
 			'privacy' => $l->t('How DutyCheck treats personal data, and the plain-language terms used in this app.'),
 			default => '',

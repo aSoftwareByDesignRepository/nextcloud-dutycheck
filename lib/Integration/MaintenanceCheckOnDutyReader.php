@@ -15,8 +15,8 @@ use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
- * B6 — optional read-only “who is on duty today” for MaintenanceCheck pickers.
- * Feature-flagged; DutyCheck remains fully usable when MaintenanceCheck is absent.
+ * B6 — optional read-only “who is on duty today” for compatible companion-app pickers.
+ * Feature-flagged; DutyCheck remains fully usable when no consumer is present.
  * When multi-company is active, results are scoped to the caller's companies.
  */
 class MaintenanceCheckOnDutyReader

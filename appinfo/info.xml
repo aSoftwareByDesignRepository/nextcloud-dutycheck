@@ -7,8 +7,64 @@
 	<id>dutycheck</id>
 	<name>DutyCheck</name>
 	<name lang="de">DutyCheck</name>
-	<summary>Shift rosters that stay clear, conflict-free, and audit-ready — built into your Nextcloud</summary>
-	<summary lang="de">Klare, konfliktfreie Dienstpläne mit Nachweis — direkt in Ihrer Nextcloud</summary>
+	<summary>Publish duty rosters without spreadsheet chaos — conflicts checked on your Nextcloud</summary>
+	<summary lang="de">Dienstpläne veröffentlichen ohne Tabellenchaos — Konflikte geprüft in Ihrer Nextcloud</summary>
+	<description><![CDATA[
+# Plan shifts. Catch conflicts. Publish with a trail.
+
+DutyCheck builds duty rosters inside your self-hosted Nextcloud. Open a planning period, assign people to locations, see hard blocks and soft warnings while you edit — then publish, close and keep a snapshot when someone asks who was on duty.
+
+**Free web app** (AGPL-3.0-or-later). Companion apps: https://nextcloud.software-by-design.de/
+
+## Why teams install it
+
+- **Edit with confidence** — overlaps, understaffing, short breaks and period totals surface before you publish
+- **A flow everyone understands** — open → published → closed (with reopen); conflict thresholds freeze when the period is created
+- **Fill faster** — employee×day grid and list, shift templates, bulk fill, printable roster with integrity hash
+- **Staff self-service** — my roster, absences, acknowledge, claim open shifts, swap requests, per-person iCal feed
+- **Prove what was planned** — snapshots with hash chain, period audit trail, Activity and Notifications
+- **Stay scoped** — planner vs employee roles, optional location scope, optional companies/workspaces
+- **Optional ArbeitszeitCheck** — mirror absences for conflict checks (off until you enable it; DutyCheck never writes back)
+
+## Clear limits
+
+- HR CSV exports minutes — not salaries.
+- Audit entries are append-only.
+- Conflict checks are ArbZG-oriented and configurable — not a legal certification.
+- Declared databases: MySQL and PostgreSQL.
+
+## Requirements
+
+- Nextcloud 32–34 · PHP 8.2–8.5 · MySQL or PostgreSQL
+	]]></description>
+	<description lang="de"><![CDATA[
+# Schichten planen. Konflikte sehen. Mit Nachweis veröffentlichen.
+
+DutyCheck baut Dienstpläne in Ihrer selbst gehosteten Nextcloud. Periode öffnen, Personen Standorten zuweisen, harte Sperren und weiche Warnungen schon beim Bearbeiten sehen — dann veröffentlichen, abschließen und einen Snapshot behalten, wenn jemand fragt, wer im Dienst war.
+
+**Kostenlose Web-App** (AGPL-3.0-or-later). Companion-Apps: https://nextcloud.software-by-design.de/
+
+## Warum Teams es einsetzen
+
+- **Sicher bearbeiten** — Überlappungen, Unterbesetzung, zu kurze Pausen und Periodensummen vor dem Veröffentlichen
+- **Klarer Ablauf** — Offen → Veröffentlicht → Abgeschlossen (mit Wiederöffnen); Konfliktschwellen beim Anlegen eingefroren
+- **Schneller füllen** — Raster und Liste, Schichtvorlagen, Massenfüllung, druckbarer Plan mit Integritätshash
+- **Self-Service** — Mein Dienstplan, Abwesenheiten, Bestätigung, offene Schichten, Tausch, iCal-Feed
+- **Nachweis behalten** — Snapshots mit Hash-Kette, Perioden-Audit, Activity und Benachrichtigungen
+- **Zugriff steuern** — Planer- vs. Mitarbeiter-Rollen, optionaler Standort-Scope, optionale Firmen/Workspaces
+- **Optional ArbeitszeitCheck** — Abwesenheiten für Konflikte spiegeln (standardmäßig aus; DutyCheck schreibt nicht zurück)
+
+## Klare Grenzen
+
+- HR-CSV exportiert Minuten — keine Gehälter.
+- Audit-Einträge sind nur anhängbar.
+- Konfliktprüfungen sind ArbZG-orientiert und konfigurierbar — keine Rechtszertifizierung.
+- Deklarierte Datenbanken: MySQL und PostgreSQL.
+
+## Voraussetzungen
+
+- Nextcloud 32–34 · PHP 8.2–8.5 · MySQL oder PostgreSQL
+	]]></description>
 	<summary lang="fr">Plannings de service clairs, sans conflits et prêts pour l'audit — intégrés à votre Nextcloud</summary>
 	<summary lang="da">Klare, konfliktfri vagtplaner med revisionsspor — direkte i din Nextcloud</summary>
 	<summary lang="es">Planificaciones de turnos claras, sin conflictos y listas para auditoría — integradas en tu Nextcloud</summary>
@@ -17,64 +73,6 @@
 	<summary lang="pl">Przejrzyste harmonogramy dyżurów bez konfliktów, gotowe do audytu — w Twoim Nextcloud</summary>
 	<summary lang="sv">Tydliga, konfliktfria schema med revisionsspår — inbyggt i din Nextcloud</summary>
 	<summary lang="nb">Klare, konfliktfrie vaktplaner med revisjonsspor — direkte i din Nextcloud</summary>
-	<description><![CDATA[
-# DutyCheck — duty rosters your team can actually rely on
-
-Tired of spreadsheets that drift out of date the moment you publish? DutyCheck brings **shift planning into Nextcloud**: one place for rosters, absences, and the paper trail when someone asks *“who was on duty that night?”*
-
-Install it, add your people and locations, open a planning period, and start assigning shifts — the interface is built to be **simple on day one** and **strict where it matters** (conflicts and lifecycle rules are enforced on the server, not in someone’s memory).
-
-## Why teams try DutyCheck
-
-- **See problems before you publish** — overlapping shifts and policy conflicts surface while you are still editing, not after the roster goes live
-- **A workflow everyone understands** — open → published → closed, with clear states so planners and staff know what is official
-- **Self-service for staff** — linked employees can view their roster, request absences, and subscribe to a calendar feed
-- **Audit-ready by design** — snapshots and an activity trail when you need to prove what was planned and when it changed
-- **Built for real devices** — responsive from phone to desktop; interface targets **WCAG 2.1 AA** accessibility
-
-## Great fit if you run
-
-Healthcare rotations, facility coverage, events, logistics, retail shifts, on-call teams — anywhere **people, places, and time** need to line up without guesswork.
-
-## Optional: ArbeitszeitCheck
-
-If you also use **ArbeitszeitCheck**, DutyCheck can mirror absences automatically (integration is optional and stays off until you enable it).
-
-## Requirements
-
-- Nextcloud 32–34
-- PHP 8.2–8.5
-- MySQL or PostgreSQL
-	]]></description>
-	<description lang="de"><![CDATA[
-# DutyCheck — Dienstpläne, denen Ihr Team vertrauen kann
-
-Kennen Sie das: Die Excel-Tabelle war gestern noch aktuell — und heute fragt jemand, **wer eigentlich Dienst hatte**. DutyCheck holt die **Schichtplanung in Ihre Nextcloud**: ein Ort für Dienste, Abwesenheiten und den Nachweis, wenn es ernst wird.
-
-Einfach installieren, Mitarbeitende und Standorte anlegen, eine Planungsperiode öffnen und Schichten zuweisen. Die Oberfläche ist **am ersten Tag verständlich** und **dort streng, wo es zählt** (Konflikte und Lebenszyklusregeln werden serverseitig durchgesetzt — nicht in Köpfchen oder Tabellen).
-
-## Darum lohnt sich ein Test
-
-- **Fehler sehen, bevor Sie veröffentlichen** — Überschneidungen und Regelverstöße tauchen beim Planen auf, nicht erst danach
-- **Ein Ablauf, den alle verstehen** — Offen → Veröffentlicht → Abgeschlossen; Planende und Team wissen, was verbindlich ist
-- **Self-Service fürs Team** — verknüpfte Konten sehen ihren Dienstplan, stellen Abwesenheiten und können einen Kalender-Feed abonnieren
-- **Nachweise eingebaut** — Snapshots und Protokoll, wenn Sie belegen müssen, was wann geplant war
-- **Für Alltag und Mobilgerät** — responsiv vom Smartphone bis Desktop; Ziel **WCAG 2.1 AA**
-
-## Passt besonders gut für
-
-Gesundheitsdienste, Objektbetrieb, Veranstaltungen, Logistik, Einzelhandel, Bereitschaft — überall, wo **Menschen, Orte und Zeiten** zusammenpassen müssen.
-
-## Optional: ArbeitszeitCheck
-
-Mit **ArbeitszeitCheck** können Abwesenheiten automatisch gespiegelt werden (optional, standardmäßig aus — Sie schalten die Anbindung bewusst frei).
-
-## Voraussetzungen
-
-- Nextcloud 32–34
-- PHP 8.2–8.5
-- MySQL oder PostgreSQL
-	]]></description>
 	<description lang="fr"><![CDATA[
 # DutyCheck — des plannings de service sur lesquels votre équipe peut compter
 
