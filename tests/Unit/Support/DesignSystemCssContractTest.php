@@ -125,6 +125,20 @@ final class DesignSystemCssContractTest extends TestCase
 		self::assertStringNotContainsString('.dc-scope-strip__sep', $this->appCss);
 	}
 
+	public function testQuickstartStepCtasAreCentered(): void
+	{
+		self::assertMatchesRegularExpression(
+			'/\.dc-quickstart__item\s+\.button[\s\S]{0,200}?align-self:\s*center/s',
+			$this->appCss,
+			'Design-system: quickstart step CTAs must be centered',
+		);
+		self::assertDoesNotMatchRegularExpression(
+			'/\.dc-quickstart__item\s+\.button[\s\S]{0,120}?align-self:\s*flex-start/s',
+			$this->appCss,
+			'Quickstart CTAs must not be left-ragged',
+		);
+	}
+
 	public function testScopeStripNeutralisesNextcloudCoreDefinitionListChrome(): void
 	{
 		// Core apps.css: dt { width: 130px; text-align: end } leaves a fake left gap.

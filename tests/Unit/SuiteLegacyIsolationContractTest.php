@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Suite legacy isolation (CHECK-SUITE L1): DutyCheck must not hard-require
- * CustomerCheck / InvoicingCheck / InventoryCheck / MaintenanceCheck.
+ * CustomerCheck / InvoiceCheck / InventoryCheck / MaintenanceCheck.
  * Optional MN on-duty hook must remain soft (flag + capability).
  *
  * @see planning/check-productivity-suite/LEGACY-SAFETY.md

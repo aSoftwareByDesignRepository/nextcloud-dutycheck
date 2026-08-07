@@ -725,12 +725,22 @@ body,
 	gap: var(--dc-space-2);
 }
 .dc-quickstart__item p { margin: 0; color: var(--dc-muted); font-size: var(--dc-fs-sm); }
-.dc-quickstart__cta { margin-top: var(--dc-space-3); }
+.dc-quickstart__cta {
+	margin-top: var(--dc-space-3);
+	display: flex;
+	justify-content: center;
+	width: 100%;
+	text-align: center;
+}
 .dc-quickstart__item strong { font-size: var(--dc-fs-md); line-height: var(--dc-line-tight); color: var(--color-main-text, #1d1d1d); }
-.dc-quickstart__item .button {
-	align-self: flex-start;
+.dc-quickstart__item .button,
+.dc-quickstart__item .dc-btn,
+.dc-quickstart__cta .button,
+.dc-quickstart__cta .dc-btn {
+	align-self: center;
 	min-height: 44px;
 	margin-top: auto;
+	text-align: center;
 }
 
 /* Setup progress (dashboard — not dismissable until complete)
@@ -3707,4 +3717,20 @@ form.dc-form-grid[aria-busy='true'] .button {
 	.dc-roster-grid__shift {
 		transition: none;
 	}
+}
+
+/* Soft keyboard: leave room when visualViewport / scrollIntoView adjusts. */
+.form-textarea,
+textarea.form-input,
+textarea.bc-input,
+textarea.crm-input,
+textarea.iv-input,
+textarea.ic-input,
+textarea.mc-input,
+textarea.mn-input,
+textarea.tc-input,
+textarea.dk-input,
+textarea {
+	scroll-margin-bottom: min(45vh, 20rem);
+	scroll-margin-top: 5rem;
 }

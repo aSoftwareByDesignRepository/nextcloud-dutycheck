@@ -327,6 +327,8 @@ class PageController extends Controller
 		Util::addScript(Application::APP_ID, 'common/messaging');
 		Util::addScript(Application::APP_ID, 'common/conflict-labels');
 		Util::addScript(Application::APP_ID, 'common/components');
+		// Soft keyboard / visualViewport: keep focused notes & inputs above the IME on phones.
+		Util::addScript(Application::APP_ID, 'common/keep-focused-visible');
 		if ($template === 'locations') {
 			Util::addScript(Application::APP_ID, 'common/timezone-picker');
 		}
