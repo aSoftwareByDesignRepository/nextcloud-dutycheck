@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.1.40 - 2026-08-08
+
+### Fixed
+
+- **ArbeitszeitCheck integration “Sync now”:** per-admin rate-limiter config keys no longer exceed Nextcloud’s 64-character `oc_appconfig.configkey` limit (full SHA-256 digest was producing 89-character keys and HTTP 400). Manual sync works again; background reconcile was unaffected.
+
 ## 0.1.39 - 2026-08-02
 
 ### Changed
