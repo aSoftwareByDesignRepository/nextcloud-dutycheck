@@ -61,6 +61,18 @@ $mutants = [
 		'label' => 'rate-limiter-always-deny',
 	],
 	[
+		'file' => 'lib/Integration/IntegrationSyncRateLimiter.php',
+		'search' => "return self::ADMIN_KEY_PREFIX . substr(hash('sha256', \$adminUid), 0, \$budget);",
+		'replace' => "return self::ADMIN_KEY_PREFIX . hash('sha256', \$adminUid);",
+		'label' => 'rate-limiter-admin-key-untruncated',
+	],
+	[
+		'file' => 'lib/Integration/IntegrationSyncRateLimiter.php',
+		'search' => 'public const APP_CONFIG_KEY_MAX = 64;',
+		'replace' => 'public const APP_CONFIG_KEY_MAX = 32;',
+		'label' => 'rate-limiter-key-max-too-small',
+	],
+	[
 		'file' => 'lib/Integration/IntegrationOpsConstants.php',
 		'search' => 'public const RD_PERIOD_SECONDS = 900;',
 		'replace' => 'public const RD_PERIOD_SECONDS = 1;',

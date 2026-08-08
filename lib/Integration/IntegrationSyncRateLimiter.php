@@ -12,10 +12,18 @@ use OCP\Lock\LockedException;
 
 /**
  * REQ-RD-12 Sync now rate limits: 1/60s/admin, 6/h/admin, 30/h/instance.
+ *
+ * Per-admin hit buckets are stored via IConfig::setAppValue(). Nextcloud's
+ * oc_appconfig.configkey is varchar(64) (OC\AppConfig::KEY_MAX_LENGTH); keys
+ * longer than that throw InvalidArgumentException and abort Sync now with HTTP 400.
  */
 final class IntegrationSyncRateLimiter
 {
+	/** Matches OC\AppConfig::KEY_MAX_LENGTH / oc_appconfig.configkey. */
+	public const APP_CONFIG_KEY_MAX = 64;
+
 	private const CFG_INSTANCE = 'integration_at_sync_rl_instance';
+	private const ADMIN_KEY_PREFIX = 'integration_at_sync_rl_a_';
 	private const LOCK_KEY = 'dutycheck/integration_at_sync_rl';
 
 	public function __construct(
@@ -138,8 +146,14 @@ final class IntegrationSyncRateLimiter
 
 	private function adminKey(string $adminUid): string
 	{
-		// Bound key length; hash avoids reserved config chars / injection into key space.
-		return 'integration_at_sync_rl_a_' . hash('sha256', $adminUid);
+		// Hash avoids reserved config chars / injection into key space.
+		// Truncate digest so prefix + hex always fits oc_appconfig.configkey (64).
+		$budget = self::APP_CONFIG_KEY_MAX - strlen(self::ADMIN_KEY_PREFIX);
+		if ($budget < 16) {
+			// Compile-time invariant: prefix must leave enough entropy for collision resistance.
+			throw new \LogicException('ADMIN_KEY_PREFIX leaves insufficient budget for appconfig key');
+		}
+		return self::ADMIN_KEY_PREFIX . substr(hash('sha256', $adminUid), 0, $budget);
 	}
 
 	/**
@@ -188,6 +202,11 @@ final class IntegrationSyncRateLimiter
 	 */
 	private function writeHits(string $key, array $hits): void
 	{
+		if (strlen($key) > self::APP_CONFIG_KEY_MAX) {
+			throw new \InvalidArgumentException(
+				'Value (' . $key . ') for key is too long (' . self::APP_CONFIG_KEY_MAX . ')'
+			);
+		}
 		$this->config->setAppValue(
 			Application::APP_ID,
 			$key,

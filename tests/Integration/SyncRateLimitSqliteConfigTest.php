@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace OCA\DutyCheck\Tests\Integration;
 
+use InvalidArgumentException;
 use OCA\DutyCheck\AppInfo\Application;
 use OCA\DutyCheck\Integration\IntegrationOpsConstants;
 use OCA\DutyCheck\Integration\IntegrationSyncRateLimiter;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IConfig;
-use PDO;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -85,10 +85,55 @@ final class SyncRateLimitSqliteConfigTest extends TestCase
 			return $store[$key] ?? $default;
 		});
 		$config->method('setAppValue')->willReturnCallback(function (string $appId, string $key, string $value) use (&$store): void {
+			// Mirror OC\AppConfig::assertParams — Sync now used to crash here on long keys.
+			if (strlen($key) > IntegrationSyncRateLimiter::APP_CONFIG_KEY_MAX) {
+				throw new InvalidArgumentException(
+					'Value (' . $key . ') for key is too long (' . IntegrationSyncRateLimiter::APP_CONFIG_KEY_MAX . ')'
+				);
+			}
 			if ($appId === Application::APP_ID) {
 				$store[$key] = $value;
 			}
 		});
 		return $config;
+	}
+
+	public function testManualSyncRecordFitsAppConfigSchema(): void
+	{
+		$store = [];
+		$config = $this->configStore($store);
+		$clock = new class implements ITimeFactory {
+			public int $now = 9_000_000;
+			public function getTime(): int
+			{
+				return $this->now;
+			}
+			public function now(): \DateTimeImmutable
+			{
+				return (new \DateTimeImmutable('@' . $this->now))->setTimezone(new \DateTimeZone('UTC'));
+			}
+			public function getDateTime(string $time = 'now', ?\DateTimeZone $timezone = null): \DateTime
+			{
+				$tz = $timezone ?? new \DateTimeZone('UTC');
+				$dt = new \DateTime('@' . $this->now);
+				$dt->setTimezone($tz);
+				return $dt;
+			}
+			public function withTimeZone(\DateTimeZone $timezone): static
+			{
+				return $this;
+			}
+			public function getTimeZone(?string $timezone = null): \DateTimeZone
+			{
+				return new \DateTimeZone($timezone ?? 'UTC');
+			}
+		};
+
+		$rl = new IntegrationSyncRateLimiter($config, $clock);
+		// Must not throw InvalidArgumentException (the production Sync-now failure mode).
+		self::assertTrue($rl->tryConsume('admin')['allowed']);
+		foreach (array_keys($store) as $key) {
+			self::assertLessThanOrEqual(IntegrationSyncRateLimiter::APP_CONFIG_KEY_MAX, strlen($key), $key);
+		}
 	}
 }
