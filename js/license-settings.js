@@ -57,6 +57,11 @@
 		if (typeof window.OC !== 'undefined' && window.OC.requestToken) {
 			return window.OC.requestToken;
 		}
+		var head = document.querySelector('head');
+		var fromHead = head ? head.getAttribute('data-requesttoken') : '';
+		if (fromHead) {
+			return fromHead;
+		}
 		var meta = document.querySelector('meta[name="requesttoken"]');
 		return meta ? meta.getAttribute('content') || '' : '';
 	}

@@ -199,13 +199,30 @@ class MobileController extends Controller
 		}
 	}
 
+	/**
+	 * Companion routes are Basic app-password only.
+	 *
+	 * These endpoints are #[NoCSRFRequired] so mobile clients can authenticate
+	 * without a request token. Accepting cookie/session identity here would
+	 * create a CSRF surface for seat-gated mutations (ack / claim / swap /
+	 * absence). Browser callers must use the CSRF-protected web API instead.
+	 */
 	private function requireUid(): string
 	{
+		if (!$this->usesBasicAppPassword()) {
+			throw new \RuntimeException('UNAUTHENTICATED');
+		}
 		$user = $this->userSession->getUser();
 		if ($user === null) {
 			throw new \RuntimeException('UNAUTHENTICATED');
 		}
 		return $user->getUID();
+	}
+
+	private function usesBasicAppPassword(): bool
+	{
+		$auth = (string) $this->request->getHeader('Authorization');
+		return str_starts_with(strtolower($auth), 'basic ');
 	}
 
 	private function fromThrowable(Throwable $e): JSONResponse

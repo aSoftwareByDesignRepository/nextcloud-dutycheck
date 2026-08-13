@@ -6,7 +6,8 @@
         "directories": [
             "lib/Service",
             "lib/License",
-            "lib/Integration"
+            "lib/Integration",
+            "lib/Middleware"
         ],
         "excludes": [
             "RosterService.php",
@@ -18,7 +19,8 @@
             "RosterCsvFormatter.php",
             "IconCatalog.php",
             "LicenseUiStrings.php",
-            "MaintenanceCheckOnDutyReader.php"
+            "MaintenanceCheckOnDutyReader.php",
+            "AppAccessMiddleware.php"
         ]
     },
     "timeout": 30,

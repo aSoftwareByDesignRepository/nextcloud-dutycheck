@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\DutyCheck\Middleware;
 
+use OCA\DutyCheck\Exception\MobileUnauthenticatedException;
 use OCA\DutyCheck\Exception\PaymentRequiredException;
 use OCA\DutyCheck\Service\LicenseService;
 use OCP\AppFramework\Http;
@@ -14,8 +15,9 @@ use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 /**
- * HTTP 402 gate for DutyCheck companion APIs under /api/mobile/* (Basic auth only).
- * Browser session traffic stays free. Bootstrap is never gated.
+ * Companion /api/mobile/* choke point:
+ * 1) Basic app-password required (rejects cookie/session CSRF surface)
+ * 2) HTTP 402 license/seat gate for Basic callers (bootstrap exempt from 402)
  */
 class ClientLicenseMiddleware extends Middleware
 {
@@ -31,18 +33,24 @@ class ClientLicenseMiddleware extends Middleware
 
 	public function beforeController($controller, $methodName): void
 	{
-		if (!$this->usesBasicAppPassword()) {
+		$path = $this->normalizeApiPath((string)$this->request->getPathInfo());
+		if (!str_starts_with($path, '/api/mobile')) {
 			return;
 		}
 
-		$path = $this->normalizeApiPath((string)$this->request->getPathInfo());
-		if (!$this->shouldGateMobileApiPath($path)) {
+		// Defense-in-depth with MobileController::requireUid — cookie sessions must not
+		// reach NoCSRFRequired companion mutations.
+		if (!$this->usesBasicAppPassword()) {
+			throw new MobileUnauthenticatedException();
+		}
+
+		if ($path === self::BOOTSTRAP_PATH) {
 			return;
 		}
 
 		$user = $this->userSession->getUser();
 		if ($user === null) {
-			return;
+			throw new MobileUnauthenticatedException();
 		}
 
 		$userId = $user->getUID();
@@ -70,6 +78,16 @@ class ClientLicenseMiddleware extends Middleware
 
 	public function afterException($controller, $methodName, \Exception $exception)
 	{
+		if ($exception instanceof MobileUnauthenticatedException) {
+			return new DataResponse([
+				'ok' => false,
+				'error' => [
+					'code' => 'UNAUTHENTICATED',
+					'message' => 'UNAUTHENTICATED',
+				],
+			], Http::STATUS_UNAUTHORIZED);
+		}
+
 		if (!$exception instanceof PaymentRequiredException) {
 			throw $exception;
 		}
@@ -83,17 +101,6 @@ class ClientLicenseMiddleware extends Middleware
 				'message' => $code,
 			],
 		], Http::STATUS_PAYMENT_REQUIRED);
-	}
-
-	private function shouldGateMobileApiPath(string $path): bool
-	{
-		if (!str_starts_with($path, '/api/mobile')) {
-			return false;
-		}
-		if ($path === self::BOOTSTRAP_PATH) {
-			return false;
-		}
-		return true;
 	}
 
 	private function usesBasicAppPassword(): bool

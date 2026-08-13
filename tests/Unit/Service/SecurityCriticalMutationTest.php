@@ -381,6 +381,25 @@ final class SecurityCriticalMutationTest extends TestCase
 		self::assertSame('payloadXXX', $payload['licensing']['envelope']['payloadB64']);
 	}
 
+	public function testClientLicenseMiddlewareRejectsCookieOnMobileMutations(): void
+	{
+		$request = $this->createMock(\OCP\IRequest::class);
+		$request->method('getHeader')->with('Authorization')->willReturn('');
+		$request->method('getPathInfo')->willReturn('/apps/dutycheck/api/mobile/my/assignments/1/acknowledge');
+
+		$license = $this->createMock(LicenseService::class);
+		$license->expects(self::never())->method('isMobilePlanActive');
+
+		$mw = new \OCA\DutyCheck\Middleware\ClientLicenseMiddleware(
+			$request,
+			$this->createMock(IUserSession::class),
+			$license,
+			$this->createMock(LoggerInterface::class),
+		);
+		$this->expectException(\OCA\DutyCheck\Exception\MobileUnauthenticatedException::class);
+		$mw->beforeController(new \stdClass(), 'acknowledgeAssignment');
+	}
+
 	private function access(IGroupManager $groups): AccessControlService
 	{
 		$config = $this->createMock(IConfig::class);

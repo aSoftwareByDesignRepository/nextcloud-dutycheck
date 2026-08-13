@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace OCA\DutyCheck\Exception;
 
 /**
- * HTTP 402 — companion seat / license required (never thrown for browser session web).
+ * HTTP 402 — companion seat / license required (Basic /api/mobile/* only).
+ * Cookie callers never reach this gate — they are rejected as 401 first.
  */
 class PaymentRequiredException extends \RuntimeException
 {

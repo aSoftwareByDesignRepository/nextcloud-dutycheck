@@ -155,6 +155,11 @@
 		if (window.OC && window.OC.requestToken) {
 			return String(window.OC.requestToken);
 		}
+		const head = document.querySelector('head');
+		const fromHead = head ? head.getAttribute('data-requesttoken') : '';
+		if (fromHead) {
+			return String(fromHead);
+		}
 		const input = document.querySelector('input[name="requesttoken"]');
 		return input ? String(input.value || '') : '';
 	}
