@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace OCA\DutyCheck\Activity;
 
 use OCA\DutyCheck\AppInfo\Application;
+use OCP\Activity\Exceptions\UnknownActivityException;
 use OCP\Activity\IEvent;
 use OCP\Activity\IProvider;
-use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\L10N\IFactory;
 
@@ -22,10 +22,13 @@ class Provider implements IProvider
 	) {
 	}
 
+	/**
+	 * @throws UnknownActivityException
+	 */
 	public function parse($language, IEvent $event, ?IEvent $previousEvent = null): IEvent
 	{
 		if ($event->getApp() !== Application::APP_ID) {
-			throw new \InvalidArgumentException();
+			throw new UnknownActivityException();
 		}
 
 		$l = $this->l10nFactory->get(Application::APP_ID, $language);
@@ -47,7 +50,7 @@ class Provider implements IProvider
 				);
 				return $event;
 			default:
-				throw new \InvalidArgumentException();
+				throw new UnknownActivityException();
 		}
 	}
 }

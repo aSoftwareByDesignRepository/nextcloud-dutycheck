@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.1.42 - 2026-08-14
+
+### Fixed
+
+- **Language vs locale:** DutyCheck now honours Nextcloud *Language* for UI text (`lang`, relative time, weekday names) and *Locale* for date order and first day of week. English UI with a Dutch locale no longer presents the interface in Dutch. The header shows *Start of week* from Locale, named in Language.
+- **Translations:** planning “period” is no longer translated as menstruation (Dutch *menstruatie*, Swedish *mens*, French *règles*, Italian *ciclo*). Empty-state copy uses the time-range sense in nl/fr/it/sv/pl. Work “shift” is no longer translated as displacement/change (Dutch *verschuiving*, Italian *spostamento*, French *changement*, Danish *Kravskifte*, Spanish *turno de reclamo*).
+- **Speed:** Periods, Dashboard pulse, Absences, and Roster GET no longer load a full conflict recompute for a button click. GET publish-readiness and roster reads use persisted conflicts; overlap checks group by employee; absence collisions are batched. Writes (assign/publish/close) still refresh.
+
+### Changed
+
+- Version lockstep **0.1.42**. Nextcloud `max-version` remains **34** (current stable **34.0.3**).
+
+## 0.1.41 - 2026-08-13
+
+### Added
+
+- **Brazilian Portuguese (pt_BR):** UI catalog (`l10n/pt_BR.json` / `pt_BR.js`).
+
+### Fixed
+
+- **Activity provider (NC 34):** unknown / foreign activity events throw `OCP\Activity\Exceptions\UnknownActivityException` instead of `\InvalidArgumentException`, matching the Activity API contract.
+
+### Changed
+
+- **l10n:** locale catalogs refreshed for parity; tooling accepts `pt_BR`.
+- **Nextcloud:** `max-version` remains **34** (current stable **34.0.3**).
+
 ## 0.1.40 - 2026-08-08
 
 ### Fixed

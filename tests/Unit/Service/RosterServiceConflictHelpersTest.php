@@ -148,4 +148,69 @@ class RosterServiceConflictHelpersTest extends TestCase
 		$this->expectExceptionMessage('INVALID_TIME');
 		$method->invoke($service, '24:00');
 	}
+
+	public function testPairOverlapEmitsDoubleBookingNotRest(): void
+	{
+		$service = $this->service();
+		$method = new ReflectionMethod(RosterService::class, 'pairOverlapAndRestConflicts');
+		$method->setAccessible(true);
+		$dedup = [];
+		$result = $method->invoke($service, [
+			['id' => 1, 'employeeId' => 9, 'dutyDate' => '2026-08-14', 'startTime' => '08:00', 'endTime' => '16:00'],
+			['id' => 2, 'employeeId' => 9, 'dutyDate' => '2026-08-14', 'startTime' => '12:00', 'endTime' => '20:00'],
+		], ['minRestMinutes' => 660], $dedup);
+		self::assertCount(1, $result);
+		self::assertSame('double_booking', $result[0]['type']);
+		self::assertSame('hard', $result[0]['severity']);
+		self::assertSame([1, 2], $result[0]['assignmentIds']);
+		self::assertArrayNotHasKey('rest_time_violation:1:2', $dedup);
+	}
+
+	public function testPairRestGapEmitsSoftRestViolation(): void
+	{
+		$service = $this->service();
+		$method = new ReflectionMethod(RosterService::class, 'pairOverlapAndRestConflicts');
+		$method->setAccessible(true);
+		$dedup = [];
+		$result = $method->invoke($service, [
+			['id' => 10, 'employeeId' => 4, 'dutyDate' => '2026-08-14', 'startTime' => '08:00', 'endTime' => '16:00'],
+			['id' => 11, 'employeeId' => 4, 'dutyDate' => '2026-08-15', 'startTime' => '00:00', 'endTime' => '08:00'],
+		], ['minRestMinutes' => 660], $dedup);
+		self::assertCount(1, $result);
+		self::assertSame('rest_time_violation', $result[0]['type']);
+		self::assertSame('soft', $result[0]['severity']);
+		self::assertSame(480, $result[0]['details']['restMinutes']);
+	}
+
+	public function testPairRespectsDedupAndIgnoresForeignEmployeesWhenGrouped(): void
+	{
+		$service = $this->service();
+		$method = new ReflectionMethod(RosterService::class, 'pairOverlapAndRestConflicts');
+		$method->setAccessible(true);
+		$dedup = ['double_booking:1:2' => true];
+		$result = $method->invoke($service, [
+			['id' => 1, 'employeeId' => 9, 'dutyDate' => '2026-08-14', 'startTime' => '08:00', 'endTime' => '16:00'],
+			['id' => 2, 'employeeId' => 9, 'dutyDate' => '2026-08-14', 'startTime' => '12:00', 'endTime' => '20:00'],
+		], ['minRestMinutes' => 660], $dedup);
+		self::assertSame([], $result);
+	}
+
+	public function testAbsenceCollisionSourceFromSpansPrefersDutycheckAndIgnoresMisses(): void
+	{
+		self::assertNull(RosterService::absenceCollisionSourceFromSpans('2026-08-14', []));
+		self::assertNull(RosterService::absenceCollisionSourceFromSpans('2026-08-14', [
+			['startDate' => '2026-08-01', 'endDate' => '2026-08-10', 'source' => 'dutycheck'],
+			['startDate' => '', 'endDate' => '2026-08-14', 'source' => 'dutycheck'],
+		]));
+		self::assertSame('dutycheck', RosterService::absenceCollisionSourceFromSpans('2026-08-14', [
+			['startDate' => '2026-08-14', 'endDate' => '2026-08-16', 'source' => 'arbeitszeitcheck'],
+			['startDate' => '2026-08-10', 'endDate' => '2026-08-20', 'source' => 'dutycheck'],
+		]));
+		self::assertSame('arbeitszeitcheck', RosterService::absenceCollisionSourceFromSpans('2026-08-14', [
+			['startDate' => '2026-08-14', 'endDate' => '2026-08-14', 'source' => 'arbeitszeitcheck'],
+		]));
+		self::assertSame('dutycheck', RosterService::absenceCollisionSourceFromSpans('2026-08-14', [
+			['startDate' => '2026-08-14', 'endDate' => '2026-08-14', 'source' => 'mystery'],
+		]));
+	}
 }

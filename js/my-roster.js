@@ -166,10 +166,13 @@
 	}
 
 	function weekdayLabel(isoDate) {
+		if (typeof D?.formatWeekday === 'function') {
+			return D.formatWeekday(isoDate);
+		}
 		const date = new Date(`${isoDate}T00:00:00`);
 		if (Number.isNaN(date.getTime())) return '';
 		try {
-			return new Intl.DateTimeFormat(D?.currentLocale?.() || 'en', {
+			return new Intl.DateTimeFormat(D?.currentLanguage?.() || 'en', {
 				weekday: 'long',
 				timeZone: D?.currentTimezone?.() || undefined,
 			}).format(date);

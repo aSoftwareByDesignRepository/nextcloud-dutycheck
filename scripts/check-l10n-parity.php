@@ -17,7 +17,7 @@ declare(strict_types=1);
  */
 
 $base = __DIR__ . '/../l10n';
-$localeFiles = ['en', 'de', 'fr', 'es', 'da', 'nl', 'it', 'pl', 'sv', 'nb'];
+$localeFiles = ['en', 'de', 'fr', 'es', 'da', 'nl', 'it', 'pl', 'sv', 'nb', 'pt_BR'];
 $catalogs = [];
 
 foreach ($localeFiles as $lang) {
@@ -29,7 +29,8 @@ foreach ($localeFiles as $lang) {
 	$catalogs[$lang] = json_decode((string) file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
 }
 
-$enKeys = array_keys($catalogs['en']['translations'] ?? []);
+$enKeysOrdered = array_keys($catalogs['en']['translations'] ?? []);
+$enKeys = $enKeysOrdered;
 sort($enKeys);
 $ok = true;
 
@@ -53,7 +54,7 @@ foreach (array_diff($localeFiles, ['en']) as $lang) {
 			fwrite(STDERR, "  - {$key}\n");
 		}
 	}
-	if ($langKeys !== $enKeys) {
+	if ($langKeys !== $enKeysOrdered) {
 		$ok = false;
 		fwrite(STDERR, "Key order mismatch in {$lang}.json (same keys but different order than en.json).\n");
 	}
@@ -64,5 +65,5 @@ if (!$ok) {
 	exit(1);
 }
 
-echo 'l10n parity OK (' . count($enKeys) . " keys, en/de/fr/es/da/nl/it/pl/sv/nb).\n";
+echo 'l10n parity OK (' . count($enKeys) . " keys, en/de/fr/es/da/nl/it/pl/sv/nb/pt_BR).\n";
 exit(0);

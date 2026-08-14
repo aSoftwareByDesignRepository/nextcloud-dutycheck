@@ -410,7 +410,7 @@
 
 	async function loadPeriods(preferredPeriodId) {
 		try {
-			const response = await Api.get('/apps/dutycheck/api/roster');
+			const response = await Api.get('/apps/dutycheck/api/periods');
 			const periods = response?.data?.periods || [];
 			const preferred = preferredPeriodId || selectedPeriodIdFromUrl();
 			const selected = periods.find((p) => Number(p.id) === Number(preferred)) || periods[0] || null;

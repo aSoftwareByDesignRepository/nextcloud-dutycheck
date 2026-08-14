@@ -117,6 +117,18 @@ class RosterApiController extends Controller
 	}
 
 	#[NoAdminRequired]
+	public function listPeriods(): DataResponse
+	{
+		try {
+			$userId = $this->access->currentUserId();
+			$this->access->requirePlannerOrAdmin($userId);
+			return new DataResponse(['ok' => true, 'data' => ['periods' => $this->roster->listPeriods($userId)]]);
+		} catch (Throwable $e) {
+			return ApiJsonErrorResponse::fromThrowable($e);
+		}
+	}
+
+	#[NoAdminRequired]
 	public function createPeriod(): DataResponse
 	{
 		try {

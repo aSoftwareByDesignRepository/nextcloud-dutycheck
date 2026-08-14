@@ -1,13 +1,13 @@
 {
     "name": "dutycheck",
-    "version": "0.1.40",
+    "version": "0.1.42",
     "private": true,
     "type": "module",
     "scripts": {
         "db:naming-check": "bash ../../scripts/check-custom-apps-db.sh --app=dutycheck --gate=critical",
         "mutate:integrity": "php tests/Mutation/run-integrity-closeout-mutations.php",
         "mutate:api-abort": "php tests/Mutation/run-api-abort-mutations.php",
-        "mutate:settings-pages": "php tests/Mutation/run-settings-pages-mutations.php",
+        "mutate:language-locale": "php tests/Mutation/run-language-locale-mutations.php",
         "test:js": "node --test tests/js/*.test.mjs",
         "e2e": "playwright test",
         "test:a11y": "playwright test tests/e2e/a11y-smoke.spec.js",

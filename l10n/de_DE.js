@@ -829,6 +829,7 @@ OC.L10N.register(
 	"Start" : "Beginn",
 	"Start and end time must be different. For overnight shifts, set the end time earlier than the start (e.g. 22:00–06:00)." : "Start- und Endzeit müssen unterschiedlich sein. Bei Schichten über Mitternacht Endzeit vor Startzeit eintragen (z. B. 22:00–06:00).",
 	"Start date" : "Startdatum",
+	"Start of week" : "Wochenbeginn",
 	"Start time" : "Beginn",
 	"Start time (24-hour HH:mm)" : "Startzeit (24-Stunden HH:mm)",
 	"Status" : "Status",

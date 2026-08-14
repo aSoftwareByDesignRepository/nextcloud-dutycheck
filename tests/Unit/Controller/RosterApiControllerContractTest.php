@@ -153,6 +153,32 @@ class RosterApiControllerContractTest extends TestCase
 		self::assertSame('PERIOD_NOT_FOUND', $data['error']['code']);
 	}
 
+	public function testListPeriodsReturnsScopedCatalogWithoutRosterPayload(): void
+	{
+		$this->access->expects(self::once())->method('requirePlannerOrAdmin')->with('planner-1');
+		$this->roster->expects(self::once())->method('listPeriods')->with('planner-1')->willReturn([
+			['id' => 3, 'status' => 'open', 'startDate' => '2026-08-01', 'endDate' => '2026-08-31'],
+		]);
+		$this->roster->expects(self::never())->method('rosterData');
+
+		$response = $this->controller->listPeriods();
+		self::assertTrue($response->getData()['ok']);
+		self::assertSame(
+			[['id' => 3, 'status' => 'open', 'startDate' => '2026-08-01', 'endDate' => '2026-08-31']],
+			$response->getData()['data']['periods'],
+		);
+	}
+
+	public function testListPeriodsDeniesNonPlanners(): void
+	{
+		$this->access->method('requirePlannerOrAdmin')
+			->willThrowException(new AppAccessDeniedException(AccessControlService::DENIAL_INSUFFICIENT_ROLE));
+
+		$response = $this->controller->listPeriods();
+		self::assertSame(403, $response->getStatus());
+		self::assertSame('INSUFFICIENT_ROLE', $response->getData()['error']['code']);
+	}
+
 	public function testPublicIcalMapsInvalidTokenTo403(): void
 	{
 		$this->request->method('getServerProtocol')->willReturn('https');

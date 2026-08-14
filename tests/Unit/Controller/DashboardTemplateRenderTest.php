@@ -68,6 +68,7 @@ final class DashboardTemplateRenderTest extends TestCase
 				'htmlLang' => 'en-US',
 				'locale' => 'en_US',
 				'timezone' => 'Europe/Berlin',
+				'weekStartDayName' => 'Monday',
 			],
 			'integrationBootstrapJson' => '',
 		], $overrides);
@@ -90,6 +91,8 @@ final class DashboardTemplateRenderTest extends TestCase
 		self::assertStringContainsString('<dt class="dc-scope-strip__label"', $html);
 		self::assertStringContainsString('<dd class="dc-scope-strip__value"', $html);
 		self::assertStringNotContainsString('dc-scope-strip__sep', $html);
+		self::assertStringContainsString('Start of week', $html);
+		self::assertStringContainsString('Monday', $html);
 		self::assertStringContainsString('id="dc-main-content"', $html);
 		self::assertStringContainsString('class="dc-skip-link" href="#dc-main-content"', $html);
 		self::assertStringContainsString('id="dc-live-region"', $html);
@@ -165,6 +168,7 @@ final class DashboardTemplateRenderTest extends TestCase
 				'htmlLang' => 'en-US',
 				'locale' => 'en_US',
 				'timezone' => '"><img src=x onerror=alert(2)>',
+				'weekStartDayName' => '<img src=x onerror=alert(9)>',
 			],
 			'urls' => [
 				'dashboard' => '/x?a=1&b=2',
@@ -182,6 +186,8 @@ final class DashboardTemplateRenderTest extends TestCase
 		self::assertStringNotContainsString('<script>alert(1)</script>', $html);
 		self::assertStringNotContainsString('<script>alert(3)</script>', $html);
 		self::assertStringNotContainsString('<img src=x onerror=alert(2)>', $html);
+		self::assertStringNotContainsString('<img src=x onerror=alert(9)>', $html);
+		self::assertStringContainsString('&lt;img src=x onerror=alert(9)&gt;', $html);
 		self::assertStringContainsString('&lt;script&gt;alert(1)&lt;/script&gt;', $html);
 		// The urls JSON payload is attribute-escaped as a whole.
 		self::assertMatchesRegularExpression('/data-dc-urls="[^"]*"/', $html);
@@ -211,5 +217,26 @@ final class DashboardTemplateRenderTest extends TestCase
 		// Checklist buttons degrade to '#', never to a PHP notice or raw null.
 		self::assertStringContainsString('href="#"', $html);
 		self::assertStringNotContainsString('href=""', $html);
+	}
+
+	public function testAppShellKeepsLanguageDistinctFromLocale(): void
+	{
+		$html = $this->renderDashboard([
+			'clientHints' => [
+				'htmlLang' => 'en-US',
+				'language' => 'en',
+				'locale' => 'nl-NL',
+				'firstDayOfWeek' => 1,
+				'weekStartDayName' => 'Monday',
+				'timezone' => 'Europe/Amsterdam',
+			],
+		]);
+		self::assertMatchesRegularExpression('/id="app-content"[^>]*\slang="en-US"/', $html);
+		self::assertMatchesRegularExpression('/id="app-content"[^>]*\sdata-language="en"/', $html);
+		self::assertMatchesRegularExpression('/id="app-content"[^>]*\sdata-locale="nl-NL"/', $html);
+		self::assertMatchesRegularExpression('/id="app-content"[^>]*\sdata-first-day-of-week="1"/', $html);
+		self::assertStringContainsString('Start of week', $html);
+		self::assertStringContainsString('Monday', $html);
+		self::assertDoesNotMatchRegularExpression('/id="app-content"[^>]*\slang="nl-NL"/', $html);
 	}
 }

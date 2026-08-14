@@ -23,15 +23,16 @@ $locales = array (
   9 => 'nb',
   // Regional variants mirror their base catalog (kept in sync by
   // sync-l10n-from-runtime.php).
-  10 => 'da_DK',
-  11 => 'de_DE',
-  12 => 'es_ES',
-  13 => 'fr_FR',
-  14 => 'it_IT',
-  15 => 'nb_NO',
-  16 => 'nl_NL',
-  17 => 'pl_PL',
-  18 => 'sv_SE',
+  10 => 'pt_BR',
+  11 => 'da_DK',
+  12 => 'de_DE',
+  13 => 'es_ES',
+  14 => 'fr_FR',
+  15 => 'it_IT',
+  16 => 'nb_NO',
+  17 => 'nl_NL',
+  18 => 'pl_PL',
+  19 => 'sv_SE',
 );
 
 foreach ($locales as $lang) {

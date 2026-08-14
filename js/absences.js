@@ -402,8 +402,8 @@
 		const integ = integrationBootstrapFromDom();
 		const locksLinked = integrationLocksLinked(integ);
 		try {
-			const rosterResponse = await Api.get('/apps/dutycheck/api/roster');
-			const employees = rosterResponse?.data?.employees || [];
+			const employeesResponse = await Api.get('/apps/dutycheck/api/employees');
+			const employees = (employeesResponse?.data || []).filter((e) => e.active !== false);
 			lastPlannerEmployees = employees;
 			renderPlannerIntegrationBanner(integ, employees);
 			fillEmployeeSelect(employees, locksLinked);

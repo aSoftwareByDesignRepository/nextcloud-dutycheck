@@ -165,16 +165,25 @@
 		root.removeAttribute('aria-busy');
 		root.replaceChildren();
 		const periods = Array.isArray(data?.periods) ? data.periods : [];
-		const conflicts = Array.isArray(data?.conflicts) ? data.conflicts : [];
 		if (periods.length === 0) {
 			root.appendChild(create('div', { class: 'dc-callout dc-callout--info' }, [
 				create('p', { text: t('dutycheck', 'No periods yet. Start by creating one to begin planning.') }),
 			]));
 			return;
 		}
-		const mustFix = conflicts.filter((c) => String(c?.severity) === 'hard').length;
-		const confirm = conflicts.filter((c) => String(c?.severity) === 'soft').length;
-		const pendingOpen = conflicts.filter((c) => String(c?.severity) === 'soft' && !c?.acknowledged).length;
+		let mustFix;
+		let confirm;
+		let pendingOpen;
+		if (data.readiness && typeof data.readiness === 'object') {
+			mustFix = Number(data.readiness.hardConflicts || 0);
+			confirm = Number(data.readiness.softConflicts || 0);
+			pendingOpen = Number(data.readiness.unacknowledgedSoftConflicts || 0);
+		} else {
+			const conflicts = Array.isArray(data?.conflicts) ? data.conflicts : [];
+			mustFix = conflicts.filter((c) => String(c?.severity) === 'hard').length;
+			confirm = conflicts.filter((c) => String(c?.severity) === 'soft').length;
+			pendingOpen = conflicts.filter((c) => String(c?.severity) === 'soft' && !c?.acknowledged).length;
+		}
 		const tone = mustFix > 0 ? 'critical' : (pendingOpen > 0 ? 'warning' : 'success');
 		const title = ConflictLabels
 			? ConflictLabels.pulseTitle(mustFix, pendingOpen)
@@ -211,8 +220,15 @@
 
 	async function loadPulse() {
 		try {
-			const roster = await Api.get('/apps/dutycheck/api/roster');
-			renderConflictPulse(roster?.data || {});
+			const list = await Api.get('/apps/dutycheck/api/periods');
+			const periods = list?.data?.periods || [];
+			if (!periods.length) {
+				renderConflictPulse({ periods: [] });
+				return;
+			}
+			const selected = periods.find((p) => String(p.status) === 'open') || periods[0];
+			const ready = await Api.get(`/apps/dutycheck/api/periods/${Number(selected.id)}/publish-readiness`);
+			renderConflictPulse({ periods, readiness: ready?.data || {} });
 		} catch (err) {
 			Msg.handleApiError(err);
 			const root = document.getElementById('dc-dashboard-conflict-pulse');

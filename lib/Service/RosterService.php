@@ -341,7 +341,11 @@ class RosterService
 	public function publishReadiness(int $periodId): array
 	{
 		$this->periodById($periodId);
-		$conflicts = $this->refreshAndListConflicts($periodId);
+		// GET is read-only: concurrent planners must not interleave materialize
+		// writes, and the Periods page must not wait on a full roster scan.
+		// Assignment mutations already persist conflict rows; publish still
+		// recomputes before flipping status.
+		$conflicts = $this->listPersistedConflicts($periodId);
 		return $this->computePublishReadinessFromConflicts($periodId, $conflicts);
 	}
 
@@ -510,7 +514,9 @@ class RosterService
 		$employees = $this->listEmployees($actorUserId);
 		$locations = $this->listLocations($actorUserId);
 		$assignments = $selected !== null ? $this->listAssignments($selected) : [];
-		$conflicts = $selected !== null ? $this->refreshAndListConflicts($selected) : [];
+		// GET must not recompute/materialize conflicts — that is the slow path
+		// the evaluation hit. Writes (assign/publish/close) still refresh.
+		$conflicts = $selected !== null ? $this->listPersistedConflicts($selected) : [];
 		$absenceBlocks = $selected !== null ? $this->listBlockingAbsenceSpansForPeriod($selected) : [];
 		$selectedPeriod = $selected !== null ? $this->periodById($selected) : null;
 
@@ -2323,49 +2329,6 @@ class RosterService
 		$conflicts = [];
 		$conflictDedup = [];
 		$thresholds = $this->policyThresholdsForPeriod($periodId);
-		$count = count($assignments);
-		for ($i = 0; $i < $count; $i++) {
-			for ($j = $i + 1; $j < $count; $j++) {
-				$a = $assignments[$i];
-				$b = $assignments[$j];
-				if ($a['employeeId'] !== $b['employeeId']) {
-					continue;
-				}
-				$aRange = $this->assignmentAbsoluteRange((string) $a['dutyDate'], (string) $a['startTime'], (string) $a['endTime']);
-				$bRange = $this->assignmentAbsoluteRange((string) $b['dutyDate'], (string) $b['startTime'], (string) $b['endTime']);
-				if ($this->absoluteRangesOverlap($aRange, $bRange)) {
-					$key = 'double_booking:' . min($a['id'], $b['id']) . ':' . max($a['id'], $b['id']);
-					if (isset($conflictDedup[$key])) {
-						continue;
-					}
-					$conflictDedup[$key] = true;
-					$conflicts[] = [
-						'type' => 'double_booking',
-						'severity' => 'hard',
-						'message' => 'Employee has overlapping assignments (double booking)',
-						'employeeId' => (int) $a['employeeId'],
-						'assignmentIds' => [$a['id'], $b['id']],
-					];
-				}
-				$gapMinutes = $this->minutesBetweenRanges($aRange, $bRange);
-				if ($gapMinutes >= 0 && $gapMinutes < $thresholds['minRestMinutes']) {
-					$key = 'rest_time_violation:' . min($a['id'], $b['id']) . ':' . max($a['id'], $b['id']);
-					if (isset($conflictDedup[$key])) {
-						continue;
-					}
-					$conflictDedup[$key] = true;
-					$conflicts[] = [
-						'type' => 'rest_time_violation',
-						'severity' => 'soft',
-						'message' => 'Less than 11 hours rest between consecutive assignments',
-						'employeeId' => (int) $a['employeeId'],
-						'assignmentIds' => [$a['id'], $b['id']],
-						'details' => ['restMinutes' => $gapMinutes, 'minRestMinutes' => $thresholds['minRestMinutes']],
-					];
-				}
-			}
-		}
-
 		$byEmployee = [];
 		foreach ($assignments as $assignment) {
 			$employeeId = (int) $assignment['employeeId'];
@@ -2373,6 +2336,14 @@ class RosterService
 				$byEmployee[$employeeId] = [];
 			}
 			$byEmployee[$employeeId][] = $assignment;
+		}
+		foreach ($byEmployee as $employeeAssignments) {
+			foreach ($this->pairOverlapAndRestConflicts($employeeAssignments, $thresholds, $conflictDedup) as $pairConflict) {
+				$conflicts[] = $pairConflict;
+			}
+		}
+
+		foreach ($assignments as $assignment) {
 			$effectiveMinutes = $this->effectiveMinutes(
 				(string) $assignment['startTime'],
 				(string) $assignment['endTime'],
@@ -2477,10 +2448,18 @@ class RosterService
 			}
 		}
 
+		$absenceByEmployee = [];
+		foreach ($this->listBlockingAbsenceSpansForPeriod($periodId) as $span) {
+			$eid = (int) ($span['employeeId'] ?? 0);
+			if ($eid <= 0) {
+				continue;
+			}
+			$absenceByEmployee[$eid][] = $span;
+		}
 		foreach ($assignments as $assignment) {
-			$collisionSource = $this->absenceCollisionSource(
-				(int) $assignment['employeeId'],
+			$collisionSource = self::absenceCollisionSourceFromSpans(
 				(string) $assignment['dutyDate'],
+				$absenceByEmployee[(int) $assignment['employeeId']] ?? [],
 			);
 			if ($collisionSource === null) {
 				continue;
@@ -3168,6 +3147,89 @@ class RosterService
 		}
 
 		$this->assertNoImportedAbsenceOverlap($employeeId, $startDate, $endDate, $statuses);
+	}
+
+	/**
+	 * Pairwise overlap (hard) and rest-gap (soft) checks for one employee's
+	 * assignments. Grouping by employee first is O(Σ k²) instead of O(n²)
+	 * across the whole roster.
+	 *
+	 * @param list<array<string,mixed>> $employeeAssignments
+	 * @param array<string,mixed> $thresholds
+	 * @param array<string,true> $conflictDedup
+	 * @return list<array<string,mixed>>
+	 */
+	private function pairOverlapAndRestConflicts(array $employeeAssignments, array $thresholds, array &$conflictDedup): array
+	{
+		$conflicts = [];
+		$count = count($employeeAssignments);
+		$minRest = (int) ($thresholds['minRestMinutes'] ?? 0);
+		for ($i = 0; $i < $count; $i++) {
+			for ($j = $i + 1; $j < $count; $j++) {
+				$a = $employeeAssignments[$i];
+				$b = $employeeAssignments[$j];
+				$aRange = $this->assignmentAbsoluteRange((string) $a['dutyDate'], (string) $a['startTime'], (string) $a['endTime']);
+				$bRange = $this->assignmentAbsoluteRange((string) $b['dutyDate'], (string) $b['startTime'], (string) $b['endTime']);
+				if ($this->absoluteRangesOverlap($aRange, $bRange)) {
+					$key = 'double_booking:' . min((int) $a['id'], (int) $b['id']) . ':' . max((int) $a['id'], (int) $b['id']);
+					if (isset($conflictDedup[$key])) {
+						continue;
+					}
+					$conflictDedup[$key] = true;
+					$conflicts[] = [
+						'type' => 'double_booking',
+						'severity' => 'hard',
+						'message' => 'Employee has overlapping assignments (double booking)',
+						'employeeId' => (int) $a['employeeId'],
+						'assignmentIds' => [$a['id'], $b['id']],
+					];
+					continue;
+				}
+				$gapMinutes = $this->minutesBetweenRanges($aRange, $bRange);
+				if ($gapMinutes >= 0 && $gapMinutes < $minRest) {
+					$key = 'rest_time_violation:' . min((int) $a['id'], (int) $b['id']) . ':' . max((int) $a['id'], (int) $b['id']);
+					if (isset($conflictDedup[$key])) {
+						continue;
+					}
+					$conflictDedup[$key] = true;
+					$conflicts[] = [
+						'type' => 'rest_time_violation',
+						'severity' => 'soft',
+						'message' => 'Less than 11 hours rest between consecutive assignments',
+						'employeeId' => (int) $a['employeeId'],
+						'assignmentIds' => [$a['id'], $b['id']],
+						'details' => ['restMinutes' => $gapMinutes, 'minRestMinutes' => $minRest],
+					];
+				}
+			}
+		}
+		return $conflicts;
+	}
+
+	/**
+	 * In-memory absence collision lookup (same precedence as {@see absenceCollisionSource}:
+	 * DutyCheck approved rows win over ArbeitszeitCheck mirror spans).
+	 *
+	 * @param list<array{employeeId?:int,startDate?:string,endDate?:string,source?:string}> $spansForEmployee
+	 * @return 'dutycheck'|'arbeitszeitcheck'|null
+	 */
+	public static function absenceCollisionSourceFromSpans(string $date, array $spansForEmployee): ?string
+	{
+		$hit = null;
+		foreach ($spansForEmployee as $span) {
+			$start = (string) ($span['startDate'] ?? '');
+			$end = (string) ($span['endDate'] ?? '');
+			if ($start === '' || $end === '' || $start > $date || $end < $date) {
+				continue;
+			}
+			$source = (string) ($span['source'] ?? 'dutycheck');
+			$normalized = $source === 'arbeitszeitcheck' ? 'arbeitszeitcheck' : 'dutycheck';
+			if ($normalized === 'dutycheck') {
+				return 'dutycheck';
+			}
+			$hit = 'arbeitszeitcheck';
+		}
+		return $hit;
 	}
 
 	private function hasApprovedAbsenceOnDate(int $employeeId, string $date): bool

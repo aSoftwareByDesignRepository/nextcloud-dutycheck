@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\DutyCheck\Tests\Unit\Activity;
 
 use OCA\DutyCheck\Activity\Provider;
+use OCP\Activity\Exceptions\UnknownActivityException;
 use OCP\Activity\IEvent;
 use OCP\IURLGenerator;
 use OCP\IL10N;
@@ -35,13 +36,25 @@ final class ActivityProviderTest extends TestCase
 		self::assertSame($event, $provider->parse('en', $event));
 	}
 
-	public function testRejectsForeignApp(): void
+	public function testRejectsForeignAppWithUnknownActivityException(): void
 	{
 		$factory = $this->createMock(IFactory::class);
 		$url = $this->createMock(IURLGenerator::class);
 		$event = $this->createMock(IEvent::class);
 		$event->method('getApp')->willReturn('files');
-		$this->expectException(\InvalidArgumentException::class);
+		$this->expectException(UnknownActivityException::class);
+		(new Provider($factory, $url))->parse('en', $event);
+	}
+
+	public function testRejectsUnknownSubjectWithUnknownActivityException(): void
+	{
+		$factory = $this->createMock(IFactory::class);
+		$factory->method('get')->willReturn($this->createMock(IL10N::class));
+		$url = $this->createMock(IURLGenerator::class);
+		$event = $this->createMock(IEvent::class);
+		$event->method('getApp')->willReturn('dutycheck');
+		$event->method('getSubject')->willReturn('not_a_real_subject');
+		$this->expectException(UnknownActivityException::class);
 		(new Provider($factory, $url))->parse('en', $event);
 	}
 }

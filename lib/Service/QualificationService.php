@@ -218,45 +218,116 @@ class QualificationService
 	 */
 	public function conflictsForAssignment(int $employeeId, int $locationId, string $dutyDate): array
 	{
-		if (!$this->db->tableExists('dc_loc_quals')) {
-			return [];
+		$map = $this->conflictsForAssignments([
+			['employeeId' => $employeeId, 'locationId' => $locationId, 'dutyDate' => $dutyDate],
+		]);
+		return $map[0] ?? [];
+	}
+
+	/**
+	 * Batch qualification checks: two queries for the whole roster, not two per shift.
+	 *
+	 * @param list<array{employeeId:int,locationId:int,dutyDate:string}> $assignments
+	 * @return array<int, list<array<string,mixed>>> conflicts keyed by assignment index
+	 */
+	public function conflictsForAssignments(array $assignments): array
+	{
+		$out = [];
+		foreach ($assignments as $i => $_) {
+			$out[$i] = [];
 		}
+		if ($assignments === [] || !$this->db->tableExists('dc_loc_quals')) {
+			return $out;
+		}
+
+		$locationIds = [];
+		$employeeIds = [];
+		foreach ($assignments as $row) {
+			$lid = (int) ($row['locationId'] ?? 0);
+			$eid = (int) ($row['employeeId'] ?? 0);
+			if ($lid > 0) {
+				$locationIds[$lid] = $lid;
+			}
+			if ($eid > 0) {
+				$employeeIds[$eid] = $eid;
+			}
+		}
+		if ($locationIds === []) {
+			return $out;
+		}
+
 		$qb = $this->db->getQueryBuilder();
-		$qb->select('q.id', 'q.name', 'lq.required')
+		$qb->select('q.id', 'q.name', 'lq.location_id')
 			->from('dc_loc_quals', 'lq')
 			->innerJoin('lq', 'dc_qualifications', 'q', 'lq.qualification_id = q.id')
-			->where($qb->expr()->eq('lq.location_id', $qb->createNamedParameter($locationId, IQueryBuilder::PARAM_INT)))
+			->where($qb->expr()->in(
+				'lq.location_id',
+				$qb->createNamedParameter(array_values($locationIds), IQueryBuilder::PARAM_INT_ARRAY),
+			))
 			->andWhere($qb->expr()->eq('q.active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)));
-		$required = $qb->executeQuery()->fetchAll();
-		if ($required === []) {
-			return [];
+		$requiredRows = $qb->executeQuery()->fetchAll();
+		$requiredByLocation = [];
+		foreach ($requiredRows as $req) {
+			$requiredByLocation[(int) $req['location_id']][] = [
+				'id' => (int) $req['id'],
+				'name' => (string) $req['name'],
+			];
+		}
+		if ($requiredByLocation === []) {
+			return $out;
 		}
 
-		$held = $this->db->getQueryBuilder();
-		$held->select('qualification_id', 'expires_on')
-			->from('dc_emp_quals')
-			->where($held->expr()->eq('employee_id', $held->createNamedParameter($employeeId, IQueryBuilder::PARAM_INT)));
-		$heldRows = $held->executeQuery()->fetchAll();
-		$byQual = [];
-		foreach ($heldRows as $row) {
-			$byQual[(int) $row['qualification_id']] = $row['expires_on'] !== null ? (string) $row['expires_on'] : null;
+		$heldByEmployee = [];
+		if ($employeeIds !== [] && $this->db->tableExists('dc_emp_quals')) {
+			$held = $this->db->getQueryBuilder();
+			$held->select('employee_id', 'qualification_id', 'expires_on')
+				->from('dc_emp_quals')
+				->where($held->expr()->in(
+					'employee_id',
+					$held->createNamedParameter(array_values($employeeIds), IQueryBuilder::PARAM_INT_ARRAY),
+				));
+			foreach ($held->executeQuery()->fetchAll() as $row) {
+				$heldByEmployee[(int) $row['employee_id']][(int) $row['qualification_id']] =
+					$row['expires_on'] !== null ? (string) $row['expires_on'] : null;
+			}
 		}
 
+		foreach ($assignments as $i => $row) {
+			$out[$i] = self::evaluateHeldAgainstRequired(
+				(int) ($row['employeeId'] ?? 0),
+				(string) ($row['dutyDate'] ?? ''),
+				$requiredByLocation[(int) ($row['locationId'] ?? 0)] ?? [],
+				$heldByEmployee[(int) ($row['employeeId'] ?? 0)] ?? [],
+			);
+		}
+		return $out;
+	}
+
+	/**
+	 * @param list<array{id:int,name:string}> $required
+	 * @param array<int, ?string> $heldByQual qualificationId => expires_on or null
+	 * @return list<array<string,mixed>>
+	 */
+	public static function evaluateHeldAgainstRequired(int $employeeId, string $dutyDate, array $required, array $heldByQual): array
+	{
 		$out = [];
 		foreach ($required as $req) {
-			$qid = (int) $req['id'];
-			if (!array_key_exists($qid, $byQual)) {
+			$qid = (int) ($req['id'] ?? 0);
+			if ($qid <= 0) {
+				continue;
+			}
+			if (!array_key_exists($qid, $heldByQual)) {
 				$out[] = [
 					'type' => 'qualification_missing',
 					'severity' => 'hard',
 					'message' => 'Employee is missing a required qualification for this location',
 					'employeeId' => $employeeId,
-					'payload' => ['qualificationId' => $qid, 'qualificationName' => (string) $req['name']],
+					'payload' => ['qualificationId' => $qid, 'qualificationName' => (string) ($req['name'] ?? '')],
 				];
 				continue;
 			}
-			$expires = $byQual[$qid];
-			if ($expires !== null && $expires < $dutyDate) {
+			$expires = $heldByQual[$qid];
+			if ($expires !== null && $expires !== '' && $expires < $dutyDate) {
 				$out[] = [
 					'type' => 'qualification_expired',
 					'severity' => 'soft',

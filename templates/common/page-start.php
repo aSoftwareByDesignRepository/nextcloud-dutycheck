@@ -36,7 +36,13 @@ $urls = (array) ($_['urls'] ?? []);
 $clientHints = (array) ($_['clientHints'] ?? []);
 $htmlLang = (string) ($clientHints['htmlLang'] ?? 'en-US');
 $locale = (string) ($clientHints['locale'] ?? $htmlLang);
+$language = (string) ($clientHints['language'] ?? $htmlLang);
+$firstDayOfWeek = (int) ($clientHints['firstDayOfWeek'] ?? 1);
+if ($firstDayOfWeek < 0 || $firstDayOfWeek > 6) {
+	$firstDayOfWeek = 1;
+}
 $timezone = (string) ($clientHints['timezone'] ?? 'UTC');
+$weekStartDayName = (string) ($clientHints['weekStartDayName'] ?? '');
 $role = (string) ($_['role'] ?? 'employee');
 $roleLabel = (string) ($_['roleLabel'] ?? $l->t('Member'));
 $isEmployee = !empty($_['isEmployee']);
@@ -63,7 +69,9 @@ $urlsJson = htmlspecialchars(json_encode($urls, JSON_THROW_ON_ERROR | JSON_UNESC
 <?php include __DIR__ . '/navigation.php'; ?>
 <div id="app-content" class="dc-app dc-app--<?php p($pageId); ?>"
 	lang="<?php p($htmlLang); ?>"
+	data-language="<?php p($language); ?>"
 	data-locale="<?php p($locale); ?>"
+	data-first-day-of-week="<?php p((string) $firstDayOfWeek); ?>"
 	data-timezone="<?php p($timezone); ?>"
 	data-dc-time-24h="1"
 	data-dc-time-input-lang="en-GB"
@@ -125,6 +133,12 @@ $urlsJson = htmlspecialchars(json_encode($urls, JSON_THROW_ON_ERROR | JSON_UNESC
 					<dt class="dc-scope-strip__label"><?php p($l->t('Timezone')); ?></dt>
 					<dd class="dc-scope-strip__value"><?php p($timezone); ?></dd>
 				</div>
+				<?php if ($weekStartDayName !== ''): ?>
+				<div class="dc-scope-strip__item">
+					<dt class="dc-scope-strip__label"><?php p($l->t('Start of week')); ?></dt>
+					<dd class="dc-scope-strip__value"><?php p($weekStartDayName); ?></dd>
+				</div>
+				<?php endif; ?>
 				<div class="dc-scope-strip__item">
 					<dt class="dc-scope-strip__label"><?php p($l->t('Time format')); ?></dt>
 					<dd class="dc-scope-strip__value"><?php p($l->t('24-hour (HH:mm)')); ?></dd>

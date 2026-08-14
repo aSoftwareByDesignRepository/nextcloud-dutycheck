@@ -303,7 +303,6 @@ OC.L10N.register(
 	"Display name" : "Anzeigename",
 	"Display name is required." : "Anzeigename ist erforderlich.",
 	"Display name is required. Link an account to fill it automatically, or type a name." : "Anzeigename ist erforderlich. Verknüpfen Sie ein Konto, um ihn automatisch zu übernehmen, oder geben Sie einen Namen ein.",
-	"Done" : "Erledigt",
 	"Done — the app can store roster data." : "Erledigt — die App kann Dienstplandaten speichern.",
 	"Download CSV" : "CSV herunterladen",
 	"Download a spreadsheet file or open a clean print layout for the period selected above. Only DutyCheck and server administrators see this section." : "Lade eine Tabellendatei herunter oder öffne eine übersichtliche Druckansicht für den oben gewählten Zeitraum. Nur DutyCheck- und Server-Administrator\/innen sehen diesen Abschnitt.",
@@ -364,7 +363,6 @@ OC.L10N.register(
 	"Files include every assignment row for the active period. Use them for archives, handovers, or regulatory evidence — treat exports like personal data and store them securely." : "Die Datei enthält jede Einsatzzeile des aktiven Zeitraums. Nutze sie für Archive, Übergaben oder Nachweise — behandle Exporte wie personenbezogene Daten und bewahre sie sicher auf.",
 	"Fill selected cells from template" : "Ausgewählte Zellen aus Vorlage füllen",
 	"Filled automatically when you link an account; edit if needed." : "Wird beim Verknüpfen automatisch ausgefüllt; bei Bedarf anpassen.",
-	"Finish the highlighted step — then your team can plan duties." : "Erledige den hervorgehobenen Schritt — danach kann dein Team Dienste planen.",
 	"First pick a date above. Anyone on approved leave that day is left out of the list." : "Wählen Sie zuerst oben ein Datum. Wer an diesem Tag genehmigte Abwesenheit hat, erscheint nicht in der Liste.",
 	"Form cleared. You can enter another assignment." : "Eingaben geleert. Sie können einen weiteren Einsatz erfassen.",
 	"From" : "Von",
@@ -477,7 +475,6 @@ OC.L10N.register(
 	"New to DutyCheck? Three short steps to get a roster ready for your team." : "Neu bei DutyCheck? Drei kurze Schritte, um einen Dienstplan für dein Team einsatzbereit zu machen.",
 	"Newest first. Statuses update after your planner reviews each row." : "Neueste zuerst. Die Statusangaben werden aktualisiert, sobald deine Planungsperson eine Zeile geprüft hat.",
 	"Next 14 days" : "Nächste 14 Tage",
-	"Next step" : "Nächster Schritt",
 	"Next week" : "Nächste Woche",
 	"No absence records yet." : "Noch keine Abwesenheitsdatensätze.",
 	"No absences in this list yet. Linked employees request time off in ArbeitszeitCheck. Last sync: {time}." : "Noch keine Abwesenheiten in dieser Liste. Verknüpfte Mitarbeitende beantragen Freizeit in ArbeitszeitCheck. Letzte Sync: {time}.",
@@ -829,6 +826,7 @@ OC.L10N.register(
 	"Start" : "Beginn",
 	"Start and end time must be different. For overnight shifts, set the end time earlier than the start (e.g. 22:00–06:00)." : "Start- und Endzeit müssen unterschiedlich sein. Bei Schichten über Mitternacht Endzeit vor Startzeit eintragen (z. B. 22:00–06:00).",
 	"Start date" : "Startdatum",
+	"Start of week" : "Wochenbeginn",
 	"Start time" : "Beginn",
 	"Start time (24-hour HH:mm)" : "Startzeit (24-Stunden HH:mm)",
 	"Status" : "Status",
@@ -919,7 +917,6 @@ OC.L10N.register(
 	"Timezone-aware duty locations" : "Zeitzonen-bewusste Dienstorte",
 	"Tip: turn this on after you have already added at least one allowed user or group below, otherwise the app locks itself." : "Tipp: Aktiviere dies erst, nachdem du unten mindestens eine zugelassene Person oder Gruppe hinzugefügt hast – sonst sperrt sich die App selbst aus.",
 	"To" : "Bis",
-	"To do" : "Offen",
 	"Today" : "Heute",
 	"Too many requests. Please wait and retry." : "Zu viele Anfragen. Bitte warten und erneut versuchen.",
 	"Total recorded across all periods." : "Gesamt erfasst über alle Zeiträume.",
@@ -1031,7 +1028,11 @@ OC.L10N.register(
 	"{n} published shifts" : "{n} veröffentlichte Schichten",
 	"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page." : "{unlinked} von {total} aktiven Beschäftigten haben kein verknüpftes Nextcloud-Konto — Abwesenheiten für sie bleiben in DutyCheck, bis die Konten auf der Seite „Beschäftigte“ verknüpft sind.",
 	"{used} of {total} seats used" : "{used} von {total} Sitzen genutzt",
-	"“Must fix” issues block publishing." : "„Muss behoben werden“-Punkte blockieren die Veröffentlichung."
+	"“Must fix” issues block publishing." : "„Muss behoben werden“-Punkte blockieren die Veröffentlichung.",
+	"Finish the highlighted step — then your team can plan duties." : "Erledige den hervorgehobenen Schritt — danach kann dein Team Dienste planen.",
+	"Done" : "Erledigt",
+	"Next step" : "Nächster Schritt",
+	"To do" : "Offen"
 	},
 	"nplurals=2; plural=(n != 1);"
 );

@@ -303,7 +303,6 @@ OC.L10N.register(
 	"Display name" : "Visningsnavn",
 	"Display name is required." : "Visningsnavn er obligatorisk.",
 	"Display name is required. Link an account to fill it automatically, or type a name." : "Visningsnavn er obligatorisk. Koble til en konto for å fylle den automatisk, eller skriv inn et navn.",
-	"Done" : "Done",
 	"Done — the app can store roster data." : "Ferdig – appen kan lagre vaktlistedata.",
 	"Download CSV" : "Last ned CSV",
 	"Download a spreadsheet file or open a clean print layout for the period selected above. Only DutyCheck and server administrators see this section." : "Last ned en regnearkfil eller åpne et rent utskriftsoppsett for perioden valgt ovenfor. Bare DutyCheck og serveradministratorer ser denne delen.",
@@ -364,7 +363,6 @@ OC.L10N.register(
 	"Files include every assignment row for the active period. Use them for archives, handovers, or regulatory evidence — treat exports like personal data and store them securely." : "Filer inkluderer hver oppdragsrad for den aktive perioden. Bruk dem til arkiver, overleveringer eller regulatoriske bevis – behandle eksporter som personlige data og lagre dem sikkert.",
 	"Fill selected cells from template" : "Fill selected cells from template",
 	"Filled automatically when you link an account; edit if needed." : "Fylles automatisk når du kobler en konto; rediger om nødvendig.",
-	"Finish the highlighted step — then your team can plan duties." : "Finish the highlighted step — then your team can plan duties.",
 	"First pick a date above. Anyone on approved leave that day is left out of the list." : "Velg først en dato ovenfor. Alle som har godkjent permisjon den dagen er utelatt fra listen.",
 	"Form cleared. You can enter another assignment." : "Skjema fjernet. Du kan legge inn en annen oppgave.",
 	"From" : "Fra",
@@ -477,7 +475,6 @@ OC.L10N.register(
 	"New to DutyCheck? Three short steps to get a roster ready for your team." : "Ny på DutyCheck? Tre korte trinn for å gjøre en vaktliste klar for laget ditt.",
 	"Newest first. Statuses update after your planner reviews each row." : "Nyeste først. Statuser oppdateres etter at planleggeren din har gjennomgått hver rad.",
 	"Next 14 days" : "Neste 14 dager",
-	"Next step" : "Next step",
 	"Next week" : "Neste uke",
 	"No absence records yet." : "Ingen fraværsstatistikk ennå.",
 	"No absences in this list yet. Linked employees request time off in ArbeitszeitCheck. Last sync: {time}." : "No absences in this list yet. Linked employees request time off in ArbeitszeitCheck. Last sync: {time}.",
@@ -829,6 +826,7 @@ OC.L10N.register(
 	"Start" : "Start",
 	"Start and end time must be different. For overnight shifts, set the end time earlier than the start (e.g. 22:00–06:00)." : "Start- og sluttid må være forskjellig. For nattskift, angi sluttid tidligere enn starten (f.eks. 22:00–06:00).",
 	"Start date" : "Startdato",
+	"Start of week" : "Ukesstart",
 	"Start time" : "Starttid",
 	"Start time (24-hour HH:mm)" : "Starttid (24-timers TT:mm)",
 	"Status" : "Status",
@@ -919,7 +917,6 @@ OC.L10N.register(
 	"Timezone-aware duty locations" : "Tidssonebevisste tjenestesteder",
 	"Tip: turn this on after you have already added at least one allowed user or group below, otherwise the app locks itself." : "Tips: slå dette på etter at du allerede har lagt til minst én tillatt bruker eller gruppe nedenfor, ellers låser appen seg selv.",
 	"To" : "Til",
-	"To do" : "To do",
 	"Today" : "I dag",
 	"Too many requests. Please wait and retry." : "For mange forespørsler. Vennligst vent og prøv på nytt.",
 	"Total recorded across all periods." : "Totalt registrert over alle perioder.",
@@ -1031,7 +1028,11 @@ OC.L10N.register(
 	"{n} published shifts" : "{n} publiserte skift",
 	"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page." : "{unlinked} av {total} aktive ansatte har ingen koblet Nextcloud-konto – fravær for dem forblir i DutyCheck til kontoer er koblet til på Ansatte-siden.",
 	"{used} of {total} seats used" : "{used} av {total} seter brukt",
-	"“Must fix” issues block publishing." : "“Må rettes”-problemer blokkerer publisering."
+	"“Must fix” issues block publishing." : "“Må rettes”-problemer blokkerer publisering.",
+	"Finish the highlighted step — then your team can plan duties." : "Finish the highlighted step — then your team can plan duties.",
+	"Done" : "Done",
+	"Next step" : "Next step",
+	"To do" : "To do"
 	},
 	"nplurals=2; plural=(n != 1);"
 );

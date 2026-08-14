@@ -131,10 +131,15 @@
 			dialog,
 		});
 
-		const appLang = document.getElementById('app-content')?.getAttribute('lang')
+		const app = document.getElementById('app-content');
+		const appLang = (app && app.getAttribute('lang'))
 			|| document.documentElement.getAttribute('lang');
 		if (appLang) {
 			dialog.setAttribute('lang', appLang);
+		}
+		const appLocale = app ? app.getAttribute('data-locale') : '';
+		if (appLocale) {
+			dialog.setAttribute('data-locale', appLocale);
 		}
 		if (window.DutyCheckDates && typeof window.DutyCheckDates.applyLocaleToTemporalInputs === 'function') {
 			window.DutyCheckDates.applyLocaleToTemporalInputs(dialog);

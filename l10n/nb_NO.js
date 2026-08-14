@@ -829,6 +829,7 @@ OC.L10N.register(
 	"Start" : "Start",
 	"Start and end time must be different. For overnight shifts, set the end time earlier than the start (e.g. 22:00–06:00)." : "Start- og sluttid må være forskjellig. For nattskift, angi sluttid tidligere enn starten (f.eks. 22:00–06:00).",
 	"Start date" : "Startdato",
+	"Start of week" : "Ukesstart",
 	"Start time" : "Starttid",
 	"Start time (24-hour HH:mm)" : "Starttid (24-timers TT:mm)",
 	"Status" : "Status",

@@ -4,9 +4,13 @@
 	/**
 	 * Locale-aware date/time formatters.
 	 *
-	 * The server emits `data-locale` and `data-timezone` on `<html>`; we honour
-	 * both whenever Intl.* allows and fall back to ISO strings on failure so
-	 * date columns never render as "Invalid Date" in production.
+	 * Nextcloud keeps Language (UI strings) distinct from Locale (date order,
+	 * first day of week). The server emits both on `#app-content`:
+	 *  - `lang` / `data-language` → translations + RelativeTimeFormat
+	 *  - `data-locale` → Intl.DateTimeFormat + date/month pickers
+	 *  - `data-first-day-of-week` → 0=Sunday … 6=Saturday from Locale
+	 *
+	 * Never treat OC.getLocale() as the UI language.
 	 */
 
 	function htmlAttr(name, fallback) {
@@ -28,6 +32,39 @@
 			if (oc) return String(oc).replace('_', '-');
 		}
 		return navigator.language || 'en';
+	}
+
+	function currentLanguage() {
+		const language = htmlAttr('data-language', '');
+		if (language) return language;
+		const lang = htmlAttr('lang', '');
+		if (lang) return lang;
+		if (typeof OC !== 'undefined' && OC.getLanguage) {
+			const oc = OC.getLanguage();
+			if (oc) return String(oc).replace('_', '-');
+		}
+		return 'en';
+	}
+
+	function currentFirstDayOfWeek() {
+		const raw = htmlAttr('data-first-day-of-week', '');
+		const n = Number(raw);
+		if (Number.isInteger(n) && n >= 0 && n <= 6) {
+			return n;
+		}
+		try {
+			const locale = currentLocale();
+			const Info = Intl.Locale;
+			if (typeof Info === 'function') {
+				const weekInfo = new Info(locale).weekInfo;
+				if (weekInfo && typeof weekInfo.firstDay === 'number') {
+					return weekInfo.firstDay === 7 ? 0 : weekInfo.firstDay;
+				}
+			}
+		} catch (e) {
+			/* fall through */
+		}
+		return 1;
 	}
 
 	function currentTimezone() {
@@ -210,10 +247,26 @@
 		return b < a;
 	}
 
+	function formatWeekday(value) {
+		const raw = String(value ?? '').trim();
+		const iso = raw.match(/^(\d{4}-\d{2}-\d{2})/);
+		// Calendar dates use noon UTC so the weekday follows the duty date, not a TZ edge.
+		const date = iso ? new Date(`${iso[1]}T12:00:00Z`) : safeDate(value);
+		if (!date) return '';
+		try {
+			return new Intl.DateTimeFormat(currentLanguage(), {
+				weekday: 'long',
+				timeZone: 'UTC',
+			}).format(date);
+		} catch (e) {
+			return '';
+		}
+	}
+
 	function formatRelativeMinutes(diffMinutes) {
 		if (!Number.isFinite(diffMinutes)) return '';
 		try {
-			const rtf = new Intl.RelativeTimeFormat(currentLocale(), { numeric: 'auto' });
+			const rtf = new Intl.RelativeTimeFormat(currentLanguage(), { numeric: 'auto' });
 			const minutes = Math.round(diffMinutes);
 			if (Math.abs(minutes) < 60) return rtf.format(minutes, 'minute');
 			const hours = Math.round(minutes / 60);
@@ -242,6 +295,8 @@
 
 	window.DutyCheckDates = {
 		currentLocale,
+		currentLanguage,
+		currentFirstDayOfWeek,
 		currentTimezone,
 		timeInputLocale,
 		use24HourTimeInputs,
@@ -253,6 +308,7 @@
 		wallClockMinutesFromTimeString,
 		isOvernightWallClockShift,
 		formatYearMonth,
+		formatWeekday,
 		formatRelativeMinutes,
 		applyLocaleToTemporalInputs,
 	};
