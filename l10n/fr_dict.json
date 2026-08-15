@@ -692,10 +692,10 @@
     "{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page.": "{unlinked} des {total} employés actifs n'ont pas de compte Nextcloud lié — les absences pour eux restent dans DutyCheck jusqu'à ce que les comptes soient liés sur la page Employés.",
     "“Must fix” issues block publishing.": "Les problèmes « À corriger obligatoirement » bloquent la publication.",
     "translations": {
-        "Employee assignment collides with an ArbeitszeitCheck absence": "Employee assignment collides with an ArbeitszeitCheck absence",
-        "Finish the highlighted step — then your team can plan duties.": "Finish the highlighted step — then your team can plan duties.",
-        "Done": "Done",
-        "Next step": "Next step",
-        "To do": "To do"
+        "Employee assignment collides with an ArbeitszeitCheck absence": "L’affectation de l’employé entre en conflit avec une absence ArbeitszeitCheck",
+        "Finish the highlighted step — then your team can plan duties.": "Terminez l’étape mise en évidence — ensuite votre équipe pourra planifier les services.",
+        "Done": "Terminé",
+        "Next step": "Étape suivante",
+        "To do": "À faire"
     }
 }
