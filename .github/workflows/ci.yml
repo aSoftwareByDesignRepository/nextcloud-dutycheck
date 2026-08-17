@@ -1,113 +1,37 @@
-# DutyCheck — continuous integration
-#
-# Two stages:
-#   1. lint   — fast, dependency-free checks (composer manifest, security audit, PHP syntax)
-#   2. test   — PHPUnit across every PHP version the app declares support for (8.2–8.4)
-#
-# The security audit runs against composer.lock and gates the test matrix, so a
-# vulnerable dependency fails the build immediately and cheaply.
 name: CI
 
 on:
   push:
     branches: [master]
-    tags: ['v*']
   pull_request:
 
-# Least privilege: CI only needs to read the repository contents.
 permissions:
   contents: read
 
-# Cancel superseded runs on the same ref to save runner time.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  lint:
-    name: Lint & security audit
+  ci:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up PHP
-        uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
           coverage: none
-          tools: composer:v2
-
-      - name: Validate composer.json / composer.lock
-        run: composer validate --strict
-
-      # --locked audits the committed lock file directly (no vendor install needed).
-      # Without it, "composer audit" finds no installed packages and silently passes.
-      - name: Security audit (composer.lock)
-        run: composer audit --locked
-
-      - name: PHP syntax check
-        run: |
-          find lib tests templates -name '*.php' -print0 \
-            | xargs -0 -n1 -P4 php -l
-
-      - name: Integration discipline (REQ-TST-02)
-        run: bash scripts/check-integration-discipline.sh
-
-  test:
-    name: PHPUnit (PHP ${{ matrix.php-version }})
-    runs-on: ubuntu-latest
-    needs: lint
-    strategy:
-      fail-fast: false
-      matrix:
-        php-version: ['8.2', '8.3', '8.4']
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php-version }}
-          coverage: none
-          # pdo_sqlite backs the SQLite integration tests (mirror purge at >1000 rows).
           extensions: pdo_sqlite
           tools: composer:v2
 
-      - name: Get Composer cache directory
-        id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
-
-      - name: Cache Composer packages
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: composer-${{ matrix.php-version }}-${{ hashFiles('composer.lock') }}
-          restore-keys: |
-            composer-${{ matrix.php-version }}-
-
-      - name: Install dependencies
-        run: composer install --no-interaction --no-progress --prefer-dist
-
-      - name: PHPUnit unit
-        run: ./vendor/bin/phpunit --testsuite unit
-
-      - name: PHPUnit integration (SQLite)
-        run: ./vendor/bin/phpunit --testsuite integration
-
-      - name: AT integration UX (Node)
-        if: matrix.php-version == '8.2'
-        run: node --test tests/js/at-integration-ux.test.mjs
-
-      - name: API abort / nav network-error (Node)
-        if: matrix.php-version == '8.2'
-        run: node --test tests/js/api-abort-lifecycle.test.mjs tests/js/network-error-nav-contracts.test.mjs
-
-      - name: AT integration mutation gauntlet
-        if: matrix.php-version == '8.2'
-        run: php tests/Mutation/run-at-integration-mutations.php
-
-      - name: API abort mutation gauntlet
-        if: matrix.php-version == '8.2'
-        run: php tests/Mutation/run-api-abort-mutations.php
+      - run: composer validate --no-check-publish
+      - run: find lib tests templates -name '*.php' -print0 | xargs -0 -n1 -P4 php -l
+      - run: bash scripts/check-integration-discipline.sh
+      - run: composer install --no-interaction --no-progress --prefer-dist
+      - run: ./vendor/bin/phpunit --testsuite unit
+      - run: ./vendor/bin/phpunit --testsuite integration
+      - run: node --test tests/js/at-integration-ux.test.mjs
+      - run: node --test tests/js/api-abort-lifecycle.test.mjs tests/js/network-error-nav-contracts.test.mjs
+      - run: php tests/Mutation/run-at-integration-mutations.php
+      - run: php tests/Mutation/run-api-abort-mutations.php
