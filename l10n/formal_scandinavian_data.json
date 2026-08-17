@@ -1,0 +1,777 @@
+{
+  "%s stays free (AGPL) on your Nextcloud. Bug reports and ideas on GitHub stay welcome — that is free open-source care. If your organisation needs bookable help on an invoice — or official mobile licenses — choose an option below:": {
+    "da": "%s forbliver gratis (AGPL) på Nextcloud. Fejlrapporter og idéer på GitHub er velkomne — det er gratis open source-pleje. Hvis organisationen har brug for bookbar hjælp på en faktura — eller officielle mobillicenser — skal der vælges en mulighed nedenfor:",
+    "sv": "%s förblir gratis (AGPL) på Nextcloud. Felrapporter och idéer på GitHub är välkomna — det är gratis open source-omsorg. Om organisationen behöver bokningsbar hjälp på faktura — eller officiella mobillicenser — välj ett alternativ nedan:",
+    "nb": "%s forblir gratis (AGPL) på Nextcloud. Feilrapporter og ideer på GitHub er velkomne — det er gratis open source-støtte. Hvis organisasjonen trenger bestillbar hjelp på faktura — eller offisielle mobil-lisenser — velg et alternativ nedenfor:"
+  },
+  "%s stays free (AGPL) on your Nextcloud. Bug reports and ideas on GitHub stay welcome — that is free open-source care. If your organisation needs bookable help on an invoice, choose an option below:": {
+    "da": "%s forbliver gratis (AGPL) på Nextcloud. Fejlrapporter og idéer på GitHub er velkomne — det er gratis open source-pleje. Hvis organisationen har brug for bookbar hjælp på en faktura, skal der vælges en mulighed nedenfor:",
+    "sv": "%s förblir gratis (AGPL) på Nextcloud. Felrapporter och idéer på GitHub är välkomna — det är gratis open source-omsorg. Om organisationen behöver bokningsbar hjälp på faktura, välj ett alternativ nedan:",
+    "nb": "%s forblir gratis (AGPL) på Nextcloud. Feilrapporter og ideer på GitHub er velkomne — det er gratis open source-støtte. Hvis organisasjonen trenger bestillbar hjelp på faktura, velg et alternativ nedenfor:"
+  },
+  "%s stays free (AGPL) on your Nextcloud. GitHub issues for bugs and ideas remain welcome. For bookable help on an invoice — setup, hour packs, commissioned work — or the official mobile app:": {
+    "da": "%s forbliver gratis (AGPL) på Nextcloud. GitHub-issues for fejl og idéer er velkomne. For bookbar hjælp på faktura — opsætning, timepakker, bestillingsarbejde — eller den officielle mobilapp:",
+    "sv": "%s förblir gratis (AGPL) på Nextcloud. GitHub-ärenden för buggar och idéer är välkomna. För bokningsbar hjälp på faktura — installation, timpaket, beställningsarbete — eller den officiella mobilappen:",
+    "nb": "%s forblir gratis (AGPL) på Nextcloud. GitHub-saker for feil og ideer er velkomne. For bestillbar hjelp på faktura — oppsett, timepakker, bestillingsarbeid — eller den offisielle mobilappen:"
+  },
+  "%s stays free (AGPL) on your Nextcloud. GitHub issues for bugs and ideas remain welcome. For bookable help on an invoice — setup, hour packs, or commissioned work:": {
+    "da": "%s forbliver gratis (AGPL) på Nextcloud. GitHub-issues for fejl og idéer er velkomne. For bookbar hjælp på faktura — opsætning, timepakker eller bestillingsarbejde:",
+    "sv": "%s förblir gratis (AGPL) på Nextcloud. GitHub-ärenden för buggar och idéer är välkomna. För bokningsbar hjälp på faktura — installation, timpaket eller beställningsarbete:",
+    "nb": "%s forblir gratis (AGPL) på Nextcloud. GitHub-saker for feil og ideer er velkomne. For bestillbar hjelp på faktura — oppsett, timepakker eller bestillingsarbeid:"
+  },
+  "1. Choose the period to plan in": {
+    "da": "1. Vælg planlægningsperioden",
+    "sv": "1. Välj planeringsperioden",
+    "nb": "1. Velg planleggingsperioden"
+  },
+  "2. Add allowlist entries before turning restriction on": {
+    "da": "2. Tilføj tilladelsesposter, før begrænsningen aktiveres",
+    "sv": "2. Lägg till godkännandelisteposter innan begränsningen aktiveras",
+    "nb": "2. Legg til godkjenningslisteoppføringer før begrensningen aktiveres"
+  },
+  "A date range you plan in: open → published → closed.": {
+    "da": "Et datointerval, der planlægges i: åben → offentliggjort → lukket.",
+    "sv": "Ett datumintervall att planera i: öppen → publicerad → stängd.",
+    "nb": "Et datointervall som planlegges i: åpen → publisert → lukket."
+  },
+  "A link is active. The full address is hidden here for safety. Replace the link if you need to copy it again.": {
+    "da": "Et link er aktivt. Den fulde adresse er skjult her af sikkerhedshensyn. Erstat linket, hvis adressen skal kopieres igen.",
+    "sv": "En länk är aktiv. Den fullständiga adressen är dold här av säkerhetsskäl. Byt länk om adressen behöver kopieras igen.",
+    "nb": "En lenke er aktiv. Hele adressen er skjult her av sikkerhetsgrunner. Erstatt lenken hvis adressen må kopieres igjen."
+  },
+  "A period is a date range (e.g. one month) in which assignments are created. Open the Periods page, pick a start and end date, and the period stays \"Open\" so you can plan inside it.": {
+    "da": "En periode er et datointerval (f.eks. en måned), hvor tildelinger oprettes. Åbn siden Perioder, vælg start- og slutdato — perioden forbliver «Åben», så der kan planlægges i den.",
+    "sv": "En period är ett datumintervall (t.ex. en månad) där uppdrag skapas. Öppna sidan Perioder, välj start- och slutdatum — perioden förblir «Öppen» så att planering kan ske i den.",
+    "nb": "En periode er et datointervall (f.eks. én måned) der oppdrag opprettes. Åpne siden Perioder, velg start- og sluttdato — perioden forblir «Åpen», slik at det kan planlegges i den."
+  },
+  "A period is a window (e.g. a month) in which you plan duties. Pick start and end dates below — overlapping ranges are blocked automatically.": {
+    "da": "En periode er et vindue (f.eks. en måned) til planlægning af vagter. Vælg start- og slutdato nedenfor — overlappende intervaller blokeres automatisk.",
+    "sv": "En period är ett fönster (t.ex. en månad) för planering av pass. Välj start- och slutdatum nedan — överlappande intervall blockeras automatiskt.",
+    "nb": "En periode er et vindu (f.eks. én måned) for planlegging av vakter. Velg start- og sluttdato nedenfor — overlappende intervaller blokkeres automatisk."
+  },
+  "A planning rule needs your confirmation before this shift can be saved.": {
+    "da": "En planlægningsregel kræver bekræftelse, før denne vagt kan gemmes.",
+    "sv": "En planeringsregel kräver bekräftelse innan detta pass kan sparas.",
+    "nb": "En planleggingsregel krever bekreftelse før dette skiftet kan lagres."
+  },
+  "A snapshot of the current planning workload. Numbers update each time you reload the page.": {
+    "da": "Et øjebliksbillede af den aktuelle planlægningsbyrde. Tallene opdateres ved hver sidegenindlæsning.",
+    "sv": "En ögonblicksbild av den aktuella planeringsbelastningen. Siffrorna uppdateras vid varje siduppdatering.",
+    "nb": "Et øyeblikksbilde av gjeldende planleggingsarbeid. Tall oppdateres ved hver sideoppdatering."
+  },
+  "A soft conflict you may keep after writing a short reason (≥ 10 characters).": {
+    "da": "En blød konflikt, der må beholdes efter en kort begrundelse (≥ 10 tegn).",
+    "sv": "En mjuk konflikt som får behållas efter en kort motivering (≥ 10 tecken).",
+    "nb": "En myk konflikt som kan beholdes etter en kort begrunnelse (≥ 10 tegn)."
+  },
+  "A yearly pack of hours you can book with us, plus priority email replies for your organisation. This is invoiceable service — not a donation.": {
+    "da": "En årlig pakke med timer, der kan bestilles hos os, plus prioriterede e-mailsvar til organisationen. Dette er fakturerbar service — ikke en donation.",
+    "sv": "Ett årspaket med timmar som kan bokas hos oss, plus prioriterade e-postsvar för organisationen. Detta är fakturerbar tjänst — inte en donation.",
+    "nb": "En årlig pakke med timer som kan bestilles hos oss, pluss prioriterte e-postsvar for organisasjonen. Dette er fakturerbar tjeneste — ikke en donasjon."
+  },
+  "Absences for linked people are kept in ArbeitszeitCheck. This page lists them so you can spot roster clashes. You can add absences here only for people who are not linked.": {
+    "da": "Fravær for linkede personer opbevares i ArbeitszeitCheck. Denne side viser dem, så vagtplan-konflikter kan opdages. Fravær kan kun tilføjes her for personer, der ikke er linket.",
+    "sv": "Frånvaro för länkade personer sparas i ArbeitszeitCheck. Den här sidan listar dem så att schema-konflikter kan upptäckas. Frånvaro kan bara läggas till här för personer som inte är länkade.",
+    "nb": "Fravær for tilknyttede personer oppbevares i ArbeitszeitCheck. Denne siden viser dem slik at vaktplan-konflikter kan oppdages. Fravær kan bare legges til her for personer som ikke er tilknyttet."
+  },
+  "Add at least one active employee before planning shifts.": {
+    "da": "Tilføj mindst én aktiv medarbejder, før vagter planlægges.",
+    "sv": "Lägg till minst en aktiv anställd innan pass planeras.",
+    "nb": "Legg til minst én aktiv ansatt før vakter planlegges."
+  },
+  "Add at least one active location before planning shifts.": {
+    "da": "Tilføj mindst én aktiv lokation, før vagter planlægges.",
+    "sv": "Lägg till minst en aktiv plats innan pass planeras.",
+    "nb": "Legg til minst ett aktivt sted før vakter planlegges."
+  },
+  "Add shifts to your personal calendar": {
+    "da": "Tilføj vagter til kalenderen",
+    "sv": "Lägg till pass i kalendern",
+    "nb": "Legg til vakter i kalenderen"
+  },
+  "Add the people who work shifts (Employees) and the places where shifts happen (Locations). You only do this once per organisation.": {
+    "da": "Tilføj personer, der arbejder vagter (Medarbejdere), og steder, hvor vagter foregår (Lokationer). Det gøres kun én gang pr. organisation.",
+    "sv": "Lägg till personer som arbetar pass (Anställda) och platser där pass sker (Platser). Detta görs bara en gång per organisation.",
+    "nb": "Legg til personer som jobber vakter (Ansatte) og steder der vakter skjer (Steder). Dette gjøres bare én gang per organisasjon."
+  },
+  "Adding users or groups here only lets them open DutyCheck. Planners need a duty role in the section below. Staff need their Nextcloud account linked to an employee record on the Employees page.": {
+    "da": "Tilføjede brugere eller grupper kan her kun åbne DutyCheck. Planlæggere skal have en vagtrolle i afsnittet nedenfor. Medarbejdere skal have Nextcloud-kontoen linket til en medarbejderpost på siden Medarbejdere.",
+    "sv": "Tillagda användare eller grupper kan här bara öppna DutyCheck. Planerare behöver en passroll i avsnittet nedan. Personal behöver sitt Nextcloud-konto kopplat till en anställdpost på sidan Anställda.",
+    "nb": "Tillagte brukere eller grupper kan her bare åpne DutyCheck. Planleggere trenger en vaktrolle i avsnittet nedenfor. Ansatte trenger Nextcloud-kontoen koblet til en ansattpost på siden Ansatte."
+  },
+  "After approval, open the Roster — overlapping shifts appear as “Must fix” and must be changed or removed before you publish.": {
+    "da": "Efter godkendelse skal vagtplanen åbnes — overlappende vagter vises som «Skal rettes» og skal ændres eller fjernes, før der offentliggøres.",
+    "sv": "Efter godkännande ska schemat öppnas — överlappande pass visas som «Måste åtgärdas» och måste ändras eller tas bort innan publicering.",
+    "nb": "Etter godkjenning må vaktplanen åpnes — overlappende vakter vises som «Må rettes» og må endres eller fjernes før publisering."
+  },
+  "Always add at least one user or group to the allowlist before enabling the restriction toggle. Otherwise the app locks itself — including you, until a system admin re-opens it.": {
+    "da": "Tilføj altid mindst én bruger eller gruppe til tilladelseslisten, før begrænsningen aktiveres. Ellers låser appen sig selv — også for den aktuelle bruger — indtil en systemadministrator genåbner den.",
+    "sv": "Lägg alltid till minst en användare eller grupp på godkännandelistan innan begränsningen aktiveras. Annars låser appen sig själv — även för den aktuella användaren — tills en systemadministratör öppnar den igen.",
+    "nb": "Legg alltid til minst én bruker eller gruppe på godkjenningslisten før begrensningen aktiveres. Ellers låser appen seg selv — også for den aktuelle brukeren — til en systemadministrator åpner den igjen."
+  },
+  "Annual hour packs — Small, Standard, or Premium — with priority email for your organisation. This is invoiceable service — not a donation. See packages on our support page.": {
+    "da": "Årlige timepakker — Small, Standard eller Premium — med prioriteret e-mail til organisationen. Fakturerbar service — ikke en donation. Se pakker på supportsiden.",
+    "sv": "Årliga timpaket — Small, Standard eller Premium — med prioriterad e-post för organisationen. Fakturerbar tjänst — inte en donation. Se paket på supportsidan.",
+    "nb": "Årlige timepakker — Small, Standard eller Premium — med prioritert e-post for organisasjonen. Fakturerbar tjeneste — ikke en donasjon. Se pakker på supportsiden."
+  },
+  "Anyone with the link can see your published shifts. If someone else might have seen it, use “Replace calendar link” and paste the new address into your calendar app.": {
+    "da": "Alle med linket kan se offentliggjorte vagter. Hvis andre kan have set det, brug «Erstat kalenderlink» og indsæt den nye adresse i kalenderappen.",
+    "sv": "Alla med länken kan se publicerade pass. Om någon annan kan ha sett den, använd «Byt kalenderlänk» och klistra in den nya adressen i kalenderappen.",
+    "nb": "Alle med lenken kan se publiserte vakter. Hvis andre kan ha sett den, bruk «Erstatt kalenderlenke» og lim inn den nye adressen i kalenderappen."
+  },
+  "App administrators can change this policy and re-open closed periods. Only delegate to people you trust to handle the audit log.": {
+    "da": "App-administratorer kan ændre denne politik og genåbne lukkede perioder. Deleger revisionsloggen kun til betroede personer.",
+    "sv": "Appadministratörer kan ändra denna policy och öppna stängda perioder igen. Delegera granskningsloggen endast till betrodda personer.",
+    "nb": "Appadministratorer kan endre denne policyen og åpne lukkede perioder på nytt. Deleger revisjonsloggen bare til betrodde personer."
+  },
+  "Are you sure?": {
+    "da": "Er handlingen korrekt?",
+    "sv": "Är åtgärden korrekt?",
+    "nb": "Er handlingen korrekt?"
+  },
+  "Automatic checks for the same period as the assignment list. “Must fix” blocks publishing until resolved. “Confirm to continue” lets you proceed after you confirm with a short reason.": {
+    "da": "Automatiske kontroller for samme periode som tildelingslisten. «Skal rettes» blokerer offentliggørelse, indtil det er løst. «Bekræft for at fortsætte» tillader fortsættelse efter kort begrundelse.",
+    "sv": "Automatiska kontroller för samma period som uppdragslistan. «Måste åtgärdas» blockerar publicering tills det är löst. «Bekräfta för att fortsätta» tillåter fortsättning efter kort motivering.",
+    "nb": "Automatiske kontroller for samme periode som oppdragslisten. «Må rettes» blokkerer publisering til det er løst. «Bekreft for å fortsette» tillater fortsettelse etter kort begrunnelse."
+  },
+  "Briefly explain why you are allowing this (minimum 10 characters)": {
+    "da": "Forklar kort, hvorfor dette tillades (mindst 10 tegn)",
+    "sv": "Förklara kort varför detta tillåts (minst 10 tecken)",
+    "nb": "Forklar kort hvorfor dette tillates (minst 10 tegn)"
+  },
+  "Briefly explain why you are approving this claim anyway (at least 10 characters).": {
+    "da": "Forklar kort, hvorfor denne anmodning alligevel godkendes (mindst 10 tegn).",
+    "sv": "Förklara kort varför denna begäran ändå godkänns (minst 10 tecken).",
+    "nb": "Forklar kort hvorfor denne forespørselen likevel godkjennes (minst 10 tegn)."
+  },
+  "Briefly explain why you are approving this claim anyway (at least 10 characters).\n\n{details}": {
+    "da": "Forklar kort, hvorfor denne anmodning alligevel godkendes (mindst 10 tegn).\n\n{details}",
+    "sv": "Förklara kort varför denna begäran ändå godkänns (minst 10 tecken).\n\n{details}",
+    "nb": "Forklar kort hvorfor denne forespørselen likevel godkjennes (minst 10 tegn).\n\n{details}"
+  },
+  "Briefly explain why you are scheduling anyway (at least 10 characters).": {
+    "da": "Forklar kort, hvorfor planlægning alligevel fortsætter (mindst 10 tegn).",
+    "sv": "Förklara kort varför schemaläggning ändå fortsätter (minst 10 tecken).",
+    "nb": "Forklar kort hvorfor planlegging likevel fortsetter (minst 10 tegn)."
+  },
+  "Briefly explain why you are scheduling anyway (at least 10 characters).\n\n{details}": {
+    "da": "Forklar kort, hvorfor planlægning alligevel fortsætter (mindst 10 tegn).\n\n{details}",
+    "sv": "Förklara kort varför schemaläggning ändå fortsätter (minst 10 tecken).\n\n{details}",
+    "nb": "Forklar kort hvorfor planlegging likevel fortsetter (minst 10 tegn).\n\n{details}"
+  },
+  "Briefly explain why you are scheduling anyway (at least 10 characters).\\n\\n{details}": {
+    "da": "Forklar kort, hvorfor planlægning alligevel fortsætter (mindst 10 tegn).\\n\\n{details}",
+    "sv": "Förklara kort varför schemaläggning ändå fortsätter (minst 10 tecken).\\n\\n{details}",
+    "nb": "Forklar kort hvorfor planlegging likevel fortsetter (minst 10 tegn).\\n\\n{details}"
+  },
+  "Browse your published shifts by date range and keep a private calendar subscription in sync.": {
+    "da": "Gennemse offentliggjorte vagter efter datointerval, og hold et privat kalenderabonnement synkroniseret.",
+    "sv": "Granska publicerade pass efter datumintervall och håll en privat kalenderprenumeration synkad.",
+    "nb": "Se gjennom publiserte vakter etter datointervall, og hold et privat kalenderabonnement synkronisert."
+  },
+  "Calendar link is unavailable until your account is linked to an employee.": {
+    "da": "Kalenderlink er utilgængeligt, indtil kontoen er linket til en medarbejder.",
+    "sv": "Kalenderlänk är otillgänglig tills kontot är kopplat till en anställd.",
+    "nb": "Kalenderlenke er utilgjengelig til kontoen er koblet til en ansatt."
+  },
+  "Cancel this shift? It will be removed from the open period and staff will not see it after publish.": {
+    "da": "Annullere denne vagt? Den fjernes fra den åbne periode og er ikke synlig for medarbejdere efter offentliggørelse.",
+    "sv": "Avbryta detta pass? Det tas bort från den öppna perioden och syns inte för personal efter publicering.",
+    "nb": "Avbryte dette skiftet? Det fjernes fra den åpne perioden og vises ikke for ansatte etter publisering."
+  },
+  "Check your existing requests first, then send a new one. Your planner reviews every request.": {
+    "da": "Gennemse eksisterende anmodninger først, og send derefter en ny. Planlæggeren gennemgår hver anmodning.",
+    "sv": "Granska befintliga begäranden först och skicka sedan en ny. Planeraren granskar varje begäran.",
+    "nb": "Se gjennom eksisterende forespørsler først, og send deretter en ny. Planleggeren vurderer hver forespørsel."
+  },
+  "Choose a period in the selector above before exporting or printing.": {
+    "da": "Vælg en periode i vælgeren ovenfor, før der eksporteres eller udskrives.",
+    "sv": "Välj en period i väljaren ovan innan export eller utskrift.",
+    "nb": "Velg en periode i velgeren ovenfor før eksport eller utskrift."
+  },
+  "Claim sent — a planner must approve before it is on your roster.": {
+    "da": "Anmodning sendt — en planlægger skal godkende, før vagten vises i planen.",
+    "sv": "Begäran skickad — en planerare måste godkänna innan passet visas i schemat.",
+    "nb": "Forespørsel sendt — en planlegger må godkjenne før vakten vises i planen."
+  },
+  "Closing a location? Deactivate it instead of deleting. New assignments stop appearing for that location, but past rosters remain intact.": {
+    "da": "Lukkes en lokation? Deaktiver i stedet for at slette. Nye tildelinger vises ikke længere for lokationen, men tidligere vagtplaner bevares.",
+    "sv": "Stängs en plats? Inaktivera i stället för att radera. Nya uppdrag visas inte längre för platsen, men tidigare scheman bevaras.",
+    "nb": "Skal et sted lukkes? Deaktiver i stedet for å slette. Nye tildelinger vises ikke lenger for stedet, men tidligere vaktplaner bevares."
+  },
+  "Complete setup before adding assignments. See the checklist in this dialog.": {
+    "da": "Fuldfør opsætningen, før tildelinger tilføjes. Se tjeklisten i denne dialog.",
+    "sv": "Slutför konfigurationen innan uppdrag läggs till. Se checklistan i denna dialog.",
+    "nb": "Fullfør oppsettet før tildelinger legges til. Se sjekklisten i denne dialogen."
+  },
+  "Confirm you have seen this shift": {
+    "da": "Bekræft, at denne vagt er set",
+    "sv": "Bekräfta att detta pass har setts",
+    "nb": "Bekreft at dette skiftet er sett"
+  },
+  "Could not load your absences. Reload the page or contact an administrator if this keeps happening.": {
+    "da": "Fravær kunne ikke indlæses. Genindlæs siden, eller kontakt en administrator, hvis problemet fortsætter.",
+    "sv": "Frånvaro kunde inte laddas. Ladda om sidan eller kontakta en administratör om problemet kvarstår.",
+    "nb": "Fravær kunne ikke lastes. Last siden på nytt, eller kontakt en administrator hvis problemet fortsetter."
+  },
+  "Could not load your roster. Reload the page or contact an administrator if this keeps happening.": {
+    "da": "Vagtplanen kunne ikke indlæses. Genindlæs siden, eller kontakt en administrator, hvis problemet fortsætter.",
+    "sv": "Schemat kunde inte laddas. Ladda om sidan eller kontakta en administratör om problemet kvarstår.",
+    "nb": "Vaktplanen kunne ikke lastes. Last siden på nytt, eller kontakt en administrator hvis problemet fortsetter."
+  },
+  "Could not reach the server to search. Check your network and try again.": {
+    "da": "Serveren kunne ikke nås til søgning. Kontrollér netværket, og prøv igen.",
+    "sv": "Servern kunde inte nås för sökning. Kontrollera nätverket och försök igen.",
+    "nb": "Serveren kunne ikke nås for søk. Kontroller nettverket, og prøv igjen."
+  },
+  "Duty assignments and absences stay on your Nextcloud. There is no vendor cloud copy of your roster.": {
+    "da": "Vagttildelinger og fravær bliver på Nextcloud. Der findes ingen leverandør-cloudkopi af vagtplanen.",
+    "sv": "Pass-tilldelningar och frånvaro stannar på Nextcloud. Det finns ingen leverantörsmolnkopia av schemat.",
+    "nb": "Vakt­tildelinger og fravær blir på Nextcloud. Det finnes ingen leverandør-skykopi av vaktplanen."
+  },
+  "DutyCheck is unavailable until your Nextcloud account is linked to an active employee record.": {
+    "da": "DutyCheck er utilgængeligt, indtil Nextcloud-kontoen er linket til en aktiv medarbejderpost.",
+    "sv": "DutyCheck är otillgängligt tills Nextcloud-kontot är kopplat till en aktiv anställdpost.",
+    "nb": "DutyCheck er utilgjengelig til Nextcloud-kontoen er koblet til en aktiv ansattpost."
+  },
+  "DutyCheck is unavailable until your Nextcloud account is linked to an employee record. Ask a planner or administrator.": {
+    "da": "DutyCheck er utilgængeligt, indtil Nextcloud-kontoen er linket til en medarbejderpost. Kontakt en planlægger eller administrator.",
+    "sv": "DutyCheck är otillgängligt tills Nextcloud-kontot är kopplat till en anställdpost. Kontakta en planerare eller administratör.",
+    "nb": "DutyCheck er utilgjengelig til Nextcloud-kontoen er koblet til en ansattpost. Kontakt en planlegger eller administrator."
+  },
+  "DutyCheck still has {count} legacy absence record(s) for linked employees. Remove them below before enabling integration.": {
+    "da": "DutyCheck har stadig {count} ældre fraværspost(er) for linkede medarbejdere. Fjern dem nedenfor, før integration aktiveres.",
+    "sv": "DutyCheck har fortfarande {count} äldre frånvaropost(er) för länkade anställda. Ta bort dem nedan innan integration aktiveras.",
+    "nb": "DutyCheck har fortsatt {count} eldre fraværspost(er) for tilknyttede ansatte. Fjern dem nedenfor før integrasjon aktiveres."
+  },
+  "Each location has its own timezone (not a global app setting). Defaults to your account timezone when you add a new location.": {
+    "da": "Hver lokation har sin egen tidszone (ikke en global app-indstilling). Ved ny lokation bruges kontoens tidszone som standard.",
+    "sv": "Varje plats har sin egen tidszon (inte en global appinställning). Vid ny plats används kontots tidszon som standard.",
+    "nb": "Hvert sted har sin egen tidssone (ikke en global app-innstilling). Ved nytt sted brukes kontoens tidssone som standard."
+  },
+  "Every published shift assigned to you in the selected range. If anything looks wrong, contact your planner before the shift starts.": {
+    "da": "Alle offentliggjorte vagter i det valgte interval. Kontakt planlæggeren før vagtstart, hvis noget ser forkert ud.",
+    "sv": "Alla publicerade pass i det valda intervallet. Kontakta planeraren före passstart om något verkar fel.",
+    "nb": "Alle publiserte vakter i det valgte intervallet. Kontakt planleggeren før vaktstart hvis noe ser feil ut."
+  },
+  "Everyone here is linked to a Nextcloud account — add or change their absences in ArbeitszeitCheck. The table below still shows what you need for the roster.": {
+    "da": "Alle her er linket til en Nextcloud-konto — fravær tilføjes eller ændres i ArbeitszeitCheck. Tabellen nedenfor viser stadig det nødvendige til vagtplanen.",
+    "sv": "Alla här är kopplade till ett Nextcloud-konto — frånvaro läggs till eller ändras i ArbeitszeitCheck. Tabellen nedan visar fortfarande det som behövs för schemat.",
+    "nb": "Alle her er koblet til en Nextcloud-konto — fravær legges til eller endres i ArbeitszeitCheck. Tabellen nedenfor viser fortsatt det som trengs for vaktplanen."
+  },
+  "Everything you send stays \"Pending\" until reviewed. For a single day off, use the same date twice.": {
+    "da": "Alt indsendt forbliver «Afventer», indtil det er gennemgået. For en enkelt fridag skal samme dato angives to gange.",
+    "sv": "Allt som skickas in förblir «Väntar» tills det har granskats. För en enstaka ledig dag ska samma datum anges två gånger.",
+    "nb": "Alt innsendt forblir «Venter» til det er vurdert. For én enkelt fridag skal samme dato oppgis to ganger."
+  },
+  "Filled automatically when you link an account; edit if needed.": {
+    "da": "Udfyldes automatisk ved kontolink; rediger ved behov.",
+    "sv": "Fylls i automatiskt vid kontokoppling; redigera vid behov.",
+    "nb": "Fylles automatisk ved kontokobling; rediger ved behov."
+  },
+  "Finish the highlighted step — then your team can plan duties.": {
+    "da": "Fuldfør det fremhævede trin — derefter kan teamet planlægge vagter.",
+    "sv": "Slutför det markerade steget — därefter kan teamet planera pass.",
+    "nb": "Fullfør det uthevede trinnet — deretter kan teamet planlegge vakter."
+  },
+  "Form cleared. You can enter another assignment.": {
+    "da": "Formular ryddet. Der kan indtastes endnu en tildeling.",
+    "sv": "Formuläret rensades. Ytterligare ett uppdrag kan anges.",
+    "nb": "Skjema tømt. Det kan legges inn enda en tildeling."
+  },
+  "How to add a duty assignment without breaking labour rules or double-booking anyone.": {
+    "da": "Sådan tilføjes en vagttildeling uden at bryde arbejdsregler eller dobbeltbooke nogen.",
+    "sv": "Så lägger man till en pass­tilldelning utan att bryta arbetsregler eller dubbelboka någon.",
+    "nb": "Slik legges en vakt­tildeling til uten å bryte arbeidsregler eller dobbeltbooke noen."
+  },
+  "If Save asks you to confirm, a planning rule was triggered (for example less than 11 hours rest between shifts). You can review issues in": {
+    "da": "Hvis Gem beder om bekræftelse, blev en planlægningsregel udløst (f.eks. mindre end 11 timers hvile mellem vagter). Problemer kan gennemgås i",
+    "sv": "Om Spara begär bekräftelse utlöstes en planeringsregel (t.ex. mindre än 11 timmars vila mellan pass). Problem kan granskas i",
+    "nb": "Hvis Lagre ber om bekreftelse, ble en planleggingsregel utløst (f.eks. mindre enn 11 timers hvile mellom vakter). Problemer kan gjennomgås i"
+  },
+  "If a request is rejected or cancelled, the planner adds a written reason next to the status — so you know what to do next.": {
+    "da": "Hvis en anmodning afvises eller annulleres, tilføjer planlæggeren en skriftlig begrundelse ved status — så næste skridt er klart.",
+    "sv": "Om en begäran avslås eller annulleras lägger planeraren till en skriftlig motivering vid status — så nästa steg är tydligt.",
+    "nb": "Hvis en forespørsel avvises eller kanselleres, legger planleggeren til en skriftlig begrunnelse ved status — så neste steg er klart."
+  },
+  "If you believe this is a mistake, contact your DutyCheck administrator and ask to be granted a planner or employee role.": {
+    "da": "Hvis dette anses for en fejl, kontakt DutyCheck-administrationen, og bed om rollen planlægger eller medarbejder.",
+    "sv": "Om detta bedöms vara ett fel, kontakta DutyCheck-administrationen och begär rollen planerare eller anställd.",
+    "nb": "Hvis dette anses som en feil, kontakt DutyCheck-administrasjonen, og be om rollen planlegger eller ansatt."
+  },
+  "If your organisation restricts DutyCheck, ask an administrator to add you to the allowed users or groups in Settings.": {
+    "da": "Hvis organisationen begrænser DutyCheck, bed en administrator om at tilføje brugeren eller gruppen under Indstillinger.",
+    "sv": "Om organisationen begränsar DutyCheck, be en administratör lägga till användaren eller gruppen under Inställningar.",
+    "nb": "Hvis organisasjonen begrenser DutyCheck, be en administrator legge til brukeren eller gruppen under Innstillinger."
+  },
+  "Legacy DutyCheck absences exist on linked employees. Resolve them before enabling integration ({count} rows).": {
+    "da": "Ældre DutyCheck-fravær findes for linkede medarbejdere. Løs dem, før integration aktiveres ({count} rækker).",
+    "sv": "Äldre DutyCheck-frånvaro finns för länkade anställda. Lös dem innan integration aktiveras ({count} rader).",
+    "nb": "Eldre DutyCheck-fravær finnes for tilknyttede ansatte. Løs dem før integrasjon aktiveres ({count} rader)."
+  },
+  "Legacy DutyCheck absences exist on linked employees. Resolve them before enabling integration.": {
+    "da": "Ældre DutyCheck-fravær findes for linkede medarbejdere. Løs dem, før integration aktiveres.",
+    "sv": "Äldre DutyCheck-frånvaro finns för länkade anställda. Lös dem innan integration aktiveras.",
+    "nb": "Eldre DutyCheck-fravær finnes for tilknyttede ansatte. Løs dem før integrasjon aktiveres."
+  },
+  "List prices on our site apply to published Check apps. For this app, ask for an individual partner offer — we invoice only after you accept a quote.": {
+    "da": "Listepriser på vores side gælder for offentliggjorte Check-apps. For denne app skal der anmodes om et individuelt partnertilbud — fakturering sker først efter accept af tilbud.",
+    "sv": "Listpriser på vår webbplats gäller publicerade Check-appar. För denna app ska ett individuellt partnererbjudande begäras — fakturering sker först efter accept av offert.",
+    "nb": "Listepriser på nettstedet gjelder publiserte Check-apper. For denne appen må det be om et individuelt partnertilbud — fakturering skjer først etter aksept av tilbud."
+  },
+  "Network error. Please check your connection and retry.": {
+    "da": "Netværksfejl. Kontrollér forbindelsen, og prøv igen.",
+    "sv": "Nätverksfel. Kontrollera anslutningen och försök igen.",
+    "nb": "Nettverksfeil. Kontroller tilkoblingen, og prøv igjen."
+  },
+  "New to DutyCheck? Three short steps to get a roster ready for your team.": {
+    "da": "Ny i DutyCheck? Tre korte trin for at gøre en vagtplan klar til teamet.",
+    "sv": "Ny på DutyCheck? Tre korta steg för att göra ett schema klart för teamet.",
+    "nb": "Ny i DutyCheck? Tre korte trinn for å gjøre en vaktplan klar for teamet."
+  },
+  "Newest first. Statuses update after your planner reviews each row.": {
+    "da": "Nyeste først. Status opdateres, når planlæggeren har gennemgået hver række.",
+    "sv": "Nyaste först. Status uppdateras när planeraren har granskat varje rad.",
+    "nb": "Nyeste først. Status oppdateres når planleggeren har vurdert hver rad."
+  },
+  "No absences shown here yet. Request time off in ArbeitszeitCheck — approved leave will appear for your planner after the next sync.": {
+    "da": "Ingen fravær vist endnu. Anmod om fri i ArbeitszeitCheck — godkendt fravær vises for planlæggeren efter næste synkronisering.",
+    "sv": "Ingen frånvaro visas ännu. Begär ledighet i ArbeitszeitCheck — godkänd frånvaro visas för planeraren efter nästa synkronisering.",
+    "nb": "Ingen fravær vist ennå. Be om fri i ArbeitszeitCheck — godkjent fravær vises for planleggeren etter neste synkronisering."
+  },
+  "No matches found. Keep typing to refine your search.": {
+    "da": "Ingen resultater. Fortsæt indtastningen for at indsnævre søgningen.",
+    "sv": "Inga träffar. Fortsätt skriva för att förfina sökningen.",
+    "nb": "Ingen treff. Fortsett å skrive for å avgrense søket."
+  },
+  "Note for your planner (optional)": {
+    "da": "Note til planlægger (valgfrit)",
+    "sv": "Anteckning till planerare (valfritt)",
+    "nb": "Merknad til planlegger (valgfritt)"
+  },
+  "On the Roster page, use “Add assignment” for each shift. “Must fix” issues (e.g. someone in two places at once) block saving. “Confirm to continue” items need a short written reason. Then publish the period so employees can see their roster.": {
+    "da": "På vagtplansiden bruges «Tilføj tildeling» for hver vagt. «Skal rettes»-problemer (f.eks. samme person to steder) blokerer gemning. «Bekræft for at fortsætte» kræver kort skriftlig begrundelse. Offentliggør derefter perioden, så medarbejdere kan se vagtplanen.",
+    "sv": "På schemasidan används «Lägg till uppdrag» för varje pass. «Måste åtgärdas»-problem (t.ex. samma person på två ställen) blockerar sparning. «Bekräfta för att fortsätta» kräver kort skriftlig motivering. Publicera sedan perioden så att personal kan se schemat.",
+    "nb": "På vaktplansiden brukes «Legg til tildeling» for hver vakt. «Må rettes»-problemer (f.eks. samme person to steder) blokkerer lagring. «Bekreft for å fortsette» krever kort skriftlig begrunnelse. Publiser deretter perioden, så ansatte kan se vaktplanen."
+  },
+  "Open DutyCheck to see your shifts.": {
+    "da": "Åbn DutyCheck for at se vagter.",
+    "sv": "Öppna DutyCheck för att se pass.",
+    "nb": "Åpne DutyCheck for å se vakter."
+  },
+  "Open DutyCheck to see your updated roster.": {
+    "da": "Åbn DutyCheck for at se den opdaterede vagtplan.",
+    "sv": "Öppna DutyCheck för att se det uppdaterade schemat.",
+    "nb": "Åpne DutyCheck for å se den oppdaterte vaktplanen."
+  },
+  "Open Roster, use “Add assignment” for each shift, and resolve every “Must fix” issue before continuing.": {
+    "da": "Åbn vagtplanen, brug «Tilføj tildeling» for hver vagt, og løs alle «Skal rettes»-problemer, før der fortsættes.",
+    "sv": "Öppna schemat, använd «Lägg till uppdrag» för varje pass, och lös alla «Måste åtgärdas»-problem innan fortsättning.",
+    "nb": "Åpne vaktplanen, bruk «Legg til tildeling» for hver vakt, og løs alle «Må rettes»-problemer før fortsettelse."
+  },
+  "Open your calendar app and choose something like “Subscribe”, “Add calendar”, or “From URL” (the name differs per app).": {
+    "da": "Åbn kalenderappen, og vælg noget som «Abonner», «Tilføj kalender» eller «Fra URL» (navnet varierer pr. app).",
+    "sv": "Öppna kalenderappen och välj något som «Prenumerera», «Lägg till kalender» eller «Från URL» (namnet varierar per app).",
+    "nb": "Åpne kalenderappen, og velg noe som «Abonner», «Legg til kalender» eller «Fra URL» (navnet varierer per app)."
+  },
+  "Paste the address. You usually only do this once; the app refreshes your shifts in the background.": {
+    "da": "Indsæt adressen. Det gøres normalt kun én gang; appen opdaterer vagter i baggrunden.",
+    "sv": "Klistra in adressen. Det görs normalt bara en gång; appen uppdaterar pass i bakgrunden.",
+    "nb": "Lim inn adressen. Det gjøres normalt bare én gang; appen oppdaterer vakter i bakgrunnen."
+  },
+  "Paste the full key from your license email. Line breaks are OK.": {
+    "da": "Indsæt den fulde nøgle fra license-mailen. Linjeskift er OK.",
+    "sv": "Klistra in hela nyckeln från licensmejlet. Radbrytningar är OK.",
+    "nb": "Lim inn hele nøkkelen fra lisens-e-posten. Linjeskift er OK."
+  },
+  "Period": {
+    "da": "Tidsperiode",
+    "sv": "Tidsperiod",
+    "nb": "Tidsperiode"
+  },
+  "Period totals and daily limits used by planning checks. Defaults stay ArbZG-oriented until you change them.": {
+    "da": "Periodetotaler og daglige grænser brugt af planlægningskontroller. Standarder forbliver ArbZG-orienterede, indtil de ændres.",
+    "sv": "Periodsummor och dagliga gränser som används av planeringskontroller. Standardvärden förblir ArbZG-orienterade tills de ändras.",
+    "nb": "Periodetotaler og daglige grenser brukt av planleggingskontroller. Standardverdier forblir ArbZG-orienterte til de endres."
+  },
+  "Periods are listed newest first. Closed periods are read-only. Changing the period updates the list below — no full page reload.": {
+    "da": "Perioder vises med nyeste først. Lukkede perioder er skrivebeskyttede. Skift af periode opdaterer listen nedenfor — uden fuld sidegenindlæsning.",
+    "sv": "Perioder listas med nyaste först. Stängda perioder är skrivskyddade. Byte av period uppdaterar listan nedan — utan full siduppdatering.",
+    "nb": "Perioder vises med nyeste først. Lukkede perioder er skrivebeskyttede. Endring av periode oppdaterer listen nedenfor — uten full sideoppdatering."
+  },
+  "Periods are the timeline of your roster. Each period flows through three stages: open, published, closed.": {
+    "da": "Perioder er tidslinjen for vagtplanen. Hver periode går gennem tre faser: åben, offentliggjort, lukket.",
+    "sv": "Perioder är tidslinjen för schemat. Varje period går igenom tre faser: öppen, publicerad, stängd.",
+    "nb": "Perioder er tidslinjen for vaktplanen. Hver periode går gjennom tre faser: åpen, publisert, lukket."
+  },
+  "Pick a quick range or enter your own dates. Only published shifts are shown.": {
+    "da": "Vælg et hurtigt interval, eller angiv egne datoer. Kun offentliggjorte vagter vises.",
+    "sv": "Välj ett snabbintervall eller ange egna datum. Endast publicerade pass visas.",
+    "nb": "Velg et hurtigintervall, eller angi egne datoer. Kun publiserte vakter vises."
+  },
+  "Pick a start and end date below to create your first planning period.": {
+    "da": "Vælg start- og slutdato nedenfor for at oprette den første planlægningsperiode.",
+    "sv": "Välj start- och slutdatum nedan för att skapa den första planeringsperioden.",
+    "nb": "Velg start- og sluttdato nedenfor for å opprette den første planleggingsperioden."
+  },
+  "Pick a type, a start and end date, and submit. Earlier requests give your planner more flexibility to find cover.": {
+    "da": "Vælg type, start- og slutdato, og indsend. Tidligere anmodninger giver planlæggeren mere fleksibilitet til at finde afløsning.",
+    "sv": "Välj typ, start- och slutdatum, och skicka in. Tidigare begäranden ger planeraren mer flexibilitet att hitta vikarie.",
+    "nb": "Velg type, start- og sluttdato, og send inn. Tidligere forespørsler gir planleggeren mer fleksibilitet til å finne vikar."
+  },
+  "Planning rule needs your confirmation": {
+    "da": "Planlægningsregel kræver bekræftelse",
+    "sv": "Planeringsregel kräver bekräftelse",
+    "nb": "Planleggingsregel krever bekreftelse"
+  },
+  "Pre-filled with {n} min — same as your last shift.": {
+    "da": "Forudfyldt med {n} min — samme som sidste vagt.",
+    "sv": "Förifyllt med {n} min — samma som senaste pass.",
+    "nb": "Forhåndsutfylt med {n} min — samme som forrige vakt."
+  },
+  "Preview never writes. Apply only after you confirm the dry-run counts. Conflicts are recomputed after apply.": {
+    "da": "Forhåndsvisning skriver aldrig. Anvend først efter bekræftelse af tørkørselstallet. Konflikter genberegnes efter anvendelse.",
+    "sv": "Förhandsgranskning skriver aldrig. Verkställ först efter bekräftelse av testkörningssiffrorna. Konflikter beräknas om efter verkställning.",
+    "nb": "Forhåndsvisning skriver aldrig. Bruk først etter bekreftelse av testkjøringstallene. Konflikter beregnes på nytt etter bruk."
+  },
+  "Remote onboarding or a workshop so your team can roll out cleanly — billed as a service.": {
+    "da": "Fjernonboarding eller et workshop, så teamet kan rulle ud rent — faktureret som service.",
+    "sv": "Fjärrintroduktion eller en workshop så att teamet kan rulla ut ordnat — faktureras som tjänst.",
+    "nb": "Fjernonboarding eller et workshop, slik at teamet kan rulle ut ryddig — faktureres som tjeneste."
+  },
+  "Remove this license?": {
+    "da": "Fjerne denne licens?",
+    "sv": "Ta bort denna licens?",
+    "nb": "Fjerne denne lisensen?"
+  },
+  "Create calendar link?": {
+    "da": "Oprette kalenderlink?",
+    "sv": "Skapa kalenderlänk?",
+    "nb": "Opprette kalenderlenke?"
+  },
+  "Deactivate location?": {
+    "da": "Deaktivere lokation?",
+    "sv": "Inaktivera plats?",
+    "nb": "Deaktivere sted?"
+  },
+  "Replace calendar link?": {
+    "da": "Erstatte kalenderlink?",
+    "sv": "Byta kalenderlänk?",
+    "nb": "Erstatte kalenderlenke?"
+  },
+  "Request time off in ArbeitszeitCheck. DutyCheck only lists it here for your planner.": {
+    "da": "Anmod om fri i ArbeitszeitCheck. DutyCheck viser det kun her til planlæggeren.",
+    "sv": "Begär ledighet i ArbeitszeitCheck. DutyCheck visar det bara här för planeraren.",
+    "nb": "Be om fri i ArbeitszeitCheck. DutyCheck viser det bare her for planleggeren."
+  },
+  "Resolve every “Must fix” issue before continuing.": {
+    "da": "Løs alle «Skal rettes»-problemer, før der fortsættes.",
+    "sv": "Lös alla «Måste åtgärdas»-problem innan fortsättning.",
+    "nb": "Løs alle «Må rettes»-problemer før fortsettelse."
+  },
+  "See your requests first, then send a new one if you need time off.": {
+    "da": "Gennemse anmodninger først, og send en ny, hvis der er behov for fri.",
+    "sv": "Granska begäranden först och skicka en ny om ledighet behövs.",
+    "nb": "Se gjennom forespørsler først, og send en ny hvis fri trengs."
+  },
+  "Select a period before adding assignments.": {
+    "da": "Vælg en periode, før tildelinger tilføjes.",
+    "sv": "Välj en period innan uppdrag läggs till.",
+    "nb": "Velg en periode før tildelinger legges til."
+  },
+  "Select a period before saving.": {
+    "da": "Vælg en periode, før der gemmes.",
+    "sv": "Välj en period innan sparning.",
+    "nb": "Velg en periode før lagring."
+  },
+  "Select a period to load its lifecycle, snapshots, and audit trail. You can publish only when every “Must fix” issue is resolved and “Confirm to continue” items are confirmed.": {
+    "da": "Vælg en periode for at indlæse livscyklus, snapshots og revisionsspor. Offentliggørelse er mulig, når alle «Skal rettes»-problemer er løst, og «Bekræft for at fortsætte»-punkter er bekræftet.",
+    "sv": "Välj en period för att ladda livscykel, ögonblicksbilder och granskningslogg. Publicering är möjlig när alla «Måste åtgärdas»-problem är lösta och «Bekräfta för att fortsätta»-punkter är bekräftade.",
+    "nb": "Velg en periode for å laste livssyklus, øyeblikksbilder og revisjonsspor. Publisering er mulig når alle «Må rettes»-problemer er løst, og «Bekreft for å fortsette»-punkter er bekreftet."
+  },
+  "Setup is required before you can plan duties.": {
+    "da": "Opsætning er påkrævet, før vagter kan planlægges.",
+    "sv": "Konfiguration krävs innan pass kan planeras.",
+    "nb": "Oppsett er påkrevd før vakter kan planlegges."
+  },
+  "Shift times use the location timezone ({locationTimezone}). Change it on the Locations page. Your account timezone ({accountTimezone}) is shown in the header.": {
+    "da": "Vagttider bruger lokationens tidszone ({locationTimezone}). Ændres på siden Lokationer. Kontoens tidszone ({accountTimezone}) vises i sidehovedet.",
+    "sv": "Passtider använder platsens tidszon ({locationTimezone}). Ändras på sidan Platser. Kontots tidszon ({accountTimezone}) visas i sidhuvudet.",
+    "nb": "Vakttider bruker stedets tidssone ({locationTimezone}). Endres på siden Steder. Kontoens tidssone ({accountTimezone}) vises i toppteksten."
+  },
+  "Some items still need your confirmation.": {
+    "da": "Nogle punkter kræver stadig bekræftelse.",
+    "sv": "Vissa punkter kräver fortfarande bekräftelse.",
+    "nb": "Noen punkter krever fortsatt bekreftelse."
+  },
+  "Start": {
+    "da": "Begynd",
+    "sv": "Start",
+    "nb": "Begynn"
+  },
+  "Templates fill start, end, and break. You can still change any field before saving.": {
+    "da": "Skabeloner udfylder start, slut og pause. Ethvert felt kan stadig ændres før gemning.",
+    "sv": "Mallar fyller start, slut och rast. Vilket fält som helst kan fortfarande ändras före sparning.",
+    "nb": "Maler fyller start, slutt og pause. Ethvert felt kan fortsatt endres før lagring."
+  },
+  "The DutyCheck web app always stays free. A DTY2 license unlocks named seats for the official DutyCheck mobile companion app for your organisation.": {
+    "da": "DutyCheck-webappen forbliver altid gratis. En DTY2-licens låser op for navngivne pladser til den officielle DutyCheck-mobilapp for organisationen.",
+    "sv": "DutyCheck-webbappen förblir alltid gratis. En DTY2-licens låser upp namngivna platser för den officiella DutyCheck-mobilappen för organisationen.",
+    "nb": "DutyCheck-webappen forblir alltid gratis. En DTY2-lisens låser opp navngitte plasser til den offisielle DutyCheck-mobilappen for organisasjonen."
+  },
+  "The address is hidden here. Use “Replace calendar link” to create a fresh address you can copy.": {
+    "da": "Adressen er skjult her. Brug «Erstat kalenderlink» for at oprette en ny adresse, der kan kopieres.",
+    "sv": "Adressen är dold här. Använd «Byt kalenderlänk» för att skapa en ny adress som kan kopieras.",
+    "nb": "Adressen er skjult her. Bruk «Erstatt kalenderlenke» for å opprette en ny adresse som kan kopieres."
+  },
+  "This Roster page stores shifts only. Publishing and closing happen on Periods — employees see My roster only after you publish there. Publish only when every “Must fix” issue is resolved and “Confirm to continue” items are confirmed.": {
+    "da": "Denne vagtplanside gemmer kun vagter. Offentliggørelse og lukning sker under Perioder — medarbejdere ser Min vagtplan først efter offentliggørelse der. Offentliggør først, når alle «Skal rettes»-problemer er løst, og «Bekræft for at fortsætte»-punkter er bekræftet.",
+    "sv": "Denna schemasida lagrar bara pass. Publicering och stängning sker under Perioder — personal ser Mitt schema först efter publicering där. Publicera först när alla «Måste åtgärdas»-problem är lösta och «Bekräfta för att fortsätta»-punkter är bekräftade.",
+    "nb": "Denne vaktplansiden lagrer bare vakter. Publisering og lukking skjer under Perioder — ansatte ser Min vaktplan først etter publisering der. Publiser først når alle «Må rettes»-problemer er løst, og «Bekreft for å fortsette»-punkter er bekreftet."
+  },
+  "This creates a secret web address for your calendar app. Anyone with the address can see your published shifts. Only continue if this device is private to you.": {
+    "da": "Dette opretter en hemmelig webadresse til kalenderappen. Alle med adressen kan se offentliggjorte vagter. Fortsæt kun, hvis enheden er privat.",
+    "sv": "Detta skapar en hemlig webbadress till kalenderappen. Alla med adressen kan se publicerade pass. Fortsätt bara om enheten är privat.",
+    "nb": "Dette oppretter en hemmelig nettadresse til kalenderappen. Alle med adressen kan se publiserte vakter. Fortsett bare hvis enheten er privat."
+  },
+  "This license expires in {days} day(s). Renew soon to avoid an interruption for your mobile seats.": {
+    "da": "Denne licens udløber om {days} dag(e). Forny snart for at undgå afbrydelse af mobilsæder.",
+    "sv": "Denna licens löper ut om {days} dag(ar). Förnya snart för att undvika avbrott för mobilplatser.",
+    "nb": "Denne lisensen utløper om {days} dag(er). Forny snart for å unngå avbrudd for mobilplasser."
+  },
+  "This seat exceeds the current license limit. It stays assigned but has no mobile access until you remove a seat or upgrade.": {
+    "da": "Denne plads overskrider den aktuelle licensgrænse. Den forbliver tildelt, men har ingen mobiladgang, før en plads fjernes eller der opgraderes.",
+    "sv": "Denna plats överskrider den aktuella licensgränsen. Den förblir tilldelad men har ingen mobilåtkomst tills en plats tas bort eller uppgradering sker.",
+    "nb": "Denne plassen overskrider gjeldende lisensgrense. Den forblir tildelt, men har ingen mobiltilgang til en plass fjernes eller det oppgraderes."
+  },
+  "Tip: turn this on after you have already added at least one allowed user or group below, otherwise the app locks itself.": {
+    "da": "Tip: aktiver dette, når mindst én tilladt bruger eller gruppe allerede er tilføjet nedenfor — ellers låser appen sig selv.",
+    "sv": "Tips: aktivera detta när minst en tillåten användare eller grupp redan har lagts till nedan — annars låser appen sig själv.",
+    "nb": "Tips: aktiver dette når minst én tillatt bruker eller gruppe allerede er lagt til nedenfor — ellers låser appen seg selv."
+  },
+  "Type": {
+    "da": "Art",
+    "sv": "Typ",
+    "nb": "Art"
+  },
+  "Unassigned shifts you can claim. Hard planning rules still apply — if a claim fails, ask your planner.": {
+    "da": "Utildelte vagter kan overtages. Hårde planlægningsregler gælder stadig — hvis en anmodning mislykkes, kontakt planlæggeren.",
+    "sv": "Otilldelade pass kan tas över. Hårda planeringsregler gäller fortfarande — om en begäran misslyckas, kontakta planeraren.",
+    "nb": "Utildelte vakter kan overtas. Harde planleggingsregler gjelder fortsatt — hvis en forespørsel mislykkes, kontakt planleggeren."
+  },
+  "Walk through this list each time you prepare a period for publication.": {
+    "da": "Gennemgå denne liste, hver gang en periode forberedes til offentliggørelse.",
+    "sv": "Gå igenom denna lista varje gång en period förbereds för publicering.",
+    "nb": "Gå gjennom denne listen hver gang en periode forberedes til publisering."
+  },
+  "Why are you turning the connection off? (optional)": {
+    "da": "Hvorfor slås forbindelsen fra? (valgfrit)",
+    "sv": "Varför stängs anslutningen av? (valfritt)",
+    "nb": "Hvorfor slås tilkoblingen av? (valgfritt)"
+  },
+  "You already have an overlapping absence.": {
+    "da": "Der findes allerede et overlappende fravær.",
+    "sv": "Det finns redan en överlappande frånvaro.",
+    "nb": "Det finnes allerede et overlappende fravær."
+  },
+  "You already have the employee role, but no row in the Employees catalog references your user yet. Ask a planner or DutyCheck administrator to link your account there.": {
+    "da": "Medarbejderrollen er allerede tildelt, men ingen række i medarbejderkataloget henviser endnu til brugeren. Bed en planlægger eller DutyCheck-administrator om at linke kontoen.",
+    "sv": "Anställdrollen är redan tilldelad, men ingen rad i anställdkatalogen refererar ännu till användaren. Be en planerare eller DutyCheck-administratör koppla kontot.",
+    "nb": "Ansattrollen er allerede tildelt, men ingen rad i ansattkatalogen refererer ennå til brukeren. Be en planlegger eller DutyCheck-administrator koble kontoen."
+  },
+  "You are currently not allowed to use DutyCheck based on directory restrictions.": {
+    "da": "DutyCheck må ikke bruges i øjeblikket på grund af katalogbegrænsninger.",
+    "sv": "DutyCheck får inte användas för närvarande på grund av katalogbegränsningar.",
+    "nb": "DutyCheck kan ikke brukes for øyeblikket på grunn av katalogbegrensninger."
+  },
+  "You are currently not linked to DutyCheck. Ask an administrator to assign your role.": {
+    "da": "Kontoen er ikke linket til DutyCheck i øjeblikket. Bed en administrator om at tildele rollen.",
+    "sv": "Kontot är inte kopplat till DutyCheck för närvarande. Be en administratör tilldela rollen.",
+    "nb": "Kontoen er ikke koblet til DutyCheck for øyeblikket. Be en administrator tildele rollen."
+  },
+  "You are not allowed to search the directory.": {
+    "da": "Kataloget må ikke gennemsøges.",
+    "sv": "Katalogen får inte sökas.",
+    "nb": "Katalogen kan ikke søkes i."
+  },
+  "You are not allowed to use DutyCheck right now.": {
+    "da": "DutyCheck må ikke bruges lige nu.",
+    "sv": "DutyCheck får inte användas just nu.",
+    "nb": "DutyCheck kan ikke brukes akkurat nå."
+  },
+  "You are not authorized to perform that action.": {
+    "da": "Der er ikke autorisation til denne handling.",
+    "sv": "Det finns ingen behörighet för denna åtgärd.",
+    "nb": "Det finnes ikke autorisasjon for denne handlingen."
+  },
+  "You are scheduled for %1$s minutes this period (soft cap %2$s). Talk to your planner if this looks wrong.": {
+    "da": "Der er planlagt %1$s minutter i denne periode (blød grænse %2$s). Kontakt planlæggeren, hvis det ser forkert ud.",
+    "sv": "Det är planerat %1$s minuter denna period (mjuk gräns %2$s). Kontakta planeraren om det verkar fel.",
+    "nb": "Det er planlagt %1$s minutter i denne perioden (myk grense %2$s). Kontakt planleggeren hvis det ser feil ut."
+  },
+  "You can still plan shifts here. To add or change time off, open ArbeitszeitCheck.": {
+    "da": "Vagter kan stadig planlægges her. For at tilføje eller ændre fravær skal ArbeitszeitCheck åbnes.",
+    "sv": "Pass kan fortfarande planeras här. För att lägga till eller ändra frånvaro, öppna ArbeitszeitCheck.",
+    "nb": "Vakter kan fortsatt planlegges her. For å legge til eller endre fravær, åpne ArbeitszeitCheck."
+  },
+  "You can still see your roster in DutyCheck. To request or change time off, use ArbeitszeitCheck.": {
+    "da": "Vagtplanen kan stadig ses i DutyCheck. For at anmode om eller ændre fravær skal ArbeitszeitCheck bruges.",
+    "sv": "Schemat kan fortfarande ses i DutyCheck. För att begära eller ändra frånvaro, använd ArbeitszeitCheck.",
+    "nb": "Vaktplanen kan fortsatt sees i DutyCheck. For å be om eller endre fravær, bruk ArbeitszeitCheck."
+  },
+  "You cannot add assignments for this period.": {
+    "da": "Der kan ikke tilføjes tildelinger for denne periode.",
+    "sv": "Uppdrag kan inte läggas till för denna period.",
+    "nb": "Det kan ikke legges til tildelinger for denne perioden."
+  },
+  "You cannot create DutyCheck absences for this employee: linked accounts use ArbeitszeitCheck while the integration is on.": {
+    "da": "Der kan ikke oprettes DutyCheck-fravær for denne medarbejder: linkede konti bruger ArbeitszeitCheck, mens integrationen er aktiv.",
+    "sv": "DutyCheck-frånvaro kan inte skapas för denna anställd: länkade konton använder ArbeitszeitCheck medan integrationen är aktiv.",
+    "nb": "DutyCheck-fravær kan ikke opprettes for denne ansatte: tilknyttede kontoer bruker ArbeitszeitCheck mens integrasjonen er aktiv."
+  },
+  "You changed the suggested break for this shift.": {
+    "da": "Den foreslåede pause for denne vagt blev ændret.",
+    "sv": "Den föreslagna rasten för detta pass ändrades.",
+    "nb": "Den foreslåtte pausen for dette skiftet ble endret."
+  },
+  "You do not have access to this DutyCheck area. Use the navigation to return to a page that matches your role, or ask an administrator if you need a different role.": {
+    "da": "Der er ikke adgang til dette DutyCheck-område. Brug navigationen for at vende tilbage til en side, der matcher rollen, eller bed om en anden rolle hos en administrator.",
+    "sv": "Det finns ingen åtkomst till detta DutyCheck-område. Använd navigeringen för att återgå till en sida som matchar rollen, eller be om en annan roll hos en administratör.",
+    "nb": "Det finnes ikke tilgang til dette DutyCheck-området. Bruk navigasjonen for å gå tilbake til en side som matcher rollen, eller be om en annen rolle hos en administrator."
+  },
+  "You do not have permission for this DutyCheck action. Open a section that matches your role, or ask an administrator.": {
+    "da": "Der mangler tilladelse til denne DutyCheck-handling. Åbn et afsnit, der matcher rollen, eller kontakt en administrator.",
+    "sv": "Behörighet saknas för denna DutyCheck-åtgärd. Öppna ett avsnitt som matchar rollen, eller kontakta en administratör.",
+    "nb": "Tillatelse mangler for denne DutyCheck-handlingen. Åpne et avsnitt som matcher rollen, eller kontakt en administrator."
+  },
+  "You do not have permission for this action.": {
+    "da": "Der mangler tilladelse til denne handling.",
+    "sv": "Behörighet saknas för denna åtgärd.",
+    "nb": "Tillatelse mangler for denne handlingen."
+  },
+  "You do not have permission to manage the DutyCheck license.": {
+    "da": "Der mangler tilladelse til at administrere DutyCheck-licensen.",
+    "sv": "Behörighet saknas för att hantera DutyCheck-licensen.",
+    "nb": "Tillatelse mangler for å administrere DutyCheck-lisensen."
+  },
+  "You do not have permission to view or change app policy. Ask an app administrator if you need adjustments.": {
+    "da": "Der mangler tilladelse til at se eller ændre app-politik. Kontakt en app-administrator ved behov for justeringer.",
+    "sv": "Behörighet saknas för att visa eller ändra appolicy. Kontakta en appadministratör vid behov av justeringar.",
+    "nb": "Tillatelse mangler for å se eller endre app-policy. Kontakt en app-administrator ved behov for justeringer."
+  },
+  "You have confirmed this shift": {
+    "da": "Denne vagt er bekræftet",
+    "sv": "Detta pass har bekräftats",
+    "nb": "Dette skiftet er bekreftet"
+  },
+  "You stay a member of Default so existing rosters remain visible.": {
+    "da": "Medlemskab af Default bevares, så eksisterende vagtplaner forbliver synlige.",
+    "sv": "Medlemskap i Default behålls så att befintliga scheman förblir synliga.",
+    "nb": "Medlemskap i Default beholdes, slik at eksisterende vaktplaner forblir synlige."
+  },
+  "Your absence requests and statuses": {
+    "da": "Fraværsanmodninger og statusser",
+    "sv": "Frånvarobegäranden och statusar",
+    "nb": "Fraværsforespørsler og statuser"
+  },
+  "Your account is not linked to an employee record. Ask a planner to link your Nextcloud account before you can manage absences.": {
+    "da": "Kontoen er ikke linket til en medarbejderpost. Bed en planlægger om at linke Nextcloud-kontoen, før fravær kan administreres.",
+    "sv": "Kontot är inte kopplat till en anställdpost. Be en planerare koppla Nextcloud-kontot innan frånvaro kan hanteras.",
+    "nb": "Kontoen er ikke koblet til en ansattpost. Be en planlegger koble Nextcloud-kontoen før fravær kan administreres."
+  },
+  "Your account is not linked to an employee record. Ask a planner to link your Nextcloud account before you can see duties or calendar links.": {
+    "da": "Kontoen er ikke linket til en medarbejderpost. Bed en planlægger om at linke Nextcloud-kontoen, før vagter eller kalenderlinks kan ses.",
+    "sv": "Kontot är inte kopplat till en anställdpost. Be en planerare koppla Nextcloud-kontot innan pass eller kalenderlänkar kan ses.",
+    "nb": "Kontoen er ikke koblet til en ansattpost. Be en planlegger koble Nextcloud-kontoen før vakter eller kalenderlenker kan sees."
+  },
+  "Your account is not linked to an employee. Ask a planner to set this up.": {
+    "da": "Kontoen er ikke linket til en medarbejder. Bed en planlægger om at konfigurere det.",
+    "sv": "Kontot är inte kopplat till en anställd. Be en planerare konfigurera det.",
+    "nb": "Kontoen er ikke koblet til en ansatt. Be en planlegger sette det opp."
+  },
+  "Your choice here controls the assignment list and planning checks below. Only open periods accept new assignments.": {
+    "da": "Valget her styrer tildelingslisten og planlægningskontrollerne nedenfor. Kun åbne perioder accepterer nye tildelinger.",
+    "sv": "Valet här styr uppdragslistan och planeringskontrollerna nedan. Endast öppna perioder accepterar nya uppdrag.",
+    "nb": "Valget her styrer tildelingslisten og planleggingskontrollene nedenfor. Kun åpne perioder aksepterer nye tildelinger."
+  },
+  "Your license is about to expire": {
+    "da": "Licensen udløber snart",
+    "sv": "Licensen löper snart ut",
+    "nb": "Lisensen utløper snart"
+  },
+  "Your link appears here after you create it.": {
+    "da": "Linket vises her, når det er oprettet.",
+    "sv": "Länken visas här när den har skapats.",
+    "nb": "Lenken vises her når den er opprettet."
+  },
+  "Your new link is ready. Copy it now and paste it into your calendar app. It will be hidden again after you leave this page.": {
+    "da": "Det nye link er klar. Kopiér det nu, og indsæt det i kalenderappen. Det skjules igen ved forladelse af siden.",
+    "sv": "Den nya länken är klar. Kopiera den nu och klistra in den i kalenderappen. Den döljs igen när sidan lämnas.",
+    "nb": "Den nye lenken er klar. Kopier den nå, og lim den inn i kalenderappen. Den skjules igjen når siden forlates."
+  },
+  "Your old address stops working right away. Paste the new one into your calendar app so it keeps updating.": {
+    "da": "Den gamle adresse stopper med det samme. Indsæt den nye i kalenderappen, så opdateringer fortsætter.",
+    "sv": "Den gamla adressen slutar fungera direkt. Klistra in den nya i kalenderappen så att uppdateringar fortsätter.",
+    "nb": "Den gamle adressen slutter å virke med en gang. Lim inn den nye i kalenderappen, slik at oppdateringer fortsetter."
+  },
+  "Your private link": {
+    "da": "Privat link",
+    "sv": "Privat länk",
+    "nb": "Privat lenke"
+  },
+  "Your published shifts in the selected range": {
+    "da": "Offentliggjorte vagter i det valgte interval",
+    "sv": "Publicerade pass i det valda intervallet",
+    "nb": "Publiserte vakter i det valgte intervallet"
+  },
+  "Your requests and statuses": {
+    "da": "Anmodninger og statusser",
+    "sv": "Begäranden och statusar",
+    "nb": "Forespørsler og statuser"
+  },
+  "Your security token expired. Please reload the page and try again.": {
+    "da": "Sikkerhedstokenet er udløbet. Genindlæs siden, og prøv igen.",
+    "sv": "Säkerhetstoken har löpt ut. Ladda om sidan och försök igen.",
+    "nb": "Sikkerhetstokenet er utløpt. Last siden på nytt, og prøv igjen."
+  },
+  "Your session expired. Please reload and sign in again.": {
+    "da": "Sessionen er udløbet. Genindlæs siden, og log ind igen.",
+    "sv": "Sessionen har löpt ut. Ladda om sidan och logga in igen.",
+    "nb": "Økten er utløpt. Last siden på nytt, og logg inn igjen."
+  },
+  "Your shift changed": {
+    "da": "Vagten blev ændret",
+    "sv": "Passet ändrades",
+    "nb": "Vakten ble endret"
+  },
+  "Your shift was cancelled": {
+    "da": "Vagten blev aflyst",
+    "sv": "Passet avbokades",
+    "nb": "Vakten ble avlyst"
+  },
+  "Your swap request was approved. Check your roster.": {
+    "da": "Bytteanmodningen blev godkendt. Gennemse vagtplanen.",
+    "sv": "Bytesbegäran godkändes. Granska schemat.",
+    "nb": "Bytteforespørselen ble godkjent. Se gjennom vaktplanen."
+  },
+  "Your swap request was rejected. Check with your planner.": {
+    "da": "Bytteanmodningen blev afvist. Kontakt planlæggeren.",
+    "sv": "Bytesbegäran avslogs. Kontakta planeraren.",
+    "nb": "Bytteforespørselen ble avvist. Kontakt planleggeren."
+  },
+  "Your time off is managed in ArbeitszeitCheck.": {
+    "da": "Fravær administreres i ArbeitszeitCheck.",
+    "sv": "Frånvaro hanteras i ArbeitszeitCheck.",
+    "nb": "Fravær administreres i ArbeitszeitCheck."
+  },
+  "Your time off is managed in ArbeitszeitCheck. This page shows it to your planner. To request time off, use ArbeitszeitCheck.": {
+    "da": "Fravær administreres i ArbeitszeitCheck. Denne side viser det for planlæggeren. For at anmode om fravær skal ArbeitszeitCheck bruges.",
+    "sv": "Frånvaro hanteras i ArbeitszeitCheck. Denna sida visar det för planeraren. För att begära frånvaro, använd ArbeitszeitCheck.",
+    "nb": "Fravær administreres i ArbeitszeitCheck. Denne siden viser det for planleggeren. For å be om fravær, bruk ArbeitszeitCheck."
+  },
+  "Your upcoming published duties": {
+    "da": "Kommende offentliggjorte vagter",
+    "sv": "Kommande publicerade pass",
+    "nb": "Kommende publiserte vakter"
+  }
+}
