@@ -1,0 +1,119 @@
+{
+	"de": {
+		"(opens in a new tab)": "(öffnet in neuem Tab)",
+		"Access": "Zugriff",
+		"Adding users or groups here only lets them open DutyCheck.": "Benutzer oder Gruppen hier hinzuzufügen erlaubt ihnen nur, DutyCheck zu öffnen.",
+		"After you create a second company, planners who are not members of any company see an empty roster. Add them below — they do not fall back to Default.": "Sobald eine zweite Firma existiert, sehen Planende ohne Mitgliedschaft einen leeren Dienstplan. Fügen Sie sie unten hinzu — es gibt keinen Fallback auf die Standard-Firma.",
+		"All {total} rows are on screen.": "Alle {total} Zeilen sind sichtbar.",
+		"All {total} people are on screen.": "Alle {total} Personen sind sichtbar.",
+		"All {total} shifts are on screen.": "Alle {total} Schichten sind sichtbar.",
+		"Ask a DutyCheck administrator to link your account as an employee or assign you a planner role before you can use rosters and absences.": "Bitten Sie eine DutyCheck-Administration, Ihr Konto als Mitarbeitende zu verknüpfen oder Ihnen eine Planer-Rolle zuzuweisen, bevor Sie Dienstpläne und Abwesenheiten nutzen können.",
+		"Assign planner roles on Duty roles": "Planer-Rollen unter Dienstrollen zuweisen",
+		"Conflicts": "Konflikte",
+		"Directory and linked Nextcloud accounts": "Verzeichnis und verknüpfte Nextcloud-Konten",
+		"Integration": "Integration",
+		"License": "Lizenz",
+		"Link staff accounts on the Employees page": "Mitarbeitendenkonten auf der Seite Mitarbeitende verknüpfen",
+		"No company assigned yet": "Noch keiner Firma zugeordnet",
+		"Not enrolled yet": "Noch nicht zugewiesen",
+		"One Default company keeps legacy installs unrestricted. Creating a second company turns on membership isolation: planners without a company membership see nothing until an administrator adds them.": "Eine Standard-Firma lässt bestehende Installationen uneingeschränkt. Eine zweite Firma aktiviert die Mitgliedschafts-Isolation: Planende ohne Firmenmitgliedschaft sehen nichts, bis eine Administration sie hinzufügt.",
+		"Open Companies": "Firmen öffnen",
+		"Opening DutyCheck is separate from planner or staff access. Without directory restriction, any Nextcloud member can open the app — but they still need a planner role on Duty roles or an employee catalog link to use roster features.": "DutyCheck zu öffnen ist getrennt von Planer- oder Mitarbeitendenzugriff. Ohne Verzeichniseinschränkung kann jedes Nextcloud-Mitglied die App öffnen — für Dienstplanfunktionen braucht es trotzdem eine Planer-Rolle unter Dienstrollen oder eine Verknüpfung im Mitarbeitendenkatalog.",
+		"Operations": "Betrieb",
+		"Planner scope": "Planer-Bereich",
+		"Rows are people, columns are days. Arrow keys move between cells — including people who are scrolled out of view. Page Up and Page Down jump a screen. Home and End jump to the first or last day. Enter opens the shift. Space selects empty cells for bulk fill.": "Zeilen sind Personen, Spalten sind Tage. Pfeiltasten erreichen auch Personen, die gerade nicht sichtbar sind. Bild-auf und Bild-ab springen eine Seite. Pos1 und Ende springen zum ersten bzw. letzten Tag. Enter öffnet die Schicht. Leertaste wählt leere Zellen für die Massenfüllung.",
+		"Settings pages": "Einstellungsseiten",
+		"Shifts for the period selected above. Use the grid for a week overview, or the list for details. Large teams stay fast: only the rows on screen are drawn — scroll to see everyone.": "Schichten für den oben gewählten Zeitraum. Raster für die Wochenübersicht, Liste für Details. Große Teams bleiben schnell: nur sichtbare Zeilen werden gezeichnet — scrollen Sie, um alle zu sehen.",
+		"Showing rows {from}–{to} of {total}. Scroll to see the rest.": "Zeilen {from}–{to} von {total}. Scrollen Sie, um den Rest zu sehen.",
+		"Showing people {from}–{to} of {total}. Scroll to see everyone.": "Personen {from}–{to} von {total}. Scrollen Sie, um alle zu sehen.",
+		"Showing shifts {from}–{to} of {total}. Scroll to see everyone.": "Schichten {from}–{to} von {total}. Scrollen Sie, um alle zu sehen.",
+		"Someone else already confirmed this exception. Reload to see the latest checks.": "Jemand anderes hat diese Ausnahme bereits bestätigt. Laden Sie neu, um die aktuellen Prüfungen zu sehen.",
+		"Support us": "Unterstützen Sie uns",
+		"Templates": "Vorlagen",
+		"When a Nextcloud account is deleted, DutyCheck removes that user’s roles, access-list entries, company membership, planner location scope, mobile seat, preferences, and employee account link. Historical roster rows stay for audit evidence with the link cleared.": "Wird ein Nextcloud-Konto gelöscht, entfernt DutyCheck Rollen, Zugriffslisten-Einträge, Firmenmitgliedschaft, Standort-Bereich, Mobil-Sitz, Einstellungen und die Mitarbeitendenverknüpfung. Historische Dienstplanzeilen bleiben als Nachweis, die Verknüpfung wird gelöscht.",
+		"You are not enrolled in DutyCheck yet.": "Sie sind DutyCheck noch nicht zugewiesen.",
+		"Your account is not on a company yet. Ask an administrator to add you under Settings → Companies.": "Ihr Konto gehört noch zu keiner Firma. Bitten Sie eine Administration, Sie unter Einstellungen → Firmen hinzuzufügen.",
+		"Your account is not on a company. Ask an administrator to add you under Settings → Companies. Until then you cannot see or change other teams' rosters.": "Ihr Konto gehört noch zu keiner Firma. Bitten Sie eine Administration, Sie unter Einstellungen → Firmen hinzuzufügen. Bis dahin sehen und ändern Sie keine Dienstpläne anderer Teams."
+	},
+	"fr": {
+		"(opens in a new tab)": "(s’ouvre dans un nouvel onglet)",
+		"All {total} rows are on screen.": "Les {total} lignes sont toutes affichées.",
+		"All {total} people are on screen.": "Les {total} personnes sont toutes affichées.",
+		"All {total} shifts are on screen.": "Les {total} postes sont tous affichés.",
+		"Showing rows {from}–{to} of {total}. Scroll to see the rest.": "Lignes {from}–{to} sur {total}. Faites défiler pour voir le reste.",
+		"Showing people {from}–{to} of {total}. Scroll to see everyone.": "Personnes {from}–{to} sur {total}. Faites défiler pour voir tout le monde.",
+		"Showing shifts {from}–{to} of {total}. Scroll to see everyone.": "Postes {from}–{to} sur {total}. Faites défiler pour voir tous les postes."
+	},
+	"es": {
+		"(opens in a new tab)": "(se abre en una pestaña nueva)",
+		"All {total} rows are on screen.": "Las {total} filas están en pantalla.",
+		"All {total} people are on screen.": "Las {total} personas están en pantalla.",
+		"All {total} shifts are on screen.": "Los {total} turnos están en pantalla.",
+		"Showing rows {from}–{to} of {total}. Scroll to see the rest.": "Filas {from}–{to} de {total}. Desplácese para ver el resto.",
+		"Showing people {from}–{to} of {total}. Scroll to see everyone.": "Personas {from}–{to} de {total}. Desplácese para ver a todas.",
+		"Showing shifts {from}–{to} of {total}. Scroll to see everyone.": "Turnos {from}–{to} de {total}. Desplácese para verlos todos."
+	},
+	"da": {
+		"(opens in a new tab)": "(åbner i en ny fane)",
+		"All {total} rows are on screen.": "Alle {total} rækker vises.",
+		"All {total} people are on screen.": "Alle {total} personer vises.",
+		"All {total} shifts are on screen.": "Alle {total} vagter vises.",
+		"Showing rows {from}–{to} of {total}. Scroll to see the rest.": "Rækker {from}–{to} af {total}. Scroll for at se resten.",
+		"Showing people {from}–{to} of {total}. Scroll to see everyone.": "Personer {from}–{to} af {total}. Scroll for at se alle.",
+		"Showing shifts {from}–{to} of {total}. Scroll to see everyone.": "Vagter {from}–{to} af {total}. Scroll for at se alle."
+	},
+	"nl": {
+		"(opens in a new tab)": "(opent in een nieuw tabblad)",
+		"All {total} rows are on screen.": "Alle {total} rijen staan in beeld.",
+		"All {total} people are on screen.": "Alle {total} personen staan in beeld.",
+		"All {total} shifts are on screen.": "Alle {total} diensten staan in beeld.",
+		"Showing rows {from}–{to} of {total}. Scroll to see the rest.": "Rijen {from}–{to} van {total}. Scroll om de rest te zien.",
+		"Showing people {from}–{to} of {total}. Scroll to see everyone.": "Personen {from}–{to} van {total}. Scroll om iedereen te zien.",
+		"Showing shifts {from}–{to} of {total}. Scroll to see everyone.": "Diensten {from}–{to} van {total}. Scroll om alle diensten te zien."
+	},
+	"it": {
+		"(opens in a new tab)": "(si apre in una nuova scheda)",
+		"All {total} rows are on screen.": "Tutte le {total} righe sono visibili.",
+		"All {total} people are on screen.": "Tutte le {total} persone sono visibili.",
+		"All {total} shifts are on screen.": "Tutti i {total} turni sono visibili.",
+		"Showing rows {from}–{to} of {total}. Scroll to see the rest.": "Righe {from}–{to} di {total}. Scorri per vedere il resto.",
+		"Showing people {from}–{to} of {total}. Scroll to see everyone.": "Persone {from}–{to} di {total}. Scorri per vederle tutte.",
+		"Showing shifts {from}–{to} of {total}. Scroll to see everyone.": "Turni {from}–{to} di {total}. Scorri per vederli tutti."
+	},
+	"pl": {
+		"(opens in a new tab)": "(otwiera się w nowej karcie)",
+		"All {total} rows are on screen.": "Wszystkie {total} wiersze są widoczne.",
+		"All {total} people are on screen.": "Wszystkie {total} osoby są widoczne.",
+		"All {total} shifts are on screen.": "Wszystkie {total} dyżury są widoczne.",
+		"Showing rows {from}–{to} of {total}. Scroll to see the rest.": "Wiersze {from}–{to} z {total}. Przewiń, aby zobaczyć resztę.",
+		"Showing people {from}–{to} of {total}. Scroll to see everyone.": "Osoby {from}–{to} z {total}. Przewiń, aby zobaczyć wszystkie.",
+		"Showing shifts {from}–{to} of {total}. Scroll to see everyone.": "Dyżury {from}–{to} z {total}. Przewiń, aby zobaczyć wszystkie."
+	},
+	"sv": {
+		"(opens in a new tab)": "(öppnas i en ny flik)",
+		"All {total} rows are on screen.": "Alla {total} rader syns.",
+		"All {total} people are on screen.": "Alla {total} personer syns.",
+		"All {total} shifts are on screen.": "Alla {total} pass syns.",
+		"Showing rows {from}–{to} of {total}. Scroll to see the rest.": "Rader {from}–{to} av {total}. Rulla för att se resten.",
+		"Showing people {from}–{to} of {total}. Scroll to see everyone.": "Personer {from}–{to} av {total}. Rulla för att se alla.",
+		"Showing shifts {from}–{to} of {total}. Scroll to see everyone.": "Pass {from}–{to} av {total}. Rulla för att se alla."
+	},
+	"nb": {
+		"(opens in a new tab)": "(åpnes i en ny fane)",
+		"All {total} rows are on screen.": "Alle {total} rader vises.",
+		"All {total} people are on screen.": "Alle {total} personer vises.",
+		"All {total} shifts are on screen.": "Alle {total} vakter vises.",
+		"Showing rows {from}–{to} of {total}. Scroll to see the rest.": "Rader {from}–{to} av {total}. Rull for å se resten.",
+		"Showing people {from}–{to} of {total}. Scroll to see everyone.": "Personer {from}–{to} av {total}. Rull for å se alle.",
+		"Showing shifts {from}–{to} of {total}. Scroll to see everyone.": "Vakter {from}–{to} av {total}. Rull for å se alle."
+	},
+	"pt_BR": {
+		"(opens in a new tab)": "(abre em uma nova aba)",
+		"All {total} rows are on screen.": "Todas as {total} linhas estão na tela.",
+		"All {total} people are on screen.": "Todas as {total} pessoas estão na tela.",
+		"All {total} shifts are on screen.": "Todos os {total} turnos estão na tela.",
+		"Showing rows {from}–{to} of {total}. Scroll to see the rest.": "Linhas {from}–{to} de {total}. Role para ver o restante.",
+		"Showing people {from}–{to} of {total}. Scroll to see everyone.": "Pessoas {from}–{to} de {total}. Role para ver todas.",
+		"Showing shifts {from}–{to} of {total}. Scroll to see everyone.": "Turnos {from}–{to} de {total}. Role para ver todos."
+	}
+}

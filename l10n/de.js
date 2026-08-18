@@ -1032,7 +1032,18 @@ OC.L10N.register(
 	"Finish the highlighted step — then your team can plan duties." : "Erledigen Sie den hervorgehobenen Schritt — danach kann Ihr Team Dienste planen.",
 	"Done" : "Erledigt",
 	"Next step" : "Nächster Schritt",
-	"To do" : "Offen"
+	"To do" : "Offen",
+	"Help" : "Hilfe",
+	"Report a problem" : "Fehler melden",
+	"Suggest an improvement" : "Verbesserung vorschlagen",
+	"Open GitHub Issues" : "GitHub Issues öffnen",
+	"Email is best-effort — no reply SLA. Need booked help? Use Support & us." : "E-Mail ohne Antwort-SLA. Gebuchte Hilfe: Support & wir.",
+	"Report this problem" : "Diesen Fehler melden",
+	"Get the App" : "App holen",
+	"(opens in a new tab)" : "(öffnet in neuem Tab)",
+	"Setup & training" : "Einrichtung & Schulung",
+	"Commissioned feature" : "Beauftragte Funktion",
+	"Mobile & terminal" : "Mobil & Terminal"
 	},
 	"nplurals=2; plural=(n != 1);"
 );

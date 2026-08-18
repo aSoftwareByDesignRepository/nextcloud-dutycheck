@@ -455,7 +455,7 @@ OC.L10N.register(
 	"Mobile seats" : "Sedili mobili",
 	"Mobile seats used" : "Sedili mobili utilizzati",
 	"Mobile seats will stop working immediately. This does not affect the web app, which stays free." : "I posti mobili smetteranno di funzionare immediatamente. Ciò non influisce sull'app Web, che rimane gratuita.",
-	"More Check apps" : "Altro Controlla le app",
+	"More Check apps" : "Altre app Check",
 	"Must fix" : "Da correggere obbligatoriamente",
 	"My absence requests" : "Le mie richieste di assenza",
 	"My absences" : "Le mie assenze",
@@ -1032,7 +1032,18 @@ OC.L10N.register(
 	"Finish the highlighted step — then your team can plan duties." : "Completare il passaggio evidenziato — poi il team potrà pianificare i turni.",
 	"Done" : "Fatto",
 	"Next step" : "Passaggio successivo",
-	"To do" : "Da fare"
+	"To do" : "Da fare",
+	"Help" : "Aiuto",
+	"Report a problem" : "Segnalare un problema",
+	"Suggest an improvement" : "Proporre un miglioramento",
+	"Open GitHub Issues" : "Aprire GitHub Issues",
+	"Email is best-effort — no reply SLA. Need booked help? Use Support & us." : "E-mail senza SLA di risposta. Serve assistenza prenotata? Usi Supporto e noi.",
+	"Report this problem" : "Segnalare questo problema",
+	"Get the App" : "Scarica l’app",
+	"(opens in a new tab)" : "(si apre in una nuova scheda)",
+	"Setup & training" : "Installazione e formazione",
+	"Commissioned feature" : "Funzione su commissione",
+	"Mobile & terminal" : "Mobile e terminal"
 	},
 	"nplurals=2; plural=(n != 1);"
 );

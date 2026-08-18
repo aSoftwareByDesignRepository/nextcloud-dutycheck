@@ -455,7 +455,7 @@ OC.L10N.register(
 		"Mobile seats": "Sedili mobili",
 		"Mobile seats used": "Sedili mobili utilizzati",
 		"Mobile seats will stop working immediately. This does not affect the web app, which stays free.": "I posti mobili smetteranno di funzionare immediatamente. Ciò non influisce sull'app Web, che rimane gratuita.",
-		"More Check apps": "Altro Controlla le app",
+		"More Check apps": "Altre app Check",
 		"Must fix": "Da correggere obbligatoriamente",
 		"My absence requests": "Le mie richieste di assenza",
 		"My absences": "Le mie assenze",

@@ -1032,7 +1032,18 @@ OC.L10N.register(
 	"Finish the highlighted step — then your team can plan duties." : "Fullfør det uthevede trinnet — deretter kan teamet planlegge vakter.",
 	"Done" : "Ferdig",
 	"Next step" : "Neste steg",
-	"To do" : "Å gjøre"
+	"To do" : "Å gjøre",
+	"Help" : "Hjelp",
+	"Report a problem" : "Rapporter et problem",
+	"Suggest an improvement" : "Foreslå en forbedring",
+	"Open GitHub Issues" : "Åpne GitHub Issues",
+	"Email is best-effort — no reply SLA. Need booked help? Use Support & us." : "E-post uten svar-SLA. Trenger du booket hjelp? Bruk Support & vi.",
+	"Report this problem" : "Rapporter dette problemet",
+	"Get the App" : "Hent appen",
+	"(opens in a new tab)" : "(åpnes i en ny fane)",
+	"Setup & training" : "Oppsett og opplæring",
+	"Commissioned feature" : "Bestilt funksjon",
+	"Mobile & terminal" : "Mobil og terminal"
 	},
 	"nplurals=2; plural=(n != 1);"
 );

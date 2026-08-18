@@ -831,7 +831,7 @@ OC.L10N.register(
 	"Start time (24-hour HH:mm)" : "Hora de início (24 horas HH:mm)",
 	"Status" : "Status",
 	"Submit request" : "Enviar solicitação",
-	"Support & us" : "Apoie-nos e nós",
+	"Support & us" : "Support e nós",
 	"Swap" : "Trocar",
 	"Swap approved." : "Troca aprovada.",
 	"Swap dialog is not available." : "A caixa de diálogo de troca não está disponível.",
@@ -1032,7 +1032,18 @@ OC.L10N.register(
 	"Finish the highlighted step — then your team can plan duties." : "Conclua a etapa destacada – então sua equipe poderá planejar as tarefas.",
 	"Done" : "Feito",
 	"Next step" : "Próxima etapa",
-	"To do" : "Pendência"
+	"To do" : "Pendência",
+	"Help" : "Ajuda",
+	"Report a problem" : "Relatar um problema",
+	"Suggest an improvement" : "Sugerir uma melhoria",
+	"Open GitHub Issues" : "Abrir GitHub Issues",
+	"Email is best-effort — no reply SLA. Need booked help? Use Support & us." : "E-mail sem SLA de resposta. Precisa de ajuda agendada? Use Support e nós.",
+	"Report this problem" : "Relatar este problema",
+	"Get the App" : "Baixar o app",
+	"(opens in a new tab)" : "(abre em uma nova aba)",
+	"Setup & training" : "Implantação e treinamento",
+	"Commissioned feature" : "Funcionalidade sob encomenda",
+	"Mobile & terminal" : "Celular e terminal"
 	},
 	"nplurals=2; plural=(n > 1);"
 );
