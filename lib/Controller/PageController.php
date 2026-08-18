@@ -7,6 +7,7 @@ namespace OCA\DutyCheck\Controller;
 use OCA\DutyCheck\AppInfo\Application;
 use OCA\DutyCheck\Integration\IArbeitszeitCheckIntegration;
 use OCA\DutyCheck\Service\AccessControlService;
+use OCA\DutyCheck\Service\CompanyService;
 use OCA\DutyCheck\Service\LicenseService;
 use OCA\DutyCheck\Service\LicenseUiStrings;
 use OCA\DutyCheck\Service\LocaleFormatService;
@@ -35,6 +36,7 @@ class PageController extends Controller
 		private IURLGenerator $urlGenerator,
 		private IL10N $l10n,
 		private RosterService $roster,
+		private CompanyService $companies,
 		private IArbeitszeitCheckIntegration $arbeitszeitCheckIntegration,
 		private SettingsSectionCatalog $settingsSections,
 		private LicenseService $licenseService,
@@ -88,7 +90,39 @@ class PageController extends Controller
 	public function dashboard(): TemplateResponse
 	{
 		$this->access->requirePlannerOrAdmin($this->access->currentUserId());
-		return $this->page('dashboard', 'dashboard', $this->l10n->t('Coverage, conflicts, and publish-readiness at a glance.'));
+		return $this->page(
+			'dashboard',
+			'dashboard',
+			$this->l10n->t('Coverage, conflicts, and publish-readiness at a glance.'),
+			$this->dashboardPageExtras(),
+		);
+	}
+
+	/**
+	 * First-paint KPI/pulse payload for the dashboard HTML shell.
+	 * Revalidation GET is skipped when this JSON is present (same request-age data).
+	 *
+	 * @return array{dashboardSummary: ?array<string, mixed>, dashboardSummaryJson: string}
+	 */
+	private function dashboardPageExtras(): array
+	{
+		try {
+			$summary = $this->roster->dashboardSummary($this->access->currentUserId());
+			$json = htmlspecialchars(
+				json_encode($summary, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+				ENT_QUOTES,
+				'UTF-8',
+			);
+			return [
+				'dashboardSummary' => $summary,
+				'dashboardSummaryJson' => $json,
+			];
+		} catch (\Throwable) {
+			return [
+				'dashboardSummary' => null,
+				'dashboardSummaryJson' => '',
+			];
+		}
 	}
 
 	#[NoAdminRequired]
@@ -325,12 +359,22 @@ class PageController extends Controller
 		Util::addScript(Application::APP_ID, 'common/session');
 		Util::addScript(Application::APP_ID, 'common/dates');
 		Util::addScript(Application::APP_ID, 'common/messaging');
-		Util::addScript(Application::APP_ID, 'common/conflict-labels');
+		if (in_array($template, ['dashboard', 'roster', 'periods'], true)) {
+			Util::addScript(Application::APP_ID, 'common/conflict-labels');
+		}
 		Util::addScript(Application::APP_ID, 'common/components');
+		Util::addScript(Application::APP_ID, 'common/app-feedback');
 		// Soft keyboard / visualViewport: keep focused notes & inputs above the IME on phones.
 		Util::addScript(Application::APP_ID, 'common/keep-focused-visible');
 		if ($template === 'locations') {
 			Util::addScript(Application::APP_ID, 'common/timezone-picker');
+		}
+		if ($template === 'roster') {
+			Util::addScript(Application::APP_ID, 'common/virtual-window');
+		}
+		if (in_array($template, ['employees', 'locations', 'absences'], true)) {
+			Util::addScript(Application::APP_ID, 'common/virtual-window');
+			Util::addScript(Application::APP_ID, 'common/windowed-table');
 		}
 		if ($template === 'settings') {
 			Util::addScript(Application::APP_ID, 'settings-legacy-redirect');
@@ -389,6 +433,8 @@ class PageController extends Controller
 			'UTF-8',
 		);
 
+		$companyAccessDenied = $isPlannerOrAdmin && !$this->companies->hasCompanyMembership($userId);
+
 		return new TemplateResponse(Application::APP_ID, $template, array_merge([
 			'pageId' => $template,
 			'pageTitle' => $this->titleForPage($template),
@@ -400,6 +446,7 @@ class PageController extends Controller
 			'hasLinkedEmployee' => $hasLinkedEmployee,
 			'isAppAdmin' => $isAppAdmin,
 			'isPlannerOrAdmin' => $isPlannerOrAdmin,
+			'companyAccessDenied' => $companyAccessDenied,
 			'role' => $role,
 			'roleLabel' => $roleLabel,
 			'clientHints' => $this->localeFormat->clientHints(),
@@ -418,6 +465,10 @@ class PageController extends Controller
 				'myAbsences' => $this->urlGenerator->linkToRoute('dutycheck.page.myAbsences'),
 				'settings' => $this->urlGenerator->linkToRoute('dutycheck.page.settings'),
 				'settingsSections' => $settingsSectionUrls,
+				'companiesSettings' => $this->urlGenerator->linkToRoute(
+					'dutycheck.page.settingsSection',
+					['section' => 'companies'],
+				),
 				'home' => $this->urlGenerator->linkToDefaultPageUrl(),
 				'rosterExportCsv' => $this->urlGenerator->linkToRoute('dutycheck.rosterApi.exportRosterCsv'),
 				'rosterPrint' => $this->urlGenerator->linkToRoute('dutycheck.page.rosterPrint'),

@@ -142,4 +142,5 @@ $renderGroup = function (string $title, array $items) use ($pageId, $l): void {
 			<?php $renderGroup($l->t('Governance'), $governanceItems); ?>
 		<?php endif; ?>
 	<?php endif; ?>
+	<?php include __DIR__ . '/../parts/feedback-nav-footer.php'; ?>
 </div>

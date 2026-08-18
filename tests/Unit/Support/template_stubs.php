@@ -17,11 +17,11 @@ if (!function_exists('p')) {
 
 if (!function_exists('print_unescaped')) {
 	/**
-	 * Matches OC template semantics: caller is responsible for escaping.
+	 * Trusted HTML/JSON already escaped by the caller (IconCatalog, bootstrap JSON).
 	 *
 	 * @param mixed $text
 	 */
 	function print_unescaped($text): void {
-		echo (string)$text;
+		echo (string) $text;
 	}
 }

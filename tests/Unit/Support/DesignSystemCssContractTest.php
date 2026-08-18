@@ -316,7 +316,7 @@ final class DesignSystemCssContractTest extends TestCase
 	public function testSupportUsGridPreventsNarrowOverflow(): void
 	{
 		self::assertMatchesRegularExpression(
-			'/\.dc-support-us__secondary\s*\{[^}]*minmax\(\s*min\(\s*100%\s*,\s*16rem\s*\)/s',
+			'/\.dc-support-us__options\s*\{[^}]*minmax\(\s*min\(\s*100%\s*,\s*16rem\s*\)/s',
 			$this->appCss,
 			'Support Us grid tracks must use min(100%, 16rem) so 320px viewports do not overflow',
 		);
