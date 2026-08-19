@@ -207,7 +207,7 @@ OC.L10N.register(
 	"Clear selection" : "Borrar selección",
 	"Clear timezone selection" : "Borrar selección de zona horaria",
 	"Click “Add assignment” next to the assignments list, fill in the three steps in the dialog, and save. Violations of hard rules are blocked with a clear message." : "Haga clic en « Agregar asignación » junto a la lista de asignaciones, complete los tres pasos del diálogo y guarde. Las infracciones de reglas estrictas se bloquean con un mensaje claro.",
-	"Close" : "Cerca",
+	"Close" : "Cerrar",
 	"Close period" : "Cerrar periodo",
 	"Close snapshot" : "Cerrar instantánea",
 	"Close snapshots are hash-chained and never rewritten. Re-opening a period starts a new planning cycle without mutating the old evidence." : "Las instantáneas de cierre van encadenadas por hash y nunca se reescriben. Reabrir un periodo inicia un nuevo ciclo de planificación sin alterar la evidencia anterior.",
@@ -295,7 +295,7 @@ OC.L10N.register(
 	"Decide who may open DutyCheck. Restriction takes effect immediately for non-administrators." : "Decida quién puede abrir DutyCheck. La restricción entra en vigor inmediatamente para los no administradores.",
 	"Default break (minutes)" : "Descanso predeterminado (minutos)",
 	"Default break must be a number between 0 and 720." : "La interrupción predeterminada debe ser un número entre 0 y 720.",
-	"Delete" : "Borrar",
+	"Delete" : "Eliminar",
 	"Details for this absence are only available in ArbeitszeitCheck." : "Los detalles de esta ausencia solo están en ArbeitszeitCheck.",
 	"Directory and linked user IDs" : "Directorio e ID de usuario vinculados",
 	"Discard changes" : "Descartar cambios",
@@ -1043,7 +1043,6 @@ OC.L10N.register(
 	"(opens in a new tab)" : "(se abre en una pestaña nueva)",
 	"Setup & training" : "Puesta en marcha y formación",
 	"Commissioned feature" : "Función por encargo",
-	"Mobile & terminal" : "Móvil y terminal"
-	},
-	"nplurals=2; plural=(n != 1);"
-);
+	"Mobile & terminal" : "Móvil y terminal",
+},
+"nplurals=2; plural=(n != 1);");

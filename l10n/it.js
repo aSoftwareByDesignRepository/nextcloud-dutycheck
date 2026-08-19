@@ -124,7 +124,7 @@ OC.L10N.register(
 	"Apply range" : "Applica intervallo",
 	"Apply to selected" : "Applica alla selezione",
 	"Approaching period total soft cap" : "Soft cap totale del periodo in avvicinamento",
-	"Approve" : "Approvare",
+	"Approve" : "Approva",
 	"Approve claim" : "Approva il reclamo",
 	"Approve with confirmation" : "Approvare con conferma",
 	"Approve, reject, or cancel requests. Reject and cancel always require a written reason." : "Approvare, rifiutare o annullare le richieste. Rifiutare e annullare richiedono sempre una motivazione scritta.",
@@ -295,7 +295,7 @@ OC.L10N.register(
 	"Decide who may open DutyCheck. Restriction takes effect immediately for non-administrators." : "Decidi chi può aprire DutyCheck. La limitazione ha effetto immediato per i non amministratori.",
 	"Default break (minutes)" : "Pausa predefinita (minuti)",
 	"Default break must be a number between 0 and 720." : "L'interruzione predefinita deve essere un numero compreso tra 0 e 720.",
-	"Delete" : "Eliminare",
+	"Delete" : "Elimina",
 	"Details for this absence are only available in ArbeitszeitCheck." : "I dettagli di questa assenza sono disponibili solo in ArbeitszeitCheck.",
 	"Directory and linked user IDs" : "Directory e ID utente collegati",
 	"Discard changes" : "Annulla modifiche",
@@ -691,7 +691,7 @@ OC.L10N.register(
 	"Recent governance events for the selected period, in chronological order." : "Eventi recenti di governance per il periodo selezionato, in ordine cronologico.",
 	"Record absence on behalf of an employee" : "Registrare l'assenza per conto di un dipendente",
 	"Records are never deleted — that keeps the audit trail intact. When someone leaves, deactivate them so they vanish from new assignments while existing entries stay readable." : "I record non vengono mai eliminati: ciò mantiene intatta la traccia di controllo. Quando qualcuno se ne va, disattivalo in modo che scompaia dai nuovi incarichi mentre le voci esistenti rimangono leggibili.",
-	"Reject" : "Rifiutare",
+	"Reject" : "Rifiuta",
 	"Reject absence" : "Rifiutare l'assenza",
 	"Reject claim" : "Rifiutare il reclamo",
 	"Rejected" : "Respinto",
@@ -1043,7 +1043,6 @@ OC.L10N.register(
 	"(opens in a new tab)" : "(si apre in una nuova scheda)",
 	"Setup & training" : "Installazione e formazione",
 	"Commissioned feature" : "Funzione su commissione",
-	"Mobile & terminal" : "Mobile e terminal"
-	},
-	"nplurals=2; plural=(n != 1);"
-);
+	"Mobile & terminal" : "Mobile e terminal",
+},
+"nplurals=2; plural=(n != 1);");

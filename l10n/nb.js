@@ -124,7 +124,7 @@ OC.L10N.register(
 	"Apply range" : "Bruk rekkevidde",
 	"Apply to selected" : "Bruk på valgte",
 	"Approaching period total soft cap" : "Nærmer seg periode total soft cap",
-	"Approve" : "Vedta",
+	"Approve" : "Godkjenn",
 	"Approve claim" : "Godkjenne kravet",
 	"Approve with confirmation" : "Godkjenne med bekreftelse",
 	"Approve, reject, or cancel requests. Reject and cancel always require a written reason." : "Godkjenn, avvis eller avbryt forespørsler. Avvise og avbryte krever alltid en skriftlig begrunnelse.",
@@ -207,7 +207,7 @@ OC.L10N.register(
 	"Clear selection" : "Fjern markering",
 	"Clear timezone selection" : "Fjern valg av tidssone",
 	"Click “Add assignment” next to the assignments list, fill in the three steps in the dialog, and save. Violations of hard rules are blocked with a clear message." : "Klikk \"Legg til oppgave\" ved siden av oppgavelisten, fyll ut de tre trinnene i dialogboksen og lagre. Brudd på harde regler blokkeres med en klar beskjed.",
-	"Close" : "Lukke",
+	"Close" : "Lukk",
 	"Close period" : "Lukk periode",
 	"Close snapshot" : "Lukk øyeblikksbilde",
 	"Close snapshots are hash-chained and never rewritten. Re-opening a period starts a new planning cycle without mutating the old evidence." : "Lukke-øyeblikksbilder er hash-kjedet og skrives aldri om. Å åpne en periode på nytt starter en ny planleggingssyklus uten å endre det gamle beviset.",
@@ -1037,13 +1037,12 @@ OC.L10N.register(
 	"Report a problem" : "Rapporter et problem",
 	"Suggest an improvement" : "Foreslå en forbedring",
 	"Open GitHub Issues" : "Åpne GitHub Issues",
-	"Email is best-effort — no reply SLA. Need booked help? Use Support & us." : "E-post uten svar-SLA. Trenger du booket hjelp? Bruk Support & vi.",
+	"Email is best-effort — no reply SLA. Need booked help? Use Support & us." : "E-post uten svar-SLA. Booket hjelp: Support & vi.",
 	"Report this problem" : "Rapporter dette problemet",
 	"Get the App" : "Hent appen",
 	"(opens in a new tab)" : "(åpnes i en ny fane)",
 	"Setup & training" : "Oppsett og opplæring",
 	"Commissioned feature" : "Bestilt funksjon",
-	"Mobile & terminal" : "Mobil og terminal"
-	},
-	"nplurals=2; plural=(n != 1);"
-);
+	"Mobile & terminal" : "Mobil og terminal",
+},
+"nplurals=2; plural=(n != 1);");

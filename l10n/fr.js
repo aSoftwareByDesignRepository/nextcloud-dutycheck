@@ -691,7 +691,7 @@ OC.L10N.register(
 	"Recent governance events for the selected period, in chronological order." : "Événements de gouvernance récents pour la période sélectionnée, par ordre chronologique.",
 	"Record absence on behalf of an employee" : "Enregistrer l'absence d'un employé",
 	"Records are never deleted — that keeps the audit trail intact. When someone leaves, deactivate them so they vanish from new assignments while existing entries stay readable." : "Les enregistrements ne sont jamais supprimés, ce qui permet de conserver la piste d'audit intacte. Lorsque quelqu'un part, désactivez-le afin qu'il disparaisse des nouvelles affectations tandis que les entrées existantes restent lisibles.",
-	"Reject" : "Rejeter",
+	"Reject" : "Refuser",
 	"Reject absence" : "Rejeter l'absence",
 	"Reject claim" : "Rejeter la demande",
 	"Rejected" : "Rejeté",
@@ -1043,7 +1043,6 @@ OC.L10N.register(
 	"(opens in a new tab)" : "(s’ouvre dans un nouvel onglet)",
 	"Setup & training" : "Mise en place et formation",
 	"Commissioned feature" : "Fonction sur commande",
-	"Mobile & terminal" : "Mobile et terminal"
-	},
-	"nplurals=2; plural=(n > 1);"
-);
+	"Mobile & terminal" : "Mobile et terminal",
+},
+"nplurals=2; plural=(n > 1);");

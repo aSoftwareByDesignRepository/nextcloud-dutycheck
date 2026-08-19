@@ -124,7 +124,7 @@ OC.L10N.register(
 	"Apply range" : "Zastosuj zakres",
 	"Apply to selected" : "Zastosuj do zaznaczonych",
 	"Approaching period total soft cap" : "Zbliżanie się do miękkiego limitu łącznego okresu",
-	"Approve" : "Zatwierdzić",
+	"Approve" : "Zatwierdź",
 	"Approve claim" : "Zatwierdź roszczenie",
 	"Approve with confirmation" : "Zatwierdź z potwierdzeniem",
 	"Approve, reject, or cancel requests. Reject and cancel always require a written reason." : "Zatwierdzaj, odrzucaj lub anuluj żądania. Odrzucenie i anulowanie zawsze wymaga pisemnego powodu.",
@@ -207,7 +207,7 @@ OC.L10N.register(
 	"Clear selection" : "Wyczyść zaznaczenie",
 	"Clear timezone selection" : "Wyczyść wybór strefy czasowej",
 	"Click “Add assignment” next to the assignments list, fill in the three steps in the dialog, and save. Violations of hard rules are blocked with a clear message." : "Kliknij „Dodaj zadanie” obok listy zadań, wykonaj trzy kroki w oknie dialogowym i zapisz. Naruszenia twardych zasad blokowane są jasnym komunikatem.",
-	"Close" : "Zamknąć",
+	"Close" : "Zamknij",
 	"Close period" : "Zamknięty okres",
 	"Close snapshot" : "Zamknij migawkę",
 	"Close snapshots are hash-chained and never rewritten. Re-opening a period starts a new planning cycle without mutating the old evidence." : "Migawki zamknięcia są połączone hashami i nigdy nie są nadpisywane. Ponowne otwarcie okresu zaczyna nowy cykl planowania bez zmiany starego dowodu.",
@@ -295,7 +295,7 @@ OC.L10N.register(
 	"Decide who may open DutyCheck. Restriction takes effect immediately for non-administrators." : "Zdecyduj, kto może otworzyć DutyCheck. Ograniczenia obowiązują natychmiast w przypadku osób niebędących administratorami.",
 	"Default break (minutes)" : "Domyślna przerwa (minuty)",
 	"Default break must be a number between 0 and 720." : "Domyślna przerwa musi być liczbą z zakresu od 0 do 720.",
-	"Delete" : "Usuwać",
+	"Delete" : "Usuń",
 	"Details for this absence are only available in ArbeitszeitCheck." : "Szczegóły tej nieobecności są dostępne tylko w ArbeitszeitCheck.",
 	"Directory and linked user IDs" : "Katalog i powiązane identyfikatory użytkowników",
 	"Discard changes" : "Odrzuć zmiany",
@@ -691,7 +691,7 @@ OC.L10N.register(
 	"Recent governance events for the selected period, in chronological order." : "Ostatnie wydarzenia związane z zarządzaniem w wybranym okresie, w porządku chronologicznym.",
 	"Record absence on behalf of an employee" : "Rejestracja nieobecności w imieniu pracownika",
 	"Records are never deleted — that keeps the audit trail intact. When someone leaves, deactivate them so they vanish from new assignments while existing entries stay readable." : "Rekordy nigdy nie są usuwane – dzięki temu ścieżka audytu pozostaje nienaruszona. Gdy ktoś odejdzie, dezaktywuj go, aby zniknął z nowych zadań, a istniejące wpisy pozostały czytelne.",
-	"Reject" : "Odrzucić",
+	"Reject" : "Odrzuć",
 	"Reject absence" : "Odrzuć nieobecność",
 	"Reject claim" : "Odrzuć roszczenie",
 	"Rejected" : "Odrzucony",
@@ -1043,7 +1043,6 @@ OC.L10N.register(
 	"(opens in a new tab)" : "(otwiera się w nowej karcie)",
 	"Setup & training" : "Wdrożenie i szkolenie",
 	"Commissioned feature" : "Funkcja na zlecenie",
-	"Mobile & terminal" : "Mobilnie i terminal"
-	},
-	"nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);"
-);
+	"Mobile & terminal" : "Mobilnie i terminal",
+},
+"nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);");

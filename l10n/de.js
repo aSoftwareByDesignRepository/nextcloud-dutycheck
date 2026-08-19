@@ -1043,7 +1043,6 @@ OC.L10N.register(
 	"(opens in a new tab)" : "(öffnet in neuem Tab)",
 	"Setup & training" : "Einrichtung & Schulung",
 	"Commissioned feature" : "Beauftragte Funktion",
-	"Mobile & terminal" : "Mobil & Terminal"
-	},
-	"nplurals=2; plural=(n != 1);"
-);
+	"Mobile & terminal" : "Mobil & Terminal",
+},
+"nplurals=2; plural=(n != 1);");

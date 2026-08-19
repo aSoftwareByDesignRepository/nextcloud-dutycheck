@@ -207,7 +207,7 @@ OC.L10N.register(
 	"Clear selection" : "Selectie wissen",
 	"Clear timezone selection" : "Tijdzoneselectie wissen",
 	"Click “Add assignment” next to the assignments list, fill in the three steps in the dialog, and save. Violations of hard rules are blocked with a clear message." : "Klik op “Opdracht toevoegen” naast de opdrachtenlijst, vul de drie stappen in het dialoogvenster in en sla op. Overtredingen van harde regels worden geblokkeerd met een duidelijke boodschap.",
-	"Close" : "Dichtbij",
+	"Close" : "Sluiten",
 	"Close period" : "Sluit periode",
 	"Close snapshot" : "Momentopname sluiten",
 	"Close snapshots are hash-chained and never rewritten. Re-opening a period starts a new planning cycle without mutating the old evidence." : "Sluit-snapshots zijn hash-verknoopt en worden nooit herschreven. Een periode opnieuw openen start een nieuwe planningscyclus zonder het oude bewijs te wijzigen.",
@@ -1043,7 +1043,6 @@ OC.L10N.register(
 	"(opens in a new tab)" : "(opent in een nieuw tabblad)",
 	"Setup & training" : "Inrichting en training",
 	"Commissioned feature" : "Functie in opdracht",
-	"Mobile & terminal" : "Mobiel en terminal"
-	},
-	"nplurals=2; plural=(n != 1);"
-);
+	"Mobile & terminal" : "Mobiel en terminal",
+},
+"nplurals=2; plural=(n != 1);");
