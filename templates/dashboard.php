@@ -12,6 +12,11 @@
  */
 include __DIR__ . '/common/page-start.php';
 $urls = (array) ($_['urls'] ?? []);
+$summary = is_array($_['dashboardSummary'] ?? null) ? $_['dashboardSummary'] : null;
+$metricOpen = $summary === null ? 0 : max(0, (int) ($summary['openPeriods'] ?? 0));
+$metricPublished = $summary === null ? 0 : max(0, (int) ($summary['publishedPeriods'] ?? 0));
+$metricEmployees = $summary === null ? 0 : max(0, (int) ($summary['activeEmployees'] ?? 0));
+$metricAssignments = $summary === null ? 0 : max(0, (int) ($summary['assignments'] ?? 0));
 ?>
 <section class="dc-card dc-section dc-setup-progress" id="dc-dashboard-setup" hidden aria-labelledby="dc-dashboard-setup-title">
 	<header class="dc-section__header">
@@ -78,22 +83,22 @@ $urls = (array) ($_['urls'] ?? []);
 	<div class="dc-summary-grid" role="list">
 		<article class="dc-summary-tile dc-summary-tile--primary" role="listitem">
 			<span class="dc-summary-tile__label"><?php p($l->t('Open periods')); ?></span>
-			<span id="dc-metric-open-periods" class="dc-summary-tile__value">0</span>
+			<span id="dc-metric-open-periods" class="dc-summary-tile__value"><?php p((string) $metricOpen); ?></span>
 			<span class="dc-summary-tile__hint"><?php p($l->t('Currently editable, accept new assignments.')); ?></span>
 		</article>
 		<article class="dc-summary-tile dc-summary-tile--success" role="listitem">
 			<span class="dc-summary-tile__label"><?php p($l->t('Published periods')); ?></span>
-			<span id="dc-metric-published-periods" class="dc-summary-tile__value">0</span>
+			<span id="dc-metric-published-periods" class="dc-summary-tile__value"><?php p((string) $metricPublished); ?></span>
 			<span class="dc-summary-tile__hint"><?php p($l->t('Visible to employees on their roster.')); ?></span>
 		</article>
 		<article class="dc-summary-tile" role="listitem">
 			<span class="dc-summary-tile__label"><?php p($l->t('Active employees')); ?></span>
-			<span id="dc-metric-employees" class="dc-summary-tile__value">0</span>
+			<span id="dc-metric-employees" class="dc-summary-tile__value"><?php p((string) $metricEmployees); ?></span>
 			<span class="dc-summary-tile__hint"><?php p($l->t('Available for new assignments.')); ?></span>
 		</article>
 		<article class="dc-summary-tile" role="listitem">
 			<span class="dc-summary-tile__label"><?php p($l->t('Assignments')); ?></span>
-			<span id="dc-metric-assignments" class="dc-summary-tile__value">0</span>
+			<span id="dc-metric-assignments" class="dc-summary-tile__value"><?php p((string) $metricAssignments); ?></span>
 			<span class="dc-summary-tile__hint"><?php p($l->t('Total recorded across all periods.')); ?></span>
 		</article>
 	</div>

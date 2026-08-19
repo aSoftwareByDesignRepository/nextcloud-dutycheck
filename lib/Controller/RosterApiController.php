@@ -362,7 +362,7 @@ class RosterApiController extends Controller
 			$userId = $this->access->currentUserId();
 			$this->access->requirePlannerOrAdmin($userId);
 			$params = ApiMutationParams::all($this->request);
-			$existing = $this->roster->peekAssignment($id);
+			$existing = $this->roster->peekAssignment($id, $userId);
 			$targetLocationId = isset($params['locationId']) && (int) $params['locationId'] > 0
 				? (int) $params['locationId']
 				: (int) $existing['locationId'];
@@ -403,7 +403,7 @@ class RosterApiController extends Controller
 		try {
 			$userId = $this->access->currentUserId();
 			$this->access->requirePlannerOrAdmin($userId);
-			$row = $this->roster->peekAssignment($id);
+			$row = $this->roster->peekAssignment($id, $userId);
 			if ($this->plannerScope !== null) {
 				$this->plannerScope->assertCanPlanLocation($userId, (int) $row['locationId']);
 			}

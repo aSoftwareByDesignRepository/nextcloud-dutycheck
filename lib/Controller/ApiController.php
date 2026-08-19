@@ -31,28 +31,10 @@ class ApiController extends Controller
 		try {
 			$userId = $this->access->currentUserId();
 			$includePlanner = $this->access->isPlannerOrAdmin($userId);
-			$catalog = [
-				'dashboard' => null,
-				'roster' => null,
-				'absences' => null,
-				'myRoster' => null,
-				'myAbsences' => null,
-			];
-			if ($includePlanner) {
-				$catalog['dashboard'] = $this->roster->dashboardSummary($userId);
-				$catalog['roster'] = $this->roster->rosterData(null, $userId);
-				$catalog['absences'] = $this->roster->listAbsences($userId);
-			}
-			if ($this->access->hasActiveLinkedEmployee($userId)) {
-				try {
-					$catalog['myRoster'] = $this->roster->myRoster($userId);
-					$catalog['myAbsences'] = $this->roster->myAbsences($userId);
-				} catch (\InvalidArgumentException) {
-					// No linked employee row — self-service APIs would fail the same way.
-				}
-			}
-
 			$hasLink = $this->access->hasActiveLinkedEmployee($userId);
+			// Identity + integration flags only. Pages load their own lists
+			// (/api/dashboard, /api/roster, /api/my-roster). Hydrating a year of
+			// assignments here made every absences tab-focus poll expensive.
 
 			return new DataResponse([
 				'ok' => true,
@@ -61,7 +43,13 @@ class ApiController extends Controller
 					'isAppAdmin' => $this->access->isAppAdmin($userId),
 					'isEmployee' => $this->access->isEmployee($userId),
 					'isPlannerOrAdmin' => $includePlanner,
-					'catalog' => $catalog,
+					'catalog' => [
+						'dashboard' => null,
+						'roster' => null,
+						'absences' => null,
+						'myRoster' => null,
+						'myAbsences' => null,
+					],
 					'arbeitszeitCheckIntegration' => $this->arbeitszeitCheckIntegration->buildBootstrapForUser($userId, $hasLink),
 				],
 			]);

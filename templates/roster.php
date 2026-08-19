@@ -112,7 +112,7 @@ foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as
 		<div>
 			<h2 id="dc-assignments-title"><?php p($l->t('Assignments')); ?></h2>
 			<p class="dc-section__sub">
-				<?php p($l->t('Shifts for the period selected above. Use the grid for a week overview, or the list for details.')); ?>
+				<?php p($l->t('Shifts for the period selected above. Use the grid for a week overview, or the list for details. Large teams stay fast: only the rows on screen are drawn — scroll to see everyone.')); ?>
 			</p>
 		</div>
 		<div class="dc-section__controls">
@@ -131,16 +131,17 @@ foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as
 	</header>
 	<p id="dc-roster-assignments-success" class="dc-roster-flash" role="status" aria-live="polite" aria-atomic="true" hidden></p>
 	<div id="dc-roster-grid-wrap" class="dc-roster-grid-wrap">
-		<div
-			id="dc-roster-grid"
-			class="dc-roster-grid"
-			role="grid"
-			aria-labelledby="dc-assignments-title"
-			aria-describedby="dc-roster-grid-hint"
-			tabindex="0"
-		></div>
+		<p id="dc-roster-grid-status" class="dc-roster-virtual-status" aria-hidden="true"></p>
+		<div id="dc-roster-grid-scroller" class="dc-roster-grid-scroller" tabindex="0" role="region" aria-labelledby="dc-assignments-title">
+			<div
+				id="dc-roster-grid"
+				class="dc-roster-grid"
+				aria-labelledby="dc-assignments-title"
+				aria-describedby="dc-roster-grid-hint"
+			></div>
+		</div>
 		<p id="dc-roster-grid-hint" class="dc-field__hint">
-			<?php p($l->t('Rows are people, columns are days. Arrow keys move between cells. Enter opens the shift. Space selects empty cells for bulk fill.')); ?>
+			<?php p($l->t('Rows are people, columns are days. Arrow keys move between cells — including people who are scrolled out of view. Page Up and Page Down jump a screen. Home and End jump to the first or last day. Enter opens the shift. Space selects empty cells for bulk fill.')); ?>
 		</p>
 		<div id="dc-roster-bulk-bar" class="dc-roster-bulk-bar" hidden>
 			<p class="dc-roster-bulk-bar__count" id="dc-roster-bulk-count" role="status" aria-live="polite"></p>
@@ -152,7 +153,9 @@ foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as
 			</div>
 		</div>
 	</div>
-	<div class="dc-table-wrap" id="dc-assignments-table-wrap" hidden>
+	<div id="dc-roster-list-panel" hidden>
+		<p id="dc-roster-list-status" class="dc-roster-virtual-status" aria-hidden="true"></p>
+		<div class="dc-table-wrap dc-roster-list-scroller" id="dc-assignments-table-wrap" tabindex="0" role="region" aria-labelledby="dc-assignments-title">
 		<table class="dc-table" id="dc-assignments-table">
 			<caption class="dc-sr-only"><?php p($l->t('Assignments for the selected period')); ?></caption>
 			<thead>
@@ -174,6 +177,7 @@ foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as
 				<?php p($l->t('No assignments in this period yet.')); ?>
 			</p>
 			<p id="dc-roster-empty-add-hint" class="dc-roster-empty-state__hint"></p>
+		</div>
 		</div>
 	</div>
 </section>

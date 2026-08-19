@@ -51,6 +51,8 @@ class ApiJsonErrorResponseTest extends TestCase
 	{
 		self::assertSame(409, ApiJsonErrorResponse::statusForInvalidArgument('PERIOD_STATUS_CONFLICT'));
 		self::assertSame(409, ApiJsonErrorResponse::statusForInvalidArgument('STALE_VERSION'));
+		self::assertSame(409, ApiJsonErrorResponse::statusForInvalidArgument('CONFLICT_ACK_STALE'));
+		self::assertSame(403, ApiJsonErrorResponse::statusForInvalidArgument('COMPANY_MEMBERSHIP_REQUIRED'));
 		self::assertSame(409, ApiJsonErrorResponse::statusForInvalidArgument('ABSENCE_STATUS_CONFLICT'));
 		self::assertSame(422, ApiJsonErrorResponse::statusForInvalidArgument('EXPECTED_VERSION_REQUIRED'));
 	}

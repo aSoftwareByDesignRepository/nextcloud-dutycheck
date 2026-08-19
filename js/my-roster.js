@@ -648,9 +648,11 @@
 		applyRangeKey(DEFAULT_RANGE);
 		bindQuickFilters();
 		bindCustomRangeForm();
-		await fetchAndRender();
-		await loadOpenShifts();
-		await loadIcalMeta();
+		await Promise.all([
+			fetchAndRender(),
+			loadOpenShifts(),
+			loadIcalMeta(),
+		]);
 		applyIcalAtDisclosure();
 		document.getElementById('dc-ical-rotate-button')?.addEventListener('click', rotateIcalToken);
 		document.getElementById('dc-ical-copy-button')?.addEventListener('click', copyIcalUrl);

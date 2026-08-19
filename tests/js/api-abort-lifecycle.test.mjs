@@ -340,3 +340,34 @@ test('isAborted recognises nested cause AbortError', () => {
 	// Without REQUEST_ABORTED code, isAborted still detects cause.name.
 	assert.equal(Api.isAborted(wrapped), true);
 });
+
+test('CONFLICT_ACK_STALE warns without reloading the page', () => {
+	const { Msg, window, document } = boot();
+	let reloads = 0;
+	window.location.reload = () => {
+		reloads += 1;
+	};
+	Msg.handleApiError({ code: 'CONFLICT_ACK_STALE', status: 409 });
+	assert.equal(reloads, 0);
+	const container = document.body._children.find(
+		(n) => n.id === 'dc-toasts' || String(n.className).includes('dc-toasts'),
+	);
+	assert.ok(container);
+	const toast = (container.children || [])[0];
+	assert.match(String(toast.className), /dc-toast--warning/);
+	const text = (toast.children || []).map((c) => String(c.textContent || '')).join(' ');
+	assert.match(text, /already confirmed this exception/i);
+});
+
+test('COMPANY_MEMBERSHIP_REQUIRED explains the company banner path', () => {
+	const { Msg, document } = boot();
+	Msg.handleApiError({ code: 'COMPANY_MEMBERSHIP_REQUIRED', status: 403 });
+	const container = document.body._children.find(
+		(n) => n.id === 'dc-toasts' || String(n.className).includes('dc-toasts'),
+	);
+	assert.ok(container);
+	const toast = (container.children || [])[0];
+	assert.match(String(toast.className), /dc-toast--error/);
+	const text = (toast.children || []).map((c) => String(c.textContent || '')).join(' ');
+	assert.match(text, /Settings → Companies/);
+});

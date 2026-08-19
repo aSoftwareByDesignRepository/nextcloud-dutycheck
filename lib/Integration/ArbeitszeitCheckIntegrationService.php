@@ -51,6 +51,14 @@ final class ArbeitszeitCheckIntegrationService implements IArbeitszeitCheckInteg
 	/** @var array<string, true> Debounce INTEGRATION_AT_UNKNOWN_ENUM within one reconcile run. */
 	private array $unknownEnumSeen = [];
 
+	private ?bool $peerInstalledCache = null;
+
+	private ?bool $peerEnabledCache = null;
+
+	private bool $peerVersionResolved = false;
+
+	private ?string $peerVersionCache = null;
+
 	public function __construct(
 		private IDBConnection $db,
 		private IConfig $config,
@@ -109,8 +117,11 @@ final class ArbeitszeitCheckIntegrationService implements IArbeitszeitCheckInteg
 
 	public function getPeerInstalled(): bool
 	{
+		if ($this->peerInstalledCache !== null) {
+			return $this->peerInstalledCache;
+		}
 		try {
-			return $this->appManager->isInstalled(self::PEER_APP_ID);
+			return $this->peerInstalledCache = $this->appManager->isInstalled(self::PEER_APP_ID);
 		} catch (\Throwable $e) {
 			$this->recordDetectionFailure();
 			$this->logger->warning('DutyCheck AT detection failed (installed)', [
@@ -118,17 +129,20 @@ final class ArbeitszeitCheckIntegrationService implements IArbeitszeitCheckInteg
 				'app' => 'dutycheck',
 				'code' => 'INTEGRATION_DETECTION_FAILED',
 			]);
-			return false;
+			return $this->peerInstalledCache = false;
 		}
 	}
 
 	public function getPeerEnabled(): bool
 	{
+		if ($this->peerEnabledCache !== null) {
+			return $this->peerEnabledCache;
+		}
 		if (!$this->getPeerInstalled()) {
-			return false;
+			return $this->peerEnabledCache = false;
 		}
 		try {
-			return $this->appManager->isEnabledForUser(self::PEER_APP_ID, null);
+			return $this->peerEnabledCache = $this->appManager->isEnabledForUser(self::PEER_APP_ID, null);
 		} catch (\Throwable $e) {
 			$this->recordDetectionFailure();
 			$this->logger->warning('DutyCheck AT detection failed (enabled)', [
@@ -136,21 +150,28 @@ final class ArbeitszeitCheckIntegrationService implements IArbeitszeitCheckInteg
 				'app' => 'dutycheck',
 				'code' => 'INTEGRATION_DETECTION_FAILED',
 			]);
-			return false;
+			return $this->peerEnabledCache = false;
 		}
 	}
 
 	public function getPeerVersionString(): ?string
 	{
+		if ($this->peerVersionResolved) {
+			return $this->peerVersionCache;
+		}
 		if (!$this->getPeerInstalled()) {
+			$this->peerVersionResolved = true;
+			$this->peerVersionCache = null;
 			return null;
 		}
 		try {
 			$v = $this->appManager->getAppVersion(self::PEER_APP_ID);
-			return $v !== '' ? $v : null;
+			$this->peerVersionCache = $v !== '' ? $v : null;
 		} catch (\Throwable) {
-			return null;
+			$this->peerVersionCache = null;
 		}
+		$this->peerVersionResolved = true;
+		return $this->peerVersionCache;
 	}
 
 	public function getPeerVersionOk(): bool

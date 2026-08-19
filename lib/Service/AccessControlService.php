@@ -37,6 +37,20 @@ class AccessControlService
 	/** @var array<string, bool> */
 	private array $groupMembershipCache = [];
 
+	/** @var array<string, bool> Nextcloud isAdmin() can hit LDAP; once per request per uid. */
+	private array $systemAdminCache = [];
+
+	/** @var array<string, bool> */
+	private array $linkedEmployeeCache = [];
+
+	/** @var array<string, string|null> */
+	private array $globalRoleCache = [];
+
+	/** @var array<string, list<string>> */
+	private array $jsonIdListCache = [];
+
+	private ?bool $restrictionEnabledCache = null;
+
 	public function __construct(
 		private IDBConnection $db,
 		private IConfig $config,
@@ -57,7 +71,13 @@ class AccessControlService
 
 	public function isSystemAdmin(string $userId): bool
 	{
-		return $userId !== '' && $this->groupManager->isAdmin($userId);
+		if ($userId === '') {
+			return false;
+		}
+		if (!array_key_exists($userId, $this->systemAdminCache)) {
+			$this->systemAdminCache[$userId] = (bool) $this->groupManager->isAdmin($userId);
+		}
+		return $this->systemAdminCache[$userId];
 	}
 
 	public function isAppAdmin(string $userId): bool
@@ -91,7 +111,10 @@ class AccessControlService
 
 	public function isAccessRestrictionEnabled(): bool
 	{
-		return $this->config->getAppValue(Application::APP_ID, self::KEY_ACCESS_RESTRICTION, '0') === '1';
+		if ($this->restrictionEnabledCache === null) {
+			$this->restrictionEnabledCache = $this->config->getAppValue(Application::APP_ID, self::KEY_ACCESS_RESTRICTION, '0') === '1';
+		}
+		return $this->restrictionEnabledCache;
 	}
 
 	/**
@@ -239,6 +262,7 @@ class AccessControlService
 		$this->config->setAppValue(Application::APP_ID, self::KEY_ACCESS_ALLOWED_GROUP_IDS, json_encode($allowedGroups, JSON_THROW_ON_ERROR));
 		$this->config->setAppValue(Application::APP_ID, self::KEY_ACCESS_RESTRICTION, $restriction ? '1' : '0');
 
+		$this->forgetPolicyCaches();
 		return $this->appPolicy();
 	}
 
@@ -305,6 +329,7 @@ class AccessControlService
 			]);
 		$ins->executeStatement();
 
+		$this->forgetUserAuthCaches($userId);
 		return $this->listDutyRoleAssignments();
 	}
 
@@ -327,6 +352,7 @@ class AccessControlService
 		$qb->delete('dc_user_roles')
 			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)));
 		$qb->executeStatement();
+		$this->forgetUserAuthCaches($userId);
 	}
 
 	/**
@@ -395,6 +421,9 @@ class AccessControlService
 				->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
 				->executeStatement();
 		}
+
+		$this->forgetUserAuthCaches($userId);
+		$this->forgetPolicyCaches();
 	}
 
 	public function isEmployee(string $userId): bool
@@ -419,17 +448,25 @@ class AccessControlService
 		if ($userId === '') {
 			return false;
 		}
+		if (array_key_exists($userId, $this->linkedEmployeeCache)) {
+			return $this->linkedEmployeeCache[$userId];
+		}
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('id')
 			->from('dc_employees')
 			->where($qb->expr()->eq('linked_user_id', $qb->createNamedParameter($userId)))
 			->andWhere($qb->expr()->eq('active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)))
 			->setMaxResults(1);
-		return $qb->executeQuery()->fetchOne() !== false;
+		$linked = $qb->executeQuery()->fetchOne() !== false;
+		$this->linkedEmployeeCache[$userId] = $linked;
+		return $linked;
 	}
 
 	private function lookupGlobalRole(string $userId): ?string
 	{
+		if (array_key_exists($userId, $this->globalRoleCache)) {
+			return $this->globalRoleCache[$userId];
+		}
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('role')
 			->from('dc_user_roles')
@@ -439,10 +476,13 @@ class AccessControlService
 		$row = $result->fetch(\PDO::FETCH_ASSOC);
 		$result->closeCursor();
 		if ($row === false) {
+			$this->globalRoleCache[$userId] = null;
 			return null;
 		}
 		$role = (string)($row['role'] ?? '');
-		return in_array($role, [self::ROLE_ADMIN, self::ROLE_PLANNER, self::ROLE_EMPLOYEE], true) ? $role : null;
+		$resolved = in_array($role, [self::ROLE_ADMIN, self::ROLE_PLANNER, self::ROLE_EMPLOYEE], true) ? $role : null;
+		$this->globalRoleCache[$userId] = $resolved;
+		return $resolved;
 	}
 
 	private function userMatchesAllowList(string $userId): bool
@@ -463,17 +503,20 @@ class AccessControlService
 	 */
 	private function getJsonIdList(string $key): array
 	{
+		if (array_key_exists($key, $this->jsonIdListCache)) {
+			return $this->jsonIdListCache[$key];
+		}
 		$raw = trim((string)$this->config->getAppValue(Application::APP_ID, $key, '[]'));
 		if ($raw === '') {
-			return [];
+			return $this->jsonIdListCache[$key] = [];
 		}
 		try {
 			$decoded = json_decode($raw, true, 128, JSON_THROW_ON_ERROR);
 		} catch (\JsonException) {
-			return [];
+			return $this->jsonIdListCache[$key] = [];
 		}
 		if (!is_array($decoded)) {
-			return [];
+			return $this->jsonIdListCache[$key] = [];
 		}
 		$out = [];
 		foreach ($decoded as $entry) {
@@ -481,7 +524,24 @@ class AccessControlService
 				$out[] = $entry;
 			}
 		}
-		return array_values(array_unique($out));
+		return $this->jsonIdListCache[$key] = array_values(array_unique($out));
+	}
+
+	private function forgetUserAuthCaches(string $userId): void
+	{
+		unset($this->systemAdminCache[$userId], $this->linkedEmployeeCache[$userId], $this->globalRoleCache[$userId]);
+		$prefix = $userId . "\0";
+		foreach (array_keys($this->groupMembershipCache) as $key) {
+			if (str_starts_with($key, $prefix)) {
+				unset($this->groupMembershipCache[$key]);
+			}
+		}
+	}
+
+	private function forgetPolicyCaches(): void
+	{
+		$this->jsonIdListCache = [];
+		$this->restrictionEnabledCache = null;
 	}
 
 	private function isUserInGroupCached(string $userId, string $groupId): bool

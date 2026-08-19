@@ -135,6 +135,10 @@
 				return t('dutycheck', 'Date must fall within the selected period.');
 			case 'ASSIGNMENT_DUPLICATE_SLOT':
 				return t('dutycheck', 'This exact assignment already exists. Reload the page to see the latest roster.');
+			case 'CONFLICT_ACK_STALE':
+				return t('dutycheck', 'Someone else already confirmed this exception. Reload to see the latest checks.');
+			case 'COMPANY_MEMBERSHIP_REQUIRED':
+				return t('dutycheck', 'Your account is not on a company yet. Ask an administrator to add you under Settings → Companies.');
 			default:
 				return null;
 		}
@@ -188,6 +192,10 @@
 			announce(t('dutycheck', 'Absences for linked accounts are managed in ArbeitszeitCheck while the integration is on. DutyCheck cannot apply this change.'), 'error');
 			return;
 		}
+		if (code === 'COMPANY_MEMBERSHIP_REQUIRED') {
+			announce(friendly || t('dutycheck', 'Your account is not on a company yet. Ask an administrator to add you under Settings → Companies.'), 'error');
+			return;
+		}
 		if (status === 403 || code === 'access_denied' || code === 'app_access_denied') {
 			announce(t('dutycheck', 'You are not authorized to perform that action.'), 'error');
 			return;
@@ -202,6 +210,10 @@
 		}
 		if (status === 429 || code === 'rate_limit_exceeded') {
 			announce(t('dutycheck', 'Too many requests. Please wait and retry.'), 'warning');
+			return;
+		}
+		if (code === 'CONFLICT_ACK_STALE') {
+			announce(friendly || t('dutycheck', 'Someone else already confirmed this exception. Reload to see the latest checks.'), 'warning');
 			return;
 		}
 		if (code === 'CONFLICT_ACK_REQUIRED') {

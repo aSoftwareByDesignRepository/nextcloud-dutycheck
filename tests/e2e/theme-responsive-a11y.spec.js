@@ -24,6 +24,7 @@ import {
 const routes = [
 	{ id: 'dashboard', path: '/apps/dutycheck/', ready: '#dc-main-content' },
 	{ id: 'roster', path: '/apps/dutycheck/roster', ready: '#dc-main-content' },
+	{ id: 'periods', path: '/apps/dutycheck/periods', ready: '#dc-main-content' },
 	{ id: 'absences', path: '/apps/dutycheck/absences', ready: '#dc-main-content' },
 	// Split settings: land on the default sub-page directly (deterministic URL).
 	{ id: 'settings', path: '/apps/dutycheck/settings/access', ready: '#dc-main-content' },

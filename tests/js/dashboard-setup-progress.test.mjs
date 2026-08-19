@@ -53,4 +53,12 @@ describe('dashboard setup progress source contracts', () => {
 			/\.dc-setup-checklist__item\.is-done\s+\.dc-setup-checklist__status\s*\{[^}]*color:\s*#fff/s,
 		)
 	})
+
+	it('hides setup progress when the planner has no company membership', () => {
+		assert.match(dashboardJs, /const denied = Boolean\(payload\.companyAccessDenied\)/)
+		assert.match(dashboardJs, /banner\.hidden = !denied/)
+		assert.match(dashboardJs, /if \(denied\) \{/)
+		assert.match(dashboardJs, /setup\.hidden = true/)
+		assert.match(dashboardJs, /renderPulseFromSummary\(\{ hasPeriods: false \}\)/)
+	})
 })

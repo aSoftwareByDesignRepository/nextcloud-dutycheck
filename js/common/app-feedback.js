@@ -127,6 +127,84 @@
 		}
 	}
 
+	function installPopover() {
+		var triggers = document.querySelectorAll('.' + PREFIX + '-nav-footer__trigger');
+		for (var i = 0; i < triggers.length; i++) {
+			(function (btn) {
+				if (btn.getAttribute('data-popover-bound') === '1') {
+					return;
+				}
+				btn.setAttribute('data-popover-bound', '1');
+				var menuId = btn.getAttribute('aria-controls');
+				if (!menuId) {
+					return;
+				}
+				var menu = document.getElementById(menuId);
+				if (!menu) {
+					return;
+				}
+
+				function isOpen() {
+					return !menu.hidden;
+				}
+
+				function open() {
+					menu.hidden = false;
+					btn.setAttribute('aria-expanded', 'true');
+					var first = menu.querySelector('a, button');
+					if (first) {
+						first.focus();
+					}
+				}
+
+				function close(restoreFocus) {
+					menu.hidden = true;
+					btn.setAttribute('aria-expanded', 'false');
+					if (restoreFocus) {
+						btn.focus();
+					}
+				}
+
+				btn.addEventListener('click', function (e) {
+					e.preventDefault();
+					if (isOpen()) {
+						close(true);
+					} else {
+						open();
+					}
+				});
+
+				menu.addEventListener('keydown', function (e) {
+					if (e.key === 'Escape' || e.keyCode === 27) {
+						e.preventDefault();
+						close(true);
+					}
+				});
+
+				btn.addEventListener('keydown', function (e) {
+					if (e.key === 'Escape' || e.keyCode === 27) {
+						if (isOpen()) {
+							e.preventDefault();
+							close(true);
+						}
+					}
+				});
+
+				document.addEventListener('mousedown', function (e) {
+					if (isOpen() && !btn.contains(e.target) && !menu.contains(e.target)) {
+						close(false);
+					}
+				});
+
+				document.addEventListener('focusin', function (e) {
+					if (isOpen() && !btn.contains(e.target) && !menu.contains(e.target)) {
+						close(false);
+					}
+				});
+			})(triggers[i]);
+		}
+	}
+
 	function attachReportLink(toast, errorCode) {
 		if (!toast || toast.getAttribute('data-app-feedback-bound') === '1') {
 			return;
@@ -202,6 +280,7 @@
 		buildMailto: buildMailto,
 		install: function () {
 			refreshNavHrefs();
+			installPopover();
 			installToastHooks();
 		},
 	};

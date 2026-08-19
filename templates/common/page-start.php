@@ -82,7 +82,8 @@ $urlsJson = htmlspecialchars(json_encode($urls, JSON_THROW_ON_ERROR | JSON_UNESC
 	data-dc-is-employee="<?php p($isEmployee ? '1' : '0'); ?>"
 	data-dc-has-linked-employee="<?php p($hasLinkedEmployee ? '1' : '0'); ?>"
 	data-dc-urls="<?php print_unescaped($urlsJson); ?>"
-	data-dc-integration-bootstrap="<?php print_unescaped($_['integrationBootstrapJson'] ?? ''); ?>">
+	data-dc-integration-bootstrap="<?php print_unescaped($_['integrationBootstrapJson'] ?? ''); ?>"
+	data-dc-dashboard-summary="<?php print_unescaped((string) ($_['dashboardSummaryJson'] ?? '')); ?>">
 	<a class="dc-skip-link" href="#dc-main-content"><?php p($l->t('Skip to main content')); ?></a>
 	<div id="dc-live-region" class="dc-sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
 	<div id="dc-alert-region" class="dc-sr-only" role="alert" aria-live="assertive" aria-atomic="true"></div>
@@ -146,3 +147,20 @@ $urlsJson = htmlspecialchars(json_encode($urls, JSON_THROW_ON_ERROR | JSON_UNESC
 			</dl>
 		</header>
 		<main id="dc-main-content" class="dc-main" tabindex="-1" aria-labelledby="dc-page-title">
+			<?php
+			$companyAccessDenied = !empty($_['companyAccessDenied']);
+			$companiesSettingsUrl = (string) ($urls['companiesSettings'] ?? ($urls['settings'] ?? '#'));
+			?>
+			<aside id="dc-company-access-banner"
+				class="dc-callout dc-callout--warning dc-company-access-banner"
+				role="status"
+				aria-labelledby="dc-company-access-banner-title"
+				<?php if (!$companyAccessDenied): ?>hidden<?php endif; ?>>
+				<p class="dc-callout__title" id="dc-company-access-banner-title"><?php p($l->t('No company assigned yet')); ?></p>
+				<p><?php p($l->t('Your account is not on a company. Ask an administrator to add you under Settings → Companies. Until then you cannot see or change other teams\' rosters.')); ?></p>
+				<?php if ($isAppAdmin): ?>
+				<p class="dc-callout__actions">
+					<a class="button primary" href="<?php p($companiesSettingsUrl); ?>"><?php p($l->t('Open Companies')); ?></a>
+				</p>
+				<?php endif; ?>
+			</aside>

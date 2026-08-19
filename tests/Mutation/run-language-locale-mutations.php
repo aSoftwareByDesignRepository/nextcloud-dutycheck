@@ -17,7 +17,7 @@ if (!is_file($phpunit)) {
 }
 $node = trim((string) shell_exec('command -v node')) ?: 'node';
 
-const PHP_FILTER = 'LocaleFormatServiceLanguageVsLocaleTest|LocaleFormatServiceHtmlLangTest|PeriodTranslationSenseTest|DashboardTemplateRenderTest|RosterApiControllerContractTest::testListPeriods';
+const PHP_FILTER = 'LocaleFormatServiceLanguageVsLocaleTest|LocaleFormatServiceHtmlLangTest|PeriodTranslationSenseTest|DashboardTemplateRenderTest|RosterApiControllerContractTest::testListPeriods|RosterReadPathArchitectureContractTest|AccessControlRequestScopeContractTest';
 
 function run_phpunit(string $appRoot, string $phpunit): int
 {
@@ -98,17 +98,24 @@ $mutations = [
 	],
 	'publish_readiness_writes' => [
 		'file' => $roster,
-		'from' => '$conflicts = $this->listPersistedConflicts($periodId);',
-		'to' => '$conflicts = $this->refreshAndListConflicts($periodId);',
+		'from' => '$bySeverity = $this->countUnresolvedConflictsBySeverity($periodId);',
+		'to' => '$bySeverity = $this->refreshAndListConflicts($periodId);',
 		'php' => false,
 		'js' => true,
 	],
 	'dashboard_pulse_roster' => [
 		'file' => $dashboardJs,
-		'from' => "Api.get('/apps/dutycheck/api/periods')",
+		'from' => "Api.get('/apps/dutycheck/api/dashboard')",
 		'to' => "Api.get('/apps/dutycheck/api/roster')",
 		'php' => false,
 		'js' => true,
+	],
+	'dashboard_pulse_recomputes' => [
+		'file' => $roster,
+		'from' => '$pulseSeverity = $this->countUnresolvedConflictsBySeverity($periodId);',
+		'to' => '$pulseSeverity = $this->refreshAndListConflicts($periodId);',
+		'php' => true,
+		'js' => false,
 	],
 	'week_name_from_locale' => [
 		'file' => $localeService,
@@ -128,7 +135,21 @@ $mutations = [
 		'file' => $roster,
 		'from' => '$conflicts = $selected !== null ? $this->listPersistedConflicts($selected) : [];',
 		'to' => '$conflicts = $selected !== null ? $this->refreshAndListConflicts($selected) : [];',
-		'php' => false,
+		'php' => true,
+		'js' => true,
+	],
+	'assignments_paginated' => [
+		'file' => $roster,
+		'from' => "\t\t\$qb->orderBy('a.duty_date', 'ASC')->addOrderBy('a.start_time', 'ASC');",
+		'to' => "\t\t\$qb->orderBy('a.duty_date', 'ASC')->addOrderBy('a.start_time', 'ASC')->setMaxResults(500);",
+		'php' => true,
+		'js' => true,
+	],
+	'conflict_details_full_on_get' => [
+		'file' => $roster,
+		'from' => "\t\t\t\t'details' => [],",
+		'to' => "\t\t\t\t'details' => \$payload,",
+		'php' => true,
 		'js' => true,
 	],
 ];

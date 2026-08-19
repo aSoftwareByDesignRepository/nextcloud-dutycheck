@@ -1538,6 +1538,26 @@
 		});
 	}
 
+	const SECTION_WIRES = {
+		integration: wireAtIntegration,
+		planning: wirePlanningDefaults,
+		companies: wireCompanies,
+		conflicts: wireConflictPolicy,
+		'shift-templates': wireShiftTemplates,
+		qualifications: wireQualifications,
+		'planner-scope': wirePlannerScope,
+		operations: wireOpsFlags,
+		'duty-roles': wireDutyRoles,
+	};
+
+	async function wireActiveSettingsSection() {
+		const section = String(document.getElementById('app-content')?.getAttribute('data-dc-settings-section') || '');
+		const wire = SECTION_WIRES[section];
+		if (typeof wire === 'function') {
+			await wire();
+		}
+	}
+
 	document.addEventListener('DOMContentLoaded', async () => {
 		// Forward legacy /settings#anchor bookmarks to the owning sub-page
 		// before any section wiring fires network requests.
@@ -1549,15 +1569,7 @@
 				return;
 			}
 		}
-		await wireAtIntegration();
-		await wirePlanningDefaults();
-		await wireCompanies();
-		await wireConflictPolicy();
-		await wireShiftTemplates();
-		await wireQualifications();
-		await wirePlannerScope();
-		await wireOpsFlags();
-		await wireDutyRoles();
+		await wireActiveSettingsSection();
 		const form = document.getElementById('dc-app-policy-form');
 		if (!form) return;
 		try {

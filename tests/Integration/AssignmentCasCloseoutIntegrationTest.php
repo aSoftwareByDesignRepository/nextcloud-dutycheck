@@ -184,6 +184,10 @@ final class AssignmentCasCloseoutIntegrationTest extends TestCase
 
 		$src = (string) file_get_contents(dirname(__DIR__, 2) . '/lib/Service/RosterService.php');
 		self::assertStringContainsString("neq('status'", $src);
+		self::assertMatchesRegularExpression(
+			'/function cancelAssignment[\s\S]{0,3200}?eq\(\'version\'/',
+			$src,
+		);
 	}
 
 	public function testCancelThenRecreateSameSlotSucceeds(): void

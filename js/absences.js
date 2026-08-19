@@ -39,6 +39,9 @@
 	};
 	/** @type {Array<object>} */
 	let lastPlannerEmployees = [];
+	/** @type {Array<object>} */
+	let catalogAbsences = [];
+	let tablePainter = null;
 
 	function buildLinkedEmployeeIdSet(employees) {
 		const s = new Set();
@@ -139,6 +142,161 @@
 		}
 	}
 
+	function absenceEmptyRow() {
+		const tr = create('tr');
+		const integ = integrationBootstrapFromDom();
+		const locks = integrationLocksLinked(integ);
+		let emptyMsg = t('dutycheck', 'No absence records yet.');
+		if (locks) {
+			const last = integ?.integrationLastReconcileAt
+				? String(integ.integrationLastReconcileAt)
+				: t('dutycheck', 'Never synced — the connector will run shortly.');
+			emptyMsg = t('dutycheck', 'No absences in this list yet. Linked employees request time off in ArbeitszeitCheck. Last sync: {time}.')
+				.replace('{time}', last);
+		}
+		const td = create('td', { text: emptyMsg });
+		td.colSpan = TABLE_COLS;
+		tr.appendChild(td);
+		return tr;
+	}
+
+	function buildAbsenceRow(absence) {
+		const { locksLinked, linkedEmployeeIds } = plannerAbsencesRenderContext;
+		const tr = create('tr');
+		const start = D?.formatDisplayDate(absence.startDate) || absence.startDate;
+		const end = D?.formatDisplayDate(absence.endDate) || absence.endDate;
+		const status = String(absence.status || '').toLowerCase();
+		const fromAt = String(absence.source || '') === 'arbeitszeitcheck';
+		const empId = absence.employeeId != null ? Number(absence.employeeId) : NaN;
+		const linkedRow = Number.isInteger(empId) && empId > 0 && linkedEmployeeIds.has(empId);
+		const dcRowReadOnlyIntegration = !fromAt && linkedRow && locksLinked;
+
+		const employeeTd = create('td', { text: String(absence.employeeName || '') });
+		employeeTd.dataset.cell = t('dutycheck', 'Employee');
+		tr.appendChild(employeeTd);
+
+		const sourceTd = create('td', { text: fromAt ? t('dutycheck', 'ArbeitszeitCheck') : t('dutycheck', 'DutyCheck') });
+		sourceTd.dataset.cell = t('dutycheck', 'Source');
+		tr.appendChild(sourceTd);
+
+		const typeLabel = KIND_LABELS[absence.kind] || String(absence.kind || '—');
+		const atNote = fromAt && absence.atType ? ` (${String(absence.atType)})` : '';
+		const kindTd = create('td', { text: typeLabel + atNote });
+		kindTd.dataset.cell = t('dutycheck', 'Type');
+		tr.appendChild(kindTd);
+
+		const rangeTd = create('td', { text: `${start} – ${end}` });
+		rangeTd.dataset.cell = t('dutycheck', 'Range');
+		tr.appendChild(rangeTd);
+
+		const statusTd = create('td');
+		statusTd.dataset.cell = t('dutycheck', 'Status');
+		statusTd.appendChild(create('span', {
+			class: 'dc-status-badge dc-status-badge--' + status,
+			text: STATUS_LABEL[status] || status.toUpperCase(),
+		}));
+		if ((status === 'rejected' || status === 'cancelled') && String(absence.reviewReason || '').trim() !== '') {
+			statusTd.appendChild(create('span', {
+				class: 'dc-row-meta',
+				text: t('dutycheck', 'Reason: {reason}').replace('{reason}', String(absence.reviewReason)),
+			}));
+		}
+		tr.appendChild(statusTd);
+
+		const actionsTd = create('td', { class: 'dc-table__col--actions' });
+		actionsTd.dataset.cell = t('dutycheck', 'Actions');
+		const wrap = create('div', { class: 'dc-row-actions' });
+		if (!fromAt && absence.id != null && !dcRowReadOnlyIntegration) {
+			for (const target of (STATUS_TRANSITIONS[status] || [])) {
+				const danger = target === 'rejected' || target === 'cancelled';
+				const btn = create('button', {
+					type: 'button',
+					class: danger ? 'button danger' : 'button',
+					text: actionLabel(target),
+					attrs: { 'aria-label': t('dutycheck', '{action} absence for {name}').replace('{action}', actionLabel(target)).replace('{name}', String(absence.employeeName || '')) },
+				});
+				btn.addEventListener('click', () => transitionAbsence(absence.id, target));
+				wrap.appendChild(btn);
+			}
+		} else if (fromAt) {
+			const bits = [t('dutycheck', 'Imported absences are read-only. Approve or reject them in ArbeitszeitCheck.')];
+			if (absence.piiHidden) {
+				bits.push(t('dutycheck', 'Details for this absence are only available in ArbeitszeitCheck.'));
+			}
+			wrap.appendChild(create('span', {
+				class: 'dc-row-meta',
+				text: bits.join(' '),
+			}));
+			const peerUrl = String(integrationBootstrapFromDom()?.peerPlannerOutboundUrl || '').trim();
+			if (peerUrl && peerUrl !== '#' && !/^javascript:/i.test(peerUrl)) {
+				const openPeer = create('a', {
+					class: 'button',
+					href: peerUrl,
+					text: t('dutycheck', 'Open ArbeitszeitCheck'),
+					attrs: {
+						target: '_blank',
+						rel: 'noopener noreferrer',
+						'aria-label': t('dutycheck', 'Open ArbeitszeitCheck'),
+					},
+				});
+				wrap.appendChild(openPeer);
+			}
+		} else if (dcRowReadOnlyIntegration) {
+			const legacyTargets = (STATUS_TRANSITIONS[status] || []).filter(
+				(target) => target === 'cancelled' || target === 'rejected',
+			);
+			for (const target of legacyTargets) {
+				const danger = target === 'rejected' || target === 'cancelled';
+				const btn = create('button', {
+					type: 'button',
+					class: danger ? 'button danger' : 'button',
+					text: actionLabel(target),
+					attrs: {
+						'aria-label': t('dutycheck', '{action} absence for {name}')
+							.replace('{action}', actionLabel(target))
+							.replace('{name}', String(absence.employeeName || '')),
+					},
+				});
+				btn.addEventListener('click', () => transitionAbsence(absence.id, target));
+				wrap.appendChild(btn);
+			}
+			wrap.appendChild(create('span', {
+				class: 'dc-row-meta',
+				text: t('dutycheck', 'Legacy DutyCheck row for a linked person — cancel it here to clear conflicts. New absences belong in ArbeitszeitCheck.'),
+			}));
+		}
+		actionsTd.appendChild(wrap);
+		tr.appendChild(actionsTd);
+		return tr;
+	}
+
+	function ensureAbsencesWindow() {
+		if (tablePainter) {
+			return tablePainter;
+		}
+		const WT = window.DutyCheckWindowedTable;
+		const tbody = document.getElementById('dc-absences-table-body');
+		if (!WT || typeof WT.bind !== 'function' || !tbody) {
+			return null;
+		}
+		tablePainter = WT.bind({
+			scroller: document.getElementById('dc-absences-table-wrap'),
+			tbody,
+			statusEl: document.getElementById('dc-absences-table-status'),
+			createElement: create,
+			colSpan: TABLE_COLS,
+			getRows: () => catalogAbsences,
+			renderRow: buildAbsenceRow,
+			emptyRow: absenceEmptyRow,
+			statusAll: (total) => t('dutycheck', 'All {total} rows are on screen.').replace('{total}', String(total)),
+			statusWindow: (from, to, total) => t('dutycheck', 'Showing rows {from}–{to} of {total}. Scroll to see the rest.')
+				.replace('{from}', String(from))
+				.replace('{to}', String(to))
+				.replace('{total}', String(total)),
+		});
+		return tablePainter;
+	}
+
 	function renderAbsences(absences, renderContextUpdate) {
 		if (renderContextUpdate) {
 			plannerAbsencesRenderContext = {
@@ -148,135 +306,21 @@
 					: new Set(),
 			};
 		}
-		const { locksLinked, linkedEmployeeIds } = plannerAbsencesRenderContext;
+		catalogAbsences = Array.isArray(absences) ? absences : [];
+		const painter = ensureAbsencesWindow();
+		if (painter) {
+			painter.paint(true);
+			return;
+		}
 		const tbody = document.getElementById('dc-absences-table-body');
 		if (!tbody) return;
 		tbody.replaceChildren();
-		if (!absences.length) {
-			const tr = create('tr');
-			const integ = integrationBootstrapFromDom();
-			const locks = integrationLocksLinked(integ);
-			let emptyMsg = t('dutycheck', 'No absence records yet.');
-			if (locks) {
-				const last = integ?.integrationLastReconcileAt
-					? String(integ.integrationLastReconcileAt)
-					: t('dutycheck', 'Never synced — the connector will run shortly.');
-				emptyMsg = t('dutycheck', 'No absences in this list yet. Linked employees request time off in ArbeitszeitCheck. Last sync: {time}.')
-					.replace('{time}', last);
-			}
-			const td = create('td', { text: emptyMsg });
-			td.colSpan = TABLE_COLS;
-			tr.appendChild(td);
-			tbody.appendChild(tr);
+		if (!catalogAbsences.length) {
+			tbody.appendChild(absenceEmptyRow());
 			return;
 		}
-		for (const absence of absences) {
-			const tr = create('tr');
-			const start = D?.formatDisplayDate(absence.startDate) || absence.startDate;
-			const end = D?.formatDisplayDate(absence.endDate) || absence.endDate;
-			const status = String(absence.status || '').toLowerCase();
-			const fromAt = String(absence.source || '') === 'arbeitszeitcheck';
-			const empId = absence.employeeId != null ? Number(absence.employeeId) : NaN;
-			const linkedRow = Number.isInteger(empId) && empId > 0 && linkedEmployeeIds.has(empId);
-			const dcRowReadOnlyIntegration = !fromAt && linkedRow && locksLinked;
-
-			const employeeTd = create('td', { text: String(absence.employeeName || '') });
-			employeeTd.dataset.cell = t('dutycheck', 'Employee');
-			tr.appendChild(employeeTd);
-
-			const sourceTd = create('td', { text: fromAt ? t('dutycheck', 'ArbeitszeitCheck') : t('dutycheck', 'DutyCheck') });
-			sourceTd.dataset.cell = t('dutycheck', 'Source');
-			tr.appendChild(sourceTd);
-
-			const typeLabel = KIND_LABELS[absence.kind] || String(absence.kind || '—');
-			const atNote = fromAt && absence.atType ? ` (${String(absence.atType)})` : '';
-			const kindTd = create('td', { text: typeLabel + atNote });
-			kindTd.dataset.cell = t('dutycheck', 'Type');
-			tr.appendChild(kindTd);
-
-			const rangeTd = create('td', { text: `${start} – ${end}` });
-			rangeTd.dataset.cell = t('dutycheck', 'Range');
-			tr.appendChild(rangeTd);
-
-			const statusTd = create('td');
-			statusTd.dataset.cell = t('dutycheck', 'Status');
-			statusTd.appendChild(create('span', {
-				class: 'dc-status-badge dc-status-badge--' + status,
-				text: STATUS_LABEL[status] || status.toUpperCase(),
-			}));
-			if ((status === 'rejected' || status === 'cancelled') && String(absence.reviewReason || '').trim() !== '') {
-				statusTd.appendChild(create('span', {
-					class: 'dc-row-meta',
-					text: t('dutycheck', 'Reason: {reason}').replace('{reason}', String(absence.reviewReason)),
-				}));
-			}
-			tr.appendChild(statusTd);
-
-			const actionsTd = create('td', { class: 'dc-table__col--actions' });
-			actionsTd.dataset.cell = t('dutycheck', 'Actions');
-			const wrap = create('div', { class: 'dc-row-actions' });
-			if (!fromAt && absence.id != null && !dcRowReadOnlyIntegration) {
-				for (const target of (STATUS_TRANSITIONS[status] || [])) {
-					const danger = target === 'rejected' || target === 'cancelled';
-					const btn = create('button', {
-						type: 'button',
-						class: danger ? 'button danger' : 'button',
-						text: actionLabel(target),
-						attrs: { 'aria-label': t('dutycheck', '{action} absence for {name}').replace('{action}', actionLabel(target)).replace('{name}', String(absence.employeeName || '')) },
-					});
-					btn.addEventListener('click', () => transitionAbsence(absence.id, target));
-					wrap.appendChild(btn);
-				}
-			} else if (fromAt) {
-				const bits = [t('dutycheck', 'Imported absences are read-only. Approve or reject them in ArbeitszeitCheck.')];
-				if (absence.piiHidden) {
-					bits.push(t('dutycheck', 'Details for this absence are only available in ArbeitszeitCheck.'));
-				}
-				wrap.appendChild(create('span', {
-					class: 'dc-row-meta',
-					text: bits.join(' '),
-				}));
-				const peerUrl = String(integrationBootstrapFromDom()?.peerPlannerOutboundUrl || '').trim();
-				if (peerUrl && peerUrl !== '#' && !/^javascript:/i.test(peerUrl)) {
-					const openPeer = create('a', {
-						class: 'button',
-						href: peerUrl,
-						text: t('dutycheck', 'Open ArbeitszeitCheck'),
-						attrs: {
-							target: '_blank',
-							rel: 'noopener noreferrer',
-							'aria-label': t('dutycheck', 'Open ArbeitszeitCheck'),
-						},
-					});
-					wrap.appendChild(openPeer);
-				}
-			} else if (dcRowReadOnlyIntegration) {
-				const legacyTargets = (STATUS_TRANSITIONS[status] || []).filter(
-					(target) => target === 'cancelled' || target === 'rejected',
-				);
-				for (const target of legacyTargets) {
-					const danger = target === 'rejected' || target === 'cancelled';
-					const btn = create('button', {
-						type: 'button',
-						class: danger ? 'button danger' : 'button',
-						text: actionLabel(target),
-						attrs: {
-							'aria-label': t('dutycheck', '{action} absence for {name}')
-								.replace('{action}', actionLabel(target))
-								.replace('{name}', String(absence.employeeName || '')),
-						},
-					});
-					btn.addEventListener('click', () => transitionAbsence(absence.id, target));
-					wrap.appendChild(btn);
-				}
-				wrap.appendChild(create('span', {
-					class: 'dc-row-meta',
-					text: t('dutycheck', 'Legacy DutyCheck row for a linked person — cancel it here to clear conflicts. New absences belong in ArbeitszeitCheck.'),
-				}));
-			}
-			actionsTd.appendChild(wrap);
-			tr.appendChild(actionsTd);
-			tbody.appendChild(tr);
+		for (const absence of catalogAbsences) {
+			tbody.appendChild(buildAbsenceRow(absence));
 		}
 	}
 
@@ -402,13 +446,15 @@
 		const integ = integrationBootstrapFromDom();
 		const locksLinked = integrationLocksLinked(integ);
 		try {
-			const employeesResponse = await Api.get('/apps/dutycheck/api/employees');
+			const [employeesResponse, absencesResponse] = await Promise.all([
+				Api.get('/apps/dutycheck/api/employees'),
+				Api.get('/apps/dutycheck/api/absences'),
+			]);
 			const employees = (employeesResponse?.data || []).filter((e) => e.active !== false);
 			lastPlannerEmployees = employees;
 			renderPlannerIntegrationBanner(integ, employees);
 			fillEmployeeSelect(employees, locksLinked);
 			updatePlannerOnBehalfSection(employees, locksLinked);
-			const absencesResponse = await Api.get('/apps/dutycheck/api/absences');
 			const linkedIds = buildLinkedEmployeeIdSet(employees);
 			renderAbsences(absencesResponse?.data || [], { locksLinked, linkedEmployeeIds: linkedIds });
 		} catch (err) {

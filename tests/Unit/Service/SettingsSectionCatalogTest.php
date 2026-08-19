@@ -200,7 +200,7 @@ final class SettingsSectionCatalogTest extends TestCase
 			'access' => 'Restriction takes effect immediately',
 			'duty-roles' => 'employee catalog',
 			'planning' => 'filled in automatically',
-			'companies' => 'membership isolation',
+			'companies' => 'see nothing until',
 			'conflicts' => 'ArbZG-oriented',
 			'shift-templates' => 'presets',
 			'qualifications' => 'block assign/publish',

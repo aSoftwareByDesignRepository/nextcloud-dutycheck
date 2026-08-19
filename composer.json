@@ -32,6 +32,7 @@
 	},
 	"scripts": {
 		"test": "phpunit",
+		"test:unit": "phpunit --testsuite unit",
 		"test-docker": "docker run --rm -v \"$PWD\":/app -w /app php:8.3-cli ./vendor/bin/phpunit"
 	}
 }

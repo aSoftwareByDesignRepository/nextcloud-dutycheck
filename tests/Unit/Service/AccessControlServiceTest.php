@@ -381,4 +381,95 @@ class AccessControlServiceTest extends TestCase
 		$assignments = $access->removeDutyRole('planner1');
 		self::assertSame([], $assignments);
 	}
+
+	public function testSystemAdminLookupIsMemoizedPerRequest(): void
+	{
+		$groupManager = $this->createMock(IGroupManager::class);
+		$groupManager->expects(self::once())->method('isAdmin')->with('root')->willReturn(true);
+
+		$access = new AccessControlService(
+			$this->createMock(IDBConnection::class),
+			$this->openConfig(),
+			$groupManager,
+			$this->createMock(IUserManager::class),
+			$this->createMock(IUserSession::class),
+		);
+
+		self::assertTrue($access->isAppAdmin('root'));
+		self::assertTrue($access->isAppAdmin('root'));
+		self::assertTrue($access->isPlannerOrAdmin('root'));
+	}
+
+	public function testGlobalRoleAndEmployeeLinkAreMemoizedPerRequest(): void
+	{
+		$db = $this->createMock(IDBConnection::class);
+		$db->expects(self::exactly(2))->method('getQueryBuilder')->willReturnOnConsecutiveCalls(
+			$this->queryBuilderWithResults($this->resultWithFetchRow(['role' => 'planner'])),
+			$this->queryBuilderWithResults($this->resultWithFetchOne(false)),
+		);
+
+		$access = $this->service($db);
+		self::assertTrue($access->isPlannerOrAdmin('pat'));
+		self::assertTrue($access->isPlannerOrAdmin('pat'));
+		self::assertFalse($access->isEmployee('pat'));
+		self::assertFalse($access->hasActiveLinkedEmployee('pat'));
+		self::assertTrue($access->hasDutyMembership('pat'));
+	}
+
+	public function testSaveAppPolicyInvalidatesAdminListCache(): void
+	{
+		$store = [
+			'access_restriction_enabled' => '0',
+			'app_admin_user_ids' => '[]',
+			'access_allowed_user_ids' => '[]',
+			'access_allowed_group_ids' => '[]',
+		];
+		$config = $this->createMock(IConfig::class);
+		$config->method('getAppValue')->willReturnCallback(
+			static function (string $appId, string $key, string $default) use (&$store): string {
+				return $store[$key] ?? $default;
+			}
+		);
+		$config->method('setAppValue')->willReturnCallback(
+			static function (string $appId, string $key, string $value) use (&$store): void {
+				$store[$key] = $value;
+			}
+		);
+
+		$userManager = $this->createMock(IUserManager::class);
+		$userManager->method('get')->willReturn($this->enabledUserMock());
+
+		$access = new AccessControlService(
+			$this->createMock(IDBConnection::class),
+			$config,
+			$this->createMock(IGroupManager::class),
+			$userManager,
+			$this->createMock(IUserSession::class),
+		);
+
+		self::assertFalse($access->isAppAdmin('admin1'));
+		$policy = $access->saveAppPolicy([
+			'appAdminUserIds' => ['admin1'],
+			'accessRestrictionEnabled' => false,
+			'allowedUserIds' => [],
+			'allowedGroupIds' => [],
+		]);
+		self::assertSame(['admin1'], $policy['appAdminUserIds']);
+		self::assertTrue($access->isAppAdmin('admin1'));
+	}
+
+	private function openConfig(): IConfig
+	{
+		$config = $this->createMock(IConfig::class);
+		$config->method('getAppValue')->willReturnCallback(function (string $appId, string $key, string $default): string {
+			if ($key === 'access_restriction_enabled') {
+				return '0';
+			}
+			if (str_ends_with($key, '_user_ids') || str_ends_with($key, '_group_ids')) {
+				return '[]';
+			}
+			return $default;
+		});
+		return $config;
+	}
 }

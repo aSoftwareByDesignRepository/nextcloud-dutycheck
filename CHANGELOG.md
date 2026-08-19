@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.1.43 - 2026-08-19
+
+### Fixed
+
+- **Translations:** roster/catalog window status lines and “(opens in a new tab)” are translated in every shipped locale (de/fr/es/da/nl/it/pl/sv/nb/pt_BR), not left as English identity leftovers. Placeholders `{from}`, `{to}`, and `{total}` stay in the same order as the msgid.
+- **l10n glossary alignment:** corrected wrong translations and standardised button labels across all shipped locales to match the cross-app glossary.
+
+### Changed
+
+- **Help, Support & Us / Get the App:** WCAG 2.1 AA hardening and translated footer copy for all website footer locales.
+- **CI:** collapsed GitHub Actions to a single PHP syntax-only smoke job; full test suites stay local.
+- **Nextcloud:** `max-version` remains **34** (current stable **34.0.3**).
+
+### Tests
+
+- l10n catalog integrity PHPUnit + JS contract; CI runs `check-l10n-placeholders.php` (including `pt_BR` and regional variants) and `run-l10n-catalog-mutations.php`.
+
 ## 0.1.42 - 2026-08-14
 
 ### Fixed
@@ -12,6 +29,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Language vs locale:** DutyCheck now honours Nextcloud *Language* for UI text (`lang`, relative time, weekday names) and *Locale* for date order and first day of week. English UI with a Dutch locale no longer presents the interface in Dutch. The header shows *Start of week* from Locale, named in Language.
 - **Translations:** planning “period” is no longer translated as menstruation (Dutch *menstruatie*, Swedish *mens*, French *règles*, Italian *ciclo*). Empty-state copy uses the time-range sense in nl/fr/it/sv/pl. Work “shift” is no longer translated as displacement/change (Dutch *verschuiving*, Italian *spostamento*, French *changement*, Danish *Kravskifte*, Spanish *turno de reclamo*).
 - **Speed:** Periods, Dashboard pulse, Absences, and Roster GET no longer load a full conflict recompute for a button click. GET publish-readiness and roster reads use persisted conflicts; overlap checks group by employee; absence collisions are batched. Writes (assign/publish/close) still refresh.
+
+### Security
+
+- **Multi-company deny-all:** planners without a company membership no longer fall back to Default company data. Empty lists plus a labelled “No company assigned yet” banner; creating rows without membership returns `COMPANY_MEMBERSHIP_REQUIRED`.
+- **Period copy** apply is one transaction (inner assignment creates do not commit), so a mid-loop crash cannot leave a half-copied period.
+- **Conflict acknowledgement** is first-writer CAS (`CONFLICT_ACK_STALE` / HTTP 409), not last-writer-wins.
+
+### Tests
+
+- GitHub CI runs PHPUnit unit + integration (skips without Nextcloud), JS contracts, l10n runtime/parity, and the hardening mutation gauntlet.
 
 ### Changed
 

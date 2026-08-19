@@ -81,7 +81,7 @@ foreach ($assignments as $row) {
 				</p>
 			<?php endif; ?>
 
-			<div class="dc-print-table-wrap">
+			<div class="dc-print-table-wrap" tabindex="0" role="region" aria-labelledby="dc-print-title">
 				<table class="dc-print-table">
 					<caption class="dc-sr-only">
 						<?php p($l->t('Duty assignments for this period')); ?>

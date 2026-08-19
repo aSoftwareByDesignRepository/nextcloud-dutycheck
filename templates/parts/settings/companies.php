@@ -14,6 +14,7 @@
 	</header>
 	<div class="dc-callout dc-callout--info" id="dc-companies-legacy-hint">
 		<p><?php p($l->t('With only the Default company, everyone with planner access sees all employees, locations, and periods — same as before multi-company.')); ?></p>
+		<p><?php p($l->t('After you create a second company, planners who are not members of any company see an empty roster. Add them below — they do not fall back to Default.')); ?></p>
 	</div>
 	<form id="dc-company-form" class="dc-form-grid" novalidate>
 		<div class="dc-field dc-field--full">

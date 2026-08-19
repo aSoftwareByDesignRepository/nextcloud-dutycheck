@@ -1,7 +1,7 @@
 // @ts-check
 import { test, expect } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
-import { credsFromEnv, login, loginWithFallback, plannerCredsCandidates } from './helpers/auth.js'
+import { assertNotServerUpdater, credsFromEnv, login, plannerCredsCandidates } from './helpers/auth.js'
 
 /**
  * WCAG 2.1 A/AA smoke for primary DutyCheck surfaces.
@@ -29,6 +29,7 @@ const settingsSections = [
 const plannerRoutes = [
   '/apps/dutycheck/',
   '/apps/dutycheck/roster',
+  '/apps/dutycheck/periods',
   '/apps/dutycheck/absences',
   ...settingsSections.map((section) => `/apps/dutycheck/settings/${section}`),
 ]
@@ -44,6 +45,7 @@ const employeeRoutes = [
  */
 async function assertA11y(page, path) {
   await page.goto(path, { waitUntil: 'domcontentloaded' })
+  await assertNotServerUpdater(page)
   await page.waitForSelector('#dc-main-content', { timeout: 30000 })
   // Wait for body theme variables so axe does not race NC dark/light CSS.
   await page.waitForFunction(() => {
@@ -62,22 +64,24 @@ async function assertA11y(page, path) {
 for (const path of plannerRoutes) {
   test(`a11y smoke: ${path}`, async ({ page }) => {
     test.skip(plannerCredsCandidates().length === 0, 'Requires E2E_* or NC_ADMIN_* or NC_EMPLOYEE_* credentials')
-    await loginWithFallback(page, plannerCredsCandidates())
     await assertA11y(page, path)
   })
 }
 
-for (const path of employeeRoutes) {
-  test(`a11y smoke (employee): ${path}`, async ({ page }) => {
-    test.skip(!process.env.NC_EMPLOYEE_USER, 'Requires NC_EMPLOYEE_* linked employee credentials')
-    await login(page, credsFromEnv('EMPLOYEE'))
-    await assertA11y(page, path)
-  })
-}
+test.describe('employee a11y', () => {
+  // Planner storageState must not leak into employee self-service routes.
+  test.use({ storageState: { cookies: [], origins: [] } })
+  for (const path of employeeRoutes) {
+    test(`a11y smoke (employee): ${path}`, async ({ page }) => {
+      test.skip(!process.env.NC_EMPLOYEE_USER, 'Requires NC_EMPLOYEE_* linked employee credentials')
+      await login(page, credsFromEnv('EMPLOYEE'))
+      await assertA11y(page, path)
+    })
+  }
+})
 
 test('legacy /settings URL redirects to the default sub-page', async ({ page }) => {
   test.skip(plannerCredsCandidates().length === 0, 'Requires E2E_* or NC_ADMIN_* or NC_EMPLOYEE_* credentials')
-  await loginWithFallback(page, plannerCredsCandidates())
   await page.goto('/apps/dutycheck/settings', { waitUntil: 'domcontentloaded' })
   await page.waitForSelector('#dc-main-content', { timeout: 30000 })
   await expect(page).toHaveURL(/\/apps\/dutycheck\/settings\/access$/)
@@ -85,7 +89,6 @@ test('legacy /settings URL redirects to the default sub-page', async ({ page }) 
 
 test('legacy /settings#anchor bookmark forwards to the owning sub-page', async ({ page }) => {
   test.skip(plannerCredsCandidates().length === 0, 'Requires E2E_* or NC_ADMIN_* or NC_EMPLOYEE_* credentials')
-  await loginWithFallback(page, plannerCredsCandidates())
   await page.goto('/apps/dutycheck/settings#dc-settings-quals', { waitUntil: 'domcontentloaded' })
   // Server redirect lands on /settings/access#dc-settings-quals, then
   // settings-legacy-redirect.js forwards to the qualifications sub-page.
@@ -95,7 +98,6 @@ test('legacy /settings#anchor bookmark forwards to the owning sub-page', async (
 
 test('settings sidebar sub-navigation marks the active sub-page', async ({ page }) => {
   test.skip(plannerCredsCandidates().length === 0, 'Requires E2E_* or NC_ADMIN_* or NC_EMPLOYEE_* credentials')
-  await loginWithFallback(page, plannerCredsCandidates())
   await page.goto('/apps/dutycheck/settings/companies', { waitUntil: 'domcontentloaded' })
   await page.waitForSelector('#dc-main-content', { timeout: 30000 })
   const active = page.locator('.dc-nav__sublink[aria-current="page"]')
@@ -107,7 +109,6 @@ test('settings sidebar sub-navigation marks the active sub-page', async ({ page 
 
 test('settings in-page chip bar mirrors the catalog and marks the active page', async ({ page }) => {
   test.skip(plannerCredsCandidates().length === 0, 'Requires E2E_* or NC_ADMIN_* or NC_EMPLOYEE_* credentials')
-  await loginWithFallback(page, plannerCredsCandidates())
   await page.goto('/apps/dutycheck/settings/planning', { waitUntil: 'domcontentloaded' })
   await page.waitForSelector('#dc-settings-pages', { timeout: 30000 })
   const chips = page.locator('#dc-settings-pages .dc-settings-nav__link')
@@ -119,4 +120,16 @@ test('settings in-page chip bar mirrors the catalog and marks the active page', 
   await page.locator('#dc-settings-pages .dc-settings-nav__link[href*="/settings/privacy"]').click()
   await page.waitForURL(/\/apps\/dutycheck\/settings\/privacy$/, { timeout: 30000 })
   await page.waitForSelector('#dc-settings-privacy', { timeout: 30000 })
+})
+
+test('company-access banner is a labelled status region and hidden when membership exists', async ({ page }) => {
+  test.skip(plannerCredsCandidates().length === 0, 'Requires E2E_* or NC_ADMIN_* or NC_EMPLOYEE_* credentials')
+  await page.goto('/apps/dutycheck/dashboard', { waitUntil: 'domcontentloaded' })
+  await page.waitForSelector('#dc-main-content', { timeout: 30000 })
+  const banner = page.locator('#dc-company-access-banner')
+  await expect(banner).toHaveCount(1)
+  await expect(banner).toHaveAttribute('role', 'status')
+  await expect(banner).toHaveAttribute('aria-labelledby', 'dc-company-access-banner-title')
+  // Typical E2E tenant is single-company (unrestricted) or a member planner.
+  await expect(banner).toBeHidden()
 })

@@ -1,6 +1,6 @@
 {
     "name": "dutycheck",
-    "version": "0.1.42",
+    "version": "0.1.43",
     "private": true,
     "type": "module",
     "scripts": {
@@ -8,6 +8,11 @@
         "mutate:integrity": "php tests/Mutation/run-integrity-closeout-mutations.php",
         "mutate:api-abort": "php tests/Mutation/run-api-abort-mutations.php",
         "mutate:language-locale": "php tests/Mutation/run-language-locale-mutations.php",
+        "mutate:periods-page-load": "php tests/Mutation/run-periods-page-load-mutations.php",
+        "mutate:app-wide-load": "php tests/Mutation/run-app-wide-load-mutations.php",
+        "mutate:hardening-followup": "php tests/Mutation/run-hardening-followup-mutations.php",
+        "mutate:roster-virtualization": "php tests/Mutation/run-roster-virtualization-mutations.php",
+        "mutate:first-paint": "php tests/Mutation/run-first-paint-mutations.php",
         "test:js": "node --test tests/js/*.test.mjs",
         "e2e": "playwright test",
         "test:a11y": "playwright test tests/e2e/a11y-smoke.spec.js",

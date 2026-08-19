@@ -93,6 +93,50 @@ final class RosterApiCompanyIdorTest extends TestCase
 		self::assertTrue($response->getData()['ok']);
 	}
 
+	public function testUpdateAssignmentPeeksWithActorForCompanyIsolation(): void
+	{
+		$request = $this->createMock(IRequest::class);
+		$request->method('getParam')->willReturnCallback(static fn (string $key) => match ($key) {
+			'locationId' => 2,
+			'expectedVersion' => 1,
+			default => null,
+		});
+		[$controller, $roster, $access] = $this->controller($request);
+		$access->expects($this->once())->method('requirePlannerOrAdmin');
+		$roster->expects($this->once())->method('peekAssignment')->with(55, 'planner-1')->willReturn([
+			'id' => 55,
+			'periodId' => 3,
+			'employeeId' => 7,
+			'locationId' => 2,
+			'dutyDate' => '2099-01-01',
+			'status' => 'active',
+			'version' => 1,
+		]);
+		$roster->expects($this->once())->method('updateAssignment')->willReturn(['assignments' => []]);
+
+		$response = $controller->updateAssignment(55);
+		self::assertTrue($response->getData()['ok']);
+	}
+
+	public function testCancelAssignmentPeeksWithActorForCompanyIsolation(): void
+	{
+		[$controller, $roster, $access] = $this->controller();
+		$access->expects($this->once())->method('requirePlannerOrAdmin');
+		$roster->expects($this->once())->method('peekAssignment')->with(66, 'planner-1')->willReturn([
+			'id' => 66,
+			'periodId' => 4,
+			'employeeId' => 8,
+			'locationId' => 2,
+			'dutyDate' => '2099-01-02',
+			'status' => 'active',
+			'version' => 0,
+		]);
+		$roster->expects($this->once())->method('cancelAssignment')->with(66, 'planner-1')->willReturn(['assignments' => []]);
+
+		$response = $controller->cancelAssignment(66);
+		self::assertTrue($response->getData()['ok']);
+	}
+
 	/** @return array{0:RosterApiController,1:RosterService,2:AccessControlService} */
 	private function controller(?IRequest $request = null): array
 	{

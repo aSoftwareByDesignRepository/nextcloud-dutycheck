@@ -1,5 +1,6 @@
-# Syntax smoke only. PHPUnit needs a Nextcloud bootstrap — run locally:
-#   composer test:docker   or   npm run test:php:docker
+# Unit + JS + l10n + hardening mutations. Integration PHPUnit skips without a
+# Nextcloud bootstrap (composer test:docker / docker compose exec). Playwright
+# e2e needs NC_* / E2E_* secrets and is not run here.
 name: CI
 
 on:
@@ -24,5 +25,19 @@ jobs:
           php-version: '8.2'
           coverage: none
           tools: composer:v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
       - run: composer validate --no-check-publish
+      - run: composer install --no-interaction --prefer-dist
       - run: find lib tests templates -name '*.php' -print0 | xargs -0 -n1 -P4 php -l
+      - run: php vendor/bin/phpunit -c phpunit.xml --testsuite unit --colors=always
+      - run: php vendor/bin/phpunit -c phpunit.xml --testsuite integration --colors=always
+      - run: node --test tests/js/*.test.mjs
+      - run: php scripts/check-l10n-runtime.php --all
+      - run: php scripts/check-l10n-parity.php
+      - run: php scripts/check-l10n-placeholders.php
+      - run: php tests/Mutation/run-hardening-followup-mutations.php
+      - run: php tests/Mutation/run-roster-virtualization-mutations.php
+      - run: php tests/Mutation/run-first-paint-mutations.php
+      - run: php tests/Mutation/run-l10n-catalog-mutations.php

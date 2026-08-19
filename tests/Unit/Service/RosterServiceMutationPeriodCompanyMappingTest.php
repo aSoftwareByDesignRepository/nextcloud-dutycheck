@@ -213,4 +213,23 @@ final class RosterServiceMutationPeriodCompanyMappingTest extends TestCase
 			'version' => 0,
 		], $service->peekAssignment(42));
 	}
+
+	public function testPeekAssignmentWithActorAssertsPeriodCompanyAccess(): void
+	{
+		$companies = $this->createMock(\OCA\DutyCheck\Service\CompanyService::class);
+		$companies->expects(self::once())->method('assertRowCompany')->with('planner-1', 'dc_periods', 3);
+		$qb = $this->rosterQb(['fetch' => [
+			'id' => 42,
+			'period_id' => 3,
+			'employee_id' => 7,
+			'location_id' => 2,
+			'duty_date' => '2026-07-10',
+			'status' => 'active',
+			'version' => 1,
+		]]);
+		$service = new RosterService($this->rosterDb($qb), companies: $companies);
+
+		$out = $service->peekAssignment(42, 'planner-1');
+		self::assertSame(3, $out['periodId']);
+	}
 }

@@ -31,6 +31,8 @@ final class RosterWaveContractTest extends TestCase
 		self::assertSame(422, \OCA\DutyCheck\Controller\ApiJsonErrorResponse::statusForInvalidArgument('QUALIFICATION_MISSING'));
 		self::assertSame(403, \OCA\DutyCheck\Controller\ApiJsonErrorResponse::statusForInvalidArgument('FORBIDDEN'));
 		self::assertSame(403, \OCA\DutyCheck\Controller\ApiJsonErrorResponse::statusForInvalidArgument('COMPANY_MISMATCH'));
+		self::assertSame(403, \OCA\DutyCheck\Controller\ApiJsonErrorResponse::statusForInvalidArgument('COMPANY_MEMBERSHIP_REQUIRED'));
+		self::assertSame(409, \OCA\DutyCheck\Controller\ApiJsonErrorResponse::statusForInvalidArgument('CONFLICT_ACK_STALE'));
 		self::assertSame(409, \OCA\DutyCheck\Controller\ApiJsonErrorResponse::statusForInvalidArgument('PERIOD_STATUS_CONFLICT'));
 		self::assertSame(409, \OCA\DutyCheck\Controller\ApiJsonErrorResponse::statusForInvalidArgument('ABSENCE_STATUS_CONFLICT'));
 		self::assertSame(422, \OCA\DutyCheck\Controller\ApiJsonErrorResponse::statusForInvalidArgument('SWAP_CONFLICT'));

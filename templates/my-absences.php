@@ -57,7 +57,7 @@ $readonlyAbsences = !empty($_['readonlyAbsencesForCurrentUser']);
 			</p>
 		</div>
 	</header>
-	<div class="dc-table-wrap">
+	<div class="dc-table-wrap" tabindex="0" role="region" aria-labelledby="dc-my-absences-title">
 		<table class="dc-table" id="dc-my-absences-table">
 			<caption class="dc-sr-only"><?php p($l->t('Your absence requests and statuses')); ?></caption>
 			<thead>

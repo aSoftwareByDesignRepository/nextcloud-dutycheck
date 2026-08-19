@@ -185,8 +185,12 @@ final class IntegrityCloseoutContractTest extends TestCase
 	public function testRosterTemplateIncludesAccessibleGrid(): void
 	{
 		$html = (string) file_get_contents(dirname(__DIR__, 3) . '/templates/roster.php');
-		self::assertStringContainsString('role="grid"', $html);
+		$js = (string) file_get_contents(dirname(__DIR__, 3) . '/js/roster.js');
 		self::assertStringContainsString('id="dc-roster-grid"', $html);
+		self::assertStringContainsString('aria-labelledby="dc-assignments-title"', $html);
+		self::assertStringNotContainsString('role="grid"', $html, 'grid role is assigned in JS once rows exist');
+		self::assertStringContainsString("setAttribute('role', 'grid')", $js);
+		self::assertStringContainsString("setAttribute('role', 'status')", $js);
 		self::assertStringContainsString('id="dc-roster-bulk-apply"', $html);
 	}
 

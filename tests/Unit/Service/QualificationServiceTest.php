@@ -27,7 +27,7 @@ final class QualificationServiceTest extends TestCase
 
 		$reqResult = $this->createMock(IResult::class);
 		$reqResult->method('fetchAll')->willReturn([
-			['id' => 9, 'name' => 'First Aid', 'required' => 1],
+			['id' => 9, 'name' => 'First Aid', 'required' => 1, 'location_id' => 4],
 		]);
 		$heldResult = $this->createMock(IResult::class);
 		$heldResult->method('fetchAll')->willReturn([]);
@@ -40,6 +40,7 @@ final class QualificationServiceTest extends TestCase
 		$qbReq->method('andWhere')->willReturnSelf();
 		$qbReq->method('expr')->willReturn(new class {
 			public function eq(...$a) { return 'eq'; }
+			public function in(...$a) { return 'in'; }
 			public function createNamedParameter(...$a) { return 'p'; }
 		});
 		$qbReq->method('createNamedParameter')->willReturn('p');
@@ -51,6 +52,7 @@ final class QualificationServiceTest extends TestCase
 		$qbHeld->method('where')->willReturnSelf();
 		$qbHeld->method('expr')->willReturn(new class {
 			public function eq(...$a) { return 'eq'; }
+			public function in(...$a) { return 'in'; }
 		});
 		$qbHeld->method('createNamedParameter')->willReturn('p');
 		$qbHeld->method('executeQuery')->willReturn($heldResult);
@@ -71,11 +73,11 @@ final class QualificationServiceTest extends TestCase
 
 		$reqResult = $this->createMock(IResult::class);
 		$reqResult->method('fetchAll')->willReturn([
-			['id' => 9, 'name' => 'First Aid', 'required' => 1],
+			['id' => 9, 'name' => 'First Aid', 'required' => 1, 'location_id' => 4],
 		]);
 		$heldResult = $this->createMock(IResult::class);
 		$heldResult->method('fetchAll')->willReturn([
-			['qualification_id' => 9, 'expires_on' => '2026-01-01'],
+			['qualification_id' => 9, 'expires_on' => '2026-01-01', 'employee_id' => 3],
 		]);
 
 		$qbReq = $this->createMock(IQueryBuilder::class);
@@ -86,6 +88,7 @@ final class QualificationServiceTest extends TestCase
 		$qbReq->method('andWhere')->willReturnSelf();
 		$qbReq->method('expr')->willReturn(new class {
 			public function eq(...$a) { return 'eq'; }
+			public function in(...$a) { return 'in'; }
 		});
 		$qbReq->method('createNamedParameter')->willReturn('p');
 		$qbReq->method('executeQuery')->willReturn($reqResult);
@@ -96,6 +99,7 @@ final class QualificationServiceTest extends TestCase
 		$qbHeld->method('where')->willReturnSelf();
 		$qbHeld->method('expr')->willReturn(new class {
 			public function eq(...$a) { return 'eq'; }
+			public function in(...$a) { return 'in'; }
 		});
 		$qbHeld->method('createNamedParameter')->willReturn('p');
 		$qbHeld->method('executeQuery')->willReturn($heldResult);

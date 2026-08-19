@@ -26,10 +26,18 @@ final class SchemaProbeTest extends TestCase
 		$idx = $ref->getProperty('indexCache');
 		$idx->setAccessible(true);
 		$idx->setValue(null, ['dc_assignments#dc_asg_skey_uidx' => true]);
+		$wrap = $ref->getProperty('schemaWrappers');
+		$wrap->setAccessible(true);
+		$wrap->setValue(null, [1 => null]);
+		$table = $ref->getProperty('tableCache');
+		$table->setAccessible(true);
+		$table->setValue(null, ['dc_assignments' => true]);
 
 		SchemaProbe::resetCache();
 		self::assertSame([], $prop->getValue(null));
 		self::assertSame([], $idx->getValue(null));
+		self::assertSame([], $wrap->getValue(null));
+		self::assertSame([], $table->getValue(null));
 	}
 
 	public function testMissingColumnIsCachedAsFalse(): void
@@ -63,6 +71,26 @@ final class SchemaProbeTest extends TestCase
 		$cache = $prop->getValue(null);
 		self::assertArrayHasKey('dc_assignments#dc_asg_skey_uidx', $cache);
 		self::assertFalse($cache['dc_assignments#dc_asg_skey_uidx']);
+	}
+
+	public function testTableExistsIsCachedAndDoesNotRequery(): void
+	{
+		SchemaProbe::resetCache();
+		$db = $this->createMock(IDBConnection::class);
+		$db->expects(self::once())->method('tableExists')->with('dc_periods')->willReturn(true);
+
+		self::assertTrue(SchemaProbe::tableExists($db, 'dc_periods'));
+		self::assertTrue(SchemaProbe::tableExists($db, 'dc_periods'));
+	}
+
+	public function testMissingTableIsCachedAsFalse(): void
+	{
+		SchemaProbe::resetCache();
+		$db = $this->createMock(IDBConnection::class);
+		$db->expects(self::once())->method('tableExists')->with('dc_missing')->willReturn(false);
+
+		self::assertFalse(SchemaProbe::tableExists($db, 'dc_missing'));
+		self::assertFalse(SchemaProbe::tableExists($db, 'dc_missing'));
 	}
 
 	public function testHasIndexUsesWarmCacheWithoutTouchingDb(): void

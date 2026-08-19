@@ -143,7 +143,7 @@ final class SettingsSectionCatalog
 			'access' => $l->t('Decide who may open DutyCheck. Restriction takes effect immediately for non-administrators.'),
 			'duty-roles' => $l->t('Planners can manage rosters, periods, and the employee catalog. Employee access is granted by linking a Nextcloud account on the Employees page — not here.'),
 			'planning' => $l->t('This break is filled in automatically when someone adds a new assignment. They can still change it for each shift.'),
-			'companies' => $l->t('One Default company keeps legacy installs unrestricted. Creating a second company turns on membership isolation for planners.'),
+			'companies' => $l->t('One Default company keeps legacy installs unrestricted. Creating a second company turns on membership isolation: planners without a company membership see nothing until an administrator adds them.'),
 			'conflicts' => $l->t('Period totals and daily limits used by planning checks. Defaults stay ArbZG-oriented until you change them.'),
 			'shift-templates' => $l->t('Named start/end/break presets for the roster “Add assignment” dialog. Optional location keeps a template site-specific.'),
 			'qualifications' => $l->t('Catalog of skills or certificates. Missing required qualifications block assign/publish. Expired quals are soft warnings.'),

@@ -528,4 +528,23 @@ class ArbeitszeitCheckIntegrationServiceTest extends TestCase
 		$b = $svc->buildBootstrapForUser('u1', true);
 		self::assertFalse($b['readonlyAbsencesForCurrentUser']);
 	}
+
+	public function testPeerDetectionIsMemoizedWithinOneRequest(): void
+	{
+		$store = ['integration_at_intent_enabled' => '1'];
+		$config = $this->configWithStore($store);
+		$app = $this->createMock(IAppManager::class);
+		$app->expects(self::once())->method('isInstalled')->with(ArbeitszeitCheckIntegrationService::PEER_APP_ID)->willReturn(true);
+		$app->expects(self::once())->method('isEnabledForUser')->willReturn(true);
+		$app->expects(self::once())->method('getAppVersion')->with(ArbeitszeitCheckIntegrationService::PEER_APP_ID)->willReturn('1.2.0');
+
+		$svc = $this->service($this->createMock(IDBConnection::class), $config, $app, $this->timeAt(1_000_000));
+		self::assertTrue($svc->isEffective());
+		$bootstrap = $svc->buildBootstrapForUser('u1', false);
+		self::assertTrue($bootstrap['effective']);
+		self::assertTrue($bootstrap['peerInstalled']);
+		self::assertSame('1.2.0', $bootstrap['peerVersionDetected']);
+		self::assertTrue($svc->getPeerInstalled());
+		self::assertTrue($svc->getPeerEnabled());
+	}
 }

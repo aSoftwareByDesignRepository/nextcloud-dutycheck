@@ -43,6 +43,8 @@ test('periods.js ignores aborted rejections in detail fan-out', () => {
 	const src = read('js/periods.js');
 	assert.match(src, /Api\.isAborted/);
 	assert.match(src, /failed\[0\]\.reason/);
+	assert.match(src, /new AbortController/);
+	assert.match(src, /seq !== detailsSeq/);
 });
 
 test('license-settings.js suppresses network feedback on nav abort', () => {

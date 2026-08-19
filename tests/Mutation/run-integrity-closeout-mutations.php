@@ -103,7 +103,7 @@ $swapSvc = (string) file_get_contents($root . '/lib/Service/SwapService.php');
 $assert(str_contains($swapSvc, 'SWAP_ALREADY_PENDING'), 'swap_rejects_duplicate_pending');
 $assert(str_contains($migration, 'conflict_thresholds_json') && str_contains($migration, 'min_headcount'), 'migration_1014_columns');
 $assert(str_contains($print, 'dc-print-integrity') && str_contains($print, 'snapshotHash'), 'print_integrity_footer');
-$assert(str_contains($rosterTpl, 'role="grid"') && str_contains($rosterTpl, 'dc-roster-bulk-apply'), 'roster_grid_markup');
+$assert(str_contains($rosterJs, "setAttribute('role', 'grid')") && str_contains($rosterTpl, 'dc-roster-bulk-apply'), 'roster_grid_markup');
 $assert($companionOk, 'companion_license_required_gate');
 $assert(str_contains($roster, 'understaffed_shift'), 'understaffed_shift_rule');
 $settingsJs = (string) file_get_contents($root . '/js/settings.js');

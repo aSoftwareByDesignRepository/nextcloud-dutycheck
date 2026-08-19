@@ -19,6 +19,8 @@ use Throwable;
 
 class RosterService
 {
+	private ?bool $schemaReadyCache = null;
+
 	public function __construct(
 		private IDBConnection $db,
 		private ?IUserManager $userManager = null,
@@ -69,6 +71,11 @@ class RosterService
 		$locations = $this->countScoped('dc_locations', 'active', 1, $actorUserId);
 		$assignments = $this->countActiveAssignments($actorUserId);
 		$schemaReady = $this->isSchemaReady();
+		$companyAccessDenied = $actorUserId !== null
+			&& $actorUserId !== ''
+			&& $this->companies !== null
+			&& $this->companies->isMultiCompanyActive()
+			&& $this->companies->companyIdsForUser($actorUserId) === [];
 
 		return [
 			'openPeriods' => $openPeriods,
@@ -76,8 +83,59 @@ class RosterService
 			'activeEmployees' => $employees,
 			'activeLocations' => $locations,
 			'assignments' => $assignments,
+			'companyAccessDenied' => $companyAccessDenied,
 			'setup' => self::deriveSetupState($schemaReady, $employees, $locations, $openPeriods),
+			'pulse' => $this->dashboardConflictPulse($actorUserId),
 		];
+	}
+
+	/**
+	 * Dashboard conflict pulse: newest open period (else newest any), SQL counts only.
+	 * LIMIT 1 is a period pick — never applied to assignments (SF-06).
+	 *
+	 * @return array{hasPeriods:bool,periodId:?int,readiness:?array<string,mixed>}
+	 */
+	public function dashboardConflictPulse(?string $actorUserId = null): array
+	{
+		$periodId = $this->newestScopedPeriodId($actorUserId, 'open')
+			?? $this->newestScopedPeriodId($actorUserId, null);
+		if ($periodId === null) {
+			return [
+				'hasPeriods' => false,
+				'periodId' => null,
+				'readiness' => null,
+			];
+		}
+		$pulseSeverity = $this->countUnresolvedConflictsBySeverity($periodId);
+		$softUnack = $this->countUnacknowledgedSoftConflicts($periodId);
+		return [
+			'hasPeriods' => true,
+			'periodId' => $periodId,
+			'readiness' => $this->publishReadinessPayload(
+				$periodId,
+				$pulseSeverity['hard'],
+				$pulseSeverity['soft'],
+				$softUnack,
+			),
+		];
+	}
+
+	private function newestScopedPeriodId(?string $actorUserId, ?string $status): ?int
+	{
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('id')->from('dc_periods');
+		if ($status !== null) {
+			$qb->where($qb->expr()->eq('status', $qb->createNamedParameter($status)));
+		}
+		if ($actorUserId !== null && $this->companies !== null) {
+			$this->companies->restrictQuery($qb, 'company_id', $actorUserId);
+		}
+		$qb->orderBy('start_date', 'DESC')->setMaxResults(1);
+		$id = $qb->executeQuery()->fetchOne();
+		if ($id === false || $id === null || $id === '') {
+			return null;
+		}
+		return (int) $id;
 	}
 
 	/**
@@ -100,12 +158,15 @@ class RosterService
 
 	public function isSchemaReady(): bool
 	{
+		if ($this->schemaReadyCache !== null) {
+			return $this->schemaReadyCache;
+		}
 		foreach (UninstallDropTables::TABLES as $table) {
-			if (!$this->db->tableExists($table)) {
-				return false;
+			if (!SchemaProbe::tableExists($this->db, $table)) {
+				return $this->schemaReadyCache = false;
 			}
 		}
-		return true;
+		return $this->schemaReadyCache = true;
 	}
 
 	/**
@@ -341,12 +402,18 @@ class RosterService
 	public function publishReadiness(int $periodId): array
 	{
 		$this->periodById($periodId);
-		// GET is read-only: concurrent planners must not interleave materialize
-		// writes, and the Periods page must not wait on a full roster scan.
+		// GET is read-only and must stay O(1) index lookups: hydrating every
+		// conflict payload (or recomputing the roster) is what froze Periods.
 		// Assignment mutations already persist conflict rows; publish still
 		// recomputes before flipping status.
-		$conflicts = $this->listPersistedConflicts($periodId);
-		return $this->computePublishReadinessFromConflicts($periodId, $conflicts);
+		$bySeverity = $this->countUnresolvedConflictsBySeverity($periodId);
+		$softUnack = $this->countUnacknowledgedSoftConflicts($periodId);
+		return $this->publishReadinessPayload(
+			$periodId,
+			$bySeverity['hard'],
+			$bySeverity['soft'],
+			$softUnack,
+		);
 	}
 
 	/**
@@ -370,6 +437,22 @@ class RosterService
 				}
 			}
 		}
+		return $this->publishReadinessPayload($periodId, $hard, $soft, $softUnack);
+	}
+
+	/**
+	 * @return array{
+	 *   periodId:int,
+	 *   hardConflicts:int,
+	 *   softConflicts:int,
+	 *   unacknowledgedSoftConflicts:int,
+	 *   integrationPublishStale:bool,
+	 *   integrationStale:bool,
+	 *   canPublish:bool
+	 * }
+	 */
+	private function publishReadinessPayload(int $periodId, int $hard, int $soft, int $softUnack): array
+	{
 		$staleBlocked = false;
 		$integrationStale = false;
 		// Unit helpers may construct RosterService without __construct (uninitialized promoted props).
@@ -395,6 +478,72 @@ class RosterService
 			'integrationStale' => $integrationStale,
 			'canPublish' => $hard === 0 && !$staleBlocked,
 		];
+	}
+
+	/**
+	 * Unresolved conflict counts by severity. Never hydrates payload_json.
+	 *
+	 * @return array{hard:int,soft:int}
+	 */
+	private function countUnresolvedConflictsBySeverity(int $periodId): array
+	{
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('severity', $qb->func()->count('*', 'cnt'))
+			->from('dc_conflicts')
+			->where($qb->expr()->eq('period_id', $qb->createNamedParameter($periodId, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->eq('is_resolved', $qb->createNamedParameter(0, IQueryBuilder::PARAM_INT)))
+			->groupBy('severity');
+		$hard = 0;
+		$soft = 0;
+		foreach ($qb->executeQuery()->fetchAll() as $row) {
+			$severity = (string) ($row['severity'] ?? '');
+			$n = self::sqlCountValue($row);
+			if ($severity === 'hard') {
+				$hard += $n;
+			} elseif ($severity === 'soft') {
+				$soft += $n;
+			}
+		}
+		return ['hard' => $hard, 'soft' => $soft];
+	}
+
+	/**
+	 * Soft conflicts whose ack hash is missing or no longer matches context_hash.
+	 */
+	private function countUnacknowledgedSoftConflicts(int $periodId): int
+	{
+		$qb = $this->db->getQueryBuilder();
+		$qb->select($qb->func()->count('*', 'cnt'))
+			->from('dc_conflicts')
+			->where($qb->expr()->eq('period_id', $qb->createNamedParameter($periodId, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->eq('is_resolved', $qb->createNamedParameter(0, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->eq('severity', $qb->createNamedParameter('soft')))
+			->andWhere($qb->expr()->orX(
+				$qb->expr()->isNull('ack_context_hash'),
+				$qb->expr()->eq('ack_context_hash', $qb->createNamedParameter('')),
+				$qb->expr()->neq('ack_context_hash', 'context_hash'),
+			));
+		return (int) $qb->executeQuery()->fetchOne();
+	}
+
+	/**
+	 * @param array<string,mixed> $row
+	 */
+	private static function sqlCountValue(array $row): int
+	{
+		if (isset($row['cnt']) && is_numeric($row['cnt'])) {
+			return (int) $row['cnt'];
+		}
+		if (isset($row['COUNT(*)']) && is_numeric($row['COUNT(*)'])) {
+			return (int) $row['COUNT(*)'];
+		}
+		foreach ($row as $key => $value) {
+			if ($key === 'severity' || !is_numeric($value)) {
+				continue;
+			}
+			return (int) $value;
+		}
+		return 0;
 	}
 
 	public function periodAudit(int $periodId): array
@@ -503,7 +652,6 @@ class RosterService
 			if ($actorUserId !== null && $this->companies !== null) {
 				$this->companies->assertRowCompany($actorUserId, 'dc_periods', $selected);
 			}
-			$this->periodById($selected);
 			$knownPeriodIds = array_map(static fn (array $period): int => (int) $period['id'], $periods);
 			if (!in_array($selected, $knownPeriodIds, true)) {
 				throw new \InvalidArgumentException('PERIOD_NOT_FOUND');
@@ -511,14 +659,28 @@ class RosterService
 		}
 		$selected = $this->resolveRosterPeriodSelection($selected, $periods);
 
+		$selectedPeriod = null;
+		if ($selected !== null) {
+			foreach ($periods as $period) {
+				if ((int) $period['id'] === $selected) {
+					$selectedPeriod = $period;
+					break;
+				}
+			}
+			if ($selectedPeriod === null) {
+				throw new \InvalidArgumentException('PERIOD_NOT_FOUND');
+			}
+		}
+
 		$employees = $this->listEmployees($actorUserId);
 		$locations = $this->listLocations($actorUserId);
 		$assignments = $selected !== null ? $this->listAssignments($selected) : [];
 		// GET must not recompute/materialize conflicts — that is the slow path
 		// the evaluation hit. Writes (assign/publish/close) still refresh.
 		$conflicts = $selected !== null ? $this->listPersistedConflicts($selected) : [];
-		$absenceBlocks = $selected !== null ? $this->listBlockingAbsenceSpansForPeriod($selected) : [];
-		$selectedPeriod = $selected !== null ? $this->periodById($selected) : null;
+		$absenceBlocks = $selectedPeriod !== null
+			? $this->listBlockingAbsenceSpansForPeriod($selected, $selectedPeriod)
+			: [];
 
 		return [
 			'periods' => $periods,
@@ -563,11 +725,12 @@ class RosterService
 	 * Approved absences and blocking ArbeitszeitCheck mirror rows overlapping a period.
 	 * The roster UI uses this to hide employees who cannot be assigned on a given day.
 	 *
+	 * @param array<string,mixed>|null $periodRow startDate/endDate from listPeriods when already loaded
 	 * @return list<array{employeeId: int, startDate: string, endDate: string, source: string}>
 	 */
-	public function listBlockingAbsenceSpansForPeriod(int $periodId): array
+	public function listBlockingAbsenceSpansForPeriod(int $periodId, ?array $periodRow = null): array
 	{
-		$period = $this->periodById($periodId);
+		$period = $periodRow ?? $this->periodById($periodId);
 		$periodStart = (string) $period['startDate'];
 		$periodEnd = (string) $period['endDate'];
 		$spans = [];
@@ -650,7 +813,7 @@ class RosterService
 	 * @param array<string,mixed> $payload
 	 * @return array<string,mixed>
 	 */
-	public function createAssignment(array $payload, string $actor, bool $allowPublishedMarketplace = false): array
+	public function createAssignment(array $payload, string $actor, bool $allowPublishedMarketplace = false, bool $hydrateRoster = true, bool $refreshConflicts = true, bool $useTransaction = true): array
 	{
 		$periodId = (int) ($payload['periodId'] ?? 0);
 		$employeeId = (int) ($payload['employeeId'] ?? 0);
@@ -722,7 +885,9 @@ class RosterService
 			throw new \InvalidArgumentException('SCHEMA_NOT_READY');
 		}
 
-		$this->db->beginTransaction();
+		if ($useTransaction) {
+			$this->db->beginTransaction();
+		}
 		$createdAssignmentId = 0;
 		try {
 			$qb = $this->db->getQueryBuilder();
@@ -757,21 +922,29 @@ class RosterService
 				throw $e;
 			}
 
-			$this->refreshAndListConflicts($periodId);
-			$this->db->commit();
+			if ($refreshConflicts) {
+				$this->refreshAndListConflicts($periodId);
+			}
+			if ($useTransaction) {
+				$this->db->commit();
+			}
 		} catch (Throwable $e) {
-			if ($this->db->inTransaction()) {
+			if ($useTransaction && $this->db->inTransaction()) {
 				$this->db->rollBack();
 			}
 			throw $e;
 		}
 
-		if ($this->thresholdNotifier !== null) {
+		if ($hydrateRoster && $this->thresholdNotifier !== null) {
 			try {
 				$this->thresholdNotifier->notifyIfApproachingSoftCap($periodId, $employeeId);
 			} catch (Throwable) {
 				// Non-fatal.
 			}
+		}
+
+		if (!$hydrateRoster) {
+			return ['createdAssignmentId' => $createdAssignmentId];
 		}
 
 		$data = $this->rosterData($periodId, $actor);
@@ -990,6 +1163,7 @@ class RosterService
 		if (!in_array($period['status'], ['open', 'published'], true)) {
 			throw new \InvalidArgumentException('PERIOD_NOT_OPEN');
 		}
+		$casVersion = (int) ($row['version'] ?? 0);
 
 		$this->db->beginTransaction();
 		try {
@@ -1000,14 +1174,20 @@ class RosterService
 				->set('cancelled_by', $qb->createNamedParameter($actor))
 				->set('acknowledged_at', $qb->createNamedParameter(null))
 				->set('acknowledged_by', $qb->createNamedParameter(null))
-				->set('version', $qb->createNamedParameter(((int) ($row['version'] ?? 0)) + 1, IQueryBuilder::PARAM_INT))
+				->set('version', $qb->createNamedParameter($casVersion + 1, IQueryBuilder::PARAM_INT))
 				// Free the logical slot so the same employee/date/times can be recreated.
 				->set('slot_key', $qb->createNamedParameter(AssignmentSlotKey::forCancelled($assignmentId)))
 				->where($qb->expr()->eq('id', $qb->createNamedParameter($assignmentId, IQueryBuilder::PARAM_INT)))
-				->andWhere($qb->expr()->neq('status', $qb->createNamedParameter('cancelled')));
+				->andWhere($qb->expr()->neq('status', $qb->createNamedParameter('cancelled')))
+				->andWhere($qb->expr()->eq('version', $qb->createNamedParameter($casVersion, IQueryBuilder::PARAM_INT)));
 			$affected = $qb->executeStatement();
 			if ($affected !== 1) {
-				throw new \InvalidArgumentException('ASSIGNMENT_CANCELLED');
+				$fresh = $this->assignmentRowById($assignmentId);
+				if ($fresh !== null && (string) ($fresh['status'] ?? 'active') === 'cancelled') {
+					$this->db->rollBack();
+					return $this->rosterData($periodId, $actor);
+				}
+				throw new \InvalidArgumentException('STALE_VERSION');
 			}
 
 			$this->writeAuditEvent($periodId, $actor, 'assignment_cancelled', 'assignment', $assignmentId, []);
@@ -1095,14 +1275,11 @@ class RosterService
 	public function periodAcknowledgeStats(int $periodId): array
 	{
 		$this->periodById($periodId);
-		$assignments = $this->listAssignments($periodId);
-		$total = count($assignments);
-		$acked = 0;
-		foreach ($assignments as $a) {
-			if (($a['acknowledgedAt'] ?? null) !== null) {
-				$acked++;
-			}
-		}
+		// COUNT only — never hydrate the assignment list (Periods page GET).
+		$total = $this->countPeriodAssignments($periodId, false);
+		$acked = $this->assignmentHasStatusColumn()
+			? $this->countPeriodAssignments($periodId, true)
+			: 0;
 		return [
 			'total' => $total,
 			'acknowledged' => $acked,
@@ -1143,43 +1320,55 @@ class RosterService
 		$skipped = 0;
 		$previewConflicts = [];
 
-		foreach ($sourceAssignments as $assignment) {
-			$dutyDate = (new DateTimeImmutable((string) $assignment['dutyDate']))->modify(($dayShift >= 0 ? '+' : '') . $dayShift . ' days')->format('Y-m-d');
-			if ($dutyDate < $target['startDate'] || $dutyDate > $target['endDate']) {
-				$skipped++;
-				continue;
-			}
-			$wouldCreate++;
-			if ($dryRun) {
-				continue;
-			}
-			try {
-				$this->createAssignment([
-					'periodId' => $targetPeriodId,
-					'employeeId' => $assignment['employeeId'],
-					'locationId' => $assignment['locationId'],
-					'dutyDate' => $dutyDate,
-					'startTime' => $assignment['startTime'],
-					'endTime' => $assignment['endTime'],
-					'breakMinutes' => $assignment['breakMinutes'],
-					'note' => $assignment['note'] ?? '',
-					'acknowledgements' => [],
-				], $actor);
-				$created++;
-			} catch (ConflictAckRequiredException $e) {
-				$skipped++;
-				$previewConflicts = array_merge($previewConflicts, $e->getConflicts());
-			} catch (\InvalidArgumentException) {
-				$skipped++;
-			}
-		}
-
 		if (!$dryRun) {
-			$this->writeAuditEvent($targetPeriodId, $actor, 'PERIOD_COPY_APPLIED', 'period', $targetPeriodId, [
-				'sourcePeriodId' => $sourcePeriodId,
-				'created' => $created,
-				'skipped' => $skipped,
-			]);
+			$this->db->beginTransaction();
+		}
+		try {
+			foreach ($sourceAssignments as $assignment) {
+				$dutyDate = (new DateTimeImmutable((string) $assignment['dutyDate']))->modify(($dayShift >= 0 ? '+' : '') . $dayShift . ' days')->format('Y-m-d');
+				if ($dutyDate < $target['startDate'] || $dutyDate > $target['endDate']) {
+					$skipped++;
+					continue;
+				}
+				$wouldCreate++;
+				if ($dryRun) {
+					continue;
+				}
+				try {
+					$this->createAssignment([
+						'periodId' => $targetPeriodId,
+						'employeeId' => $assignment['employeeId'],
+						'locationId' => $assignment['locationId'],
+						'dutyDate' => $dutyDate,
+						'startTime' => $assignment['startTime'],
+						'endTime' => $assignment['endTime'],
+						'breakMinutes' => $assignment['breakMinutes'],
+						'note' => $assignment['note'] ?? '',
+						'acknowledgements' => [],
+					], $actor, false, false, false, false);
+					$created++;
+				} catch (ConflictAckRequiredException $e) {
+					$skipped++;
+					$previewConflicts = array_merge($previewConflicts, $e->getConflicts());
+				} catch (\InvalidArgumentException) {
+					$skipped++;
+				}
+			}
+
+			if (!$dryRun) {
+				$this->refreshAndListConflicts($targetPeriodId);
+				$this->writeAuditEvent($targetPeriodId, $actor, 'PERIOD_COPY_APPLIED', 'period', $targetPeriodId, [
+					'sourcePeriodId' => $sourcePeriodId,
+					'created' => $created,
+					'skipped' => $skipped,
+				]);
+				$this->db->commit();
+			}
+		} catch (Throwable $e) {
+			if (!$dryRun && $this->db->inTransaction()) {
+				$this->db->rollBack();
+			}
+			throw $e;
 		}
 
 		return [
@@ -1302,7 +1491,7 @@ class RosterService
 			throw new \InvalidArgumentException('REASON_TOO_SHORT');
 		}
 		$qb = $this->db->getQueryBuilder();
-		$qb->select('id', 'period_id', 'context_hash', 'is_resolved')
+		$qb->select('id', 'period_id', 'context_hash', 'is_resolved', 'ack_user_id')
 			->from('dc_conflicts')
 			->where($qb->expr()->eq('id', $qb->createNamedParameter($conflictId, IQueryBuilder::PARAM_INT)));
 		$row = $qb->executeQuery()->fetch();
@@ -1313,14 +1502,38 @@ class RosterService
 		if ((int) $row['is_resolved'] === 1) {
 			throw new \InvalidArgumentException('CONFLICT_RESOLVED');
 		}
+		$contextHash = (string) $row['context_hash'];
 		$update = $this->db->getQueryBuilder();
 		$update->update('dc_conflicts')
 			->set('ack_user_id', $update->createNamedParameter($actorUserId))
 			->set('ack_reason', $update->createNamedParameter($trimmed))
 			->set('ack_at', $update->createNamedParameter($this->now()))
-			->set('ack_context_hash', $update->createNamedParameter((string) $row['context_hash']))
+			->set('ack_context_hash', $update->createNamedParameter($contextHash))
 			->where($update->expr()->eq('id', $update->createNamedParameter($conflictId, IQueryBuilder::PARAM_INT)))
-			->executeStatement();
+			->andWhere($update->expr()->eq('is_resolved', $update->createNamedParameter(0, IQueryBuilder::PARAM_INT)))
+			->andWhere($update->expr()->eq('context_hash', $update->createNamedParameter($contextHash)))
+			->andWhere($update->expr()->orX(
+				$update->expr()->isNull('ack_user_id'),
+				$update->expr()->eq('ack_user_id', $update->createNamedParameter($actorUserId)),
+			));
+		$affected = $update->executeStatement();
+		if ($affected < 1) {
+			$againQb = $this->db->getQueryBuilder();
+			$againQb->select('is_resolved', 'ack_user_id', 'context_hash')
+				->from('dc_conflicts')
+				->where($againQb->expr()->eq('id', $againQb->createNamedParameter($conflictId, IQueryBuilder::PARAM_INT)));
+			$again = $againQb->executeQuery()->fetch();
+			if ($again === false) {
+				throw new \InvalidArgumentException('CONFLICT_NOT_FOUND');
+			}
+			if ((int) $again['is_resolved'] === 1) {
+				throw new \InvalidArgumentException('CONFLICT_RESOLVED');
+			}
+			if ((string) ($again['ack_user_id'] ?? '') === $actorUserId) {
+				return $this->refreshAndListConflicts((int) $row['period_id']);
+			}
+			throw new \InvalidArgumentException('CONFLICT_ACK_STALE');
+		}
 
 		return $this->refreshAndListConflicts((int) $row['period_id']);
 	}
@@ -2023,11 +2236,11 @@ class RosterService
 			'startDate' => (string) $r['start_date'],
 			'endDate' => (string) $r['end_date'],
 			'status' => (string) $r['status'],
-			'createdBy' => (string) $r['created_by'],
-			'createdAt' => (string) $r['created_at'],
-			'publishedAt' => $r['published_at'] !== null ? (string) $r['published_at'] : null,
-			'closedAt' => $r['closed_at'] !== null ? (string) $r['closed_at'] : null,
-			'closeSnapshotId' => $r['close_snapshot_id'] !== null ? (int) $r['close_snapshot_id'] : null,
+			'createdBy' => (string) ($r['created_by'] ?? ''),
+			'createdAt' => (string) ($r['created_at'] ?? ''),
+			'publishedAt' => ($r['published_at'] ?? null) !== null ? (string) $r['published_at'] : null,
+			'closedAt' => ($r['closed_at'] ?? null) !== null ? (string) $r['closed_at'] : null,
+			'closeSnapshotId' => ($r['close_snapshot_id'] ?? null) !== null ? (int) $r['close_snapshot_id'] : null,
 		];
 		if (array_key_exists('conflict_thresholds_json', $r)) {
 			$out['conflictThresholds'] = $this->decodeFrozenThresholds($r['conflict_thresholds_json'] ?? null);
@@ -2207,6 +2420,10 @@ class RosterService
 		return array_map(static fn (array $r): array => ['id' => (int) $r['id'], 'name' => (string) $r['name'], 'timezone' => (string) $r['timezone']], $rows);
 	}
 
+	/**
+	 * Full assignment list for one period. Never paginated: a silent LIMIT
+	 * would hide shifts from planners (safety). Grid virtualization is UI-only.
+	 */
 	private function listAssignments(int $periodId): array
 	{
 		$qb = $this->db->getQueryBuilder();
@@ -2625,7 +2842,7 @@ class RosterService
 		if (!SchemaProbe::hasColumn($this->db, 'dc_shift_templates', 'min_headcount')) {
 			return;
 		}
-		if (!$this->db->tableExists('dc_shift_templates')) {
+		if (!SchemaProbe::tableExists($this->db, 'dc_shift_templates')) {
 			return;
 		}
 		$qb = $this->db->getQueryBuilder();
@@ -2773,15 +2990,30 @@ class RosterService
 			} catch (\Throwable) {
 				$payload = [];
 			}
+			$ack = self::conflictAckState((string) ($row['ack_context_hash'] ?? ''), (string) $row['context_hash']);
+			$ids = $payload['assignmentIds'] ?? [];
+			if (!is_array($ids)) {
+				$ids = [];
+			}
+			$assignmentIds = [];
+			foreach ($ids as $id) {
+				$n = (int) $id;
+				if ($n > 0) {
+					$assignmentIds[] = $n;
+				}
+				if (count($assignmentIds) >= 2) {
+					break;
+				}
+			}
 			return [
 				'id' => (int) $row['id'],
 				'type' => (string) $row['type'],
 				'severity' => (string) $row['severity'],
 				'message' => (string) ($payload['message'] ?? 'Conflict'),
-				'assignmentIds' => $payload['assignmentIds'] ?? [],
-				'details' => $payload['details'] ?? [],
-				'acknowledged' => self::conflictAckState((string) ($row['ack_context_hash'] ?? ''), (string) $row['context_hash'])['acknowledged'],
-				'ackInvalidated' => self::conflictAckState((string) ($row['ack_context_hash'] ?? ''), (string) $row['context_hash'])['ackInvalidated'],
+				'assignmentIds' => $assignmentIds,
+				'details' => [],
+				'acknowledged' => $ack['acknowledged'],
+				'ackInvalidated' => $ack['ackInvalidated'],
 				'ackReason' => $row['ack_reason'] !== null ? (string) $row['ack_reason'] : '',
 			];
 		}, $rows);
@@ -2902,13 +3134,19 @@ class RosterService
 	/**
 	 * Public peek for authorization (location scope / IDOR checks).
 	 *
+	 * When $actorUserId is provided, multi-company access is enforced before returning metadata.
+	 *
 	 * @return array{id:int,periodId:int,employeeId:int,locationId:int,dutyDate:string,status:string,version:int}
 	 */
-	public function peekAssignment(int $assignmentId): array
+	public function peekAssignment(int $assignmentId, ?string $actorUserId = null): array
 	{
 		$row = $this->assignmentRowById($assignmentId);
 		if ($row === null) {
 			throw new \InvalidArgumentException('ASSIGNMENT_NOT_FOUND');
+		}
+		$periodId = (int) $row['period_id'];
+		if ($actorUserId !== null) {
+			$this->assertPeriodCompanyAccess($actorUserId, $periodId);
 		}
 		return [
 			'id' => (int) $row['id'],
@@ -3109,6 +3347,29 @@ class RosterService
 		) {
 			$qb->innerJoin('a', 'dc_periods', 'p', 'a.period_id = p.id');
 			$this->companies->restrictQuery($qb, 'p.company_id', $actorUserId);
+		}
+		return (int) $qb->executeQuery()->fetchOne();
+	}
+
+	/**
+	 * Active (non-cancelled) assignments in a period. Optionally only acknowledged rows.
+	 */
+	private function countPeriodAssignments(int $periodId, bool $acknowledgedOnly): int
+	{
+		$qb = $this->db->getQueryBuilder();
+		$qb->select($qb->func()->count('*', 'cnt'))
+			->from('dc_assignments')
+			->where($qb->expr()->eq('period_id', $qb->createNamedParameter($periodId, IQueryBuilder::PARAM_INT)));
+		if ($this->assignmentHasStatusColumn()) {
+			$qb->andWhere($qb->expr()->orX(
+				$qb->expr()->neq('status', $qb->createNamedParameter('cancelled')),
+				$qb->expr()->isNull('status'),
+			));
+			if ($acknowledgedOnly) {
+				$qb->andWhere($qb->expr()->isNotNull('acknowledged_at'));
+			}
+		} elseif ($acknowledgedOnly) {
+			return 0;
 		}
 		return (int) $qb->executeQuery()->fetchOne();
 	}

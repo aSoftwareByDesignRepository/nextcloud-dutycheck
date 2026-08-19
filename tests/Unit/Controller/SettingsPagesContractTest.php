@@ -173,9 +173,9 @@ final class SettingsPagesContractTest extends TestCase
 		self::assertNotFalse($bootPos, 'settings.js must boot on DOMContentLoaded');
 		$boot = substr($js, $bootPos);
 		$resolvePos = strpos($boot, 'DutyCheckSettingsLegacyRedirect');
-		$wirePos = strpos($boot, 'wireAtIntegration()');
+		$wirePos = strpos($boot, 'wireActiveSettingsSection()');
 		self::assertNotFalse($resolvePos, 'settings.js must consult the legacy redirect module at boot');
-		self::assertNotFalse($wirePos, 'settings.js must wire the integration section at boot');
+		self::assertNotFalse($wirePos, 'settings.js must wire only the active section at boot');
 		self::assertGreaterThan($resolvePos, $wirePos, 'Redirect must run before section wiring fires requests');
 		self::assertStringContainsString('window.location.replace(redirectUrl)', $boot);
 		self::assertMatchesRegularExpression(

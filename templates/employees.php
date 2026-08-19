@@ -100,7 +100,8 @@ include __DIR__ . '/common/page-start.php';
 			</p>
 		</div>
 	</header>
-	<div class="dc-table-wrap">
+	<p id="dc-employees-table-status" class="dc-roster-virtual-status" aria-hidden="true"></p>
+	<div class="dc-table-wrap dc-windowed-table" id="dc-employees-table-wrap" tabindex="0" role="region" aria-labelledby="dc-employees-title">
 		<table class="dc-table">
 			<caption class="dc-sr-only"><?php p($l->t('Employees list')); ?></caption>
 			<thead>

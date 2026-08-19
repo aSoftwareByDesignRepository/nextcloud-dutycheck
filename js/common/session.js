@@ -2,16 +2,13 @@
 	'use strict';
 
 	/**
-	 * Refresh the CSRF token when a DutyCheck page loads so the first save after
-	 * a long-lived tab does not fail before api.js can retry.
+	 * Session helpers. CSRF is refreshed lazily in api.js on 412 — prefetching
+	 * GET /csrftoken on every DutyCheck navigation added a round trip to every
+	 * page (and every modal-bearing load) without making the first write safer.
+	 *
+	 * This file still ships after common/api so script-order contracts hold.
 	 */
-	document.addEventListener('DOMContentLoaded', () => {
-		const refresh = window.DutyCheckApi && window.DutyCheckApi.refreshCsrfToken;
-		if (typeof refresh !== 'function') {
-			return;
-		}
-		refresh().catch(() => {
-			// Silent: api.js will surface a clear error on the first mutation.
-		});
+	window.DutyCheckSession = Object.freeze({
+		csrfPrefetch: false,
 	});
 })();

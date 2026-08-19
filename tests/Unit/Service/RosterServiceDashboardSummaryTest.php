@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\DutyCheck\Tests\Unit\Service;
 
 use OCA\DutyCheck\Db\SchemaProbe;
+use OCA\DutyCheck\Repair\UninstallDropTables;
 use OCA\DutyCheck\Service\RosterService;
 use OCP\IDBConnection;
 use PHPUnit\Framework\TestCase;
@@ -46,6 +47,8 @@ final class RosterServiceDashboardSummaryTest extends TestCase
 		$qbAssignments = $this->rosterQb(['fetchOne' => 7]);
 		// SchemaProbe falls back to a SELECT probe on mocked connections.
 		$qbStatusProbe = $this->rosterQb([]);
+		$qbPulseOpen = $this->rosterQb(['fetchOne' => false]);
+		$qbPulseAny = $this->rosterQb(['fetchOne' => false]);
 
 		$db = $this->createMock(IDBConnection::class);
 		$db->method('getQueryBuilder')->willReturnOnConsecutiveCalls(
@@ -55,6 +58,8 @@ final class RosterServiceDashboardSummaryTest extends TestCase
 			$qbLocations,
 			$qbAssignments,
 			$qbStatusProbe,
+			$qbPulseOpen,
+			$qbPulseAny,
 		);
 		$db->method('tableExists')->willReturn(true);
 
@@ -65,6 +70,7 @@ final class RosterServiceDashboardSummaryTest extends TestCase
 		self::assertSame(5, $summary['activeEmployees']);
 		self::assertSame(4, $summary['activeLocations']);
 		self::assertSame(7, $summary['assignments']);
+		self::assertFalse($summary['companyAccessDenied']);
 		self::assertSame(
 			[
 				'schemaReady' => true,
@@ -74,6 +80,14 @@ final class RosterServiceDashboardSummaryTest extends TestCase
 				'readyForPlanning' => true,
 			],
 			$summary['setup'],
+		);
+		self::assertSame(
+			[
+				'hasPeriods' => false,
+				'periodId' => null,
+				'readiness' => null,
+			],
+			$summary['pulse'],
 		);
 
 		$this->assertParamCaptured(['open'], $openParams, 'open periods count must filter status=open');
@@ -96,6 +110,54 @@ final class RosterServiceDashboardSummaryTest extends TestCase
 			$summary['setup']['readyForPlanning'],
 			'A missing schema must veto readiness even with positive counts',
 		);
+	}
+
+	public function testConflictPulseCountsNewestOpenPeriodWithoutHydratingRoster(): void
+	{
+		$qbOpen = $this->rosterQb(['fetchOne' => 11, 'maxResultsOnce' => 1]);
+		$qbBySeverity = $this->rosterQb(['fetchAll' => [
+			['severity' => 'hard', 'cnt' => 2],
+			['severity' => 'soft', 'cnt' => 3],
+		]]);
+		$qbUnack = $this->rosterQb(['fetchOne' => 1]);
+
+		$db = $this->createMock(IDBConnection::class);
+		$db->method('getQueryBuilder')->willReturnOnConsecutiveCalls(
+			$qbOpen,
+			$qbBySeverity,
+			$qbUnack,
+		);
+
+		$pulse = (new RosterService($db))->dashboardConflictPulse();
+
+		self::assertTrue($pulse['hasPeriods']);
+		self::assertSame(11, $pulse['periodId']);
+		self::assertIsArray($pulse['readiness']);
+		self::assertSame(2, $pulse['readiness']['hardConflicts']);
+		self::assertSame(3, $pulse['readiness']['softConflicts']);
+		self::assertSame(1, $pulse['readiness']['unacknowledgedSoftConflicts']);
+		self::assertFalse($pulse['readiness']['canPublish']);
+	}
+
+	public function testSchemaReadyTableProbesRunOncePerServiceInstance(): void
+	{
+		$tables = count(UninstallDropTables::TABLES);
+		$calls = 0;
+		$db = $this->createMock(IDBConnection::class);
+		$db->method('tableExists')->willReturnCallback(static function () use (&$calls, $tables): bool {
+			$calls++;
+			return $calls <= $tables;
+		});
+
+		$svc = new RosterService($db);
+		self::assertTrue($svc->isSchemaReady());
+		self::assertSame($tables, $calls);
+		SchemaProbe::resetCache();
+		self::assertTrue(
+			$svc->isSchemaReady(),
+			'Request-scoped schemaReadyCache must survive a later SchemaProbe reset in the same instance',
+		);
+		self::assertSame($tables, $calls);
 	}
 
 	/**

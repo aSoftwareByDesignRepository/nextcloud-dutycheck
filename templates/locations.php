@@ -120,7 +120,8 @@ $defaultTimezone = (string) ($_['defaultTimezone'] ?? ($clientHints['timezone'] 
 			</p>
 		</div>
 	</header>
-	<div class="dc-table-wrap">
+	<p id="dc-locations-table-status" class="dc-roster-virtual-status" aria-hidden="true"></p>
+	<div class="dc-table-wrap dc-windowed-table" id="dc-locations-table-wrap" tabindex="0" role="region" aria-labelledby="dc-locations-title">
 		<table class="dc-table">
 			<caption class="dc-sr-only"><?php p($l->t('Locations list')); ?></caption>
 			<thead>

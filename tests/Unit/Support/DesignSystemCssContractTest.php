@@ -58,6 +58,15 @@ final class DesignSystemCssContractTest extends TestCase
 		);
 	}
 
+	public function testBusyPillsUseFullContrastInk(): void
+	{
+		self::assertMatchesRegularExpression(
+			'/\.dc-pill\[aria-busy=\'true\'\]\s*\{[^}]*color:\s*var\(--color-main-text/s',
+			$this->appCss,
+			'Loading pills must use full-contrast ink (WCAG 1.4.3)',
+		);
+	}
+
 	public function testMutedCopyInsideCalloutsUsesFullContrastInk(): void
 	{
 		// Tinted callout backgrounds push --dc-muted below 4.5:1 (axe caught
@@ -361,5 +370,50 @@ final class DesignSystemCssContractTest extends TestCase
 			$this->appCss,
 			'Forced-colours mode must keep .dc-checkbox borders visible',
 		);
+	}
+
+	public function testScrollableTableWrapsAreKeyboardFocusable(): void
+	{
+		self::assertMatchesRegularExpression(
+			'/\.dc-table-wrap:focus-visible,\s*\.dc-roster-grid-scroller:focus-visible,\s*\.dc-roster-list-scroller:focus-visible,\s*\.dc-windowed-table:focus-visible,\s*\.dc-print-table-wrap:focus-visible\s*\{[^}]*outline:\s*3px solid/s',
+			$this->appCss,
+			'Overflow table/roster/print scrollers must show a 3px focus ring (WCAG 2.4.7)',
+		);
+		$templates = dirname(__DIR__, 3) . '/templates';
+		$iter = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($templates));
+		$found = 0;
+		foreach ($iter as $file) {
+			if (!$file->isFile() || $file->getExtension() !== 'php') {
+				continue;
+			}
+			$src = (string) file_get_contents($file->getPathname());
+			if (!preg_match_all('/<(?:div|section)([^>]*class="[^"]*dc-table-wrap[^"]*"[^>]*)>/', $src, $matches)) {
+				continue;
+			}
+			foreach ($matches[1] as $attrs) {
+				$found++;
+				self::assertStringContainsString(
+					'tabindex="0"',
+					$attrs,
+					$file->getFilename() . ' .dc-table-wrap must be a keyboard tab stop',
+				);
+			}
+		}
+		self::assertGreaterThan(5, $found, 'Expected multiple table wraps in templates');
+		self::assertMatchesRegularExpression(
+			'/class="dc-print-table-wrap"[^>]*tabindex="0"/',
+			(string) file_get_contents($templates . '/roster-print.php'),
+			'Printable roster table wrap must be keyboard-reachable on screen',
+		);
+	}
+
+	public function testCompanyAccessBannerUsesWarningTintAndSpacing(): void
+	{
+		self::assertMatchesRegularExpression(
+			'/\.dc-company-access-banner\s*\{[^}]*margin-bottom:\s*var\(--dc-space-5/s',
+			$this->appCss,
+			'Company-access banner must sit in the spacing scale (not an invented gap)',
+		);
+		self::assertStringContainsString('.dc-callout--warning { background: var(--dc-tint-warning); }', $this->appCss);
 	}
 }

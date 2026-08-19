@@ -11,6 +11,7 @@ tests/results.xml
 test-results/
 playwright-report/
 tests/e2e/.env
+tests/e2e/.auth/
 
 # IDE
 .vscode/

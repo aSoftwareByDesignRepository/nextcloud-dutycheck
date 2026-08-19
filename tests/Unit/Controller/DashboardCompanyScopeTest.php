@@ -34,6 +34,11 @@ final class DashboardCompanyScopeTest extends TestCase
 			'activeLocations' => 1,
 			'assignments' => 3,
 			'setup' => ['schemaReady' => true, 'readyForPlanning' => true],
+			'pulse' => [
+				'hasPeriods' => true,
+				'periodId' => 9,
+				'readiness' => ['hardConflicts' => 0, 'softConflicts' => 1, 'unacknowledgedSoftConflicts' => 1],
+			],
 		]);
 
 		$controller = new RosterApiController(
@@ -53,6 +58,8 @@ final class DashboardCompanyScopeTest extends TestCase
 		$response = $controller->dashboard();
 		self::assertTrue($response->getData()['ok']);
 		self::assertSame(1, $response->getData()['data']['openPeriods']);
+		self::assertTrue($response->getData()['data']['pulse']['hasPeriods']);
+		self::assertSame(9, $response->getData()['data']['pulse']['periodId']);
 	}
 
 	public function testDashboardDeniesNonPlannerWithoutTouchingSummary(): void

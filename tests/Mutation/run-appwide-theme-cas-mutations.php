@@ -9,6 +9,8 @@ declare(strict_types=1);
  *   php tests/Mutation/run-appwide-theme-cas-mutations.php
  */
 
+require __DIR__ . '/mutation-lock.php';
+
 $appRoot = dirname(__DIR__, 2);
 $phpunit = $appRoot . '/vendor/bin/phpunit';
 if (!is_file($phpunit)) {
@@ -18,6 +20,16 @@ if (!is_file($phpunit)) {
 const TEST_FILTER = 'DesignSystemCssContractTest|ApiJsonErrorResponseTest|RosterServiceTransitionAbsenceTest|RosterServiceCasContractTest|RosterWaveContractTest|SettingsTemplateRenderTest|DashboardTemplateRenderTest';
 
 function run_unit_tests(string $appRoot, string $phpunit): int {
+	$compose = dirname($appRoot, 2) . '/docker-compose.yml';
+	if (is_file($compose) && trim((string) shell_exec('command -v docker')) !== '') {
+		$cmd = 'docker compose -f ' . escapeshellarg($compose)
+			. ' exec -T -u www-data -w /var/www/html/custom_apps/dutycheck nextcloud php'
+			. ' -d opcache.enable_cli=0 -d opcache.enable=0'
+			. ' vendor/bin/phpunit -c phpunit.xml --cache-result-file=/tmp/dutycheck-phpunit.cache'
+			. ' --filter ' . escapeshellarg(TEST_FILTER);
+		passthru($cmd, $code);
+		return (int) $code;
+	}
 	$cmd = escapeshellarg('php')
 		. ' -d opcache.enable_cli=0 -d opcache.enable=0 '
 		. escapeshellarg($phpunit)
@@ -66,8 +78,8 @@ $mutations = [
 	],
 	'company_mismatch_maps_to_400' => [
 		'file' => $apiErr,
-		'from' => "'FORBIDDEN', 'COMPANY_MISMATCH' => 403,",
-		'to' => "'FORBIDDEN' => 403,",
+		'from' => "'FORBIDDEN', 'COMPANY_MISMATCH', 'COMPANY_MEMBERSHIP_REQUIRED' => 403,",
+		'to' => "'FORBIDDEN', 'COMPANY_MEMBERSHIP_REQUIRED' => 403,",
 	],
 	'period_cas_removed' => [
 		'file' => $roster,

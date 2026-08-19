@@ -13,10 +13,34 @@ use Throwable;
 final class SchemaProbe
 {
 	/** @var array<string, bool> */
+	private static array $tableCache = [];
+
+	/** @var array<string, bool> */
 	private static array $columnCache = [];
 
 	/** @var array<string, bool> */
 	private static array $indexCache = [];
+
+	/** @var array<int, object|null> SchemaWrapper per connection object id */
+	private static array $schemaWrappers = [];
+
+	public static function tableExists(IDBConnection $db, string $table): bool
+	{
+		if (array_key_exists($table, self::$tableCache)) {
+			return self::$tableCache[$table];
+		}
+		try {
+			$schema = self::schemaWrapper($db);
+			if ($schema !== null) {
+				self::$tableCache[$table] = (bool) $schema->hasTable($table);
+				return self::$tableCache[$table];
+			}
+			self::$tableCache[$table] = $db->tableExists($table);
+		} catch (Throwable) {
+			self::$tableCache[$table] = false;
+		}
+		return self::$tableCache[$table];
+	}
 
 	public static function hasColumn(IDBConnection $db, string $table, string $column): bool
 	{
@@ -31,9 +55,8 @@ final class SchemaProbe
 				self::$columnCache[$key] = (bool) $fn($table, $column);
 				return self::$columnCache[$key];
 			}
-			if (method_exists($db, 'getInner')) {
-				$inner = $db->getInner();
-				$schema = new \OC\DB\SchemaWrapper($inner);
+			$schema = self::schemaWrapper($db);
+			if ($schema !== null) {
 				self::$columnCache[$key] = $schema->hasTable($table)
 					&& $schema->getTable($table)->hasColumn($column);
 				return self::$columnCache[$key];
@@ -55,12 +78,11 @@ final class SchemaProbe
 			return self::$indexCache[$key];
 		}
 		try {
-			if (!method_exists($db, 'getInner')) {
+			$schema = self::schemaWrapper($db);
+			if ($schema === null) {
 				self::$indexCache[$key] = false;
 				return false;
 			}
-			$inner = $db->getInner();
-			$schema = new \OC\DB\SchemaWrapper($inner);
 			self::$indexCache[$key] = $schema->hasTable($table)
 				&& $schema->getTable($table)->hasIndex($indexName);
 		} catch (Throwable) {
@@ -72,7 +94,27 @@ final class SchemaProbe
 	/** @internal tests */
 	public static function resetCache(): void
 	{
+		self::$tableCache = [];
 		self::$columnCache = [];
 		self::$indexCache = [];
+		self::$schemaWrappers = [];
+	}
+
+	private static function schemaWrapper(IDBConnection $db): ?object
+	{
+		if (!method_exists($db, 'getInner')) {
+			return null;
+		}
+		$oid = spl_object_id($db);
+		if (array_key_exists($oid, self::$schemaWrappers)) {
+			return self::$schemaWrappers[$oid];
+		}
+		try {
+			$inner = $db->getInner();
+			self::$schemaWrappers[$oid] = new \OC\DB\SchemaWrapper($inner);
+		} catch (Throwable) {
+			self::$schemaWrappers[$oid] = null;
+		}
+		return self::$schemaWrappers[$oid];
 	}
 }

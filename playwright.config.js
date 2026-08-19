@@ -27,6 +27,19 @@ if (existsSync(envFile)) {
 }
 
 const baseURL = process.env.NC_BASE_URL || 'http://localhost:8081'
+const AUTH_FILE = 'tests/e2e/.auth/planner.json'
+
+function hasPlannerCreds() {
+  const pair = (user, pass) => Boolean(user && pass)
+  return pair(process.env.E2E_USER, process.env.E2E_PASSWORD || process.env.E2E_PASS)
+    || pair(process.env.NC_ADMIN_USER, process.env.NC_ADMIN_PASS || process.env.NC_ADMIN_PASSWORD)
+    || pair(process.env.NC_EMPLOYEE_USER, process.env.NC_EMPLOYEE_PASS || process.env.NC_EMPLOYEE_PASSWORD)
+}
+
+const chromiumUse = { ...devices['Desktop Chrome'] }
+if (hasPlannerCreds()) {
+  chromiumUse.storageState = AUTH_FILE
+}
 
 export default defineConfig({
   testDir: 'tests/e2e',
@@ -41,7 +54,17 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
   },
-  projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-  ],
+  projects: hasPlannerCreds()
+    ? [
+      { name: 'setup', testMatch: /auth\.setup\.js/ },
+      {
+        name: 'chromium',
+        dependencies: ['setup'],
+        testIgnore: /auth\.setup\.js/,
+        use: chromiumUse,
+      },
+    ]
+    : [
+      { name: 'chromium', testIgnore: /auth\.setup\.js/, use: chromiumUse },
+    ],
 })

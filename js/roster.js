@@ -22,7 +22,9 @@
 		canCreateAssignments: false,
 		lastRosterData: null,
 		defaultBreakMinutes: 0,
+		planningDefaultsFresh: false,
 		templates: [],
+		templatesLoaded: false,
 		editingAssignmentId: null,
 		editingAssignmentVersion: null,
 		copyPreviewReady: false,
@@ -78,6 +80,7 @@
 			if (Number.isFinite(minutes)) {
 				state.defaultBreakMinutes = clampBreakMinutes(minutes);
 			}
+			state.planningDefaultsFresh = true;
 		} catch (_) {
 			/* Fall back to defaultBreakMinutes from the last roster API load. */
 		}
@@ -658,14 +661,7 @@
 					text: t('dutycheck', 'Show assignment'),
 				});
 				focusBtn.addEventListener('click', () => {
-					const id = Number(assignmentIds[0]);
-					const row = document.querySelector(`[data-assignment-id="${id}"]`);
-					if (row instanceof HTMLElement) {
-						row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-						row.focus?.();
-						row.classList.add('dc-row--flash');
-						window.setTimeout(() => row.classList.remove('dc-row--flash'), 1600);
-					}
+					revealAssignmentRow(Number(assignmentIds[0]));
 				});
 				actions.appendChild(focusBtn);
 			}
@@ -693,6 +689,80 @@
 		}
 	}
 
+	const VIRTUAL_FALLBACK = {
+		DEFAULT_ROW_HEIGHT: 44,
+		DEFAULT_OVERSCAN: 6,
+		UNSIZED_WINDOW_ROWS: 24,
+		visibleRange(opts) {
+			const total = Math.max(0, Math.trunc(Number(opts && opts.total) || 0));
+			const rowHeight = 44;
+			return {
+				start: 0,
+				end: total,
+				padBefore: 0,
+				padAfter: 0,
+				totalHeight: total * rowHeight,
+				rowHeight,
+			};
+		},
+		scrollTopToRevealIndex() {
+			return 0;
+		},
+		pageStride() {
+			return 1;
+		},
+		windowCaption(opts) {
+			const total = Math.max(0, Math.trunc(Number(opts && opts.total) || 0));
+			if (total <= 0) {
+				return { mode: 'empty', from: 0, to: 0, total: 0 };
+			}
+			return { mode: 'all', from: 1, to: total, total };
+		},
+	};
+
+	function virtualApi() {
+		const api = window.DutyCheckVirtualWindow;
+		if (api
+			&& typeof api.visibleRange === 'function'
+			&& typeof api.scrollTopToRevealIndex === 'function'
+			&& typeof api.windowCaption === 'function') {
+			return api;
+		}
+		return VIRTUAL_FALLBACK;
+	}
+
+	function cellSelectionKey(employeeId, dutyDate) {
+		return `${Number(employeeId)}|${String(dutyDate)}`;
+	}
+
+	function prefersReducedMotion() {
+		try {
+			return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		} catch (_) {
+			return false;
+		}
+	}
+
+	function measureHeight(el) {
+		if (!(el instanceof HTMLElement)) {
+			return 0;
+		}
+		const h = el.getBoundingClientRect().height;
+		return Number.isFinite(h) && h > 0 ? h : 0;
+	}
+
+	function assignmentIndex(assignments) {
+		const byKey = new Map();
+		for (const a of assignments || []) {
+			const key = cellSelectionKey(a.employeeId, a.dutyDate);
+			if (!byKey.has(key)) {
+				byKey.set(key, []);
+			}
+			byKey.get(key).push(a);
+		}
+		return byKey;
+	}
+
 	function setAssignmentsEmptyPanelVisible(showEmptyPanel) {
 		const emptyPanel = document.getElementById('dc-roster-assignments-empty');
 		if (emptyPanel) {
@@ -700,90 +770,207 @@
 		}
 	}
 
-	function renderAssignments(assignments) {
-		const tbody = document.getElementById('dc-assignments-table-body');
-		if (!tbody) return;
-		const overnightHintText = t('dutycheck', 'Continues into the next day.');
-		const startClock = (s) => (D?.formatClock24FromTimeString(s) || String(s ?? ''));
-		const periodOpen = canAddAssignment();
-		const endCell = (a) => {
-			const td = create('td');
-			td.dataset.cell = t('dutycheck', 'End');
-			td.appendChild(create('span', { class: 'dc-time-cell__value', text: startClock(a.endTime) }));
-			if (D?.isOvernightWallClockShift?.(a.startTime, a.endTime)) {
-				td.appendChild(create('span', { class: 'dc-row-meta', text: overnightHintText }));
-			}
-			return td;
-		};
-		tbody.replaceChildren();
-		if (!assignments.length) {
-			setAssignmentsEmptyPanelVisible(true);
-			updateAddAssignmentControl();
-			return;
-		}
-		setAssignmentsEmptyPanelVisible(false);
-		for (const a of assignments) {
-			const tr = create('tr');
-			if (a?.id != null) {
-				tr.dataset.assignmentId = String(a.id);
-				tr.setAttribute('tabindex', '-1');
-			}
-			const date = D?.formatDisplayDate(a.dutyDate) || a.dutyDate;
-			const tdDate = create('td', { text: date });
-			tdDate.dataset.cell = t('dutycheck', 'Date');
-			tr.appendChild(tdDate);
-
-			const tdStart = create('td');
-			tdStart.dataset.cell = t('dutycheck', 'Start');
-			tdStart.appendChild(create('span', { class: 'dc-time-cell__value', text: startClock(a.startTime) }));
-			tr.appendChild(tdStart);
-			tr.appendChild(endCell(a));
-			const rest = [
-				{ label: t('dutycheck', 'Employee'), value: a.employeeName || '' },
-				{ label: t('dutycheck', 'Location'), value: a.locationName || '' },
-				{ label: t('dutycheck', 'Break'), value: t('dutycheck', '{n} min').replace('{n}', String(a.breakMinutes ?? 0)) },
-				{ label: t('dutycheck', 'Note'), value: a.note || '' },
-			];
-			for (const cell of rest) {
-				const td = create('td', { text: String(cell.value ?? '') });
-				td.dataset.cell = cell.label;
-				tr.appendChild(td);
-			}
-			const tdActions = create('td');
-			tdActions.dataset.cell = t('dutycheck', 'Actions');
-			tdActions.className = 'dc-table__actions';
-			if (periodOpen && a?.id) {
-				const editBtn = create('button', {
-					type: 'button',
-					class: 'button button--text',
-					text: t('dutycheck', 'Edit'),
-				});
-				editBtn.setAttribute('aria-label', t('dutycheck', 'Edit assignment'));
-				editBtn.addEventListener('click', () => openAssignmentEditModal(a, editBtn));
-				const cancelBtn = create('button', {
-					type: 'button',
-					class: 'button button--text',
-					text: t('dutycheck', 'Cancel shift'),
-				});
-				cancelBtn.setAttribute('aria-label', t('dutycheck', 'Cancel this assignment'));
-				cancelBtn.addEventListener('click', () => cancelAssignmentRow(a, cancelBtn));
-				tdActions.appendChild(editBtn);
-				tdActions.appendChild(cancelBtn);
-			} else {
-				tdActions.appendChild(create('span', { class: 'dc-row-meta', text: t('dutycheck', 'Read-only') }));
-			}
-			tr.appendChild(tdActions);
-			tbody.appendChild(tr);
-		}
-		renderRosterGrid(assignments);
-	}
-
 	const gridState = {
 		view: 'grid',
 		selected: new Set(), // `${employeeId}|${dutyDate}`
 		focusRow: 0,
 		focusCol: 0,
+		paintAll: false,
+		rowHeight: 44,
+		headerHeight: 44,
+		windowStart: -1,
+		windowEnd: -1,
+		paintedEmployeeCount: -1,
+		paintedDateCount: -1,
+		remeasuring: false,
 	};
+
+	const listState = {
+		windowStart: -1,
+		windowEnd: -1,
+		rowHeight: 48,
+		paintedCount: -1,
+		remeasuring: false,
+	};
+
+	function renderAssignments(assignments) {
+		paintListWindow({ assignments: assignments || [], force: true });
+		renderRosterGrid(assignments || []);
+		updateAddAssignmentControl();
+	}
+
+	function buildAssignmentRow(a, periodOpen) {
+		const overnightHintText = t('dutycheck', 'Continues into the next day.');
+		const startClock = (s) => (D?.formatClock24FromTimeString(s) || String(s ?? ''));
+		const tr = create('tr');
+		if (a?.id != null) {
+			tr.dataset.assignmentId = String(a.id);
+			tr.setAttribute('tabindex', '-1');
+		}
+		const date = D?.formatDisplayDate(a.dutyDate) || a.dutyDate;
+		const tdDate = create('td', { text: date });
+		tdDate.dataset.cell = t('dutycheck', 'Date');
+		tr.appendChild(tdDate);
+
+		const tdStart = create('td');
+		tdStart.dataset.cell = t('dutycheck', 'Start');
+		tdStart.appendChild(create('span', { class: 'dc-time-cell__value', text: startClock(a.startTime) }));
+		tr.appendChild(tdStart);
+
+		const tdEnd = create('td');
+		tdEnd.dataset.cell = t('dutycheck', 'End');
+		tdEnd.appendChild(create('span', { class: 'dc-time-cell__value', text: startClock(a.endTime) }));
+		if (D?.isOvernightWallClockShift?.(a.startTime, a.endTime)) {
+			tdEnd.title = overnightHintText;
+			tdEnd.appendChild(create('span', { class: 'dc-row-meta', text: overnightHintText }));
+		}
+		tr.appendChild(tdEnd);
+
+		const rest = [
+			{ label: t('dutycheck', 'Employee'), value: a.employeeName || '' },
+			{ label: t('dutycheck', 'Location'), value: a.locationName || '' },
+			{ label: t('dutycheck', 'Break'), value: t('dutycheck', '{n} min').replace('{n}', String(a.breakMinutes ?? 0)) },
+			{ label: t('dutycheck', 'Note'), value: a.note || '' },
+		];
+		for (const cell of rest) {
+			const td = create('td', { text: String(cell.value ?? '') });
+			td.dataset.cell = cell.label;
+			tr.appendChild(td);
+		}
+		const tdActions = create('td');
+		tdActions.dataset.cell = t('dutycheck', 'Actions');
+		tdActions.className = 'dc-table__actions';
+		if (periodOpen && a?.id) {
+			const editBtn = create('button', {
+				type: 'button',
+				class: 'button button--text',
+				text: t('dutycheck', 'Edit'),
+			});
+			editBtn.setAttribute('aria-label', t('dutycheck', 'Edit assignment'));
+			editBtn.addEventListener('click', () => openAssignmentEditModal(a, editBtn));
+			const cancelBtn = create('button', {
+				type: 'button',
+				class: 'button button--text',
+				text: t('dutycheck', 'Cancel shift'),
+			});
+			cancelBtn.setAttribute('aria-label', t('dutycheck', 'Cancel this assignment'));
+			cancelBtn.addEventListener('click', () => cancelAssignmentRow(a, cancelBtn));
+			tdActions.appendChild(editBtn);
+			tdActions.appendChild(cancelBtn);
+		} else {
+			tdActions.appendChild(create('span', { class: 'dc-row-meta', text: t('dutycheck', 'Read-only') }));
+		}
+		tr.appendChild(tdActions);
+		return tr;
+	}
+
+	function createListSpacer(px) {
+		const tr = create('tr', { class: 'dc-virtual-spacer' });
+		tr.setAttribute('aria-hidden', 'true');
+		tr.style.height = `${Math.max(0, px)}px`;
+		const td = create('td');
+		td.colSpan = 8;
+		td.style.height = `${Math.max(0, px)}px`;
+		td.style.padding = '0';
+		td.style.border = '0';
+		td.style.lineHeight = '0';
+		tr.appendChild(td);
+		return tr;
+	}
+
+	function updateListWindowStatus(range, total) {
+		const el = document.getElementById('dc-roster-list-status');
+		if (!el) {
+			return;
+		}
+		const cap = virtualApi().windowCaption({ start: range.start, end: range.end, total });
+		if (cap.mode === 'empty') {
+			el.textContent = '';
+			return;
+		}
+		if (cap.mode === 'all') {
+			el.textContent = t('dutycheck', 'All {total} shifts are on screen.').replace('{total}', String(cap.total));
+			return;
+		}
+		el.textContent = t('dutycheck', 'Showing shifts {from}–{to} of {total}. Scroll to see everyone.')
+			.replace('{from}', String(cap.from))
+			.replace('{to}', String(cap.to))
+			.replace('{total}', String(cap.total));
+	}
+
+	function paintListWindow(options) {
+		const tbody = document.getElementById('dc-assignments-table-body');
+		if (!tbody) {
+			return;
+		}
+		const assignments = options && Array.isArray(options.assignments)
+			? options.assignments
+			: (state.assignments || []);
+		const force = !!(options && options.force);
+		if (!assignments.length) {
+			tbody.replaceChildren();
+			setAssignmentsEmptyPanelVisible(true);
+			listState.windowStart = 0;
+			listState.windowEnd = 0;
+			listState.paintedCount = 0;
+			updateListWindowStatus({ start: 0, end: 0 }, 0);
+			return;
+		}
+		setAssignmentsEmptyPanelVisible(false);
+		const scroller = document.getElementById('dc-assignments-table-wrap');
+		const VW = virtualApi();
+		const rowHeight = listState.rowHeight > 0 ? listState.rowHeight : VW.DEFAULT_ROW_HEIGHT;
+		const viewportHeight = scroller && gridState.view === 'list' ? scroller.clientHeight : 0;
+		const scrollTop = scroller ? scroller.scrollTop : 0;
+		const range = VW.visibleRange({
+			total: assignments.length,
+			rowHeight,
+			viewportHeight,
+			scrollTop,
+			overscan: VW.DEFAULT_OVERSCAN,
+			paintAll: gridState.paintAll === true,
+		});
+		if (!force
+			&& listState.windowStart === range.start
+			&& listState.windowEnd === range.end
+			&& listState.paintedCount === assignments.length) {
+			updateListWindowStatus(range, assignments.length);
+			return;
+		}
+		const savedTop = scroller ? scroller.scrollTop : 0;
+		const periodOpen = canAddAssignment();
+		const frag = document.createDocumentFragment();
+		if (range.padBefore > 0) {
+			frag.appendChild(createListSpacer(range.padBefore));
+		}
+		const windowRows = assignments.slice(range.start, range.end);
+		for (const a of windowRows) {
+			frag.appendChild(buildAssignmentRow(a, periodOpen));
+		}
+		if (range.padAfter > 0) {
+			frag.appendChild(createListSpacer(range.padAfter));
+		}
+		tbody.replaceChildren(frag);
+		listState.windowStart = range.start;
+		listState.windowEnd = range.end;
+		listState.paintedCount = assignments.length;
+		if (scroller) {
+			scroller.scrollTop = savedTop;
+		}
+		const sample = tbody.querySelector('tr:not(.dc-virtual-spacer)');
+		const measured = measureHeight(sample);
+		if (measured > 0 && Math.abs(measured - rowHeight) > 1 && !listState.remeasuring) {
+			listState.rowHeight = measured;
+			listState.remeasuring = true;
+			paintListWindow({ assignments, force: true });
+			listState.remeasuring = false;
+			return;
+		}
+		if (measured > 0) {
+			listState.rowHeight = measured;
+		}
+		updateListWindowStatus(range, assignments.length);
+	}
 
 	function selectedPeriodId() {
 		const switcher = document.getElementById('dc-roster-period-switcher');
@@ -813,37 +1000,278 @@
 		return out;
 	}
 
-	function renderRosterGrid(assignments) {
+	function updateGridWindowStatus(range, total) {
+		const el = document.getElementById('dc-roster-grid-status');
+		if (!el) {
+			return;
+		}
+		const cap = virtualApi().windowCaption({ start: range.start, end: range.end, total });
+		if (cap.mode === 'empty') {
+			el.textContent = '';
+			return;
+		}
+		if (cap.mode === 'all') {
+			el.textContent = t('dutycheck', 'All {total} people are on screen.').replace('{total}', String(cap.total));
+			return;
+		}
+		el.textContent = t('dutycheck', 'Showing people {from}–{to} of {total}. Scroll to see everyone.')
+			.replace('{from}', String(cap.from))
+			.replace('{to}', String(cap.to))
+			.replace('{total}', String(cap.total));
+	}
+
+	function createGridSpacer(px) {
+		const el = create('div', { class: 'dc-virtual-spacer dc-roster-grid__spacer' });
+		el.setAttribute('aria-hidden', 'true');
+		el.setAttribute('role', 'presentation');
+		el.style.height = `${Math.max(0, px)}px`;
+		return el;
+	}
+
+	function setGridEmptyState(root, message) {
+		root.removeAttribute('aria-rowcount');
+		root.removeAttribute('aria-colcount');
+		root.removeAttribute('tabindex');
+		root.setAttribute('role', 'status');
+		root.setAttribute('aria-live', 'polite');
+		root.replaceChildren(create('p', {
+			class: 'dc-roster-empty-state__text',
+			text: message,
+		}));
+	}
+
+	function prepareGridForRows(root, employees, dates) {
+		root.setAttribute('role', 'grid');
+		root.removeAttribute('tabindex');
+		root.removeAttribute('aria-live');
+		root.setAttribute('aria-rowcount', String(employees.length + 1));
+		root.setAttribute('aria-colcount', String(Math.max(1, dates.length + 1)));
+	}
+
+	function buildGridRow(emp, rowIdx, dates, byKey) {
+		const row = create('div', {
+			class: 'dc-roster-grid__row',
+			role: 'row',
+			attrs: { 'aria-rowindex': String(rowIdx + 2) },
+		});
+		row.appendChild(create('div', {
+			class: 'dc-roster-grid__rowhead',
+			role: 'rowheader',
+			text: String(emp.name || emp.displayName || emp.id),
+			attrs: { 'aria-colindex': '1' },
+		}));
+		dates.forEach((day, colIdx) => {
+			const key = cellSelectionKey(emp.id, day);
+			const cellAssignments = byKey.get(key) || [];
+			const cell = create('div', {
+				class: 'dc-roster-grid__cell',
+				role: 'gridcell',
+				attrs: {
+					tabindex: rowIdx === gridState.focusRow && colIdx === gridState.focusCol ? '0' : '-1',
+					'data-employee-id': String(emp.id),
+					'data-duty-date': day,
+					'data-row': String(rowIdx),
+					'data-col': String(colIdx),
+					'aria-colindex': String(colIdx + 2),
+					'aria-selected': gridState.selected.has(key) ? 'true' : 'false',
+				},
+			});
+			if (cellAssignments.length) {
+				cell.classList.add('dc-roster-grid__cell--filled');
+				const first = cellAssignments[0];
+				const label = `${String(first.startTime || '').slice(0, 5)}–${String(first.endTime || '').slice(0, 5)}`;
+				cell.appendChild(create('span', {
+					class: 'dc-roster-grid__shift',
+					text: label,
+				}));
+				const editLabel = canAddAssignment()
+					? t('dutycheck', 'Edit assignment')
+					: t('dutycheck', 'View assignment (read-only)');
+				cell.setAttribute('aria-label', `${editLabel}: ${label}`);
+				if (cellAssignments.length > 1) {
+					cell.appendChild(create('span', {
+						class: 'dc-roster-grid__more',
+						text: `+${cellAssignments.length - 1}`,
+					}));
+				}
+			} else {
+				cell.classList.add('dc-roster-grid__cell--empty');
+				cell.setAttribute(
+					'aria-label',
+					canAddAssignment()
+						? t('dutycheck', 'Empty cell — Space to select for bulk fill')
+						: t('dutycheck', 'Empty cell'),
+				);
+			}
+			if (gridState.selected.has(key)) {
+				cell.classList.add('is-selected');
+			}
+			row.appendChild(cell);
+		});
+		return row;
+	}
+
+	function syncVisibleGridChrome() {
 		const root = document.getElementById('dc-roster-grid');
 		if (!root) {
 			return;
 		}
+		root.querySelectorAll('[role="gridcell"]').forEach((cell) => {
+			const empId = cell.getAttribute('data-employee-id');
+			const day = cell.getAttribute('data-duty-date');
+			const key = cellSelectionKey(empId, day);
+			const selected = gridState.selected.has(key);
+			cell.classList.toggle('is-selected', selected);
+			cell.setAttribute('aria-selected', selected ? 'true' : 'false');
+			const rowIdx = Number(cell.getAttribute('data-row'));
+			const colIdx = Number(cell.getAttribute('data-col'));
+			const isFocus = rowIdx === gridState.focusRow && colIdx === gridState.focusCol;
+			cell.setAttribute('tabindex', isFocus ? '0' : '-1');
+		});
+	}
+
+	function focusGridCellIfVisible(root) {
+		const node = root.querySelector(`[data-row="${gridState.focusRow}"][data-col="${gridState.focusCol}"]`);
+		if (node instanceof HTMLElement) {
+			node.scrollIntoView({
+				block: 'nearest',
+				inline: 'nearest',
+				behavior: 'auto',
+			});
+			node.focus();
+		}
+	}
+
+	function activateGridCell(cell) {
+		if (!(cell instanceof HTMLElement)) {
+			return;
+		}
+		const rowIdx = Number(cell.getAttribute('data-row'));
+		const colIdx = Number(cell.getAttribute('data-col'));
+		if (Number.isInteger(rowIdx) && rowIdx >= 0) {
+			gridState.focusRow = rowIdx;
+		}
+		if (Number.isInteger(colIdx) && colIdx >= 0) {
+			gridState.focusCol = colIdx;
+		}
+		const empId = cell.getAttribute('data-employee-id');
+		const day = cell.getAttribute('data-duty-date');
+		const key = cellSelectionKey(empId, day);
+		const filled = cell.classList.contains('dc-roster-grid__cell--filled');
+		if (!filled) {
+			if (canAddAssignment()) {
+				toggleGridSelection(key);
+				syncVisibleGridChrome();
+				updateBulkBar();
+			}
+			return;
+		}
+		const byKey = assignmentIndex(state.assignments || []);
+		const cellAssignments = byKey.get(key) || [];
+		if (canAddAssignment() && cellAssignments[0]) {
+			openAssignmentEditModal(cellAssignments[0], cell);
+			return;
+		}
+		Msg.announce(t('dutycheck', 'This period is read-only. Re-open it from Periods to edit shifts.'), 'info');
+	}
+
+	function ensureGridFocusVisible() {
+		const scroller = document.getElementById('dc-roster-grid-scroller');
+		const employees = state.employees || [];
+		if (!scroller || !employees.length) {
+			return;
+		}
+		const VW = virtualApi();
+		const rowHeight = gridState.rowHeight > 0 ? gridState.rowHeight : VW.DEFAULT_ROW_HEIGHT;
+		const headerHeight = gridState.headerHeight > 0 ? gridState.headerHeight : rowHeight;
+		const viewportHeight = Math.max(rowHeight, scroller.clientHeight - headerHeight);
+		const next = VW.scrollTopToRevealIndex({
+			index: gridState.focusRow,
+			rowHeight,
+			viewportHeight,
+			scrollTop: scroller.scrollTop,
+			total: employees.length,
+		});
+		if (Math.abs(next - scroller.scrollTop) > 0.5) {
+			scroller.scrollTop = next;
+		}
+	}
+
+	function renderRosterGrid(assignments) {
+		paintGridWindow({ assignments: assignments || state.assignments || [], force: true });
+	}
+
+	function paintGridWindow(options) {
+		const root = document.getElementById('dc-roster-grid');
+		if (!root) {
+			return;
+		}
+		const assignments = options && Array.isArray(options.assignments)
+			? options.assignments
+			: (state.assignments || []);
+		const force = !!(options && options.force);
 		const employees = state.employees || [];
 		const dates = periodDateList();
-		const byKey = new Map();
-		for (const a of assignments || []) {
-			const key = `${Number(a.employeeId)}|${String(a.dutyDate)}`;
-			if (!byKey.has(key)) {
-				byKey.set(key, []);
-			}
-			byKey.get(key).push(a);
-		}
-		root.replaceChildren();
+		const byKey = assignmentIndex(assignments);
+
 		if (!employees.length || !dates.length) {
-			root.appendChild(create('p', {
-				class: 'dc-roster-empty-state__text',
-				text: t('dutycheck', 'Add employees and an open period to use the planning grid.'),
-			}));
+			setGridEmptyState(
+				root,
+				t('dutycheck', 'Add employees and an open period to use the planning grid.'),
+			);
+			gridState.windowStart = 0;
+			gridState.windowEnd = 0;
+			gridState.paintedEmployeeCount = employees.length;
+			gridState.paintedDateCount = dates.length;
+			updateGridWindowStatus({ start: 0, end: 0 }, 0);
 			updateBulkBar();
 			return;
 		}
 
-		const table = create('div', { class: 'dc-roster-grid__table', role: 'presentation' });
-		const header = create('div', { class: 'dc-roster-grid__row dc-roster-grid__row--head', role: 'row' });
+		prepareGridForRows(root, employees, dates);
+		gridState.focusRow = Math.max(0, Math.min(employees.length - 1, gridState.focusRow));
+		gridState.focusCol = Math.max(0, Math.min(dates.length - 1, gridState.focusCol));
+
+		const VW = virtualApi();
+		const scroller = document.getElementById('dc-roster-grid-scroller');
+		const rowHeight = gridState.rowHeight > 0 ? gridState.rowHeight : VW.DEFAULT_ROW_HEIGHT;
+		const headerHeight = gridState.headerHeight > 0 ? gridState.headerHeight : rowHeight;
+		const viewportHeight = scroller && gridState.view === 'grid'
+			? Math.max(0, scroller.clientHeight - headerHeight)
+			: 0;
+		const scrollTop = scroller ? scroller.scrollTop : 0;
+		const range = VW.visibleRange({
+			total: employees.length,
+			rowHeight,
+			viewportHeight,
+			scrollTop,
+			overscan: VW.DEFAULT_OVERSCAN,
+			paintAll: gridState.paintAll === true,
+		});
+		if (!force
+			&& gridState.windowStart === range.start
+			&& gridState.windowEnd === range.end
+			&& gridState.paintedEmployeeCount === employees.length
+			&& gridState.paintedDateCount === dates.length) {
+			syncVisibleGridChrome();
+			updateGridWindowStatus(range, employees.length);
+			updateBulkBar();
+			return;
+		}
+
+		const savedTop = scroller ? scroller.scrollTop : 0;
+		const savedLeft = scroller ? scroller.scrollLeft : 0;
+		const frag = document.createDocumentFragment();
+		const header = create('div', {
+			class: 'dc-roster-grid__row dc-roster-grid__row--head',
+			role: 'row',
+			attrs: { 'aria-rowindex': '1' },
+		});
 		header.appendChild(create('div', {
 			class: 'dc-roster-grid__corner',
 			role: 'columnheader',
 			text: t('dutycheck', 'Person'),
+			attrs: { 'aria-colindex': '1' },
 		}));
 		dates.forEach((day, colIdx) => {
 			const label = D?.formatDisplayDate?.(day) || day;
@@ -851,84 +1279,143 @@
 				class: 'dc-roster-grid__colhead',
 				role: 'columnheader',
 				text: label,
-				attrs: { 'data-col': String(colIdx) },
+				attrs: { 'data-col': String(colIdx), 'aria-colindex': String(colIdx + 2) },
 			}));
 		});
-		table.appendChild(header);
-
-		employees.forEach((emp, rowIdx) => {
-			const row = create('div', { class: 'dc-roster-grid__row', role: 'row' });
-			row.appendChild(create('div', {
-				class: 'dc-roster-grid__rowhead',
-				role: 'rowheader',
-				text: String(emp.name || emp.displayName || emp.id),
-			}));
-			dates.forEach((day, colIdx) => {
-				const key = `${Number(emp.id)}|${day}`;
-				const cellAssignments = byKey.get(key) || [];
-				const cell = create('div', {
-					class: 'dc-roster-grid__cell',
-					role: 'gridcell',
-					attrs: {
-						tabindex: rowIdx === gridState.focusRow && colIdx === gridState.focusCol ? '0' : '-1',
-						'data-employee-id': String(emp.id),
-						'data-duty-date': day,
-						'data-row': String(rowIdx),
-						'data-col': String(colIdx),
-						'aria-selected': gridState.selected.has(key) ? 'true' : 'false',
-					},
-				});
-				if (cellAssignments.length) {
-					cell.classList.add('dc-roster-grid__cell--filled');
-					const first = cellAssignments[0];
-					const label = `${String(first.startTime || '').slice(0, 5)}–${String(first.endTime || '').slice(0, 5)}`;
-					cell.appendChild(create('span', {
-						class: 'dc-roster-grid__shift',
-						text: label,
-					}));
-					const editLabel = canAddAssignment()
-						? t('dutycheck', 'Edit assignment')
-						: t('dutycheck', 'View assignment (read-only)');
-					cell.setAttribute('aria-label', `${editLabel}: ${label}`);
-					if (cellAssignments.length > 1) {
-						cell.appendChild(create('span', {
-							class: 'dc-roster-grid__more',
-							text: `+${cellAssignments.length - 1}`,
-						}));
-					}
-				} else {
-					cell.classList.add('dc-roster-grid__cell--empty');
-					cell.setAttribute(
-						'aria-label',
-						canAddAssignment()
-							? t('dutycheck', 'Empty cell — Space to select for bulk fill')
-							: t('dutycheck', 'Empty cell'),
-					);
-				}
-				if (gridState.selected.has(key)) {
-					cell.classList.add('is-selected');
-				}
-				cell.addEventListener('click', () => {
-					gridState.focusRow = rowIdx;
-					gridState.focusCol = colIdx;
-					if (!cellAssignments.length) {
-						if (canAddAssignment()) {
-							toggleGridSelection(key);
-						}
-					} else if (canAddAssignment()) {
-						openAssignmentEditModal(cellAssignments[0], cell);
-					} else {
-						Msg.announce(t('dutycheck', 'This period is read-only. Re-open it from Periods to edit shifts.'), 'info');
-					}
-					renderRosterGrid(state.assignments || []);
-				});
-				row.appendChild(cell);
-			});
-			table.appendChild(row);
+		frag.appendChild(header);
+		if (range.padBefore > 0) {
+			frag.appendChild(createGridSpacer(range.padBefore));
+		}
+		const windowEmployees = employees.slice(range.start, range.end);
+		windowEmployees.forEach((emp, offset) => {
+			frag.appendChild(buildGridRow(emp, range.start + offset, dates, byKey));
 		});
-		root.appendChild(table);
-		bindGridKeyboard(root, employees.length, dates.length);
+		if (range.padAfter > 0) {
+			frag.appendChild(createGridSpacer(range.padAfter));
+		}
+		root.replaceChildren(frag);
+		gridState.windowStart = range.start;
+		gridState.windowEnd = range.end;
+		gridState.paintedEmployeeCount = employees.length;
+		gridState.paintedDateCount = dates.length;
+		if (scroller) {
+			scroller.scrollTop = savedTop;
+			scroller.scrollLeft = savedLeft;
+		}
+		const headerEl = root.querySelector('.dc-roster-grid__row--head');
+		const bodyRow = root.querySelector('.dc-roster-grid__row:not(.dc-roster-grid__row--head)');
+		const measuredHeader = measureHeight(headerEl);
+		const measuredRow = measureHeight(bodyRow);
+		if (((measuredHeader > 0 && Math.abs(measuredHeader - headerHeight) > 1)
+			|| (measuredRow > 0 && Math.abs(measuredRow - rowHeight) > 1))
+			&& !gridState.remeasuring) {
+			if (measuredHeader > 0) {
+				gridState.headerHeight = measuredHeader;
+			}
+			if (measuredRow > 0) {
+				gridState.rowHeight = measuredRow;
+			}
+			gridState.remeasuring = true;
+			paintGridWindow({ assignments, force: true });
+			gridState.remeasuring = false;
+			return;
+		}
+		if (measuredHeader > 0) {
+			gridState.headerHeight = measuredHeader;
+		}
+		if (measuredRow > 0) {
+			gridState.rowHeight = measuredRow;
+		}
+		bindGridInteractions(root);
+		updateGridWindowStatus(range, employees.length);
 		updateBulkBar();
+	}
+
+	function bindGridInteractions(root) {
+		if (!(root instanceof HTMLElement) || root.dataset.dcGridBound === '1') {
+			return;
+		}
+		root.dataset.dcGridBound = '1';
+		root.addEventListener('click', (ev) => {
+			const cell = ev.target.closest('[role="gridcell"]');
+			if (!(cell instanceof HTMLElement) || !root.contains(cell)) {
+				return;
+			}
+			activateGridCell(cell);
+		});
+		root.addEventListener('keydown', (ev) => {
+			const employees = state.employees || [];
+			const dates = periodDateList();
+			const rowCount = employees.length;
+			const colCount = dates.length;
+			if (!rowCount || !colCount) {
+				return;
+			}
+			const gridKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', ' ', 'Spacebar', 'Home', 'End', 'PageUp', 'PageDown'];
+			if (!gridKeys.includes(ev.key)) {
+				return;
+			}
+			ev.preventDefault();
+			if (ev.key === 'ArrowUp') {
+				gridState.focusRow = Math.max(0, gridState.focusRow - 1);
+			} else if (ev.key === 'ArrowDown') {
+				gridState.focusRow = Math.min(rowCount - 1, gridState.focusRow + 1);
+			} else if (ev.key === 'ArrowLeft') {
+				gridState.focusCol = Math.max(0, gridState.focusCol - 1);
+			} else if (ev.key === 'ArrowRight') {
+				gridState.focusCol = Math.min(colCount - 1, gridState.focusCol + 1);
+			} else if (ev.key === 'Home') {
+				gridState.focusCol = 0;
+				if (ev.ctrlKey || ev.metaKey) {
+					gridState.focusRow = 0;
+				}
+			} else if (ev.key === 'End') {
+				gridState.focusCol = colCount - 1;
+				if (ev.ctrlKey || ev.metaKey) {
+					gridState.focusRow = rowCount - 1;
+				}
+			} else if (ev.key === 'PageUp' || ev.key === 'PageDown') {
+				const VW = virtualApi();
+				const scroller = document.getElementById('dc-roster-grid-scroller');
+				const rowHeight = gridState.rowHeight > 0 ? gridState.rowHeight : VW.DEFAULT_ROW_HEIGHT;
+				const headerHeight = gridState.headerHeight > 0 ? gridState.headerHeight : rowHeight;
+				const viewportHeight = scroller
+					? Math.max(rowHeight, scroller.clientHeight - headerHeight)
+					: rowHeight;
+				const stride = typeof VW.pageStride === 'function'
+					? VW.pageStride({ rowHeight, viewportHeight })
+					: 1;
+				if (ev.key === 'PageDown') {
+					gridState.focusRow = Math.min(rowCount - 1, gridState.focusRow + stride);
+				} else {
+					gridState.focusRow = Math.max(0, gridState.focusRow - stride);
+				}
+			} else if (ev.key === 'Enter') {
+				ensureGridFocusVisible();
+				paintGridWindow({ force: false });
+				const cell = root.querySelector(`[data-row="${gridState.focusRow}"][data-col="${gridState.focusCol}"]`);
+				activateGridCell(cell);
+				focusGridCellIfVisible(root);
+				return;
+			} else if (ev.key === ' ' || ev.key === 'Spacebar') {
+				ensureGridFocusVisible();
+				paintGridWindow({ force: false });
+				const cell = root.querySelector(`[data-row="${gridState.focusRow}"][data-col="${gridState.focusCol}"]`);
+				const empId = cell?.getAttribute('data-employee-id');
+				const day = cell?.getAttribute('data-duty-date');
+				const isEmpty = cell?.classList.contains('dc-roster-grid__cell--empty');
+				if (empId && day && isEmpty && canAddAssignment()) {
+					toggleGridSelection(cellSelectionKey(empId, day));
+					syncVisibleGridChrome();
+					updateBulkBar();
+				}
+				focusGridCellIfVisible(root);
+				return;
+			}
+			ensureGridFocusVisible();
+			paintGridWindow({ force: false });
+			focusGridCellIfVisible(root);
+		});
 	}
 
 	function toggleGridSelection(key) {
@@ -978,49 +1465,121 @@
 		}
 	}
 
-	function bindGridKeyboard(root, rowCount, colCount) {
-		root.onkeydown = (ev) => {
-			if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', ' ', 'Spacebar'].includes(ev.key)) {
-				return;
+	function revealAssignmentRow(id) {
+		const assignmentId = Number(id);
+		const assignments = state.assignments || [];
+		const idx = assignments.findIndex((a) => Number(a.id) === assignmentId);
+		if (idx < 0) {
+			return;
+		}
+		applyRosterViewChrome('list');
+		const run = () => {
+			const scroller = document.getElementById('dc-assignments-table-wrap');
+			const VW = virtualApi();
+			const rowHeight = listState.rowHeight > 0 ? listState.rowHeight : VW.DEFAULT_ROW_HEIGHT;
+			if (scroller) {
+				scroller.scrollTop = VW.scrollTopToRevealIndex({
+					index: idx,
+					rowHeight,
+					viewportHeight: Math.max(rowHeight, scroller.clientHeight),
+					scrollTop: scroller.scrollTop,
+					total: assignments.length,
+				});
 			}
-			ev.preventDefault();
-			if (ev.key === 'ArrowUp') {
-				gridState.focusRow = Math.max(0, gridState.focusRow - 1);
-			} else if (ev.key === 'ArrowDown') {
-				gridState.focusRow = Math.min(rowCount - 1, gridState.focusRow + 1);
-			} else if (ev.key === 'ArrowLeft') {
-				gridState.focusCol = Math.max(0, gridState.focusCol - 1);
-			} else if (ev.key === 'ArrowRight') {
-				gridState.focusCol = Math.min(colCount - 1, gridState.focusCol + 1);
-			} else if (ev.key === 'Enter') {
-				const cell = root.querySelector(`[data-row="${gridState.focusRow}"][data-col="${gridState.focusCol}"]`);
-				cell?.click();
-				return;
-			} else if (ev.key === ' ' || ev.key === 'Spacebar') {
-				const cell = root.querySelector(`[data-row="${gridState.focusRow}"][data-col="${gridState.focusCol}"]`);
-				const empId = cell?.getAttribute('data-employee-id');
-				const day = cell?.getAttribute('data-duty-date');
-				const isEmpty = cell?.classList.contains('dc-roster-grid__cell--empty');
-				if (empId && day && isEmpty && canAddAssignment()) {
-					toggleGridSelection(`${empId}|${day}`);
-				}
+			paintListWindow({ assignments, force: true });
+			const row = document.querySelector(`[data-assignment-id="${assignmentId}"]`);
+			if (row instanceof HTMLElement) {
+				row.scrollIntoView({
+					block: 'nearest',
+					behavior: 'auto',
+				});
+				row.focus();
+				row.classList.add('dc-row--flash');
+				window.setTimeout(() => row.classList.remove('dc-row--flash'), 1600);
 			}
-			renderRosterGrid(state.assignments || []);
-			root.querySelector(`[data-row="${gridState.focusRow}"][data-col="${gridState.focusCol}"]`)?.focus();
 		};
+		window.requestAnimationFrame(run);
 	}
 
-	function setRosterView(view) {
+	function setRosterPaintAll(paintAll) {
+		gridState.paintAll = paintAll === true;
+		paintListWindow({ force: true });
+		paintGridWindow({ force: true });
+	}
+
+	function wireRosterVirtualization() {
+		const gridScroller = document.getElementById('dc-roster-grid-scroller');
+		const listScroller = document.getElementById('dc-assignments-table-wrap');
+		let gridRaf = 0;
+		let listRaf = 0;
+		if (gridScroller) {
+			gridScroller.addEventListener('scroll', () => {
+				if (gridRaf) {
+					return;
+				}
+				gridRaf = window.requestAnimationFrame(() => {
+					gridRaf = 0;
+					paintGridWindow({ force: false });
+				});
+			}, { passive: true });
+		}
+		if (listScroller) {
+			listScroller.addEventListener('scroll', () => {
+				if (listRaf) {
+					return;
+				}
+				listRaf = window.requestAnimationFrame(() => {
+					listRaf = 0;
+					paintListWindow({ force: false });
+				});
+			}, { passive: true });
+		}
+		const resize = () => {
+			if (gridState.view === 'grid') {
+				paintGridWindow({ force: true });
+			} else {
+				paintListWindow({ force: true });
+			}
+		};
+		if (typeof ResizeObserver === 'function') {
+			const ro = new ResizeObserver(resize);
+			if (gridScroller) {
+				ro.observe(gridScroller);
+			}
+			if (listScroller) {
+				ro.observe(listScroller);
+			}
+		} else {
+			window.addEventListener('resize', resize);
+		}
+		window.addEventListener('beforeprint', () => setRosterPaintAll(true));
+		window.addEventListener('afterprint', () => setRosterPaintAll(false));
+		if (typeof window.matchMedia === 'function') {
+			try {
+				const printMq = window.matchMedia('print');
+				const onPrintMq = (ev) => setRosterPaintAll(!!ev.matches);
+				if (typeof printMq.addEventListener === 'function') {
+					printMq.addEventListener('change', onPrintMq);
+				} else if (typeof printMq.addListener === 'function') {
+					printMq.addListener(onPrintMq);
+				}
+			} catch (_) {
+				/* print media query is not available in every test/jsdom shim */
+			}
+		}
+	}
+
+	function applyRosterViewChrome(view) {
 		gridState.view = view === 'list' ? 'list' : 'grid';
 		const gridWrap = document.getElementById('dc-roster-grid-wrap');
-		const listWrap = document.getElementById('dc-assignments-table-wrap');
+		const listPanel = document.getElementById('dc-roster-list-panel');
 		const gridBtn = document.getElementById('dc-roster-view-grid');
 		const listBtn = document.getElementById('dc-roster-view-list');
 		if (gridWrap) {
 			gridWrap.hidden = gridState.view !== 'grid';
 		}
-		if (listWrap) {
-			listWrap.hidden = gridState.view !== 'list';
+		if (listPanel) {
+			listPanel.hidden = gridState.view !== 'list';
 		}
 		if (gridBtn) {
 			gridBtn.setAttribute('aria-pressed', gridState.view === 'grid' ? 'true' : 'false');
@@ -1028,6 +1587,17 @@
 		if (listBtn) {
 			listBtn.setAttribute('aria-pressed', gridState.view === 'list' ? 'true' : 'false');
 		}
+	}
+
+	function setRosterView(view) {
+		applyRosterViewChrome(view);
+		window.requestAnimationFrame(() => {
+			if (gridState.view === 'list') {
+				paintListWindow({ force: true });
+			} else {
+				paintGridWindow({ force: true });
+			}
+		});
 	}
 
 	async function applyBulkFromTemplate() {
@@ -1046,7 +1616,17 @@
 		let ok = 0;
 		let fail = 0;
 		for (const key of Array.from(gridState.selected)) {
-			const [employeeId, dutyDate] = key.split('|');
+			const sep = key.indexOf('|');
+			if (sep < 1) {
+				fail += 1;
+				continue;
+			}
+			const employeeId = Number(key.slice(0, sep));
+			const dutyDate = key.slice(sep + 1);
+			if (!Number.isInteger(employeeId) || employeeId < 1 || !dutyDate) {
+				fail += 1;
+				continue;
+			}
 			const locationId = Number(tpl.locationId || 0);
 			if (!locationId) {
 				fail += 1;
@@ -1479,8 +2059,7 @@
 		if (idHidden) {
 			idHidden.value = '';
 		}
-		await refreshPlanningDefaultFromServer();
-		await loadTemplates();
+		await ensureAssignmentModalPrereqs();
 		prepareAssignmentFormForModal();
 		clearAssignmentsSectionSuccess();
 		const panel = document.getElementById('dc-assignment-form-panel');
@@ -1535,8 +2114,7 @@
 		}
 		state.editingAssignmentId = Number(assignment.id);
 		state.editingAssignmentVersion = Number(assignment.version ?? 0);
-		await refreshPlanningDefaultFromServer();
-		await loadTemplates();
+		await ensureAssignmentModalPrereqs();
 		prepareAssignmentFormForModal();
 		const idHidden = document.getElementById('dc-assignment-id');
 		if (idHidden) {
@@ -1622,13 +2200,39 @@
 		}
 	}
 
-	async function loadTemplates() {
-		try {
-			const response = await Api.get('/apps/dutycheck/api/templates', {});
-			state.templates = Array.isArray(response?.data) ? response.data : [];
-		} catch (_) {
-			state.templates = [];
+	let templatesInflight = null;
+
+	async function ensureAssignmentModalPrereqs() {
+		const jobs = [loadTemplates()];
+		if (state.planningDefaultsFresh !== true) {
+			jobs.push(refreshPlanningDefaultFromServer());
 		}
+		await Promise.all(jobs);
+	}
+
+	async function loadTemplates() {
+		if (state.templatesLoaded) {
+			fillTemplateSelect();
+			return;
+		}
+		if (templatesInflight) {
+			await templatesInflight;
+			fillTemplateSelect();
+			return;
+		}
+		templatesInflight = (async () => {
+			try {
+				const response = await Api.get('/apps/dutycheck/api/templates', {});
+				state.templates = Array.isArray(response?.data) ? response.data : [];
+				state.templatesLoaded = true;
+			} catch (_) {
+				state.templates = [];
+				state.templatesLoaded = false;
+			} finally {
+				templatesInflight = null;
+			}
+		})();
+		await templatesInflight;
 		fillTemplateSelect();
 	}
 
@@ -1670,7 +2274,7 @@
 		refreshAssignmentFormEligibility();
 	}
 
-	async function refreshAcknowledgeStats(periodId) {
+	function refreshAcknowledgeStats(periodId) {
 		const el = document.getElementById('dc-roster-ack-stats');
 		if (!el) {
 			return;
@@ -1688,20 +2292,24 @@
 			el.textContent = '';
 			return;
 		}
-		try {
-			const response = await Api.get(`/apps/dutycheck/api/periods/${id}/acknowledge-stats`, {});
-			const data = response?.data || {};
-			const total = Number(data.total || 0);
-			const acked = Number(data.acknowledged || 0);
-			const pct = Number(data.percent || 0);
-			el.hidden = false;
-			el.textContent = t('dutycheck', 'Staff seen: {acked}/{total} ({pct}%)')
-				.replace('{acked}', String(acked))
-				.replace('{total}', String(total))
-				.replace('{pct}', String(pct));
-		} catch (_) {
-			el.hidden = true;
+		const rows = Array.isArray(state.assignments) ? state.assignments : [];
+		let total = 0;
+		let acked = 0;
+		for (const row of rows) {
+			if (String(row?.status || '').toLowerCase() === 'cancelled') {
+				continue;
+			}
+			total += 1;
+			if (row?.acknowledged || row?.acknowledgedAt) {
+				acked += 1;
+			}
 		}
+		const pct = total === 0 ? 0 : Math.round((acked / total) * 1000) / 10;
+		el.hidden = false;
+		el.textContent = t('dutycheck', 'Staff seen: {acked}/{total} ({pct}%)')
+			.replace('{acked}', String(acked))
+			.replace('{total}', String(total))
+			.replace('{pct}', String(pct));
 	}
 
 	function fillCopySourceSelect(selectedPeriodId) {
@@ -1848,6 +2456,7 @@
 		state.lastRosterData = data;
 		if (data.defaultBreakMinutes !== undefined && data.defaultBreakMinutes !== null) {
 			state.defaultBreakMinutes = clampBreakMinutes(data.defaultBreakMinutes);
+			state.planningDefaultsFresh = true;
 		}
 		state.periods = data.periods || [];
 		state.employees = data.employees || [];
@@ -2081,6 +2690,10 @@
 				return t('dutycheck', 'This exact assignment already exists. Reload the page to see the latest roster.');
 			case 'STALE_VERSION':
 				return t('dutycheck', 'Someone else changed this assignment. Reload the roster and try again.');
+			case 'CONFLICT_ACK_STALE':
+				return t('dutycheck', 'Someone else already confirmed this exception. Reload to see the latest checks.');
+			case 'COMPANY_MEMBERSHIP_REQUIRED':
+				return t('dutycheck', 'Your account is not on a company yet. Ask an administrator to add you under Settings → Companies.');
 			case 'EXPECTED_VERSION_REQUIRED':
 				return t('dutycheck', 'This edit is out of date. Reload the roster and open the assignment again.');
 			case 'ABSENCE_CONFLICT':
@@ -2306,26 +2919,32 @@
 		wireAdminExportGuards();
 		wireMarketplace();
 		setRosterView('grid');
+		wireRosterVirtualization();
 		document.getElementById('dc-roster-view-grid')?.addEventListener('click', () => setRosterView('grid'));
 		document.getElementById('dc-roster-view-list')?.addEventListener('click', () => setRosterView('list'));
 		document.getElementById('dc-roster-bulk-clear')?.addEventListener('click', () => {
 			gridState.selected.clear();
-			renderRosterGrid(state.assignments || []);
+			syncVisibleGridChrome();
+			updateBulkBar();
 		});
 		document.getElementById('dc-roster-bulk-apply')?.addEventListener('click', () => {
 			void applyBulkFromTemplate();
 		});
-		await loadRoster(selectedPeriodIdFromUrl());
-		await loadPendingSwaps();
-		await loadPendingOpenClaims();
+		await Promise.all([
+			loadRoster(selectedPeriodIdFromUrl()),
+			loadPendingSwaps(),
+			loadPendingOpenClaims(),
+		]);
 
 		const switcher = document.getElementById('dc-roster-period-switcher');
 		switcher?.addEventListener('change', async () => {
 			clearAssignmentsSectionSuccess();
 			const periodId = Number(switcher.value);
-			await loadRoster(Number.isInteger(periodId) && periodId > 0 ? periodId : null);
-			await loadPendingSwaps();
-			await loadPendingOpenClaims();
+			await Promise.all([
+				loadRoster(Number.isInteger(periodId) && periodId > 0 ? periodId : null),
+				loadPendingSwaps(),
+				loadPendingOpenClaims(),
+			]);
 		});
 
 		document.getElementById('dc-roster-assignments-section')?.addEventListener('click', (event) => {

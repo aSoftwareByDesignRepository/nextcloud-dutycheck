@@ -155,10 +155,14 @@ class RosterServiceConflictHelpersTest extends TestCase
 		$method = new ReflectionMethod(RosterService::class, 'pairOverlapAndRestConflicts');
 		$method->setAccessible(true);
 		$dedup = [];
-		$result = $method->invoke($service, [
-			['id' => 1, 'employeeId' => 9, 'dutyDate' => '2026-08-14', 'startTime' => '08:00', 'endTime' => '16:00'],
-			['id' => 2, 'employeeId' => 9, 'dutyDate' => '2026-08-14', 'startTime' => '12:00', 'endTime' => '20:00'],
-		], ['minRestMinutes' => 660], $dedup);
+		$result = $method->invokeArgs($service, [
+			[
+				['id' => 1, 'employeeId' => 9, 'dutyDate' => '2026-08-14', 'startTime' => '08:00', 'endTime' => '16:00'],
+				['id' => 2, 'employeeId' => 9, 'dutyDate' => '2026-08-14', 'startTime' => '12:00', 'endTime' => '20:00'],
+			],
+			['minRestMinutes' => 660],
+			&$dedup,
+		]);
 		self::assertCount(1, $result);
 		self::assertSame('double_booking', $result[0]['type']);
 		self::assertSame('hard', $result[0]['severity']);
@@ -172,10 +176,14 @@ class RosterServiceConflictHelpersTest extends TestCase
 		$method = new ReflectionMethod(RosterService::class, 'pairOverlapAndRestConflicts');
 		$method->setAccessible(true);
 		$dedup = [];
-		$result = $method->invoke($service, [
-			['id' => 10, 'employeeId' => 4, 'dutyDate' => '2026-08-14', 'startTime' => '08:00', 'endTime' => '16:00'],
-			['id' => 11, 'employeeId' => 4, 'dutyDate' => '2026-08-15', 'startTime' => '00:00', 'endTime' => '08:00'],
-		], ['minRestMinutes' => 660], $dedup);
+		$result = $method->invokeArgs($service, [
+			[
+				['id' => 10, 'employeeId' => 4, 'dutyDate' => '2026-08-14', 'startTime' => '08:00', 'endTime' => '16:00'],
+				['id' => 11, 'employeeId' => 4, 'dutyDate' => '2026-08-15', 'startTime' => '00:00', 'endTime' => '08:00'],
+			],
+			['minRestMinutes' => 660],
+			&$dedup,
+		]);
 		self::assertCount(1, $result);
 		self::assertSame('rest_time_violation', $result[0]['type']);
 		self::assertSame('soft', $result[0]['severity']);
@@ -188,10 +196,14 @@ class RosterServiceConflictHelpersTest extends TestCase
 		$method = new ReflectionMethod(RosterService::class, 'pairOverlapAndRestConflicts');
 		$method->setAccessible(true);
 		$dedup = ['double_booking:1:2' => true];
-		$result = $method->invoke($service, [
-			['id' => 1, 'employeeId' => 9, 'dutyDate' => '2026-08-14', 'startTime' => '08:00', 'endTime' => '16:00'],
-			['id' => 2, 'employeeId' => 9, 'dutyDate' => '2026-08-14', 'startTime' => '12:00', 'endTime' => '20:00'],
-		], ['minRestMinutes' => 660], $dedup);
+		$result = $method->invokeArgs($service, [
+			[
+				['id' => 1, 'employeeId' => 9, 'dutyDate' => '2026-08-14', 'startTime' => '08:00', 'endTime' => '16:00'],
+				['id' => 2, 'employeeId' => 9, 'dutyDate' => '2026-08-14', 'startTime' => '12:00', 'endTime' => '20:00'],
+			],
+			['minRestMinutes' => 660],
+			&$dedup,
+		]);
 		self::assertSame([], $result);
 	}
 

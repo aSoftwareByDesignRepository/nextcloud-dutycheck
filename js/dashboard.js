@@ -197,55 +197,91 @@
 		]));
 	}
 
+	function readSsrSummary() {
+		const root = document.getElementById('app-content');
+		const raw = root?.getAttribute('data-dc-dashboard-summary') || '';
+		if (raw === '') {
+			return null;
+		}
+		try {
+			const parsed = JSON.parse(raw);
+			return parsed && typeof parsed === 'object' ? parsed : null;
+		} catch {
+			return null;
+		}
+	}
+
+	function applySummaryData(data) {
+		const payload = data && typeof data === 'object' ? data : {};
+		setText('dc-metric-open-periods', payload.openPeriods);
+		setText('dc-metric-published-periods', payload.publishedPeriods);
+		setText('dc-metric-employees', payload.activeEmployees);
+		setText('dc-metric-assignments', payload.assignments);
+		const denied = Boolean(payload.companyAccessDenied);
+		const banner = document.getElementById('dc-company-access-banner');
+		if (banner) {
+			banner.hidden = !denied;
+		}
+		if (denied) {
+			const setup = document.getElementById('dc-dashboard-setup');
+			if (setup) {
+				setup.hidden = true;
+			}
+			setQuickstartSuppressed(true);
+			renderPulseFromSummary({ hasPeriods: false });
+			return;
+		}
+		renderSetupProgress(payload.setup || {});
+		if (payload.setup && payload.setup.schemaReady === false) {
+			Msg.announce(
+				t('dutycheck', 'DutyCheck database setup is incomplete. Ask an administrator to run the server upgrade.'),
+				'error',
+			);
+		}
+		renderPulseFromSummary(payload.pulse);
+	}
+
 	async function loadSummary() {
 		try {
 			const summary = await Api.get('/apps/dutycheck/api/dashboard');
-			const data = summary?.data || {};
-			setText('dc-metric-open-periods', data.openPeriods);
-			setText('dc-metric-published-periods', data.publishedPeriods);
-			setText('dc-metric-employees', data.activeEmployees);
-			setText('dc-metric-assignments', data.assignments);
-			renderSetupProgress(data.setup || {});
-			if (data.setup && data.setup.schemaReady === false) {
-				Msg.announce(
-					t('dutycheck', 'DutyCheck database setup is incomplete. Ask an administrator to run the server upgrade.'),
-					'error',
-				);
-			}
+			applySummaryData(summary?.data || {});
 		} catch (err) {
 			Msg.handleApiError(err);
 			setMetricsUnavailable();
+			renderPulseLoadError();
 		}
 	}
 
-	async function loadPulse() {
-		try {
-			const list = await Api.get('/apps/dutycheck/api/periods');
-			const periods = list?.data?.periods || [];
-			if (!periods.length) {
-				renderConflictPulse({ periods: [] });
-				return;
-			}
-			const selected = periods.find((p) => String(p.status) === 'open') || periods[0];
-			const ready = await Api.get(`/apps/dutycheck/api/periods/${Number(selected.id)}/publish-readiness`);
-			renderConflictPulse({ periods, readiness: ready?.data || {} });
-		} catch (err) {
-			Msg.handleApiError(err);
-			const root = document.getElementById('dc-dashboard-conflict-pulse');
-			if (root) {
-				root.classList.remove('dc-loading');
-				root.removeAttribute('aria-busy');
-				root.replaceChildren(create('div', { class: 'dc-callout dc-callout--warning' }, [
-					create('p', { text: t('dutycheck', 'Could not load planning checks. Reload the page to retry.') }),
-				]));
-			}
+	function renderPulseFromSummary(pulse) {
+		if (!pulse || pulse.hasPeriods !== true) {
+			renderConflictPulse({ periods: [] });
+			return;
 		}
+		renderConflictPulse({
+			periods: [{ id: pulse.periodId, status: 'open' }],
+			readiness: pulse.readiness || {},
+		});
+	}
+
+	function renderPulseLoadError() {
+		const root = document.getElementById('dc-dashboard-conflict-pulse');
+		if (!root) {
+			return;
+		}
+		root.classList.remove('dc-loading');
+		root.removeAttribute('aria-busy');
+		root.replaceChildren(create('div', { class: 'dc-callout dc-callout--warning' }, [
+			create('p', { text: t('dutycheck', 'Could not load planning checks. Reload the page to retry.') }),
+		]));
 	}
 
 	function loadDashboard() {
-		// Independent requests rendering disjoint DOM regions; run in parallel.
-		// Each helper traps its own failures, so this can never reject.
-		return Promise.all([loadSummary(), loadPulse()]);
+		const ssr = readSsrSummary();
+		if (ssr) {
+			applySummaryData(ssr);
+			return Promise.resolve();
+		}
+		return loadSummary();
 	}
 
 	document.addEventListener('DOMContentLoaded', () => {

@@ -35,6 +35,7 @@ trait RosterServiceMutationMockTrait
 	 *     selectOnce?: bool,
 	 *     maxResultsOnce?: int,
 	 *     statementOnce?: bool,
+	 *     statementReturn?: int,
 	 *     andWhereExactly?: int,
 	 *     composite?: ICompositeExpression
 	 * } $config
@@ -88,7 +89,8 @@ trait RosterServiceMutationMockTrait
 
 		foreach ([
 			'from', 'where', 'orWhere', 'innerJoin', 'leftJoin', 'rightJoin',
-			'orderBy', 'addOrderBy', 'groupBy', 'addGroupBy', 'setFirstResult',
+			'orderBy', 'addOrderBy', 'groupBy', 'addGroupBy', 'addSelect',
+			'selectAlias', 'setFirstResult',
 			'update', 'insert', 'delete', 'set',
 		] as $method) {
 			$qb->method($method)->willReturnSelf();
@@ -108,10 +110,11 @@ trait RosterServiceMutationMockTrait
 		$result->method('fetchAll')->willReturn($config['fetchAll'] ?? []);
 		$qb->method('executeQuery')->willReturn($result);
 
+		$affected = $config['statementReturn'] ?? 1;
 		if ($config['statementOnce'] ?? false) {
-			$qb->expects(self::once())->method('executeStatement')->willReturn(1);
+			$qb->expects(self::once())->method('executeStatement')->willReturn($affected);
 		} else {
-			$qb->method('executeStatement')->willReturn(1);
+			$qb->method('executeStatement')->willReturn($affected);
 		}
 
 		return $qb;

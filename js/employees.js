@@ -155,74 +155,119 @@
 		}
 	}
 
+	/** @type {Array<object>} */
+	let catalogRows = [];
+	let tablePainter = null;
+
+	function employeeEmptyRow() {
+		const tr = create('tr');
+		const td = create('td', { text: t('dutycheck', 'No employees yet. Add the first employee above.') });
+		td.colSpan = 4;
+		tr.appendChild(td);
+		return tr;
+	}
+
+	function buildEmployeeRow(row) {
+		const tr = create('tr');
+		const nameTd = create('td', { text: String(row.displayName || '—') });
+		nameTd.dataset.cell = t('dutycheck', 'Name');
+		tr.appendChild(nameTd);
+
+		const linkedTd = create('td', { text: userDisplay(row.linkedUserId || '') });
+		linkedTd.dataset.cell = t('dutycheck', 'Linked user');
+		tr.appendChild(linkedTd);
+
+		const statusTd = create('td');
+		statusTd.dataset.cell = t('dutycheck', 'Status');
+		statusTd.appendChild(create('span', {
+			class: 'dc-status-badge dc-status-badge--' + (row.active ? 'published' : 'closed'),
+			text: row.active ? t('dutycheck', 'Active') : t('dutycheck', 'Inactive'),
+		}));
+		tr.appendChild(statusTd);
+
+		const actionsTd = create('td', { class: 'dc-table__col--actions' });
+		actionsTd.dataset.cell = t('dutycheck', 'Actions');
+		const wrap = create('div', { class: 'dc-row-actions' });
+		const editBtn = create('button', {
+			type: 'button',
+			class: 'button',
+			text: t('dutycheck', 'Edit'),
+		});
+		editBtn.addEventListener('click', () => hydrateForm(row));
+		wrap.appendChild(editBtn);
+
+		const toggleBtn = create('button', {
+			type: 'button',
+			class: 'button',
+			text: row.active ? t('dutycheck', 'Deactivate') : t('dutycheck', 'Activate'),
+		});
+		toggleBtn.addEventListener('click', async () => {
+			const ok = row.active ? await C.confirmDialog({
+				title: t('dutycheck', 'Deactivate employee?'),
+				body: t('dutycheck', 'They will not appear in the assignment form. Existing assignments are kept.'),
+				confirmLabel: t('dutycheck', 'Deactivate'),
+				danger: true,
+			}) : true;
+			if (!ok) return;
+			try {
+				await save({
+					displayName: row.displayName,
+					linkedUserId: row.linkedUserId || '',
+					active: row.active ? '0' : '1',
+				}, row.id);
+			} catch (err) {
+				Msg.handleApiError(err);
+			}
+		});
+		wrap.appendChild(toggleBtn);
+		actionsTd.appendChild(wrap);
+		tr.appendChild(actionsTd);
+		return tr;
+	}
+
+	function ensureEmployeeWindow() {
+		if (tablePainter) {
+			return tablePainter;
+		}
+		const WT = window.DutyCheckWindowedTable;
+		const tbody = document.getElementById('dc-employees-table-body');
+		if (!WT || typeof WT.bind !== 'function' || !tbody) {
+			return null;
+		}
+		tablePainter = WT.bind({
+			scroller: document.getElementById('dc-employees-table-wrap'),
+			tbody,
+			statusEl: document.getElementById('dc-employees-table-status'),
+			createElement: create,
+			colSpan: 4,
+			getRows: () => catalogRows,
+			renderRow: buildEmployeeRow,
+			emptyRow: employeeEmptyRow,
+			statusAll: (total) => t('dutycheck', 'All {total} rows are on screen.').replace('{total}', String(total)),
+			statusWindow: (from, to, total) => t('dutycheck', 'Showing rows {from}–{to} of {total}. Scroll to see the rest.')
+				.replace('{from}', String(from))
+				.replace('{to}', String(to))
+				.replace('{total}', String(total)),
+		});
+		return tablePainter;
+	}
+
 	function renderRows(rows) {
+		catalogRows = Array.isArray(rows) ? rows : [];
+		const painter = ensureEmployeeWindow();
+		if (painter) {
+			painter.paint(true);
+			return;
+		}
 		const tbody = document.getElementById('dc-employees-table-body');
 		if (!tbody) return;
 		tbody.replaceChildren();
-		if (!rows.length) {
-			const tr = create('tr');
-			const td = create('td', { text: t('dutycheck', 'No employees yet. Add the first employee above.') });
-			td.colSpan = 4;
-			tr.appendChild(td);
-			tbody.appendChild(tr);
+		if (!catalogRows.length) {
+			tbody.appendChild(employeeEmptyRow());
 			return;
 		}
-		for (const row of rows) {
-			const tr = create('tr');
-			const nameTd = create('td', { text: String(row.displayName || '—') });
-			nameTd.dataset.cell = t('dutycheck', 'Name');
-			tr.appendChild(nameTd);
-
-			const linkedTd = create('td', { text: userDisplay(row.linkedUserId || '') });
-			linkedTd.dataset.cell = t('dutycheck', 'Linked user');
-			tr.appendChild(linkedTd);
-
-			const statusTd = create('td');
-			statusTd.dataset.cell = t('dutycheck', 'Status');
-			statusTd.appendChild(create('span', {
-				class: 'dc-status-badge dc-status-badge--' + (row.active ? 'published' : 'closed'),
-				text: row.active ? t('dutycheck', 'Active') : t('dutycheck', 'Inactive'),
-			}));
-			tr.appendChild(statusTd);
-
-			const actionsTd = create('td', { class: 'dc-table__col--actions' });
-			actionsTd.dataset.cell = t('dutycheck', 'Actions');
-			const wrap = create('div', { class: 'dc-row-actions' });
-			const editBtn = create('button', {
-				type: 'button',
-				class: 'button',
-				text: t('dutycheck', 'Edit'),
-			});
-			editBtn.addEventListener('click', () => hydrateForm(row));
-			wrap.appendChild(editBtn);
-
-			const toggleBtn = create('button', {
-				type: 'button',
-				class: 'button',
-				text: row.active ? t('dutycheck', 'Deactivate') : t('dutycheck', 'Activate'),
-			});
-			toggleBtn.addEventListener('click', async () => {
-				const ok = row.active ? await C.confirmDialog({
-					title: t('dutycheck', 'Deactivate employee?'),
-					body: t('dutycheck', 'They will not appear in the assignment form. Existing assignments are kept.'),
-					confirmLabel: t('dutycheck', 'Deactivate'),
-					danger: true,
-				}) : true;
-				if (!ok) return;
-				try {
-					await save({
-						displayName: row.displayName,
-						linkedUserId: row.linkedUserId || '',
-						active: row.active ? '0' : '1',
-					}, row.id);
-				} catch (err) {
-					Msg.handleApiError(err);
-				}
-			});
-			wrap.appendChild(toggleBtn);
-			actionsTd.appendChild(wrap);
-			tr.appendChild(actionsTd);
-			tbody.appendChild(tr);
+		for (const row of catalogRows) {
+			tbody.appendChild(buildEmployeeRow(row));
 		}
 	}
 

@@ -23,6 +23,13 @@ final class DashboardTemplateRenderTest extends TestCase
 		require_once dirname(__DIR__, 2) . '/Unit/Support/template_stubs.php';
 	}
 
+	public function testTemplateStubsDefinePrintUnescapedForIconCatalog(): void
+	{
+		$stubs = (string) file_get_contents(dirname(__DIR__, 2) . '/Unit/Support/template_stubs.php');
+		self::assertStringContainsString('function print_unescaped', $stubs);
+		self::assertTrue(\function_exists('print_unescaped'));
+	}
+
 	/**
 	 * @param array<string, mixed> $overrides
 	 */
@@ -126,6 +133,12 @@ final class DashboardTemplateRenderTest extends TestCase
 			$html,
 			'Schema alert must start hidden',
 		);
+		self::assertStringContainsString('id="dc-company-access-banner"', $html);
+		self::assertMatchesRegularExpression(
+			'/<aside[^>]*id="dc-company-access-banner"[^>]*\shidden\b/',
+			$html,
+			'Company-access banner must start hidden unless the server set companyAccessDenied',
+		);
 
 		foreach ([
 			'dc-metric-open-periods',
@@ -193,6 +206,38 @@ final class DashboardTemplateRenderTest extends TestCase
 		self::assertMatchesRegularExpression('/data-dc-urls="[^"]*"/', $html);
 	}
 
+	public function testCompanyAccessBannerEscapesSettingsUrlAndIsAStatusRegion(): void
+	{
+		$html = $this->renderDashboard([
+			'companyAccessDenied' => true,
+			'isAppAdmin' => true,
+			'urls' => [
+				'dashboard' => '/apps/dutycheck/dashboard',
+				'roster' => '/apps/dutycheck/roster',
+				'periods' => '/apps/dutycheck/periods',
+				'absences' => '/apps/dutycheck/absences',
+				'employees' => '/apps/dutycheck/employees',
+				'locations' => '/apps/dutycheck/locations',
+				'settings' => '/apps/dutycheck/settings',
+				'companiesSettings' => '"><script>alert(7)</script>',
+				'myRoster' => '/apps/dutycheck/my-roster',
+				'myAbsences' => '/apps/dutycheck/my-absences',
+			],
+		]);
+
+		self::assertDoesNotMatchRegularExpression(
+			'/<aside[^>]*id="dc-company-access-banner"[^>]*\shidden\b/',
+			$html,
+		);
+		self::assertMatchesRegularExpression(
+			'/<aside[^>]*id="dc-company-access-banner"[^>]*role="status"/',
+			$html,
+		);
+		self::assertStringNotContainsString('<script>alert(7)</script>', $html);
+		self::assertStringContainsString('No company assigned yet', $html);
+		self::assertStringContainsString('Open Companies', $html);
+	}
+
 	public function testRoleBadgeToneMapping(): void
 	{
 		self::assertStringContainsString('dc-badge--critical', $this->renderDashboard(['role' => 'admin']));
@@ -217,6 +262,40 @@ final class DashboardTemplateRenderTest extends TestCase
 		// Checklist buttons degrade to '#', never to a PHP notice or raw null.
 		self::assertStringContainsString('href="#"', $html);
 		self::assertStringNotContainsString('href=""', $html);
+	}
+
+	public function testSsrSummaryPaintsMetricTiles(): void
+	{
+		$html = $this->renderDashboard([
+			'dashboardSummary' => [
+				'openPeriods' => 4,
+				'publishedPeriods' => 2,
+				'activeEmployees' => 11,
+				'assignments' => 40,
+			],
+		]);
+		self::assertMatchesRegularExpression('/id="dc-metric-open-periods"[^>]*>4</', $html);
+		self::assertMatchesRegularExpression('/id="dc-metric-published-periods"[^>]*>2</', $html);
+		self::assertMatchesRegularExpression('/id="dc-metric-employees"[^>]*>11</', $html);
+		self::assertMatchesRegularExpression('/id="dc-metric-assignments"[^>]*>40</', $html);
+	}
+
+	public function testDashboardSummaryJsonIsAttributeEscaped(): void
+	{
+		$html = $this->renderDashboard([
+			'dashboardSummaryJson' => htmlspecialchars(
+				json_encode(['x' => '"><img src=x onerror=alert(1)>'], JSON_THROW_ON_ERROR),
+				ENT_QUOTES,
+				'UTF-8',
+			),
+		]);
+		self::assertStringNotContainsString('<img src=x', $html);
+		self::assertMatchesRegularExpression('/data-dc-dashboard-summary="/', $html);
+		self::assertMatchesRegularExpression(
+			'/data-dc-dashboard-summary="[^"]*&lt;img/',
+			$html,
+			'Broken-out markup must stay entity-escaped inside the data attribute',
+		);
 	}
 
 	public function testAppShellKeepsLanguageDistinctFromLocale(): void

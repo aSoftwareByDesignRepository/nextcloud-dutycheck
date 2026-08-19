@@ -13,13 +13,25 @@ use OCP\IDBConnection;
  *
  * Legacy (one Default company): companyIdsForUser() returns [] → unrestricted.
  * Multi-tenant: lists/mutations are scoped to membership; creates stamp company_id.
- * Users with no membership rows currently fall back to Default company (id=1) as a
- * transitional catch-all until explicit membership is assigned — not a deny-all.
+ * Multi-company with no membership rows is deny-all (empty list + restrictQuery
+ * matches no company_id). Never fall back to Default company (id=1).
  */
 class CompanyService
 {
 	public const DEFAULT_COMPANY_ID = 1;
 	public const DEFAULT_NAME = 'Default';
+
+	/** Impossible company_id used to fail-closed IN/eq filters (ids start at 1). */
+	public const DENY_ALL_COMPANY_ID = 0;
+
+	private ?bool $schemaReadyCache = null;
+
+	private ?bool $secondarySchemaReadyCache = null;
+
+	private ?bool $multiCompanyActiveCache = null;
+
+	/** @var array<string, list<int>> */
+	private array $companyIdsByUser = [];
 
 	public function __construct(
 		private readonly IDBConnection $db,
@@ -28,26 +40,34 @@ class CompanyService
 
 	public function schemaReady(): bool
 	{
-		return $this->db->tableExists('dc_companies')
+		if ($this->schemaReadyCache !== null) {
+			return $this->schemaReadyCache;
+		}
+		$this->schemaReadyCache = SchemaProbe::tableExists($this->db, 'dc_companies')
 			&& SchemaProbe::hasColumn($this->db, 'dc_employees', 'company_id')
 			&& SchemaProbe::hasColumn($this->db, 'dc_locations', 'company_id')
 			&& SchemaProbe::hasColumn($this->db, 'dc_periods', 'company_id');
+		return $this->schemaReadyCache;
 	}
 
 	/** Secondary catalogs (templates/quals/marketplace/absences) after Version1013. */
 	public function secondarySchemaReady(): bool
 	{
-		return $this->schemaReady()
+		if ($this->secondarySchemaReadyCache !== null) {
+			return $this->secondarySchemaReadyCache;
+		}
+		$this->secondarySchemaReadyCache = $this->schemaReady()
 			&& SchemaProbe::hasColumn($this->db, 'dc_shift_templates', 'company_id')
 			&& SchemaProbe::hasColumn($this->db, 'dc_qualifications', 'company_id')
 			&& SchemaProbe::hasColumn($this->db, 'dc_open_shifts', 'company_id')
 			&& SchemaProbe::hasColumn($this->db, 'dc_swap_requests', 'company_id')
 			&& SchemaProbe::hasColumn($this->db, 'dc_absences', 'company_id');
+		return $this->secondarySchemaReadyCache;
 	}
 
 	public function ensureDefaultCompany(): int
 	{
-		if (!$this->db->tableExists('dc_companies')) {
+		if (!SchemaProbe::tableExists($this->db, 'dc_companies')) {
 			return self::DEFAULT_COMPANY_ID;
 		}
 		$qb = $this->db->getQueryBuilder();
@@ -78,7 +98,7 @@ class CompanyService
 	public function listCompanies(): array
 	{
 		$this->ensureDefaultCompany();
-		if (!$this->db->tableExists('dc_companies')) {
+		if (!SchemaProbe::tableExists($this->db, 'dc_companies')) {
 			return [['id' => self::DEFAULT_COMPANY_ID, 'name' => self::DEFAULT_NAME, 'active' => true]];
 		}
 		$qb = $this->db->getQueryBuilder();
@@ -93,53 +113,76 @@ class CompanyService
 
 	public function isMultiCompanyActive(): bool
 	{
+		if ($this->multiCompanyActiveCache !== null) {
+			return $this->multiCompanyActiveCache;
+		}
 		if (!$this->schemaReady()) {
-			return false;
+			return $this->multiCompanyActiveCache = false;
 		}
 		$this->ensureDefaultCompany();
 		$qb = $this->db->getQueryBuilder();
 		$qb->select($qb->createFunction('COUNT(*)'))
 			->from('dc_companies')
 			->where($qb->expr()->eq('active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)));
-		return (int) $qb->executeQuery()->fetchOne() > 1;
+		return $this->multiCompanyActiveCache = (int) $qb->executeQuery()->fetchOne() > 1;
 	}
 
 	/**
-	 * @return list<int> empty = unrestricted legacy (single company)
+	 * @return list<int> empty = unrestricted legacy when multi-company is off;
+	 *                   empty = deny-all when multi-company is on
 	 */
 	public function companyIdsForUser(string $userId): array
 	{
 		if (!$this->isMultiCompanyActive()) {
 			return [];
 		}
-		if (!$this->db->tableExists('dc_company_members')) {
-			return [self::DEFAULT_COMPANY_ID];
+		if (array_key_exists($userId, $this->companyIdsByUser)) {
+			return $this->companyIdsByUser[$userId];
+		}
+		if (!SchemaProbe::tableExists($this->db, 'dc_company_members')) {
+			return $this->companyIdsByUser[$userId] = [];
 		}
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('company_id')->from('dc_company_members')
-			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)));
+			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
+			->orderBy('company_id', 'ASC');
 		$rows = $qb->executeQuery()->fetchAll();
 		$ids = array_values(array_unique(array_map(static fn (array $r): int => (int) $r['company_id'], $rows)));
-		return $ids !== [] ? $ids : [self::DEFAULT_COMPANY_ID];
+		return $this->companyIdsByUser[$userId] = $ids;
+	}
+
+	/**
+	 * Legacy single-company (or schema-not-ready) is always allowed.
+	 * Multi-company requires at least one membership row.
+	 */
+	public function hasCompanyMembership(string $userId): bool
+	{
+		if (!$this->isMultiCompanyActive()) {
+			return true;
+		}
+		return $this->companyIdsForUser($userId) !== [];
 	}
 
 	/** Company id stamped on new employees/locations/periods. */
 	public function writeCompanyIdFor(string $userId): int
 	{
+		if (!$this->isMultiCompanyActive()) {
+			return self::DEFAULT_COMPANY_ID;
+		}
 		$allowed = $this->companyIdsForUser($userId);
 		if ($allowed === []) {
-			return self::DEFAULT_COMPANY_ID;
+			throw new \InvalidArgumentException('COMPANY_MEMBERSHIP_REQUIRED');
 		}
 		return $allowed[0];
 	}
 
 	public function assertCanAccessCompany(string $userId, int $companyId): void
 	{
-		$allowed = $this->companyIdsForUser($userId);
-		if ($allowed === []) {
+		if (!$this->isMultiCompanyActive()) {
 			return;
 		}
-		if (!in_array($companyId, $allowed, true)) {
+		$allowed = $this->companyIdsForUser($userId);
+		if ($allowed === [] || !in_array($companyId, $allowed, true)) {
 			throw new \InvalidArgumentException('FORBIDDEN');
 		}
 	}
@@ -147,11 +190,20 @@ class CompanyService
 	/**
 	 * Restrict a query to the caller's companies when multi-tenant is active.
 	 * $column is e.g. 'company_id' or 'p.company_id'.
+	 *
+	 * Empty membership is deny-all (never match), not unrestricted.
 	 */
 	public function restrictQuery(IQueryBuilder $qb, string $column, string $userId): void
 	{
+		if (!$this->isMultiCompanyActive()) {
+			return;
+		}
 		$allowed = $this->companyIdsForUser($userId);
 		if ($allowed === []) {
+			$qb->andWhere($qb->expr()->eq(
+				$column,
+				$qb->createNamedParameter(self::DENY_ALL_COMPANY_ID, IQueryBuilder::PARAM_INT),
+			));
 			return;
 		}
 		$qb->andWhere($qb->expr()->in(
@@ -200,6 +252,7 @@ class CompanyService
 			throw new \InvalidArgumentException('COMPANY_NAME_TAKEN');
 		}
 		$id = (int) $qb->getLastInsertId();
+		$this->forgetCompanyAccessCaches();
 		$this->addMember($id, $actor, 'admin');
 		// Keep actor on Default as well so they can still see legacy rows.
 		$this->addMember(self::DEFAULT_COMPANY_ID, $actor, 'admin');
@@ -211,7 +264,7 @@ class CompanyService
 	 */
 	public function listMembers(int $companyId): array
 	{
-		if (!$this->db->tableExists('dc_company_members')) {
+		if (!SchemaProbe::tableExists($this->db, 'dc_company_members')) {
 			return [];
 		}
 		$qb = $this->db->getQueryBuilder();
@@ -227,7 +280,7 @@ class CompanyService
 
 	public function removeMember(int $companyId, string $userId): void
 	{
-		if (!$this->db->tableExists('dc_company_members') || $companyId <= 0 || trim($userId) === '') {
+		if (!SchemaProbe::tableExists($this->db, 'dc_company_members') || $companyId <= 0 || trim($userId) === '') {
 			return;
 		}
 		$qb = $this->db->getQueryBuilder();
@@ -235,11 +288,12 @@ class CompanyService
 			->where($qb->expr()->eq('company_id', $qb->createNamedParameter($companyId, IQueryBuilder::PARAM_INT)))
 			->andWhere($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
 			->executeStatement();
+		unset($this->companyIdsByUser[$userId]);
 	}
 
 	public function addMember(int $companyId, string $userId, string $role = 'member'): void
 	{
-		if (!$this->db->tableExists('dc_company_members') || $companyId <= 0 || trim($userId) === '') {
+		if (!SchemaProbe::tableExists($this->db, 'dc_company_members') || $companyId <= 0 || trim($userId) === '') {
 			return;
 		}
 		$role = in_array($role, ['admin', 'member'], true) ? $role : 'member';
@@ -253,5 +307,12 @@ class CompanyService
 		} catch (\Throwable) {
 			// unique — already member
 		}
+		unset($this->companyIdsByUser[$userId]);
+	}
+
+	private function forgetCompanyAccessCaches(): void
+	{
+		$this->multiCompanyActiveCache = null;
+		$this->companyIdsByUser = [];
 	}
 }

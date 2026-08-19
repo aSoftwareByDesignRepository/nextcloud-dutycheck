@@ -29,8 +29,8 @@
 			</div>
 		</div>
 		<div class="dc-field dc-field--full">
-			<h3 class="dc-subsection-heading"><?php p($l->t('Current duty role assignments')); ?></h3>
-			<div class="dc-table-wrap">
+			<h3 id="dc-duty-roles-current-title" class="dc-subsection-heading"><?php p($l->t('Current duty role assignments')); ?></h3>
+			<div class="dc-table-wrap" tabindex="0" role="region" aria-labelledby="dc-duty-roles-current-title">
 				<table class="dc-table" id="dc-duty-roles-table">
 					<thead>
 						<tr>

@@ -60,7 +60,7 @@ $myAbsencesUrl = (string) ($urls['myAbsences'] ?? '#');
 	<div class="dc-employee-crossnav">
 		<a class="button" href="<?php p($myAbsencesUrl); ?>"><?php p($l->t('My absences — request time off')); ?></a>
 	</div>
-	<div class="dc-table-wrap">
+	<div class="dc-table-wrap" tabindex="0" role="region" aria-labelledby="dc-my-roster-title">
 		<table class="dc-table" id="dc-my-roster-table" aria-describedby="dc-my-roster-status">
 			<caption class="dc-sr-only"><?php p($l->t('Your published shifts in the selected range')); ?></caption>
 			<thead>

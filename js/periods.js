@@ -18,6 +18,8 @@
 	};
 	let currentPeriodId = null;
 	let isBusy = false;
+	let detailsAbort = null;
+	let detailsSeq = 0;
 
 	function selectedPeriodIdFromUrl() {
 		const params = new URLSearchParams(window.location.search || '');
@@ -100,6 +102,7 @@
 	function renderPeriods(periods) {
 		const tbody = document.getElementById('dc-periods-table-body');
 		if (!tbody) return;
+		C.clearLoadingRow?.(tbody);
 		const emptyCallout = document.getElementById('dc-period-empty-callout');
 		if (emptyCallout) emptyCallout.hidden = periods.length > 0;
 		const canReopen = String(tbody.dataset.canReopen || '0') === '1';
@@ -187,6 +190,7 @@
 	function renderPublishReadiness(readiness) {
 		const node = document.getElementById('dc-publish-readiness');
 		if (!node) return;
+		node.removeAttribute('aria-busy');
 		if (!readiness) {
 			node.textContent = '';
 			return;
@@ -204,6 +208,7 @@
 	function renderSnapshots(snapshots) {
 		const tbody = document.getElementById('dc-snapshots-table-body');
 		if (!tbody) return;
+		C.clearLoadingRow?.(tbody);
 		tbody.replaceChildren();
 		if (!snapshots.length) {
 			const tr = create('tr');
@@ -266,6 +271,7 @@
 	function renderAudit(events) {
 		const tbody = document.getElementById('dc-period-audit-table-body');
 		if (!tbody) return;
+		C.clearLoadingRow?.(tbody);
 		tbody.replaceChildren();
 		if (!events.length) {
 			const tr = create('tr');
@@ -337,6 +343,19 @@
 	}
 
 	async function loadPeriodDetails(periodId) {
+		if (detailsAbort && typeof detailsAbort.abort === 'function') {
+			try {
+				detailsAbort.abort();
+			} catch (_) {
+				/* ignore */
+			}
+		}
+		const seq = ++detailsSeq;
+		const controller = typeof AbortController === 'function' ? new AbortController() : null;
+		detailsAbort = controller;
+		const signal = controller ? controller.signal : undefined;
+		const getOpts = signal ? { signal } : {};
+
 		if (!periodId) {
 			renderSnapshots([]);
 			renderPublishReadiness(null);
@@ -348,33 +367,55 @@
 			return;
 		}
 
+		C.setLoadingRow?.(document.getElementById('dc-snapshots-table-body'), 4);
+		C.setLoadingRow?.(document.getElementById('dc-period-audit-table-body'), 4);
+		setPublishReadinessLoading();
+		setAcknowledgeStatsLoading();
+
 		const tableErr = t('dutycheck', 'Could not load this section. Retry or contact an administrator if it continues.');
 		const [snapR, pubR, audR, ackR] = await Promise.allSettled([
-			Api.get(`/apps/dutycheck/api/periods/${periodId}/snapshots`).then((r) => {
+			Api.get(`/apps/dutycheck/api/periods/${periodId}/snapshots`, null, getOpts).then((r) => {
+				if (seq !== detailsSeq) return;
+				C.clearLoadingRow?.(document.getElementById('dc-snapshots-table-body'));
 				renderSnapshots(r?.data || []);
 			}),
-			Api.get(`/apps/dutycheck/api/periods/${periodId}/publish-readiness`).then((r) => {
+			Api.get(`/apps/dutycheck/api/periods/${periodId}/publish-readiness`, null, getOpts).then((r) => {
+				if (seq !== detailsSeq) return;
 				renderPublishReadiness(r?.data || null);
 			}),
-			Api.get(`/apps/dutycheck/api/periods/${periodId}/audit`).then((r) => {
+			Api.get(`/apps/dutycheck/api/periods/${periodId}/audit`, null, getOpts).then((r) => {
+				if (seq !== detailsSeq) return;
+				C.clearLoadingRow?.(document.getElementById('dc-period-audit-table-body'));
 				renderAudit(r?.data || []);
 			}),
-			Api.get(`/apps/dutycheck/api/periods/${periodId}/acknowledge-stats`).then((r) => {
+			Api.get(`/apps/dutycheck/api/periods/${periodId}/acknowledge-stats`, null, getOpts).then((r) => {
+				if (seq !== detailsSeq) return;
 				renderAcknowledgeStats(r?.data || null);
 			}),
 		]);
 
+		if (seq !== detailsSeq) {
+			return;
+		}
+
 		if (snapR.status === 'rejected') {
-			C.renderTableFetchError(document.getElementById('dc-snapshots-table-body'), 4, tableErr);
+			if (!(Api.isAborted && Api.isAborted(snapR.reason))) {
+				C.renderTableFetchError(document.getElementById('dc-snapshots-table-body'), 4, tableErr);
+			}
 		}
 		if (audR.status === 'rejected') {
-			C.renderTableFetchError(document.getElementById('dc-period-audit-table-body'), 4, tableErr);
+			if (!(Api.isAborted && Api.isAborted(audR.reason))) {
+				C.renderTableFetchError(document.getElementById('dc-period-audit-table-body'), 4, tableErr);
+			}
 		}
-		if (pubR.status === 'rejected') {
+		if (pubR.status === 'rejected' && !(Api.isAborted && Api.isAborted(pubR.reason))) {
 			const pill = document.getElementById('dc-publish-readiness');
-			if (pill) pill.textContent = t('dutycheck', 'Could not load publish readiness.');
+			if (pill) {
+				pill.textContent = t('dutycheck', 'Could not load publish readiness.');
+				pill.removeAttribute('aria-busy');
+			}
 		}
-		if (ackR.status === 'rejected') {
+		if (ackR.status === 'rejected' && !(Api.isAborted && Api.isAborted(ackR.reason))) {
 			renderAcknowledgeStats(null);
 		}
 
@@ -393,9 +434,25 @@
 		if (verifyButton) verifyButton.disabled = !periodId || isBusy;
 	}
 
+	function setPublishReadinessLoading() {
+		const node = document.getElementById('dc-publish-readiness');
+		if (!node) return;
+		node.textContent = t('dutycheck', 'Loading…');
+		node.setAttribute('aria-busy', 'true');
+	}
+
+	function setAcknowledgeStatsLoading() {
+		const el = document.getElementById('dc-period-ack-stats');
+		if (!el) return;
+		el.hidden = false;
+		el.textContent = t('dutycheck', 'Loading…');
+		el.setAttribute('aria-busy', 'true');
+	}
+
 	function renderAcknowledgeStats(data) {
 		const el = document.getElementById('dc-period-ack-stats');
 		if (!el) return;
+		el.removeAttribute('aria-busy');
 		if (!data || Number(data.total || 0) <= 0) {
 			el.hidden = true;
 			el.textContent = '';
@@ -409,25 +466,36 @@
 	}
 
 	async function loadPeriods(preferredPeriodId) {
+		const tableErr = t('dutycheck', 'Could not load this section. Retry or contact an administrator if it continues.');
+		const periodsBody = document.getElementById('dc-periods-table-body');
 		try {
+			C.setLoadingRow?.(periodsBody, 3);
 			const response = await Api.get('/apps/dutycheck/api/periods');
 			const periods = response?.data?.periods || [];
 			const preferred = preferredPeriodId || selectedPeriodIdFromUrl();
 			const selected = periods.find((p) => Number(p.id) === Number(preferred)) || periods[0] || null;
 			currentPeriodId = selected ? Number(selected.id) : null;
+			C.clearLoadingRow?.(periodsBody);
 			renderPeriods(periods);
 			if (currentPeriodId) {
 				updateUrlPeriodId(currentPeriodId);
-				await loadPeriodDetails(currentPeriodId);
+				// Do not await: the list must paint even if details are slow.
+				void loadPeriodDetails(currentPeriodId);
 			} else {
 				renderSnapshots([]);
 				renderPublishReadiness(null);
 				renderAudit([]);
+				renderAcknowledgeStats(null);
 				setIntegrityBanner('');
 				const verifyButton = document.getElementById('dc-verify-snapshots-button');
 				if (verifyButton) verifyButton.disabled = true;
 			}
 		} catch (err) {
+			if (Api.isAborted && Api.isAborted(err)) {
+				return;
+			}
+			C.clearLoadingRow?.(periodsBody);
+			C.renderTableFetchError(periodsBody, 3, tableErr);
 			Msg.handleApiError(err);
 		}
 	}
@@ -517,45 +585,43 @@
 
 	document.addEventListener('DOMContentLoaded', async () => {
 		D?.applyLocaleToTemporalInputs(document);
-		try {
+		await loadPeriods();
+		document.getElementById('dc-verify-snapshots-button')?.addEventListener('click', async () => {
+			if (isBusy) return;
 			setBusy(true);
-			await loadPeriods();
-			document.getElementById('dc-verify-snapshots-button')?.addEventListener('click', async () => {
-				if (isBusy) return;
-				setBusy(true);
+			try {
 				await verifySnapshots(currentPeriodId);
+			} finally {
 				setBusy(false);
-			});
-			const form = document.getElementById('dc-period-form');
-			form?.addEventListener('submit', async (event) => {
-				event.preventDefault();
-				if (isBusy) return;
-				const data = new FormData(form);
-				const startDate = String(data.get('startDate') || '');
-				const endDate = String(data.get('endDate') || '');
-				if (!startDate || !endDate) {
-					Msg.announce(t('dutycheck', 'Please choose both dates.'), 'error');
-					return;
-				}
-				if (startDate > endDate) {
-					Msg.announce(t('dutycheck', 'End date must be on or after start date.'), 'error');
-					return;
-				}
-				try {
-					setBusy(true);
-					await Api.post('/apps/dutycheck/api/periods', { startDate, endDate });
-					form.reset();
-					await loadPeriods();
-					Msg.announce(t('dutycheck', 'Period created.'));
-				} catch (err) {
-					const code = String(err?.payload?.error?.code || '');
-					Msg.announce(createPeriodErrorMessage(code), 'error');
-				} finally {
-					setBusy(false);
-				}
-			});
-		} finally {
-			setBusy(false);
-		}
+			}
+		});
+		const form = document.getElementById('dc-period-form');
+		form?.addEventListener('submit', async (event) => {
+			event.preventDefault();
+			if (isBusy) return;
+			const data = new FormData(form);
+			const startDate = String(data.get('startDate') || '');
+			const endDate = String(data.get('endDate') || '');
+			if (!startDate || !endDate) {
+				Msg.announce(t('dutycheck', 'Please choose both dates.'), 'error');
+				return;
+			}
+			if (startDate > endDate) {
+				Msg.announce(t('dutycheck', 'End date must be on or after start date.'), 'error');
+				return;
+			}
+			try {
+				setBusy(true);
+				await Api.post('/apps/dutycheck/api/periods', { startDate, endDate });
+				form.reset();
+				await loadPeriods();
+				Msg.announce(t('dutycheck', 'Period created.'));
+			} catch (err) {
+				const code = String(err?.payload?.error?.code || '');
+				Msg.announce(createPeriodErrorMessage(code), 'error');
+			} finally {
+				setBusy(false);
+			}
+		});
 	});
 })();

@@ -35,7 +35,7 @@ $locales = array (
   6 => 'it',
   7 => 'pl',
   8 => 'sv',
-  9 => 'nb',,
+  9 => 'nb',
   10 => 'pt_BR',
 );
 $enPath = $appRoot . '/l10n/en.json';
