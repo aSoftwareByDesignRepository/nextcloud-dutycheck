@@ -6,7 +6,6 @@
 <info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
 	<id>dutycheck</id>
 	<name>DutyCheck</name>
-	<name lang="de">DutyCheck</name>
 	<summary>Publish duty rosters without spreadsheet chaos — conflicts checked on your Nextcloud</summary>
 	<summary lang="de">Dienstpläne veröffentlichen ohne Tabellenchaos — Konflikte geprüft in Ihrer Nextcloud</summary>
 	<description><![CDATA[
@@ -160,9 +159,149 @@ Con **ArbeitszeitCheck**, DutyCheck puede reflejar ausencias automáticamente (i
 - PHP 8.2–8.5
 - MySQL o PostgreSQL
 	]]></description>
+	<description lang="nl"><![CDATA[
+# Diensten plannen. Conflicten ontdekken. Publiceren met een spoor.
+
+DutyCheck bouwt dienstroosters in uw zelf-gehoste Nextcloud. Open een planperiode, wijs mensen aan locaties toe, zie harde blokkades en zachte waarschuwingen terwijl u bewerkt — publiceer vervolgens, sluit af en bewaar een snapshot wanneer iemand vraagt wie er dienst had.
+
+**Gratis webapp** (AGPL-3.0-or-later). Companion-apps: https://nextcloud.software-by-design.de/
+
+## Waarom teams het installeren
+
+- **Bewerk met vertrouwen** — overlappen, onderbezetting, korte pauzes en periodetotalen worden zichtbaar vóór u publiceert
+- **Een flow die iedereen begrijpt** — open → gepubliceerd → gesloten (met heropenen); conflictdrempels worden bevroren zodra de periode wordt aangemaakt
+- **Sneller invullen** — rooster medewerker×dag en lijst, diensttemplates, bulk invullen, afdrukbaar dienstrooster met integriteits-hash
+- **Selfservice voor personeel** — mijn rooster, afwezigheden, bevestigen, open diensten claimen, ruilverzoeken, iCal-feed per persoon
+- **Bewijs wat er gepland was** — snapshots met hashketen, period-audittrail, Activity en Notifications
+- **Binnen de scope blijven** — planner- vs. medewerkerrollen, optionele locatie-scope, optionele bedrijven/werkomgevingen
+- **Optioneel ArbeitszeitCheck** — spiegel afwezigheden voor conflictcontroles (uitgeschakeld tot u het activeert; DutyCheck schrijft nooit terug)
+
+## Duidelijke grenzen
+
+- HR-CSV-exports bevatten minuten — geen salarissen.
+- Auditvermeldingen zijn append-only.
+- Conflictcontroles zijn ArbZG-georiënteerd en configureerbaar — geen juridische certificering.
+- Gedeclareerde databases: MySQL en PostgreSQL.
+
+## Vereisten
+
+- Nextcloud 32–34 · PHP 8.2–8.5 · MySQL of PostgreSQL
+	]]></description>
+	<description lang="it"><![CDATA[
+# Pianifica i turni. Scopri i conflitti. Pubblica con una traccia.
+
+DutyCheck costruisce i turni nella vostra Nextcloud auto-ospitata. Aprite un periodo di pianificazione, assegnate le persone alle sedi, vedete blocchi rigidi e avvisi soft mentre modificate — poi pubblicate, chiudete e conservate uno snapshot quando qualcuno chiede chi era di turno.
+
+**Web app gratuita** (AGPL-3.0-or-later). App associate: https://nextcloud.software-by-design.de/
+
+## Perché i team lo installano
+
+- **Modificate con sicurezza** — sovrapposizioni, sottorganico, pause brevi e totali del periodo emergono prima di pubblicare
+- **Un flusso che tutti capiscono** — aperto → pubblicato → chiuso (con riapertura); le soglie di conflitto si bloccano quando il periodo viene creato
+- **Compilate più velocemente** — griglia dipendente×giorno e lista, template dei turni, compilazione in blocco, roster stampabile con hash di integrità
+- **Self-service per il personale** — il mio roster, assenze, conferma, richiesta dei turni aperti, richieste di scambio, feed iCal per persona
+- **Dimostrate cosa è stato pianificato** — snapshot con catena hash, audit trail del periodo, Activity e Notifications
+- **Rimanere nel perimetro** — ruoli di pianificatore vs dipendente, scope di località opzionale, aziende/ambienti opzionali
+- **ArbeitszeitCheck opzionale** — rispecchia le assenze per i controlli dei conflitti (disattivato finché non lo abilitate; DutyCheck non scrive mai indietro)
+
+## Limiti chiari
+
+- Le esportazioni HR in CSV esportano minuti — non gli stipendi.
+- Le voci di audit sono append-only.
+- I controlli dei conflitti sono orientati ad ArbZG e configurabili — non una certificazione legale.
+- Database dichiarati: MySQL e PostgreSQL.
+
+## Requisiti
+
+- Nextcloud 32–34 · PHP 8.2–8.5 · MySQL o PostgreSQL
+	]]></description>
+	<description lang="pl"><![CDATA[
+# Planuj zmiany. Wykrywaj konflikty. Publikuj z historią.
+
+DutyCheck tworzy grafiki zmian w Państwa samodzielnie hostowanej Nextcloud. Otwórz okres planowania, przypisz osoby do lokalizacji, zobacz twarde blokady i miękkie ostrzeżenia podczas edycji — a następnie opublikuj, zamknij i zachowaj snapshot, gdy ktoś zapyta, kto był na dyżur.
+
+**Darmowa aplikacja webowa** (AGPL-3.0-or-later). Aplikacje towarzyszące: https://nextcloud.software-by-design.de/
+
+## Dlaczego zespoły to instalują
+
+- **Edytuj z pewnością** — nakładanie się zmian, niedobór obsady, krótkie przerwy i sumy okresu pojawiają się zanim opublikujesz
+- **Proces, który rozumie każdy** — otwarte → opublikowane → zamknięte (z ponownym otwarciem); progi konfliktów zostają zamrożone, gdy okres jest tworzony
+- **Wypełniaj szybciej** — siatka pracownik×dzień i lista, szablony zmian, wypełnianie zbiorcze, drukowany grafik z hashem integralności
+- **Self-service dla personelu** — mój grafik, nieobecności, potwierdzenia, zgłaszanie otwartych zmian, prośby o zamianę, iCal-feed dla każdej osoby
+- **Udowodnij, co zaplanowano** — snapshoty z łańcuchem hash, ścieżka audytu okresu, Activity oraz Notifications
+- **Pozostań w zakresie** — role planisty vs pracownika, opcjonalny zakres lokalizacji, opcjonalne firmy/środowiska pracy
+- **Opcjonalny ArbeitszeitCheck** — odbija nieobecności do kontroli konfliktów (wyłączony do czasu włączenia; DutyCheck nigdy nie zapisuje z powrotem)
+
+## Jasne ograniczenia
+
+- Eksporty HR w CSV zawierają minuty — nie pensje.
+- Wpisy audytu są append-only.
+- Kontrole konfliktów są zorientowane na ArbZG i konfigurowalne — nie jest to certyfikacja prawna.
+- Deklarowane bazy danych: MySQL i PostgreSQL.
+
+## Wymagania
+
+- Nextcloud 32–34 · PHP 8.2–8.5 · MySQL lub PostgreSQL
+	]]></description>
+	<description lang="sv"><![CDATA[
+# Planera pass. Fånga konflikter. Publicera med en spårbarhet.
+
+DutyCheck bygger passlistor i er självhostade Nextcloud. Öppna en planeringsperiod, tilldela personer till platser, se hårda spärrar och mjuka varningar medan ni redigerar — publicera sedan, stäng perioden och behåll en snapshot när någon frågar vem som var på tjänst.
+
+**Gratis webbapp** (AGPL-3.0-or-later). Companion-appar: https://nextcloud.software-by-design.de/
+
+## Varför team installerar den
+
+- **Redigera med självförtroende** — överlappningar, underbemanning, korta pauser och periodens totalsummor syns innan ni publicerar
+- **Ett flöde alla förstår** — öppen → publicerad → stängd (med återöppning); konflikttrösklar fryses när perioden skapas
+- **Fyll i snabbare** — rutnät anställd×dag och lista, passmallar, massfyllning, utskrivbar passlista med integritetshash
+- **Self-service för personalen** — min passlista, frånvaro, bekräfta, begär öppna pass, byt-förfrågningar, iCal-feed per person
+- **Bevisa vad som planerades** — snapshots med hash-kedja, periodens revision-spår, Activity och Notifications
+- **Håll dig inom scope** — planerarroll vs medarbetarroll, valfri plats-scope, valfria företag/arbetsytor
+- **Valfritt ArbeitszeitCheck** — spegla frånvaro för konfliktkontroller (avstängt tills ni aktiverar det; DutyCheck skriver aldrig tillbaka)
+
+## Tydliga gränser
+
+- HR-CSV-exporten innehåller minuter — inte löner.
+- Auditposter är append-only.
+- Konfliktkontroller är ArbZG-orienterade och konfigurerbara — inte en juridisk certifiering.
+- Deklarerade databaser: MySQL och PostgreSQL.
+
+## Krav
+
+- Nextcloud 32–34 · PHP 8.2–8.5 · MySQL eller PostgreSQL
+	]]></description>
+	<description lang="nb"><![CDATA[
+# Planlegg skift. Oppdag konflikter. Publiser med et spor.
+
+DutyCheck bygger skiftplaner i deres selvhostede Nextcloud. Åpne en planleggingsperiode, tilordne personer til lokasjoner, se harde sperrer og myke advarsler mens dere redigerer — og publiser deretter, lukk og behold et snapshot når noen spør hvem som var på vakt.
+
+**Gratis nettapp** (AGPL-3.0-or-later). Følgeapper: https://nextcloud.software-by-design.de/
+
+## Hvorfor team installerer den
+
+- **Rediger med trygghet** — overlapp, underbemanning, korte pauser og periodetotaler vises før dere publiserer
+- **Et flyt alle forstår** — åpen → publisert → lukket (med gjenåpning); konfliktterskler fryses når perioden opprettes
+- **Fyll raskere** — ansatt×dag-rutenett og liste, skiftemaler, masseutfylling, utskrivbar skiftplan med integritetshash
+- **Self-service for ansatte** — min skiftplan, fravær, bekreftelser, hent åpne skift, bytteforespørsler, iCal-feed per person
+- **Bevis hva som ble planlagt** — snapshots med hash-kjede, periodens revisjonsspor, Activity og Notifications
+- **Hold dere innenfor scope** — planlegger- vs ansattroller, valgfri lokasjonsscope, valgfri firmaer/arbeidsområder
+- **Valgfritt ArbeitszeitCheck** — speil fravær for konfliktkontroller (av til dere aktiverer det; DutyCheck skriver aldri tilbake)
+
+## Klare grenser
+
+- HR-CSV-eksportene inneholder minutter — ikke lønn.
+- Audit-oppføringer er append-only.
+- Konfliktkontroller er ArbZG-orienterte og kan konfigureres — ikke en juridisk sertifisering.
+- Deklarerte databaser: MySQL og PostgreSQL.
+
+## Krav
+
+- Nextcloud 32–34 · PHP 8.2–8.5 · MySQL eller PostgreSQL
+	]]></description>
 	<version>0.1.43</version>
 	<licence>AGPL-3.0-or-later</licence>
-	<author mail="info@software-by-design.de" homepage="https://nextcloud.software-by-design.de">Alexander Mäule</author>
+	<author mail="info@software-by-design.de" homepage="https://nextcloud.software-by-design.de">Software by Design GbR</author>
 	<namespace>DutyCheck</namespace>
 	<category>organization</category>
 	<category>tools</category>
