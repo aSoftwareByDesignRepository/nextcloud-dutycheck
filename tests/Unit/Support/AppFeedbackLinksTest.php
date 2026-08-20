@@ -54,6 +54,13 @@ final class AppFeedbackLinksTest extends TestCase
 		self::assertStringNotContainsString('token=', $keep);
 	}
 
+	public function testSanitizePageUrlStripsNextcloudUpgradeAckQueryKey(): void
+	{
+		$links = new AppFeedbackLinks('dutycheck', 'DutyCheck');
+		$noisy = '/apps/dutycheck/?IKnowThatThisIsABigInstanceAndTheUpdateRequestCouldRunIntoATimeoutAndHowToRestoreABackup=IAmSuperSureToDoThis';
+		self::assertSame('/apps/dutycheck/', $links->sanitizePageUrl($noisy));
+	}
+
 	public function testMailtoBodyOmitsIdentityAndRejectsUnsafeErrorCodes(): void
 	{
 		$links = new AppFeedbackLinks('dutycheck', 'DutyCheck', '9.9.9');

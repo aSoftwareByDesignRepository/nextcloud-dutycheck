@@ -32,11 +32,12 @@ class Version1016Date20260727180000 extends SimpleMigrationStep
 		if ($schema->hasTable('dc_assignments')) {
 			$table = $schema->getTable('dc_assignments');
 			if (!$table->hasColumn('slot_key')) {
-				// Temporary default; postSchemaChange backfills real keys before 1017 unique index.
+				// Temporary non-empty default keeps Oracle portability (empty-string NULL semantics).
+				// postSchemaChange backfills deterministic final keys before 1017 unique index.
 				$table->addColumn('slot_key', Types::STRING, [
 					'notnull' => true,
 					'length' => 96,
-					'default' => '',
+					'default' => '__pending__',
 				]);
 			}
 			if ($table->hasIndex('dc_asg_slot_uidx')) {
