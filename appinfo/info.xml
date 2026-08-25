@@ -358,6 +358,7 @@ DutyCheck bygger skiftplaner i deres selvhostede Nextcloud. Åpne en planlegging
 	<commands>
 		<command>OCA\DutyCheck\Command\UpgradeBackupCommand</command>
 		<command>OCA\DutyCheck\Command\ReconcileArbeitszeitCheckMirrorCommand</command>
+		<command>OCA\DutyCheck\Command\SeedMobileDemoCommand</command>
 	</commands>
 	<navigations>
 		<navigation>
