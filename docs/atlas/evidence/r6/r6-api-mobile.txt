@@ -1,0 +1,8 @@
+PHPUnit 9.6.34 by Sebastian Bergmann and contributors.
+
+......................                                            22 / 22 (100%)
+
+Time: 00:00.085, Memory: 18.00 MB
+
+OK (22 tests, 94 assertions)
+MOBILE_EXIT=0

@@ -1,0 +1,24 @@
+PHPUnit 9.6.34 by Sebastian Bergmann and contributors.
+
+................................EE.....                           39 / 39 (100%)
+
+Time: 00:00.109, Memory: 18.00 MB
+
+There were 2 errors:
+
+1) OCA\DutyCheck\Tests\Unit\Service\SwapCandidatesTest::testListSwapCandidatesEmptyWithoutSharedLocations
+Error: Call to undefined method class@anonymous::lte()
+
+/var/www/html/custom_apps/dutycheck/lib/Service/SwapService.php:347
+/var/www/html/custom_apps/dutycheck/lib/Service/SwapService.php:288
+/var/www/html/custom_apps/dutycheck/tests/Unit/Service/SwapCandidatesTest.php:74
+
+2) OCA\DutyCheck\Tests\Unit\Service\SwapCandidatesTest::testListSwapCandidatesExcludesSelfAndBlankNames
+Error: Call to undefined method class@anonymous::lte()
+
+/var/www/html/custom_apps/dutycheck/lib/Service/SwapService.php:347
+/var/www/html/custom_apps/dutycheck/lib/Service/SwapService.php:288
+/var/www/html/custom_apps/dutycheck/tests/Unit/Service/SwapCandidatesTest.php:145
+
+ERRORS!
+Tests: 39, Assertions: 98, Errors: 2.

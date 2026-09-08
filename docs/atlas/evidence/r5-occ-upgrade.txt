@@ -1,0 +1,11 @@
+Setting log level to debug
+Turned on maintenance mode
+Updating database schema
+Updated database
+Updating <sbdlicenseops> ...
+Updated <sbdlicenseops> to 1.5.2
+Starting code integrity check...
+Finished code integrity check
+Update successful
+Turned off maintenance mode
+Resetting log level

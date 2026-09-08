@@ -1,0 +1,9 @@
+{
+  "round": 7,
+  "roster_md5": "ec2dcfb26e559d1f3d01ccfbd739cdf5",
+  "month_md5": "a40a7b0132d2b9096cef6fc191326886",
+  "r2_roster_md5": "3bdc166065238010eb363e29760774cc",
+  "r2_month_md5": "e2ced6fc3fa6d78ff57c28df42c3c85b",
+  "hashes_differ_from_r2": true,
+  "updated_at": "2026-09-08T01:38:00.808Z"
+}

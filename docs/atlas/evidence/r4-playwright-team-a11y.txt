@@ -1,0 +1,14 @@
+
+Running 2 tests using 1 worker
+
+(node:864031) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/2] [setup] › tests/e2e/auth.setup.js:9:1 › authenticate planner
+(node:864277) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[2/2] [chromium] › tests/e2e/team-week-a11y.spec.js:12:2 › employee team week a11y › my-roster Team section is WCAG 2.1 AA when peer visibility is on
+  2 passed (12.8s)

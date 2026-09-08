@@ -1,0 +1,84 @@
+{
+  "mainSW": 272,
+  "mainCW": 272,
+  "top": [
+    {
+      "tag": "DIV",
+      "id": "",
+      "cls": "dc-support-us__option",
+      "right": 279,
+      "mainRight": 296,
+      "sw": 238,
+      "cw": 236,
+      "whiteSpace": "normal",
+      "overflow": "visible",
+      "overflowX": "visible",
+      "text": "Mobile & terminal\t\t\t\t\t\t\n\t\t\t\t\t\t\n\t\t\t\t\t\t\tNamed seats for the of"
+    },
+    {
+      "tag": "A",
+      "id": "",
+      "cls": "button dc-support-us__cta dc-support-us__cta--secondary",
+      "right": 262,
+      "mainRight": 296,
+      "sw": 222,
+      "cw": 204,
+      "whiteSpace": "nowrap",
+      "overflow": "visible",
+      "overflowX": "visible",
+      "text": "Official mobile & terminal licenses"
+    },
+    {
+      "tag": "A",
+      "id": "",
+      "cls": "button dc-support-us__cta dc-support-us__cta--secondary",
+      "right": 262,
+      "mainRight": 296,
+      "sw": 218,
+      "cw": 204,
+      "whiteSpace": "nowrap",
+      "overflow": "visible",
+      "overflowX": "visible",
+      "text": "Request a commissioned feature"
+    },
+    {
+      "tag": "SPAN",
+      "id": "",
+      "cls": "dc-support-us__new-tab",
+      "right": 202,
+      "mainRight": 296,
+      "sw": 124,
+      "cw": 1,
+      "whiteSpace": "nowrap",
+      "overflow": "hidden",
+      "overflowX": "hidden",
+      "text": "(opens in a new tab)"
+    },
+    {
+      "tag": "SPAN",
+      "id": "",
+      "cls": "dc-support-us__new-tab",
+      "right": 147,
+      "mainRight": 296,
+      "sw": 124,
+      "cw": 1,
+      "whiteSpace": "nowrap",
+      "overflow": "hidden",
+      "overflowX": "hidden",
+      "text": "(opens in a new tab)"
+    },
+    {
+      "tag": "SPAN",
+      "id": "",
+      "cls": "dc-support-us__new-tab",
+      "right": 144,
+      "mainRight": 296,
+      "sw": 124,
+      "cw": 1,
+      "whiteSpace": "nowrap",
+      "overflow": "hidden",
+      "overflowX": "hidden",
+      "text": "(opens in a new tab)"
+    }
+  ]
+}

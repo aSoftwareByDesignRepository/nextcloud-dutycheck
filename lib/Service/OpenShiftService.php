@@ -26,6 +26,7 @@ class OpenShiftService
 		private readonly IDBConnection $db,
 		private readonly RosterService $roster,
 		private readonly ?CompanyService $companies = null,
+		private readonly ?SelfServiceSettingsService $settings = null,
 	) {
 	}
 
@@ -33,7 +34,7 @@ class OpenShiftService
 	 * @param array<string,mixed> $payload
 	 * @return array<string,mixed>
 	 */
-	public function create(array $payload, string $actor): array
+	public function create(array $payload, string $actor, bool $trustedSwapApply = false): array
 	{
 		$periodId = (int) ($payload['periodId'] ?? 0);
 		$locationId = (int) ($payload['locationId'] ?? 0);
@@ -45,7 +46,9 @@ class OpenShiftService
 		if ($periodId <= 0 || $locationId <= 0) {
 			throw new \InvalidArgumentException('OPEN_SHIFT_INVALID');
 		}
-		$this->roster->assertPeriodCompanyAccess($actor, $periodId);
+		if (!$trustedSwapApply) {
+			$this->roster->assertPeriodCompanyAccess($actor, $periodId);
+		}
 		$this->roster->assertLocationMatchesPeriodCompany($periodId, $locationId);
 		$period = $this->periodStatus($periodId);
 		if (!in_array($period, ['open', 'published'], true)) {
@@ -78,10 +81,12 @@ class OpenShiftService
 	/**
 	 * Hard-delete an unused open slot (status=open only). Used to compensate failed pool-swap approve.
 	 */
-	public function discardOpen(int $openShiftId, string $actor): void
+	public function discardOpen(int $openShiftId, string $actor, bool $trustedSwapApply = false): void
 	{
 		$open = $this->getById($openShiftId);
-		$this->roster->assertPeriodCompanyAccess($actor, (int) $open['periodId']);
+		if (!$trustedSwapApply) {
+			$this->roster->assertPeriodCompanyAccess($actor, (int) $open['periodId']);
+		}
 		if ($open['status'] !== 'open') {
 			throw new \InvalidArgumentException('OPEN_SHIFT_NOT_OPEN');
 		}
@@ -138,6 +143,77 @@ class OpenShiftService
 			->executeStatement();
 		if ($affected !== 1) {
 			throw new \InvalidArgumentException('OPEN_SHIFT_NOT_OPEN');
+		}
+
+		// Spec AC-C05-2 / AC-F05-2: claim_requires_planner=false → instant assignment (no planner queue).
+		if ($this->settings !== null) {
+			$companyId = $this->periodCompanyId((int) $open['periodId']);
+			if (!$this->settings->claimRequiresPlanner($companyId)) {
+				try {
+					return $this->applyClaimAsMarketplace($openShiftId, $actorUserId, $employeeId, $this->getById($openShiftId));
+				} catch (\Throwable $e) {
+					// Fail closed: return slot to open so capacity is not stuck pending without a claimer path.
+					$this->releaseToOpen($openShiftId, 'pending');
+					if ($e instanceof \InvalidArgumentException) {
+						throw $e;
+					}
+					throw new \InvalidArgumentException('OPEN_SHIFT_CONFLICT', 0, $e);
+				}
+			}
+		}
+
+		return $this->getById($openShiftId);
+	}
+
+	/**
+	 * Auto-apply path when company does not require planner approval for claims.
+	 * Uses trusted marketplace create (employee is not a company member).
+	 *
+	 * @param array<string,mixed> $open
+	 * @return array<string,mixed>
+	 */
+	private function applyClaimAsMarketplace(int $openShiftId, string $actor, int $employeeId, array $open): array
+	{
+		$data = $this->roster->createAssignment([
+			'periodId' => $open['periodId'],
+			'employeeId' => $employeeId,
+			'locationId' => $open['locationId'],
+			'dutyDate' => $open['dutyDate'],
+			'startTime' => $open['startTime'],
+			'endTime' => $open['endTime'],
+			'breakMinutes' => $open['breakMinutes'],
+			'note' => '',
+			'acknowledgements' => [],
+		], $actor, true, true, true, true, true);
+		$assignmentId = (int) ($data['createdAssignmentId'] ?? 0);
+		if ($assignmentId <= 0) {
+			foreach ($data['assignments'] ?? [] as $row) {
+				if ((int) ($row['employeeId'] ?? 0) === $employeeId
+					&& (string) ($row['dutyDate'] ?? '') === (string) $open['dutyDate']
+					&& substr((string) ($row['startTime'] ?? ''), 0, 5) === substr((string) $open['startTime'], 0, 5)
+				) {
+					$assignmentId = (int) $row['id'];
+					break;
+				}
+			}
+		}
+		if ($assignmentId <= 0) {
+			throw new \InvalidArgumentException('OPEN_SHIFT_ASSIGNMENT_MISSING');
+		}
+
+		$link = $this->db->getQueryBuilder();
+		$affected = $link->update('dc_open_shifts')
+			->set('status', $link->createNamedParameter('claimed'))
+			->set('assignment_id', $link->createNamedParameter($assignmentId, IQueryBuilder::PARAM_INT))
+			->where($link->expr()->eq('id', $link->createNamedParameter($openShiftId, IQueryBuilder::PARAM_INT)))
+			->andWhere($link->expr()->eq('status', $link->createNamedParameter('pending')))
+			->executeStatement();
+		if ($affected !== 1) {
+			try {
+				$this->roster->cancelAssignmentSilent($assignmentId, $actor);
+			} catch (\Throwable) {
+			}
+			throw new \InvalidArgumentException('OPEN_SHIFT_NOT_PENDING');
 		}
 
 		return $this->getById($openShiftId);

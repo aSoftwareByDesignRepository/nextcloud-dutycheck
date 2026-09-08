@@ -21,6 +21,7 @@ use OCA\DutyCheck\Repair\UninstallDropTables;
 use OCA\DutyCheck\Middleware\AppAccessMiddleware;
 use OCA\DutyCheck\Middleware\ClientLicenseMiddleware;
 use OCA\DutyCheck\Service\AccessControlService;
+use OCA\DutyCheck\Service\ApiRateLimitService;
 use OCA\DutyCheck\Service\ConflictPolicyService;
 use OCA\DutyCheck\Service\IconCatalog;
 use OCA\DutyCheck\Service\LicenseService;
@@ -36,9 +37,22 @@ use OCA\DutyCheck\Service\RosterCsvFormatter;
 use OCA\DutyCheck\Service\RosterService;
 use OCA\DutyCheck\Service\ShiftTemplateService;
 use OCA\DutyCheck\Service\SnapshotRetentionService;
+use OCA\DutyCheck\Service\AvailabilityBlackoutService;
+use OCA\DutyCheck\Service\Contract\EffectiveTargetHoursFacade;
+use OCA\DutyCheck\Service\EffectiveTargetHoursFacadeService;
+use OCA\DutyCheck\Service\PeerRosterService;
+use OCA\DutyCheck\Service\PeriodLockService;
+use OCA\DutyCheck\Service\PushQuietHoursService;
+use OCA\DutyCheck\Service\RotationAnchorService;
+use OCA\DutyCheck\Service\RotationPatternService;
+use OCA\DutyCheck\Service\RotationSuggestService;
+use OCA\DutyCheck\Service\SelfServiceSettingsService;
+use OCA\DutyCheck\Service\ShiftPreferenceService;
+use OCA\DutyCheck\Service\SollDiagnosticsService;
 use OCA\DutyCheck\Service\SwapService;
 use OCA\DutyCheck\Service\ThresholdApproachNotifier;
 use OCA\DutyCheck\Service\TimezoneCatalog;
+use OCA\DutyCheck\Service\TodayBoardService;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -167,6 +181,8 @@ class Application extends App implements IBootstrap
 				$c->query(\OCP\IURLGenerator::class),
 				$c->query(IFactory::class),
 				$c->query(\Psr\Log\LoggerInterface::class),
+				$c->query(PushQuietHoursService::class),
+				$c->query(\OCA\DutyCheck\Service\CompanyService::class),
 			);
 		});
 		$context->registerService(\OCA\DutyCheck\Service\LateChangeNotificationService::class, function ($c): \OCA\DutyCheck\Service\LateChangeNotificationService {
@@ -175,6 +191,8 @@ class Application extends App implements IBootstrap
 				$c->query(\OCP\Notification\IManager::class),
 				$c->query(\OCP\IURLGenerator::class),
 				$c->query(\Psr\Log\LoggerInterface::class),
+				$c->query(PushQuietHoursService::class),
+				$c->query(\OCA\DutyCheck\Service\CompanyService::class),
 			);
 		});
 		$context->registerService(\OCA\DutyCheck\Service\CompanyService::class, function ($c): \OCA\DutyCheck\Service\CompanyService {
@@ -236,6 +254,10 @@ class Application extends App implements IBootstrap
 				$c->query(ThresholdApproachNotifier::class),
 				$c->query(\OCA\DutyCheck\Service\LateChangeNotificationService::class),
 				$c->query(\OCA\DutyCheck\Service\CompanyService::class),
+				$c->query(AvailabilityBlackoutService::class),
+				$c->query(PlannerLocationScopeService::class),
+				$c->query(ApiRateLimitService::class),
+				$c->query(PeriodLockService::class),
 			);
 		});
 		$context->registerService(SwapService::class, function ($c): SwapService {
@@ -246,6 +268,115 @@ class Application extends App implements IBootstrap
 				$c->query(\OCP\IURLGenerator::class),
 				$c->query(\Psr\Log\LoggerInterface::class),
 				$c->query(\OCA\DutyCheck\Service\CompanyService::class),
+				$c->query(SelfServiceSettingsService::class),
+				$c->query(QualificationService::class),
+				$c->query(PushQuietHoursService::class),
+				$c->query(PeriodLockService::class),
+				$c->query(PlannerLocationScopeService::class),
+			);
+		});
+		$context->registerService(SelfServiceSettingsService::class, function ($c): SelfServiceSettingsService {
+			return new SelfServiceSettingsService(
+				$c->query(\OCP\IDBConnection::class),
+				$c->query(\OCA\DutyCheck\Service\CompanyService::class),
+				$c->query(AccessControlService::class),
+			);
+		});
+		$context->registerService(RotationAnchorService::class, fn (): RotationAnchorService => new RotationAnchorService());
+		$context->registerService(PeriodLockService::class, function ($c): PeriodLockService {
+			return new PeriodLockService($c->query(\OCP\IDBConnection::class));
+		});
+		$context->registerService(ApiRateLimitService::class, function ($c): ApiRateLimitService {
+			return new ApiRateLimitService(
+				$c->query(\OCP\IDBConnection::class),
+				$c->query(PeriodLockService::class),
+			);
+		});
+		$context->registerService(RotationPatternService::class, function ($c): RotationPatternService {
+			return new RotationPatternService(
+				$c->query(\OCP\IDBConnection::class),
+				$c->query(\OCA\DutyCheck\Service\CompanyService::class),
+				$c->query(SelfServiceSettingsService::class),
+				$c->query(RotationAnchorService::class),
+				$c->query(PeriodLockService::class),
+			);
+		});
+		$context->registerService(RotationSuggestService::class, function ($c): RotationSuggestService {
+			return new RotationSuggestService(
+				$c->query(\OCP\IDBConnection::class),
+				$c->query(RosterService::class),
+				$c->query(\OCA\DutyCheck\Service\CompanyService::class),
+				$c->query(SelfServiceSettingsService::class),
+				$c->query(RotationAnchorService::class),
+				$c->query(RotationPatternService::class),
+				$c->query(PeriodLockService::class),
+				$c->query(AvailabilityBlackoutService::class),
+				$c->query(ApiRateLimitService::class),
+			);
+		});
+		$context->registerService(ShiftPreferenceService::class, function ($c): ShiftPreferenceService {
+			return new ShiftPreferenceService(
+				$c->query(\OCP\IDBConnection::class),
+				$c->query(\OCA\DutyCheck\Service\CompanyService::class),
+				$c->query(AccessControlService::class),
+				$c->query(SelfServiceSettingsService::class),
+				$c->query(PeriodLockService::class),
+			);
+		});
+		$context->registerService(AvailabilityBlackoutService::class, function ($c): AvailabilityBlackoutService {
+			return new AvailabilityBlackoutService(
+				$c->query(\OCP\IDBConnection::class),
+				$c->query(\OCA\DutyCheck\Service\CompanyService::class),
+				$c->query(AccessControlService::class),
+				$c->query(SelfServiceSettingsService::class),
+				$c->query(PeriodLockService::class),
+				$c->query(PlannerLocationScopeService::class),
+			);
+		});
+		$context->registerService(PeerRosterService::class, function ($c): PeerRosterService {
+			return new PeerRosterService(
+				$c->query(\OCP\IDBConnection::class),
+				$c->query(\OCA\DutyCheck\Service\CompanyService::class),
+				$c->query(SelfServiceSettingsService::class),
+			);
+		});
+		$context->registerService(TodayBoardService::class, function ($c): TodayBoardService {
+			return new TodayBoardService(
+				$c->query(\OCP\IDBConnection::class),
+				$c->query(\OCA\DutyCheck\Service\CompanyService::class),
+				$c->query(AccessControlService::class),
+				$c->query(PlannerLocationScopeService::class),
+				$c->query(SelfServiceSettingsService::class),
+			);
+		});
+		$context->registerService(EffectiveTargetHoursFacadeService::class, function ($c): EffectiveTargetHoursFacadeService {
+			return new EffectiveTargetHoursFacadeService(
+				$c->query(\OCP\IDBConnection::class),
+				$c->query(SelfServiceSettingsService::class),
+				$c->query(RotationAnchorService::class),
+			);
+		});
+		$context->registerServiceAlias(EffectiveTargetHoursFacade::class, EffectiveTargetHoursFacadeService::class);
+		$context->registerService('dutycheck.effective_target_hours_facade', function ($c): EffectiveTargetHoursFacade {
+			return $c->query(EffectiveTargetHoursFacade::class);
+		});
+		$context->registerService(PushQuietHoursService::class, function ($c): PushQuietHoursService {
+			return new PushQuietHoursService(
+				$c->query(\OCP\IDBConnection::class),
+				$c->query(SelfServiceSettingsService::class),
+				$c->query(\OCP\Notification\IManager::class),
+				$c->query(\OCP\IURLGenerator::class),
+				$c->query(\Psr\Log\LoggerInterface::class),
+			);
+		});
+		$context->registerService(SollDiagnosticsService::class, function ($c): SollDiagnosticsService {
+			return new SollDiagnosticsService(
+				$c->query(\OCP\IDBConnection::class),
+				$c->query(SelfServiceSettingsService::class),
+				$c->query(AccessControlService::class),
+				$c->query(RotationAnchorService::class),
+				$c->query(EffectiveTargetHoursFacade::class),
+				$c->query(\OCA\DutyCheck\Service\CompanyService::class),
 			);
 		});
 		$context->registerService(OpenShiftService::class, function ($c): OpenShiftService {
@@ -253,6 +384,7 @@ class Application extends App implements IBootstrap
 				$c->query(\OCP\IDBConnection::class),
 				$c->query(RosterService::class),
 				$c->query(\OCA\DutyCheck\Service\CompanyService::class),
+				$c->query(SelfServiceSettingsService::class),
 			);
 		});
 		$context->registerService(PlannerLocationScopeService::class, function ($c): PlannerLocationScopeService {

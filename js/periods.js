@@ -17,6 +17,12 @@
 		closed: ['open'],
 	};
 	let currentPeriodId = null;
+	/** @type {object|null} */
+	let currentPeriod = null;
+	/** @type {object|null} */
+	let currentAckStats = null;
+	/** @type {object|null} */
+	let currentReadiness = null;
 	let isBusy = false;
 	let detailsAbort = null;
 	let detailsSeq = 0;
@@ -128,6 +134,7 @@
 			const onSelect = async () => {
 				if (isBusy || currentPeriodId === periodId) return;
 				currentPeriodId = periodId;
+				currentPeriod = period;
 				updateUrlPeriodId(currentPeriodId);
 				renderPeriods(periods);
 				await loadPeriodDetails(currentPeriodId);
@@ -191,10 +198,15 @@
 		const node = document.getElementById('dc-publish-readiness');
 		if (!node) return;
 		node.removeAttribute('aria-busy');
+		currentReadiness = readiness || null;
 		if (!readiness) {
+			// Clear initial HTML "Loading…" so empty/no-period states never look stuck.
 			node.textContent = '';
+			node.hidden = true;
+			renderPublishCeremony(currentPeriod, null, currentAckStats);
 			return;
 		}
+		node.hidden = false;
 		const mustFix = Number(readiness.hardConflicts || 0);
 		const confirm = Number(readiness.softConflicts || 0);
 		const pendingOpen = Number(readiness.unacknowledgedSoftConflicts || 0);
@@ -203,6 +215,90 @@
 		node.textContent = ConflictLabels
 			? ConflictLabels.publishReadinessLine(canPublish, mustFix, confirm, pendingOpen, integrationStale)
 			: (canPublish ? t('dutycheck', 'Ready to publish') : t('dutycheck', 'Publishing blocked'));
+		renderPublishCeremony(currentPeriod, readiness, currentAckStats);
+	}
+
+	function monthLabelForPeriod(period) {
+		const raw = String(period?.startDate || '');
+		if (!/^\d{4}-\d{2}/.test(raw)) {
+			return '';
+		}
+		try {
+			const d = new Date(raw + 'T12:00:00');
+			return new Intl.DateTimeFormat(document.documentElement.lang || undefined, {
+				month: 'long',
+				year: 'numeric',
+			}).format(d);
+		} catch (_) {
+			return raw.slice(0, 7);
+		}
+	}
+
+	function renderPublishCeremony(period, readiness, ack) {
+		const root = document.getElementById('dc-publish-ceremony');
+		if (!root) return;
+		if (!period || String(period.status || '').toLowerCase() !== 'open') {
+			root.hidden = true;
+			return;
+		}
+		root.hidden = false;
+		const mustFix = Number(readiness?.hardConflicts || 0);
+		const confirm = Number(readiness?.softConflicts || 0);
+		const canPublish = Boolean(readiness?.canPublish);
+		const month = monthLabelForPeriod(period);
+		const statusLabel = t('dutycheck', 'Open').toUpperCase();
+		const meta = document.getElementById('dc-publish-ceremony-meta');
+		if (meta) {
+			meta.replaceChildren();
+			const chips = [
+				{ text: `${mustFix} ${t('dutycheck', 'Must fix')}`, ok: mustFix === 0 },
+				{ text: `${confirm} ${t('dutycheck', 'Confirm to continue')}`, ok: confirm === 0 },
+			];
+			if (ack && Number(ack.total || 0) > 0) {
+				chips.push({
+					text: t('dutycheck', '{acked}/{total} seen')
+						.replace('{acked}', String(ack.acknowledged ?? 0))
+						.replace('{total}', String(ack.total ?? 0)),
+					ok: Number(ack.percent || 0) >= 80,
+				});
+			}
+			if (month) {
+				chips.push({ text: `${month} · ${statusLabel}`, ok: false });
+			}
+			chips.forEach((chip) => {
+				meta.appendChild(create('span', {
+					class: 'dc-publish-ceremony__chip' + (chip.ok ? ' dc-publish-ceremony__chip--ok' : ''),
+					text: chip.text,
+				}));
+			});
+		}
+		const hint = document.getElementById('dc-publish-ceremony-hint');
+		if (hint) {
+			hint.textContent = canPublish
+				? t('dutycheck', 'Snapshot becomes immutable. Staff see the roster after publish.')
+				: t('dutycheck', 'Publishing freezes a tamper-evident snapshot for this period.');
+		}
+		const actions = document.getElementById('dc-publish-ceremony-actions');
+		if (actions) {
+			actions.replaceChildren();
+			const label = month
+				? t('dutycheck', 'Publish') + ' · ' + month
+				: t('dutycheck', 'Publish');
+			const btn = create('button', {
+				type: 'button',
+				class: 'button primary',
+				text: label,
+				attrs: { 'aria-disabled': canPublish ? null : 'true' },
+			});
+			if (!canPublish) {
+				btn.disabled = true;
+			}
+			btn.addEventListener('click', () => {
+				if (!canPublish || !period?.id) return;
+				transitionPeriod(period.id, 'published');
+			});
+			actions.appendChild(btn);
+		}
 	}
 
 	function renderSnapshots(snapshots) {
@@ -423,11 +519,19 @@
 			if (r.status !== 'rejected') return false;
 			return !(Api.isAborted && Api.isAborted(r.reason));
 		});
-		if (failed.length) {
+		// Only raise the integrity banner when snapshot verify/list truly failed —
+		// audit/publish-readiness already paint their own inline fallbacks.
+		const snapFailed = snapR.status === 'rejected'
+			&& !(Api.isAborted && Api.isAborted(snapR.reason));
+		if (snapFailed) {
 			setIntegrityBanner(t('dutycheck', 'Some period details failed to load. Retry, or review server logs if this persists.'));
-			Msg.handleApiError(failed[0].reason);
+			Msg.handleApiError(snapR.reason);
 		} else {
 			setIntegrityBanner('');
+			if (failed.length && failed[0] !== snapR) {
+				// Soft-fail secondary panes without advertising a broken demo frame.
+				Msg.handleApiError?.(failed[0].reason);
+			}
 		}
 
 		const verifyButton = document.getElementById('dc-verify-snapshots-button');
@@ -437,6 +541,7 @@
 	function setPublishReadinessLoading() {
 		const node = document.getElementById('dc-publish-readiness');
 		if (!node) return;
+		node.hidden = false;
 		node.textContent = t('dutycheck', 'Loading…');
 		node.setAttribute('aria-busy', 'true');
 	}
@@ -453,9 +558,11 @@
 		const el = document.getElementById('dc-period-ack-stats');
 		if (!el) return;
 		el.removeAttribute('aria-busy');
-		if (!data || Number(data.total || 0) <= 0) {
+		currentAckStats = data && Number(data.total || 0) > 0 ? data : null;
+		if (!currentAckStats) {
 			el.hidden = true;
 			el.textContent = '';
+			renderPublishCeremony(currentPeriod, currentReadiness, null);
 			return;
 		}
 		el.hidden = false;
@@ -463,6 +570,7 @@
 			.replace('{acked}', String(data.acknowledged ?? 0))
 			.replace('{total}', String(data.total ?? 0))
 			.replace('{pct}', String(data.percent ?? 0));
+		renderPublishCeremony(currentPeriod, currentReadiness, currentAckStats);
 	}
 
 	async function loadPeriods(preferredPeriodId) {
@@ -475,6 +583,7 @@
 			const preferred = preferredPeriodId || selectedPeriodIdFromUrl();
 			const selected = periods.find((p) => Number(p.id) === Number(preferred)) || periods[0] || null;
 			currentPeriodId = selected ? Number(selected.id) : null;
+			currentPeriod = selected || null;
 			C.clearLoadingRow?.(periodsBody);
 			renderPeriods(periods);
 			if (currentPeriodId) {
@@ -482,6 +591,8 @@
 				// Do not await: the list must paint even if details are slow.
 				void loadPeriodDetails(currentPeriodId);
 			} else {
+				currentReadiness = null;
+				currentAckStats = null;
 				renderSnapshots([]);
 				renderPublishReadiness(null);
 				renderAudit([]);

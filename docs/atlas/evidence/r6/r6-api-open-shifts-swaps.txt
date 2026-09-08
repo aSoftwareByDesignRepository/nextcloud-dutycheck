@@ -1,0 +1,11 @@
+PHPUnit 9.6.34 by Sebastian Bergmann and contributors.
+
+...........PHP Deprecated:  Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in /var/www/html/custom_apps/dutycheck/tests/Unit/Service/OpenShiftCompanyClaimTest.php on line 24
+..PHP Deprecated:  Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in /var/www/html/custom_apps/dutycheck/tests/Unit/Service/OpenShiftListIsolationTest.php on line 24
+.PHP Deprecated:  Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in /var/www/html/custom_apps/dutycheck/tests/Unit/Service/OpenShiftListIsolationTest.php on line 24
+.............                                       27 / 27 (100%)
+
+Time: 00:01.361, Memory: 26.00 MB
+
+OK (27 tests, 66 assertions)
+OPEN_SWAP_EXIT=0

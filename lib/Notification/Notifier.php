@@ -37,13 +37,15 @@ class Notifier implements INotifier
 		$l = $this->l10nFactory->get(Application::APP_ID, $languageCode);
 		switch ($notification->getSubject()) {
 			case 'roster_published':
+			case 'roster_published_change':
 				$params = $notification->getSubjectParameters();
 				$period = (string) ($params['period'] ?? '');
+				$periodId = (string) ($params['periodId'] ?? $notification->getObjectId());
 				$notification->setParsedSubject($l->t('Roster published: %s', [$period]));
 				$notification->setParsedMessage($l->t('Open DutyCheck to see your shifts.'));
 				$notification->setLink(
 					$this->urlGenerator->linkToRouteAbsolute('dutycheck.page.myRoster')
-					. '?periodId=' . rawurlencode($notification->getObjectId())
+					. '?periodId=' . rawurlencode($periodId)
 				);
 				return $notification;
 			case 'period_soft_cap_approach':
@@ -63,6 +65,7 @@ class Notifier implements INotifier
 				$notification->setLink($this->urlGenerator->linkToRouteAbsolute('dutycheck.page.myRoster'));
 				return $notification;
 			case 'swap_approved':
+			case 'swap_decision':
 				$notification->setParsedSubject($l->t('Shift swap approved'));
 				$notification->setParsedMessage($l->t('Your swap request was approved. Check your roster.'));
 				$notification->setLink($this->urlGenerator->linkToRouteAbsolute('dutycheck.page.myRoster'));

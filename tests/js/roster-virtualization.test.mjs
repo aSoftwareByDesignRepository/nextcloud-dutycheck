@@ -300,5 +300,29 @@ describe('roster.js virtualizes grid and list without paginating the API', () =>
 		);
 		assert.match(css, /#dc-assignments-table-wrap\.dc-roster-list-scroller \.dc-table tbody tr\.dc-virtual-spacer \{\s*display:\s*table-row/);
 		assert.match(css, /\.dc-roster-grid__row--head[\s\S]{0,80}position:\s*sticky/);
+		// Require the desktop person-column track specifically — a media-query
+		// day-count alone must not mask an auto-fit regression on the base rule.
+		assert.match(
+			css,
+			/\.dc-roster-grid__row \{[\s\S]{0,400}minmax\(9rem,\s*12rem\)\s+repeat\(var\(--dc-roster-day-count/,
+		);
+		assert.doesNotMatch(
+			css,
+			/\.dc-roster-grid__row \{[\s\S]{0,400}minmax\(9rem,\s*12rem\)\s+repeat\(auto-fit/,
+		);
+		assert.match(css, /--dc-roster-day-min/);
+		assert.match(css, /dc-roster-grid__colhead--today/);
+		assert.match(css, /dc-roster-grid__colhead--weekend/);
+		assert.match(css, /color:\s*var\(--color-text-maxcontrast\)/);
+		assert.match(src, /setProperty\('--dc-roster-day-count'/);
+		assert.match(src, /setProperty\('--dc-roster-day-min'/);
+		assert.match(src, /formatRosterColumnParts/);
+		assert.match(src, /buildDutyDayMeta/);
+		assert.match(src, /Scroll sideways to see every day in this period/);
+		assert.match(src, /gridMonthClamp/);
+		assert.match(src, /currentCompanyYearMonth/);
+		assert.match(src, /ensure-calendar-month/);
+		assert.match(tpl, /scroll sideways to see every date/i);
+		assert.match(tpl, /Step through months continuously/i);
 	});
 });

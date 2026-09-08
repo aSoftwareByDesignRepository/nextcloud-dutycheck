@@ -275,6 +275,17 @@ body,
 	gap: var(--dc-space-4);
 	align-items: start;
 }
+.dc-page-header__title-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--dc-space-2) var(--dc-space-3);
+	min-width: 0;
+}
+.dc-page-header__title-row h1 {
+	margin: 0;
+	min-width: 0;
+}
 .dc-page-header__icon {
 	display: grid;
 	place-items: center;
@@ -661,6 +672,8 @@ body,
 	padding: var(--dc-space-3) var(--dc-space-4);
 	border-radius: var(--dc-radius-sm);
 	background: var(--dc-tint-info);
+	min-width: 0;
+	overflow-wrap: anywhere;
 }
 .dc-callout--warning { background: var(--dc-tint-warning); }
 .dc-callout--critical { background: var(--dc-tint-critical); }
@@ -711,15 +724,17 @@ body,
 	display: grid;
 	gap: var(--dc-space-3);
 	grid-template-columns: 1fr;
+	min-width: 0;
+	max-width: 100%;
 }
 @media (min-width: 520px) {
 	.dc-quickstart {
-		grid-template-columns: repeat(2, 1fr);
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
 @media (min-width: 900px) {
 	.dc-quickstart {
-		grid-template-columns: repeat(3, 1fr);
+		grid-template-columns: repeat(3, minmax(0, 1fr));
 	}
 	/* Keep the “publish on Periods” step from squeezing into a 4th skinny column */
 	.dc-quickstart__item[data-step="publish-on-periods"] {
@@ -734,16 +749,22 @@ body,
 	display: flex;
 	flex-direction: column;
 	gap: var(--dc-space-2);
+	min-width: 0;
+	max-width: 100%;
+	overflow-wrap: anywhere;
+	word-break: break-word;
 }
-.dc-quickstart__item p { margin: 0; color: var(--dc-muted); font-size: var(--dc-fs-sm); }
+.dc-quickstart__item p { margin: 0; color: var(--dc-muted); font-size: var(--dc-fs-sm); overflow-wrap: anywhere; }
 .dc-quickstart__cta {
 	margin-top: var(--dc-space-3);
 	display: flex;
 	justify-content: center;
 	width: 100%;
+	max-width: 100%;
 	text-align: center;
+	min-width: 0;
 }
-.dc-quickstart__item strong { font-size: var(--dc-fs-md); line-height: var(--dc-line-tight); color: var(--color-main-text, #1d1d1d); }
+.dc-quickstart__item strong { font-size: var(--dc-fs-md); line-height: var(--dc-line-tight); color: var(--color-main-text, #1d1d1d); overflow-wrap: anywhere; }
 .dc-quickstart__item .button,
 .dc-quickstart__item .dc-btn,
 .dc-quickstart__cta .button,
@@ -1529,6 +1550,34 @@ label.dc-checkbox {
 .dc-roster-panel__body {
 	max-width: 100%;
 }
+.dc-roster-month-nav {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--dc-space-2);
+	margin-top: var(--dc-space-1);
+}
+.dc-roster-month-nav__current {
+	margin: 0;
+	min-width: 11rem;
+	text-align: center;
+	font-size: var(--dc-fs-lg);
+	font-weight: 700;
+	color: var(--color-main-text);
+}
+.dc-roster-month-nav .button {
+	min-height: var(--dc-touch);
+	color: var(--color-main-text);
+	border-color: var(--color-border-max-contrast, var(--dc-border));
+	background: var(--color-primary-element-light, var(--dc-bg-soft));
+	font-weight: 600;
+}
+.dc-roster-month-nav .button:hover,
+.dc-roster-month-nav .button:focus-visible {
+	color: var(--color-primary-element-text, var(--color-main-text));
+	background: var(--color-primary-element, var(--color-primary));
+	border-color: var(--color-primary-element, var(--color-primary));
+}
 .dc-app--my-roster .dc-main {
 	gap: var(--dc-space-5);
 }
@@ -1794,6 +1843,24 @@ label.dc-checkbox {
 	font: inherit;
 	border-radius: var(--dc-radius-sm);
 	cursor: pointer;
+}
+
+/*
+ * Settings form CTAs often carry long DE labels ("Benachrichtigungs- &
+ * Aufbewahrungseinstellungen speichern"). Shell nowrap above uses an ID
+ * selector — beat it here so #dc-settings-ops does not overflow @320.
+ */
+#app-content.dc-app .dc-form-actions .button,
+#app-content.dc-app .dc-form-actions button,
+#app-content.dc-app .dc-form-actions a.button,
+#app-content.dc-app .dc-filter-actions .button,
+#app-content.dc-app .dc-filter-actions button,
+#app-content.dc-app .dc-action-row .button,
+#app-content.dc-app .dc-action-row button {
+	white-space: normal;
+	overflow-wrap: anywhere;
+	height: auto;
+	max-width: 100%;
 }
 
 #app-content.dc-app button.primary,
@@ -2105,6 +2172,24 @@ label.dc-checkbox {
 	align-self: flex-start;
 }
 
+/* atlas-r8: quiet ADMINISTRATOR nav badge (role still available to SR via text) */
+.dc-nav__role.dc-badge,
+.dc-nav__role.dc-badge--critical,
+.dc-nav__role.dc-badge--info,
+.dc-nav__role.dc-badge--success,
+.dc-nav__role.dc-badge--neutral {
+	font-size: 0.58rem;
+	font-weight: 550;
+	letter-spacing: 0.03em;
+	text-transform: uppercase;
+	padding: 0.05rem 0.28rem;
+	opacity: 0.32;
+	background: transparent;
+	border: 1px solid color-mix(in srgb, #ffffff 10%, transparent);
+	color: #6e6e6e;
+	box-shadow: none;
+}
+
 .dc-nav__group {
 	display: flex;
 	flex-direction: column;
@@ -2163,14 +2248,9 @@ label.dc-checkbox {
 	display: block;
 	font-size: var(--dc-fs-sm);
 }
+/* Hints live in link title tooltips only — visible microcopy densifies the rail. */
 .dc-nav__hint {
-	display: block;
-	font-size: var(--dc-fs-xs);
-	color: var(--dc-muted);
-	line-height: var(--dc-line-base);
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
+	display: none;
 }
 
 /* ── Conflicts & warnings ────────────────────────────────────── */
@@ -3308,6 +3388,14 @@ form.dc-form-grid[aria-busy='true'] .button {
 	overflow-wrap: anywhere;
 }
 
+/*
+ * Beat `#app-content.dc-app a.button { white-space: nowrap }` (ID + 2 classes).
+ * Long DE CTAs ("Official mobile & terminal licenses") overflow main @320px dark.
+ */
+#app-content.dc-app a.button.dc-support-us__cta,
+#app-content.dc-app .dc-support-us__cta.button,
+.dc-app a.button.dc-support-us__cta,
+.dc-app .dc-support-us__cta.button,
 .dc-support-us__cta {
 	/* WCAG 2.5.5: px + !important — NC root is 15px and .azc-btn uses 2.75rem (41.25px). */
 	min-height: 44px !important;
@@ -3502,11 +3590,18 @@ form.dc-form-grid[aria-busy='true'] .button {
 	padding: 0 0 var(--dc-space-3);
 	border-bottom: 1px solid var(--dc-border);
 }
+/* Desktop: sidebar already lists settings children — hide the 14-chip cavern. */
+@media (min-width: 1025px) {
+	.dc-settings-nav {
+		display: none;
+	}
+}
 .dc-app .dc-settings-nav__link {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	min-height: 44px;
+	max-width: 100%;
 	padding: var(--dc-space-2) var(--dc-space-3);
 	border: 1px solid var(--dc-border);
 	border-radius: var(--dc-radius-sm);
@@ -3516,6 +3611,9 @@ form.dc-form-grid[aria-busy='true'] .button {
 	font-weight: 600;
 	font-size: var(--dc-fs-sm);
 	line-height: 1.2;
+	white-space: normal;
+	overflow-wrap: anywhere;
+	text-align: center;
 }
 .dc-app .dc-settings-nav__link:hover {
 	border-color: var(--color-primary-element, #0082c9);
@@ -3535,9 +3633,19 @@ form.dc-form-grid[aria-busy='true'] .button {
 	font-weight: 700;
 }
 .dc-inline-link {
-	color: var(--color-primary-element, #0082c9);
+	/* Primary-on-info-tint fails WCAG AA on dark/custom accents (~4.4:1).
+	   Use main-text ink + underline (same pattern as .dc-settings-nav__link.is-active). */
+	color: var(--color-main-text, #222);
+	font-weight: 600;
 	text-decoration: underline;
 	text-underline-offset: 2px;
+	overflow-wrap: anywhere;
+	word-break: break-word;
+}
+.dc-inline-link:hover,
+.dc-inline-link:focus-visible {
+	color: var(--color-main-text, #222);
+	text-decoration-thickness: 2px;
 }
 .dc-inline-link:focus-visible {
 	outline: 3px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 60%, transparent);
@@ -3684,6 +3792,15 @@ form.dc-form-grid[aria-busy='true'] .button {
 	border: 1px solid var(--color-border, var(--dc-border));
 	border-radius: var(--dc-radius-md);
 	background: var(--color-main-background);
+	scrollbar-gutter: stable both-edges;
+	/* Make horizontal scroll for clipped day columns obvious (So 8 etc.). */
+	background-image:
+		linear-gradient(to right, var(--color-main-background) 85%, transparent),
+		linear-gradient(to left, color-mix(in srgb, var(--color-primary-element, #0082c9) 18%, transparent), transparent 12%);
+	background-attachment: local, scroll;
+	background-size: 100% 100%, 1.25rem 100%;
+	background-repeat: no-repeat;
+	background-position: 0 0, 100% 0;
 }
 .dc-windowed-table {
 	overflow: auto;
@@ -3866,7 +3983,10 @@ form.dc-form-grid[aria-busy='true'] .button {
 	overflow: hidden;
 }
 .dc-roster-grid {
-	min-width: min(100%, 48rem);
+	/* Grow with day columns so month periods scroll horizontally instead of wrapping. */
+	--dc-roster-day-min: 4.5rem;
+	min-width: 100%;
+	width: max-content;
 	outline: none;
 }
 .dc-roster-grid:focus-visible {
@@ -3879,8 +3999,11 @@ form.dc-form-grid[aria-busy='true'] .button {
 	background: var(--color-main-background);
 }
 .dc-roster-grid__row {
+	/* Explicit day count (set by JS). auto-fit collapsed month headers into overlapping piles. */
 	display: grid;
-	grid-template-columns: minmax(7rem, 10rem) repeat(auto-fit, minmax(4.5rem, 1fr));
+	/* Person column wide enough for typical given+family names without E2E-style ellipsis. */
+	grid-template-columns: minmax(9rem, 12rem) repeat(var(--dc-roster-day-count, 7), minmax(var(--dc-roster-day-min), 1fr));
+	min-width: max(100%, calc(12rem + (var(--dc-roster-day-count, 7) * var(--dc-roster-day-min))));
 	border-bottom: 1px solid var(--color-border, var(--dc-border));
 }
 .dc-roster-grid__row:last-child {
@@ -3892,6 +4015,7 @@ form.dc-form-grid[aria-busy='true'] .button {
 	z-index: 3;
 	background: color-mix(in srgb, var(--color-primary-element, #0082c9) 8%, var(--color-main-background));
 	font-weight: 600;
+	box-shadow: 0 1px 0 color-mix(in srgb, var(--color-border, var(--dc-border)) 80%, transparent);
 }
 .dc-roster-grid__corner {
 	position: sticky;
@@ -3913,6 +4037,62 @@ form.dc-form-grid[aria-busy='true'] .button {
 	min-height: var(--dc-touch);
 	padding: var(--dc-space-1) var(--dc-space-2);
 	border-inline-end: 1px solid var(--color-border, var(--dc-border));
+}
+.dc-roster-grid__colhead {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 0.1rem;
+	text-align: center;
+	line-height: 1.15;
+	overflow: hidden;
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+	letter-spacing: 0.01em;
+}
+.dc-roster-grid__colhead-wd {
+	display: block;
+	font-size: var(--dc-fs-xs);
+	font-weight: 600;
+	color: var(--color-text-maxcontrast);
+}
+.dc-roster-grid__colhead--weekend .dc-roster-grid__colhead-wd {
+	/* Weekend tint drops maxcontrast below AA at xs size — use full text color. */
+	color: var(--color-main-text);
+}
+.dc-roster-grid__colhead-day {
+	display: block;
+	font-size: var(--dc-fs-sm);
+	font-weight: 700;
+	color: var(--color-main-text);
+}
+.dc-roster-grid__colhead--weekend,
+.dc-roster-grid__cell--weekend {
+	background: color-mix(in srgb, var(--color-main-text) 5%, var(--color-main-background));
+}
+.dc-roster-grid__row--head .dc-roster-grid__colhead--weekend {
+	background: color-mix(
+		in srgb,
+		var(--color-main-text) 6%,
+		color-mix(in srgb, var(--color-primary-element, #0082c9) 8%, var(--color-main-background))
+	);
+}
+.dc-roster-grid__colhead--today {
+	box-shadow: inset 0 -3px 0 var(--color-primary-element, #0082c9);
+}
+.dc-roster-grid__colhead--today .dc-roster-grid__colhead-day {
+	color: var(--color-primary-element-text, #ffffff);
+	background: var(--color-primary-element, #0082c9);
+	padding: 0.15rem 0.4rem;
+	border-radius: var(--dc-radius-sm);
+	min-width: 1.5rem;
+}
+.dc-roster-grid__cell--today {
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-primary-element, #0082c9) 45%, transparent);
+}
+.dc-roster-grid--month .dc-roster-grid__colhead {
+	padding-inline: var(--dc-space-1);
 }
 .dc-roster-grid__cell:last-child,
 .dc-roster-grid__colhead:last-child {
@@ -4017,7 +4197,8 @@ form.dc-form-grid[aria-busy='true'] .button {
 }
 @media (max-width: 719px) {
 	.dc-roster-grid__row {
-		grid-template-columns: minmax(5.5rem, 7rem) repeat(auto-fit, minmax(3.75rem, 1fr));
+		grid-template-columns: minmax(7rem, 9rem) repeat(var(--dc-roster-day-count, 7), minmax(var(--dc-roster-day-min, 3.75rem), 1fr));
+		min-width: max(100%, calc(9rem + (var(--dc-roster-day-count, 7) * var(--dc-roster-day-min, 3.75rem))));
 	}
 	.dc-roster-view-toggle {
 		width: 100%;
@@ -4299,3 +4480,1383 @@ textarea {
 	}
 }
 /* === app-feedback:dc end === */
+
+/* === roster-self-service-ga:dc begin === */
+.dc-dienst-team__form {
+	display: flex;
+	flex-direction: column;
+	gap: var(--dc-space-6);
+}
+
+.dc-dienst-team__group {
+	display: flex;
+	flex-direction: column;
+	gap: var(--dc-space-3);
+	padding-bottom: var(--dc-space-5);
+	border-bottom: 1px solid var(--dc-border);
+}
+
+.dc-dienst-team__group:last-of-type {
+	border-bottom: 0;
+	padding-bottom: 0;
+}
+
+.dc-dienst-team__group-title {
+	margin: 0;
+	font-size: var(--dc-fs-lg);
+	font-weight: 600;
+	line-height: var(--dc-line-tight);
+	color: var(--dc-text);
+}
+
+.dc-dienst-team__group-lead,
+.dc-dienst-team__hint {
+	display: block;
+	margin: 0;
+	font-size: var(--dc-fs-sm);
+	line-height: var(--dc-line-base);
+	color: var(--dc-muted);
+	font-weight: 400;
+}
+
+.dc-dienst-team__primary {
+	min-height: var(--dc-touch);
+	padding: var(--dc-space-2) 0;
+}
+
+.dc-dienst-team__primary + .dc-dienst-team__primary {
+	margin-top: var(--dc-space-1);
+}
+
+.dc-checkbox.dc-dienst-team__primary .dc-checkbox__text {
+	display: flex;
+	flex-direction: column;
+	gap: 0.15rem;
+}
+
+@media (max-width: 640px) {
+	.dc-today__filters {
+		grid-template-columns: 1fr;
+	}
+
+	.dc-dienst-team__quiet-times {
+		grid-template-columns: 1fr;
+	}
+
+	.dc-patterns__item-actions {
+		flex-wrap: wrap;
+	}
+
+	.dc-patterns__item-actions .button {
+		min-height: var(--dc-touch);
+	}
+}
+
+.dc-dienst-team__badge {
+	margin-left: var(--dc-space-2);
+	vertical-align: middle;
+}
+
+.dc-dienst-team__inline-link {
+	margin: 0;
+}
+
+.dc-dienst-team__details {
+	border: 1px solid var(--dc-border);
+	border-radius: var(--dc-radius-md);
+	padding: var(--dc-space-3) var(--dc-space-4);
+	background: var(--dc-bg-soft);
+}
+
+.dc-dienst-team__summary {
+	cursor: pointer;
+	min-height: var(--dc-touch);
+	display: flex;
+	align-items: center;
+	font-weight: 600;
+	list-style: none;
+}
+
+.dc-dienst-team__summary::-webkit-details-marker {
+	display: none;
+}
+
+.dc-dienst-team__summary:focus-visible {
+	outline: 2px solid var(--color-primary-element);
+	outline-offset: 2px;
+}
+
+.dc-dienst-team__quiet-times {
+	margin-top: var(--dc-space-2);
+}
+
+.dc-dienst-team__more-block {
+	display: flex;
+	flex-direction: column;
+	gap: var(--dc-space-3);
+	margin-top: var(--dc-space-2);
+}
+
+.dc-today__filters {
+	margin-bottom: var(--dc-space-4);
+	align-items: end;
+}
+
+.dc-today__date-shortcuts {
+	display: flex;
+	flex-wrap: nowrap;
+	gap: var(--dc-space-2);
+	margin-top: var(--dc-space-2);
+	align-items: stretch;
+	clear: both;
+	position: relative;
+	z-index: 2;
+	grid-column: 1 / -1;
+}
+.dc-field:has(> .dc-today__date-shortcuts) {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 0;
+}
+.dc-field:has(> .dc-today__date-shortcuts) > .dc-date-field {
+	width: 100%;
+	max-width: 16rem;
+}
+
+.dc-today__date-shortcuts .button {
+	min-height: var(--dc-touch);
+	min-width: 44px;
+	flex: 1 1 0;
+}
+
+@media (max-width: 640px) {
+	.dc-today__date-shortcuts {
+		flex-wrap: wrap;
+	}
+}
+
+.dc-today__skeleton {
+	display: flex;
+	flex-direction: column;
+	gap: var(--dc-space-3);
+	margin: var(--dc-space-4) 0;
+}
+
+.dc-today__skeleton-row {
+	height: 3.25rem;
+	border-radius: var(--dc-radius-md);
+	background: linear-gradient(
+		90deg,
+		var(--dc-bg-soft) 0%,
+		var(--dc-bg-stripe) 50%,
+		var(--dc-bg-soft) 100%
+	);
+	background-size: 200% 100%;
+	animation: dc-today-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes dc-today-shimmer {
+	0% { background-position: 100% 0; }
+	100% { background-position: -100% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.dc-today__skeleton-row {
+		animation: none;
+		background: var(--dc-bg-stripe);
+	}
+}
+
+.dc-today__gaps {
+	list-style: none;
+	margin: 0 0 var(--dc-space-4);
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: var(--dc-space-2);
+}
+
+.dc-today__gap {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--dc-space-3);
+	min-height: var(--dc-touch);
+	padding: var(--dc-space-3);
+	border-radius: var(--dc-radius-md);
+	background: var(--dc-tint-warning);
+	border: 1px solid var(--dc-border);
+	color: var(--dc-text);
+}
+
+.dc-today__gap-icon {
+	flex-shrink: 0;
+	width: 1.75rem;
+	height: 1.75rem;
+	border-radius: 50%;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 700;
+	background: var(--color-main-background);
+	border: 2px solid var(--color-warning-text, var(--color-warning, #c98600));
+	color: var(--color-warning-text, var(--color-warning, #c98600));
+}
+
+.dc-today__timeline {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: var(--dc-space-2);
+}
+
+.dc-today__shift {
+	padding: var(--dc-space-3) var(--dc-space-4);
+	border-radius: var(--dc-radius-md);
+	border: 1px solid var(--dc-border);
+	background: var(--dc-bg-card);
+	min-height: var(--dc-touch);
+}
+
+.dc-today__shift--draft {
+	border-style: dashed;
+	background: var(--dc-bg-soft);
+}
+
+.dc-today__shift-main {
+	display: flex;
+	flex-direction: column;
+	gap: var(--dc-space-1);
+}
+
+.dc-today__shift-name {
+	font-size: var(--dc-fs-md);
+	font-weight: 600;
+}
+
+.dc-today__shift-meta {
+	font-size: var(--dc-fs-sm);
+	color: var(--dc-muted);
+}
+
+.dc-today__empty {
+	padding: var(--dc-space-3) var(--dc-space-4);
+	margin: var(--dc-space-2) 0 0;
+	text-align: left;
+	color: var(--dc-muted);
+	max-width: 36rem;
+	border-left: 3px solid var(--dc-border, #ddd);
+	background: transparent;
+}
+.dc-today__empty p {
+	margin: 0;
+	font-size: var(--dc-fs-md, 1rem);
+	line-height: 1.45;
+}
+#dc-today-status:empty {
+	display: none;
+	margin: 0;
+	padding: 0;
+	min-height: 0;
+	border: 0;
+}
+
+.dc-my-team__filters {
+	margin-top: var(--dc-space-2, 0.5rem);
+}
+
+.dc-my-team__filters .dc-today__date-shortcuts .button,
+.dc-my-team__filters .dc-form-actions .button {
+	min-height: 44px;
+	min-width: 44px;
+}
+
+.dc-my-team__list {
+	list-style: none;
+	margin: var(--dc-space-3, 0.75rem) 0 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: var(--dc-space-2, 0.65rem);
+}
+
+.dc-my-team__row {
+	display: grid;
+	grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.8fr);
+	gap: 0.35rem 0.75rem;
+	align-items: baseline;
+	padding: 0.75rem 0.9rem;
+	border: 1px solid var(--color-border, var(--dc-border, #ddd));
+	border-radius: var(--border-radius-large, 8px);
+	background: var(--color-main-background);
+}
+
+.dc-my-team__name {
+	font-size: 1.05rem;
+}
+
+.dc-my-team__when,
+.dc-my-team__loc {
+	color: var(--dc-muted, var(--color-text-maxcontrast));
+	font-size: 0.95rem;
+}
+
+@media (max-width: 640px) {
+	.dc-my-team__row {
+		grid-template-columns: 1fr;
+	}
+}
+
+.dc-dienst-team .dc-section__sub {
+	margin: 0 0 0.75rem;
+	max-width: 42rem;
+	color: var(--dc-muted, var(--color-text-maxcontrast));
+}
+
+.dc-patterns__list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: var(--dc-space-3);
+}
+
+.dc-patterns__item {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	justify-content: flex-start;
+	gap: var(--dc-space-2);
+	padding: var(--dc-space-3);
+	border: 1px solid var(--dc-border);
+	border-radius: var(--dc-radius-md);
+	background: var(--dc-bg-card);
+	min-height: 0;
+}
+
+.dc-patterns__item-main {
+	display: flex;
+	flex-direction: column;
+	gap: var(--dc-space-1);
+	min-width: 0;
+	flex: 1 1 auto;
+}
+
+.dc-patterns__item-meta {
+	font-size: var(--dc-fs-sm);
+	color: var(--dc-muted);
+}
+
+.dc-patterns__preview {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+	margin-top: 0.35rem;
+}
+
+.dc-patterns__preview-week {
+	display: grid;
+	grid-template-columns: 3.2rem 1fr;
+	gap: 0.35rem;
+	align-items: center;
+}
+
+.dc-patterns__preview-label {
+	font-size: 0.72rem;
+	font-weight: 650;
+	color: var(--dc-muted);
+}
+
+.dc-patterns__preview-cells {
+	display: grid;
+	grid-template-columns: repeat(7, minmax(0, 1fr));
+	gap: 0.2rem;
+}
+
+.dc-patterns__preview-day {
+	font-size: 0.62rem;
+	line-height: 1.15;
+	text-align: center;
+	padding: 0.28rem 0.1rem;
+	border-radius: 4px;
+	border: 1px solid var(--dc-border);
+	background: color-mix(in srgb, var(--color-background-dark, #eee) 55%, transparent);
+	color: var(--color-main-text);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: clip;
+}
+
+.dc-patterns__preview-day--off {
+	opacity: 0.55;
+	color: var(--dc-muted);
+}
+
+.dc-patterns__preview-day--frueh {
+	background: color-mix(in srgb, var(--color-success, #46ba61) 22%, var(--color-main-background, #fff));
+	border-color: color-mix(in srgb, var(--color-success, #46ba61) 40%, var(--dc-border));
+}
+
+.dc-patterns__preview-day--spaet {
+	background: color-mix(in srgb, var(--color-primary-element, #0082c9) 18%, var(--color-main-background, #fff));
+	border-color: color-mix(in srgb, var(--color-primary-element, #0082c9) 35%, var(--dc-border));
+}
+
+.dc-dashboard-conflict-list {
+	margin: 0.45rem 0 0;
+	padding: 0;
+	display: grid;
+	gap: 0.25rem;
+}
+
+.dc-dashboard-conflict-list .dc-conflict {
+	padding: 0.35rem 0.5rem;
+	margin: 0;
+}
+
+.dc-patterns__item-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--dc-space-2);
+	margin-top: 0.25rem;
+}
+
+@media (max-width: 900px) {
+	.dc-patterns__list {
+		grid-template-columns: 1fr;
+	}
+}
+
+.dc-patterns__empty {
+	padding: var(--dc-space-5);
+	text-align: center;
+	color: var(--dc-muted);
+}
+
+.dc-patterns__editor {
+	display: flex;
+	flex-direction: column;
+	gap: var(--dc-space-4);
+}
+
+.dc-patterns__week {
+	margin: 0;
+	padding: var(--dc-space-3);
+	border: 1px solid var(--dc-border);
+	border-radius: var(--dc-radius-md);
+}
+
+.dc-patterns__grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+	gap: var(--dc-space-3);
+}
+
+.dc-patterns__day {
+	display: flex;
+	flex-direction: column;
+	gap: var(--dc-space-2);
+	padding: var(--dc-space-2);
+	border-radius: var(--dc-radius-sm);
+	background: var(--dc-bg-soft);
+}
+
+.dc-patterns__day-head {
+	font-weight: 600;
+	font-size: var(--dc-fs-sm);
+}
+
+.dc-patterns__work-toggle {
+	width: 100%;
+}
+
+.dc-coverage-strip {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--dc-space-2) var(--dc-space-3);
+	margin: 0 0 var(--dc-space-3);
+	padding: var(--dc-space-3) var(--dc-space-4);
+	border-radius: var(--dc-radius-md);
+	border: 1px solid var(--dc-border);
+	background: var(--dc-bg-soft);
+	min-height: var(--dc-touch);
+}
+
+.dc-coverage-strip__label {
+	font-weight: 600;
+	font-size: var(--dc-fs-sm);
+}
+
+.dc-coverage-strip__text {
+	font-size: var(--dc-fs-sm);
+	color: var(--dc-text);
+}
+
+.dc-coverage-strip--ok {
+	background: var(--dc-tint-success);
+}
+
+.dc-coverage-strip--warn {
+	background: var(--dc-tint-warning);
+}
+
+.dc-coverage-strip--critical {
+	background: var(--dc-tint-critical);
+}
+
+.dc-pref-chip,
+.dc-pref-chip-row {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--dc-space-2);
+}
+
+.dc-pref-chip-row {
+	flex-wrap: wrap;
+	margin-bottom: var(--dc-space-3);
+}
+
+.dc-pref-chip {
+	min-height: var(--dc-touch);
+	min-width: var(--dc-touch);
+	padding: 0 var(--dc-space-4);
+	border-radius: var(--dc-radius-sm);
+	border: 1px solid var(--dc-border-strong);
+	background: var(--dc-bg-card);
+	color: var(--dc-text);
+	font-size: var(--dc-fs-sm);
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.dc-pref-chip:focus-visible {
+	outline: 2px solid var(--color-primary-element);
+	outline-offset: 2px;
+}
+
+.dc-pref-chip--static {
+	cursor: default;
+	background: var(--dc-tint-info);
+	pointer-events: none;
+}
+
+.dc-blackout-mark {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--dc-space-1);
+	font-size: var(--dc-fs-xs);
+	font-weight: 600;
+	color: var(--color-error-text, var(--color-error, #cc4646));
+	line-height: 1.2;
+}
+
+.dc-blackout-mark__icon {
+	flex-shrink: 0;
+}
+
+.dc-roster-grid__cell--blackout {
+	background: var(--dc-tint-critical);
+}
+
+.dc-roster-grid__pref-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 2px;
+	margin-top: 2px;
+}
+
+.dc-roster-grid__rowhead-name {
+	display: block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.dc-my-availability__block {
+	margin-bottom: var(--dc-space-5);
+}
+
+.dc-my-availability__list {
+	list-style: none;
+	margin: var(--dc-space-3) 0 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: var(--dc-space-2);
+}
+
+.dc-my-availability__row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--dc-space-2);
+	min-height: var(--dc-touch);
+	padding: var(--dc-space-2) var(--dc-space-3);
+	border: 1px solid var(--dc-border);
+	border-radius: var(--dc-radius-sm);
+}
+
+.dc-suggest-preview__counts {
+	margin: var(--dc-space-3) 0 0;
+	padding-left: 1.25rem;
+}
+
+.dc-roster-flash--error {
+	color: var(--color-error-text, var(--color-error, #cc4646));
+}
+
+@media (max-width: 768px) {
+	.dc-patterns__item {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.dc-patterns__item-actions .button {
+		width: 100%;
+		justify-content: center;
+	}
+}
+/* === roster-self-service-ga:dc end === */
+
+/* Locale date-order hint — retired (overlay owns the format; hints leaked under shortcuts). */
+.dc-field { position: relative; }
+.dc-date-locale-hint {
+	display: none !important;
+}
+
+/* Locale date display overlay — hides Chromium’s US mm/dd/yyyy chrome when host ICU lacks de. */
+.dc-date-field {
+	position: relative;
+	display: grid;
+}
+.dc-date-field > input[type="date"] {
+	color: transparent;
+	caret-color: var(--color-main-text, #222);
+}
+.dc-date-field > input[type="date"]::-webkit-datetime-edit,
+.dc-date-field > input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+.dc-date-field > input[type="date"]::-webkit-datetime-edit-text,
+.dc-date-field > input[type="date"]::-webkit-datetime-edit-month-field,
+.dc-date-field > input[type="date"]::-webkit-datetime-edit-day-field,
+.dc-date-field > input[type="date"]::-webkit-datetime-edit-year-field {
+	color: transparent;
+}
+.dc-date-display {
+	position: absolute;
+	inset: 0 2.5rem 0 0.85rem;
+	display: flex;
+	align-items: center;
+	pointer-events: none;
+	font-size: var(--dc-fs-md, 1rem);
+	line-height: 1.2;
+	color: var(--color-main-text, #222);
+	z-index: 1;
+	overflow: hidden;
+	white-space: nowrap;
+	transform: none;
+	top: 0;
+	bottom: 0;
+	left: 0.85rem;
+	right: 2.5rem;
+}
+.dc-date-display--empty {
+	color: var(--dc-muted, var(--color-text-maxcontrast));
+	letter-spacing: 0.04em;
+}
+/* Keep the calendar picker icon clickable on the right. */
+.dc-date-field > input[type="date"]::-webkit-calendar-picker-indicator {
+	position: relative;
+	z-index: 2;
+	opacity: 1;
+	cursor: pointer;
+}
+
+.dc-date-field {
+	position: relative;
+	display: block;
+	width: 100%;
+}
+.dc-date-field > input[type="date"] {
+	width: 100%;
+	color: transparent !important;
+	caret-color: transparent;
+}
+.dc-date-display {
+	position: absolute;
+	left: 0.85rem;
+	right: 2.5rem;
+	top: 0;
+	bottom: 0;
+	display: flex;
+	align-items: center;
+	pointer-events: none;
+	font-size: var(--dc-fs-md, 1rem);
+	color: var(--color-main-text, #222);
+	z-index: 1;
+	overflow: hidden;
+	white-space: nowrap;
+}
+.dc-field > .dc-date-locale-hint {
+	margin-top: 0.35rem;
+}
+.dc-today__date-shortcuts {
+	position: relative;
+	z-index: 2;
+}
+
+/* === atlas-r5: dark nav must match dark content (no light sidebar islands) === */
+html.theme--dark #app-navigation,
+html.theme--dark #app-navigation.dc-nav,
+body.theme--dark #app-navigation,
+body.theme--dark #app-navigation.dc-nav,
+html[data-theme-global="dark"] #app-navigation,
+html[data-theme-global="dark"] #app-navigation.dc-nav,
+body[data-theme-global="dark"] #app-navigation,
+body[data-theme-global="dark"] #app-navigation.dc-nav {
+	--color-main-background: #171717;
+	--color-main-background-rgb: 23, 23, 23;
+	--color-main-text: #ededed;
+	--color-background-dark: #101010;
+	--color-background-darker: #0a0a0a;
+	--color-border: #3a3a3a;
+	background-color: #171717 !important;
+	color: #ededed !important;
+	border-inline-end-color: #2a2a2a;
+}
+html.theme--dark #app-navigation .dc-nav__link,
+body.theme--dark #app-navigation .dc-nav__link,
+html[data-theme-global="dark"] #app-navigation .dc-nav__link {
+	color: #ededed;
+}
+html.theme--dark #app-navigation .dc-nav__hint,
+html.theme--dark #app-navigation .dc-nav__group-title,
+html.theme--dark #app-navigation .dc-nav__subtitle,
+body.theme--dark #app-navigation .dc-nav__hint,
+body.theme--dark #app-navigation .dc-nav__group-title,
+body.theme--dark #app-navigation .dc-nav__subtitle {
+	color: #a0a0a0;
+}
+
+/* Signature coverage pulse — duty board craft beyond generic NC KPI tiles */
+.dc-dashboard-pulse {
+	display: grid;
+	gap: var(--dc-space-3, 0.75rem);
+}
+.dc-dashboard-pulse__band {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+	gap: var(--dc-space-2, 0.5rem);
+}
+.dc-dashboard-pulse__chip {
+	display: flex;
+	flex-direction: column;
+	gap: 0.2rem;
+	padding: 0.85rem 1rem;
+	border-radius: var(--dc-radius-md, 8px);
+	border: 1px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 35%, #2a2a2a);
+	background:
+		linear-gradient(135deg,
+			color-mix(in srgb, var(--color-primary-element, #0082c9) 18%, #1a1a1a) 0%,
+			#1a1a1a 55%);
+	min-height: 72px;
+}
+.dc-dashboard-pulse__chip strong {
+	font-size: 1.35rem;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	color: var(--color-main-text, #ededed);
+}
+.dc-dashboard-pulse__chip span {
+	font-size: var(--dc-fs-xs, 0.8rem);
+	color: var(--dc-muted, #a0a0a0);
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+.dc-dashboard-pulse__chip--ok {
+	border-color: color-mix(in srgb, var(--color-success, #46ba61) 45%, #2a2a2a);
+	background: linear-gradient(135deg,
+		color-mix(in srgb, var(--color-success, #46ba61) 16%, #1a1a1a) 0%,
+		#1a1a1a 60%);
+}
+.dc-dashboard-pulse__chip--warn {
+	border-color: color-mix(in srgb, var(--color-warning, #c98600) 45%, #2a2a2a);
+	background: linear-gradient(135deg,
+		color-mix(in srgb, var(--color-warning, #c98600) 16%, #1a1a1a) 0%,
+		#1a1a1a 60%);
+}
+#dc-dashboard-checklist {
+	/* Demote sermon checklist — operational pulse leads */
+	opacity: 0.92;
+}
+
+/* === atlas-r6/r7: signature roster craft (Früh/Tag/Spät/Nacht band pills) === */
+.dc-roster-grid__shift {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0.28rem 0.3rem;
+	border-radius: 7px;
+	font-size: 0.78rem;
+	font-weight: 750;
+	letter-spacing: 0.02em;
+	text-transform: none;
+	line-height: 1.1;
+	min-width: 100%;
+	box-sizing: border-box;
+	border: 1px solid transparent;
+}
+.dc-roster-grid__cell--filled {
+	background:
+		linear-gradient(160deg, color-mix(in srgb, var(--color-primary-element, #0082c9) 10%, #1c1c1c) 0%, #171717 70%);
+}
+.dc-roster-grid__shift--early {
+	background: linear-gradient(135deg, #2a4a6a 0%, #1a2a3a 100%);
+	border-color: color-mix(in srgb, #5aa0d4 50%, #2a2a2a);
+	color: #d8ecff;
+}
+.dc-roster-grid__shift--day {
+	background: linear-gradient(135deg, #1f4d3a 0%, #163028 100%);
+	border-color: color-mix(in srgb, #46ba61 45%, #2a2a2a);
+	color: #dff5e6;
+}
+.dc-roster-grid__shift--late {
+	background: linear-gradient(135deg, #4a3a1f 0%, #2e2414 100%);
+	border-color: color-mix(in srgb, #c98600 45%, #2a2a2a);
+	color: #ffe8b8;
+}
+.dc-roster-grid__shift--night {
+	background: linear-gradient(135deg, #2a2a55 0%, #16162e 100%);
+	border-color: color-mix(in srgb, #7a7ae0 50%, #2a2a2a);
+	color: #dcdcff;
+}
+.dc-roster-grid__cell--early,
+.dc-roster-grid__cell--day,
+.dc-roster-grid__cell--late,
+.dc-roster-grid__cell--night {
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-border, #3a3a3a) 70%, transparent);
+}
+
+/* Band legend — store-stopping Dienstplan chrome */
+.dc-roster-band-legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem 0.65rem;
+	align-items: center;
+	margin: 0 0 0.65rem;
+	padding: 0.45rem 0.65rem;
+	border-radius: 8px;
+	border: 1px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 22%, #2a2a2a);
+	background:
+		linear-gradient(100deg,
+			color-mix(in srgb, var(--color-primary-element, #0082c9) 12%, #141414) 0%,
+			#141414 55%);
+	position: sticky;
+	top: 0;
+	z-index: 2;
+}
+.dc-roster-band-legend__label {
+	font-size: 0.72rem;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: #9ec9ea;
+	margin-inline-end: 0.25rem;
+}
+.dc-roster-band-legend__chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.3rem;
+	padding: 0.15rem 0.45rem;
+	border-radius: 999px;
+	font-size: 0.75rem;
+	font-weight: 700;
+	border: 1px solid transparent;
+}
+.dc-roster-band-legend__chip--early {
+	background: #1a2a3a;
+	border-color: #5aa0d4;
+	color: #d8ecff;
+}
+.dc-roster-band-legend__chip--day {
+	background: #163028;
+	border-color: #46ba61;
+	color: #dff5e6;
+}
+.dc-roster-band-legend__chip--late {
+	background: #2e2414;
+	border-color: #c98600;
+	color: #ffe8b8;
+}
+.dc-roster-band-legend__chip--night {
+	background: #16162e;
+	border-color: #7a7ae0;
+	color: #dcdcff;
+}
+
+/* Signature dashboard — Dienstlage theatre above stock KPI strip */
+.dc-dashboard-pulse-card {
+	position: relative;
+	overflow: hidden;
+}
+.dc-dashboard-pulse-card::before {
+	content: '';
+	position: absolute;
+	inset: 0 auto auto 0;
+	width: 100%;
+	height: 3px;
+	background: linear-gradient(90deg,
+		var(--color-primary-element, #0082c9) 0%,
+		color-mix(in srgb, var(--color-success, #46ba61) 80%, #0082c9) 55%,
+		transparent 100%);
+	pointer-events: none;
+}
+.dc-dashboard-dienstlage {
+	display: grid;
+	gap: 0.55rem;
+	margin-top: 0.75rem;
+	padding: 0.85rem 1rem;
+	border-radius: var(--dc-radius-md, 8px);
+	border: 1px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 28%, #2a2a2a);
+	background:
+		radial-gradient(120% 80% at 0% 0%,
+			color-mix(in srgb, var(--color-primary-element, #0082c9) 22%, transparent) 0%,
+			transparent 55%),
+		#141414;
+}
+.dc-dashboard-dienstlage__title {
+	font-size: 0.75rem;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: #9ec9ea;
+	margin: 0;
+}
+.dc-dashboard-dienstlage__rows {
+	display: grid;
+	gap: 0.35rem;
+}
+.dc-dashboard-dienstlage__row {
+	display: grid;
+	grid-template-columns: 5.5rem 1fr auto;
+	gap: 0.5rem;
+	align-items: center;
+	padding: 0.35rem 0.5rem;
+	border-radius: 6px;
+	background: color-mix(in srgb, #ffffff 4%, #101010);
+	font-size: 0.9rem;
+}
+.dc-dashboard-dienstlage__row time {
+	font-variant-numeric: tabular-nums;
+	font-weight: 650;
+	color: #ededed;
+}
+.dc-dashboard-dienstlage__row span {
+	color: #c8c8c8;
+}
+.dc-dashboard-dienstlage__row em {
+	font-style: normal;
+	font-size: 0.72rem;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #8ab4d4;
+}
+/* Demote generic KPI strip — pulse + Dienstlage own the signature beat */
+.dc-summary-grid {
+	opacity: 0.88;
+	filter: saturate(0.92);
+}
+.dc-summary-tile__value {
+	font-variant-numeric: tabular-nums;
+}
+
+/* === atlas-r7: less dual-ADMINISTRATOR craft (nav role holds; page badge quiet) === */
+.dc-page-header__title-row > .dc-badge {
+	/* Keep for SR/tooltip via title on h1 area; hide visual twin of nav role */
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* Schichtband coverage strip — suite wow past hygiene pulse */
+.dc-dashboard-bandlage {
+	display: grid;
+	gap: 0.55rem;
+	margin-top: 0.85rem;
+	padding: 0.9rem 1rem;
+	border-radius: 10px;
+	border: 1px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 35%, #2a2a2a);
+	background:
+		radial-gradient(90% 120% at 100% 0%,
+			color-mix(in srgb, #7a7ae0 18%, transparent) 0%,
+			transparent 50%),
+		radial-gradient(110% 90% at 0% 100%,
+			color-mix(in srgb, #5aa0d4 20%, transparent) 0%,
+			transparent 55%),
+		#12151a;
+}
+.dc-dashboard-bandlage__title {
+	margin: 0;
+	font-size: 0.78rem;
+	font-weight: 780;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: #b8d9f2;
+}
+.dc-dashboard-bandlage__bands {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 0.45rem;
+}
+.dc-dashboard-bandlage__band {
+	display: grid;
+	gap: 0.15rem;
+	padding: 0.55rem 0.5rem;
+	border-radius: 8px;
+	border: 1px solid #3a3a3a;
+	background: #0e1014;
+	text-align: center;
+}
+.dc-dashboard-bandlage__band strong {
+	font-size: 1.35rem;
+	font-variant-numeric: tabular-nums;
+	line-height: 1.1;
+}
+.dc-dashboard-bandlage__band span {
+	font-size: 0.72rem;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: #a8a8a8;
+}
+.dc-dashboard-bandlage__band--early {
+	border-color: color-mix(in srgb, #5aa0d4 55%, #2a2a2a);
+	color: #d8ecff;
+}
+.dc-dashboard-bandlage__band--day {
+	border-color: color-mix(in srgb, #46ba61 55%, #2a2a2a);
+	color: #dff5e6;
+}
+.dc-dashboard-bandlage__band--late {
+	border-color: color-mix(in srgb, #c98600 55%, #2a2a2a);
+	color: #ffe8b8;
+}
+.dc-dashboard-bandlage__band--night {
+	border-color: color-mix(in srgb, #7a7ae0 55%, #2a2a2a);
+	color: #dcdcff;
+}
+.dc-dashboard-bandlage__foot {
+	margin: 0;
+	font-size: 0.82rem;
+	color: #a0a0a0;
+}
+
+/* Periods — ceremonial publish surface (not form hygiene) */
+.dc-publish-ceremony {
+	display: grid;
+	gap: 0.85rem;
+	margin: 0 0 1.25rem;
+	padding: 1.25rem 1.35rem;
+	border-radius: 14px;
+	border: 1px solid color-mix(in srgb, var(--color-success, #46ba61) 48%, #2a2a2a);
+	background:
+		radial-gradient(120% 90% at 0% 0%,
+			color-mix(in srgb, var(--color-success, #46ba61) 22%, transparent) 0%,
+			transparent 55%),
+		linear-gradient(135deg,
+			color-mix(in srgb, var(--color-success, #46ba61) 16%, #101410) 0%,
+			#101410 58%);
+	box-shadow: 0 0 0 1px color-mix(in srgb, #46ba61 18%, transparent);
+}
+.dc-publish-ceremony__kicker {
+	margin: 0;
+	font-size: 0.78rem;
+	font-weight: 800;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: #9fd4ae;
+}
+.dc-publish-ceremony__title {
+	margin: 0;
+	font-size: 1.55rem;
+	font-weight: 780;
+	line-height: 1.2;
+	color: #f2f2f2;
+	letter-spacing: -0.01em;
+}
+.dc-publish-ceremony__meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem;
+}
+.dc-publish-ceremony__chip {
+	display: inline-flex;
+	align-items: center;
+	padding: 0.2rem 0.55rem;
+	border-radius: 999px;
+	font-size: 0.75rem;
+	font-weight: 700;
+	border: 1px solid #3a3a3a;
+	background: #1a1a1a;
+	color: #d0d0d0;
+}
+.dc-publish-ceremony__chip--ok {
+	border-color: color-mix(in srgb, var(--color-success, #46ba61) 50%, #2a2a2a);
+	color: #dff5e6;
+}
+.dc-publish-ceremony__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	align-items: center;
+}
+.dc-publish-ceremony__actions .button.primary {
+	min-height: 2.75rem;
+	padding-inline: 1.25rem;
+	font-weight: 750;
+}
+.dc-publish-ceremony__hint {
+	margin: 0;
+	font-size: 0.88rem;
+	color: #b0b0b0;
+}
+.dc-period-create--secondary {
+	opacity: 0.78;
+	filter: saturate(0.88);
+}
+
+/* Today board — quieter form chrome, stronger board lead */
+.dc-app--today .dc-page-header__lead {
+	max-width: 36rem;
+}
+.dc-app--today #dc-today-filters {
+	opacity: 0.92;
+}
+.dc-app--access .dc-form-grid,
+.dc-app--settings .dc-form-grid {
+	max-width: 42rem;
+}
+.dc-form-grid--access-quiet {
+	opacity: 0.94;
+}
+.dc-access-gate__kicker {
+	margin: 0 0 0.25rem;
+	font-size: 0.72rem;
+	font-weight: 780;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: #9ec9ea;
+}
+.dc-access-gate {
+	display: grid;
+	margin: 0 0 0.85rem;
+}
+.dc-access-gate__panel {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem;
+	padding: 0.85rem 1rem;
+	border-radius: 10px;
+	border: 1px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 32%, #2a2a2a);
+	background:
+		linear-gradient(105deg,
+			color-mix(in srgb, var(--color-primary-element, #0082c9) 16%, #12151a) 0%,
+			#12151a 60%);
+}
+.dc-access-gate__label {
+	font-size: 0.8rem;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: #b8d9f2;
+}
+.dc-access-gate__state {
+	font-size: 0.95rem;
+	font-weight: 750;
+	color: #ededed;
+}
+
+/* atlas-r8 wow: amplify Schichtband-Lage past hygiene */
+.dc-dashboard-bandlage {
+	display: grid;
+	gap: 0.65rem;
+	margin-top: 0.95rem;
+	padding: 1.05rem 1.15rem;
+	border-radius: 12px;
+	border: 1px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 42%, #2a2a2a);
+	background:
+		radial-gradient(90% 120% at 100% 0%,
+			color-mix(in srgb, #7a7ae0 22%, transparent) 0%,
+			transparent 50%),
+		radial-gradient(110% 90% at 0% 100%,
+			color-mix(in srgb, #5aa0d4 24%, transparent) 0%,
+			transparent 55%),
+		#0e1218;
+	box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 6%, transparent);
+}
+.dc-dashboard-bandlage__title {
+	margin: 0;
+	font-size: 0.82rem;
+	font-weight: 820;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: #c5e2f8;
+}
+.dc-dashboard-bandlage__bands {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 0.5rem;
+}
+.dc-dashboard-bandlage__band {
+	display: grid;
+	gap: 0.2rem;
+	padding: 0.7rem 0.5rem;
+	border-radius: 9px;
+	border: 1px solid #3a3a3a;
+	background: #0a0c10;
+	text-align: center;
+}
+.dc-dashboard-bandlage__band strong {
+	font-size: 1.55rem;
+	font-variant-numeric: tabular-nums;
+	line-height: 1.05;
+}
+.dc-dashboard-bandlage__band span {
+	font-size: 0.74rem;
+	font-weight: 750;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	color: #a8a8a8;
+}
+.dc-dashboard-bandlage__band--early {
+	border-color: color-mix(in srgb, #5aa0d4 55%, #2a2a2a);
+	color: #d8ecff;
+}
+.dc-dashboard-bandlage__band--day {
+	border-color: color-mix(in srgb, #46ba61 55%, #2a2a2a);
+	color: #dff5e6;
+}
+.dc-dashboard-bandlage__band--late {
+	border-color: color-mix(in srgb, #c98600 55%, #2a2a2a);
+	color: #ffe8b8;
+}
+.dc-dashboard-bandlage__band--night {
+	border-color: color-mix(in srgb, #7a7ae0 55%, #2a2a2a);
+	color: #dcdcff;
+}
+.dc-dashboard-bandlage__foot {
+	margin: 0;
+	font-size: 0.84rem;
+	color: #a8a8a8;
+}
+
+/* atlas-r9 wow: Leitstand stage past hygiene — Freigabe + Schichtband presence */
+.dc-dashboard-bandlage {
+	position: relative;
+	gap: 0.75rem;
+	margin-top: 1.1rem;
+	padding: 1.2rem 1.25rem 1.15rem;
+	border-radius: 14px;
+	border: 1px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 52%, #2a2a2a);
+	background:
+		radial-gradient(95% 130% at 100% 0%,
+			color-mix(in srgb, #7a7ae0 28%, transparent) 0%,
+			transparent 52%),
+		radial-gradient(115% 95% at 0% 100%,
+			color-mix(in srgb, #5aa0d4 30%, transparent) 0%,
+			transparent 58%),
+		linear-gradient(160deg, #121820 0%, #0a0e14 70%);
+	box-shadow:
+		inset 0 1px 0 color-mix(in srgb, #ffffff 8%, transparent),
+		0 0 0 1px color-mix(in srgb, #5aa0d4 12%, transparent);
+}
+.dc-dashboard-bandlage__title {
+	font-size: 0.88rem;
+	font-weight: 850;
+	letter-spacing: 0.14em;
+	color: #d4ebff;
+}
+.dc-dashboard-bandlage__band {
+	padding: 0.85rem 0.55rem;
+	border-radius: 10px;
+	background: #07090d;
+}
+.dc-dashboard-bandlage__band strong {
+	font-size: 1.75rem;
+	font-weight: 780;
+}
+.dc-dashboard-bandlage__foot {
+	font-size: 0.9rem;
+	font-weight: 650;
+	color: #c5e2f8;
+	letter-spacing: 0.01em;
+}
+.dc-publish-ceremony {
+	gap: 1rem;
+	margin: 0 0 1.4rem;
+	padding: 1.45rem 1.5rem 1.35rem;
+	border-radius: 16px;
+	border: 1px solid color-mix(in srgb, var(--color-success, #46ba61) 58%, #2a2a2a);
+	background:
+		radial-gradient(130% 100% at 0% 0%,
+			color-mix(in srgb, var(--color-success, #46ba61) 28%, transparent) 0%,
+			transparent 58%),
+		linear-gradient(145deg,
+			color-mix(in srgb, var(--color-success, #46ba61) 20%, #0c140e) 0%,
+			#0a100c 62%);
+	box-shadow:
+		0 0 0 1px color-mix(in srgb, #46ba61 22%, transparent),
+		0 12px 40px color-mix(in srgb, #46ba61 10%, transparent);
+}
+.dc-publish-ceremony__kicker {
+	font-size: 0.84rem;
+	letter-spacing: 0.16em;
+	color: #b6e4c4;
+}
+.dc-publish-ceremony__title {
+	font-size: 1.85rem;
+	font-weight: 820;
+	letter-spacing: -0.015em;
+}
+.dc-publish-ceremony__actions .button.primary {
+	min-height: 3rem;
+	padding-inline: 1.45rem;
+	font-size: 1.02rem;
+	font-weight: 780;
+}
+.dc-access-gate__kicker {
+	font-size: 0.8rem;
+	letter-spacing: 0.14em;
+	color: #b8daf5;
+}
+.dc-access-gate__panel {
+	padding: 1rem 1.15rem;
+	border-radius: 12px;
+	border: 1px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 42%, #2a2a2a);
+	background:
+		linear-gradient(108deg,
+			color-mix(in srgb, var(--color-primary-element, #0082c9) 22%, #10161c) 0%,
+			#0c1016 62%);
+	box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 6%, transparent);
+}
+.dc-access-gate__state {
+	font-size: 1.02rem;
+	font-weight: 780;
+}
+/* Policy badge: keep sentence case so DE/EN stay readable (no ALL-CAPS scream) */
+#dc-policy-state-badge.dc-status-badge {
+	text-transform: none;
+	letter-spacing: 0.02em;
+	font-size: 0.78rem;
+}

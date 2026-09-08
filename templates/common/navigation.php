@@ -6,9 +6,9 @@
  *  - any user with an active linked employee → "My duties" (including catalog-linked accounts without a `dc_user_roles` row)
  *  - planner / app admin without a link → planning + catalog (+ governance if app admin)
  *
- * Each link includes a hint copy line so newcomers can grasp what each section
- * is for, mirroring BudgetCheck's information density. The active link gets
- * `aria-current=page` and a stronger background tint.
+ * Each link keeps a short hint as the link `title` (tooltip) so newcomers can
+ * still discover purpose without packing caption microcopy into the rail.
+ * The active link gets `aria-current=page` and a stronger background tint.
  *
  * @var array $_
  * @var \OCP\IL10N $l
@@ -30,8 +30,10 @@ $selfServiceItems = [
 	['id' => 'my-absences', 'label' => $l->t('My absences'), 'hint' => $l->t('Your requests and statuses'), 'icon' => 'calendar-off', 'url' => $urls['myAbsences'] ?? '#'],
 ];
 $planningItems = [
+	['id' => 'today', 'label' => $l->t('Today'), 'hint' => $l->t('Who works where today'), 'icon' => 'calendar-days', 'url' => $urls['today'] ?? '#'],
 	['id' => 'dashboard', 'label' => $l->t('Dashboard'), 'hint' => $l->t('KPIs and planner checks'), 'icon' => 'layout-grid', 'url' => $urls['dashboard'] ?? '#'],
 	['id' => 'roster', 'label' => $l->t('Roster'), 'hint' => $l->t('Create assignments and resolve conflicts'), 'icon' => 'clipboard-list', 'url' => $urls['roster'] ?? '#'],
+	['id' => 'patterns', 'label' => $l->t('Patterns'), 'hint' => $l->t('Rotation patterns for each person'), 'icon' => 'rotate', 'url' => $urls['patterns'] ?? '#'],
 	['id' => 'periods', 'label' => $l->t('Periods'), 'hint' => $l->t('Lifecycle, snapshots and audit trail'), 'icon' => 'calendar', 'url' => $urls['periods'] ?? '#'],
 	['id' => 'absences', 'label' => $l->t('Absences'), 'hint' => $l->t('Review and transition requests'), 'icon' => 'calendar-off', 'url' => $urls['absences'] ?? '#'],
 ];
@@ -89,13 +91,16 @@ $renderGroup = function (string $title, array $items) use ($pageId, $l): void {
 				?>
 				<li class="dc-nav__item <?php p($active ? 'is-active active' : ''); ?>">
 					<a class="dc-nav__link" href="<?php p((string) $item['url']); ?>"
+						<?php if (!empty($item['hint'])): ?>title="<?php p((string) $item['hint']); ?>"<?php endif; ?>
 						<?php if ($parentAriaCurrent): ?>aria-current="page"<?php endif; ?>>
 						<span class="dc-nav__icon" aria-hidden="true">
 							<?php print_unescaped(IconCatalog::render((string) ($item['icon'] ?? 'layout-grid'), 'dc-icon')); ?>
 						</span>
 						<span class="dc-nav__label">
 							<span class="dc-nav__name"><?php p((string) $item['label']); ?></span>
-							<span class="dc-nav__hint"><?php p((string) ($item['hint'] ?? '')); ?></span>
+							<?php if (!empty($item['hint'])): ?>
+								<span class="dc-nav__hint"><?php p((string) $item['hint']); ?></span>
+							<?php endif; ?>
 						</span>
 					</a>
 					<?php if ($children !== []): ?>

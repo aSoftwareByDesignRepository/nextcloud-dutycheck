@@ -28,6 +28,7 @@
 		'dc-settings-quals': 'qualifications',
 		'dc-settings-scope': 'planner-scope',
 		'dc-settings-ops': 'operations',
+		'dc-settings-dienst-team': 'dienst-team',
 		'dc-at-integration': 'integration',
 		'dc-settings-privacy': 'privacy',
 		'dutycheck-license': 'license',

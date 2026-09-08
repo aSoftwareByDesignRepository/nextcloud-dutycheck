@@ -1,0 +1,72 @@
+=== PHPUnit ===
+PHPUnit 9.6.34 by Sebastian Bergmann and contributors.
+
+....                                                                4 / 4 (100%)
+
+Time: 00:00.026, Memory: 14.00 MB
+
+OK (4 tests, 27 assertions)
+
+=== Mutation (tail) ===
+# skipped 0
+# todo 0
+# duration_ms 77.907194
+killed fallback_paints_nothing
+Roster virtualization mutation gauntlet OK (15 mutants killed).
+
+=== Node virt (summary) ===
+    1..5
+ok 5 - roster.js virtualizes grid and list without paginating the API
+  ---
+  duration_ms: 3.96667
+  type: 'suite'
+  ...
+1..5
+# tests 23
+# suites 5
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 105.834882
+
+=== PW run1 ===
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [setup] › tests/e2e/auth.setup.js:9:1 › authenticate planner (5.3s)
+(node:3276337) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 [chromium] › tests/e2e/roster-month-grid.spec.js:153:1 › month period keeps one column per day without overlapping headers (8.3s)
+  ✓  3 [chromium] › tests/e2e/roster-rolling-month.spec.js:5:1 › rolling month navigator ensures periods without manual Zeitraum creation (15.7s)
+
+  3 passed (30.8s)
+
+=== PW run2 ===
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [setup] › tests/e2e/auth.setup.js:9:1 › authenticate planner (5.5s)
+(node:3293784) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 [chromium] › tests/e2e/roster-month-grid.spec.js:153:1 › month period keeps one column per day without overlapping headers (8.1s)
+  ✓  3 [chromium] › tests/e2e/roster-rolling-month.spec.js:5:1 › rolling month navigator ensures periods without manual Zeitraum creation (16.4s)
+
+  3 passed (31.6s)
+
+=== ensure live ===
+ACTOR=dc_atlas_planner
+FAR_ID=53 created=1 writable=1 ym=2031-06 range=2031-06-01..2031-06-30
+FAR_REUSE_ID=53 created=0 SAME=1
+PAST_ID=54 created=1 writable=1 ym=2024-03 range=2024-03-01..2024-03-31
+PAST_REUSE created=0 SAME=1
+DIFF_MONTH=1
+B_OK id=50 created=0
+A_OK id=50 created=0
+Concurrent race for 2035-11
+A_OK id=55 created=1
+WIDE_ID=56 range=2036-01-01..2036-03-31
+COVER_FEB id=56 created=0 range=2036-01-01..2036-03-31 ym=2036-02
+B_OK id=55 created=0
+
+=== sleep grep ===
+=== waitForTimeout/sleep grep ===
+(no waitForTimeout/fixed sleeps — only test.setTimeout if any)
+apps/dutycheck/tests/e2e/roster-rolling-month.spec.js:6:	test.setTimeout(120_000)

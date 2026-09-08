@@ -94,6 +94,101 @@ $myAbsencesUrl = (string) ($urls['myAbsences'] ?? '#');
 	<p id="dc-open-shifts-empty" class="dc-field__hint" hidden><?php p($l->t('No open shifts right now.')); ?></p>
 </section>
 
+<section class="dc-card dc-section dc-my-availability" id="dc-my-availability"
+	aria-labelledby="dc-my-availability-title"
+	hidden
+	data-msg-pref-saved="<?php p($l->t('Wish saved.')); ?>"
+	data-msg-blackout-saved="<?php p($l->t('Cannot-work day saved.')); ?>"
+	data-msg-disabled="<?php p($l->t('Wishes and cannot-work days are not enabled for your company yet.')); ?>">
+	<header class="dc-section__header">
+		<div>
+			<h2 id="dc-my-availability-title"><?php p($l->t('Availability')); ?></h2>
+			<p class="dc-section__sub">
+				<?php p($l->t('Tell planners when you prefer Früh or Spät, and mark days you cannot work.')); ?>
+			</p>
+		</div>
+	</header>
+
+	<div id="dc-my-prefs" class="dc-my-availability__block" hidden>
+		<h3 class="dc-subsection-heading"><?php p($l->t('Wishes (Früh / Spät)')); ?></h3>
+		<p class="dc-field__hint"><?php p($l->t('Soft only — planners may still assign other times.')); ?></p>
+		<div class="dc-pref-chip-row" role="group" aria-label="<?php p($l->t('Add a wish')); ?>">
+			<button type="button" class="dc-pref-chip" data-band="early"><?php p($l->t('Früh')); ?></button>
+			<button type="button" class="dc-pref-chip" data-band="late"><?php p($l->t('Spät')); ?></button>
+		</div>
+		<ul id="dc-my-prefs-list" class="dc-my-availability__list" role="list"></ul>
+	</div>
+
+	<div id="dc-my-blackouts" class="dc-my-availability__block" hidden>
+		<h3 class="dc-subsection-heading"><?php p($l->t('Kann nicht')); ?></h3>
+		<p class="dc-field__hint"><?php p($l->t('Hard block for suggest-fill. Past days stay read-only.')); ?></p>
+		<form id="dc-my-blackout-form" class="dc-form-grid" novalidate>
+			<div class="dc-field">
+				<label class="dc-field__label" for="dc-my-bo-from"><?php p($l->t('From date')); ?></label>
+				<input id="dc-my-bo-from" type="date" class="dc-input dc-input--date" required>
+			</div>
+			<div class="dc-field">
+				<label class="dc-field__label" for="dc-my-bo-to"><?php p($l->t('To date')); ?></label>
+				<input id="dc-my-bo-to" type="date" class="dc-input dc-input--date" required>
+			</div>
+			<div class="dc-field">
+				<label class="dc-field__label" for="dc-my-bo-label"><?php p($l->t('Reason type')); ?></label>
+				<select id="dc-my-bo-label" class="dc-input">
+					<option value="personal"><?php p($l->t('Personal')); ?></option>
+					<option value="care"><?php p($l->t('Care')); ?></option>
+					<option value="other"><?php p($l->t('Other')); ?></option>
+				</select>
+			</div>
+			<div class="dc-form-actions">
+				<button type="submit" class="button primary"><?php p($l->t('Save cannot-work')); ?></button>
+			</div>
+		</form>
+		<ul id="dc-my-blackouts-list" class="dc-my-availability__list" role="list"></ul>
+	</div>
+	<p id="dc-my-availability-status" class="dc-roster-flash" role="status" aria-live="polite" aria-atomic="true" hidden></p>
+</section>
+
+<section class="dc-card dc-section dc-my-team" id="dc-my-team"
+	aria-labelledby="dc-my-team-title"
+	hidden
+	data-msg-loading="<?php p($l->t('Loading team week…')); ?>"
+	data-msg-empty="<?php p($l->t('No published colleagues at this location this week.')); ?>"
+	data-msg-disabled="<?php p($l->t('Team week is turned off. Ask your planner to enable Kollegenplan.')); ?>"
+	data-msg-no-loc="<?php p($l->t('Work a published shift at a location first — then you can see colleagues there.')); ?>"
+	data-msg-error="<?php p($l->t('Could not load team week.')); ?>">
+	<header class="dc-section__header">
+		<div>
+			<h2 id="dc-my-team-title"><?php p($l->t('Team this week')); ?></h2>
+			<p class="dc-section__sub">
+				<?php p($l->t('Published colleagues at one location — handy when you need a swap partner.')); ?>
+			</p>
+		</div>
+	</header>
+	<form id="dc-my-team-filters" class="dc-form-grid dc-my-team__filters" aria-label="<?php p($l->t('Team week filters')); ?>" novalidate>
+		<div class="dc-field">
+			<label class="dc-field__label" for="dc-my-team-location"><?php p($l->t('Location')); ?></label>
+			<select id="dc-my-team-location" name="locationId" class="dc-input" required></select>
+		</div>
+		<div class="dc-field">
+			<label class="dc-field__label" for="dc-my-team-week"><?php p($l->t('Week starting')); ?></label>
+			<input id="dc-my-team-week" type="date" name="weekStart" class="dc-input dc-input--date" required autocomplete="off">
+			<div class="dc-today__date-shortcuts" role="group" aria-label="<?php p($l->t('Quick week')); ?>">
+				<button type="button" class="button" id="dc-my-team-prev" aria-label="<?php p($l->t('Previous week')); ?>"><?php p($l->t('Previous')); ?></button>
+				<button type="button" class="button primary" id="dc-my-team-now" aria-label="<?php p($l->t('This week')); ?>"><?php p($l->t('This week')); ?></button>
+				<button type="button" class="button" id="dc-my-team-next" aria-label="<?php p($l->t('Next week')); ?>"><?php p($l->t('Next')); ?></button>
+			</div>
+		</div>
+		<div class="dc-form-actions">
+			<button type="submit" class="button primary"><?php p($l->t('Show team')); ?></button>
+		</div>
+	</form>
+	<p id="dc-my-team-status" class="dc-roster-flash" role="status" aria-live="polite" aria-atomic="true"></p>
+	<div id="dc-my-team-disabled" class="dc-callout dc-callout--info" hidden role="status">
+		<p id="dc-my-team-disabled-text"></p>
+	</div>
+	<ul id="dc-my-team-list" class="dc-my-team__list" role="list" aria-labelledby="dc-my-team-title"></ul>
+</section>
+
 <section class="dc-card dc-section dc-ical-panel" aria-labelledby="dc-ical-title">
 	<header class="dc-section__header">
 		<div>

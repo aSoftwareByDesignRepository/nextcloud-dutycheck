@@ -1,0 +1,26 @@
+{
+  "parts": [
+    "web-roster-print",
+    "web-my-roster",
+    "web-my-absences",
+    "web-needs-role"
+  ],
+  "wow": 9,
+  "verdict": "ACCEPT",
+  "must_fix": [],
+  "should_fix": [
+    "Print live proof uses NC system admin (dc_atlas_planner in admin); no negative PW that a planner-only non-admin is denied \u2014 code gate is clear (requireAppAdmin \u2260 requirePlannerOrAdmin) but add a denied smoke when a planner-only fixture exists",
+    "web-needs-role remains contract-only (no password for dc.review.noseat); add a live /needs-role visit when a no-seat account is available",
+    "One-shot smoke uses waitForTimeout(1500) on print \u2014 replace with content/network wait for flake resistance under farm load",
+    "Narrow --filter 'needsRole|enrollment' only hits NeedsEnrollment (1); Prefer WithoutLinkThroughOpenDoor|NeedsEnrollment so both open-door enrollment cases stay in critic evidence"
+  ],
+  "evidence": [
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-print-employee-critic.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-needs-role-critic.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-print-employee-pw.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-print-employee-results.json",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-needs-role-contract.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/STATUS-print-employee.md"
+  ],
+  "notes": "Harsh AAA critic (print/employee/needs-role only; web-l10n already ACCEPT via critic-theme.json \u2014 untouched). Re-ran fixer one-shot smoke \u2192 r6-print-employee-critic.txt EXIT=0: print shell ok (Printable roster / period 56), employee_user_set=true with NC_EMPLOYEE_USER=e2e_employee (PASS set in tests/e2e/.env \u2014 not skipped); #dc-main-content visible on /my-roster and /my-absences, not login/needs-role. Code: PageController::rosterPrint \u2192 requireAppAdmin; isAppAdmin = NC isAdmin OR app_admin_user_ids; live: dc_atlas_planner groups=[admin], isAdmin=true, app_admin_user_ids=[]; roster() still requirePlannerOrAdmin \u2014 print is stricter than planner. PHPUnit critic: OpenAccessModeContractTest 2/2; AccessControl needsRole/enrollment 1/1 then broader WithoutLink|NeedsEnrollment 2/2 \u2014 r6-needs-role-critic.txt exit 0. Soft gaps \u2192 should_fix only. Bare AAA wow=9 ACCEPT four parts."
+}

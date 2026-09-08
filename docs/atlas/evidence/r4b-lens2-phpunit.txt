@@ -1,0 +1,12 @@
+PHPUnit 9.6.34 by Sebastian Bergmann and contributors.
+
+.......PHP Deprecated:  Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in /var/www/html/custom_apps/dutycheck/tests/Unit/Service/AcknowledgeIdorTest.php on line 25
+.PHP Deprecated:  Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in /var/www/html/custom_apps/dutycheck/tests/Unit/Service/ApiRateLimitServiceTest.php on line 23
+PHP Deprecated:  Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in /var/www/html/custom_apps/dutycheck/tests/Unit/Service/ApiRateLimitServiceTest.php on line 23
+PHP Deprecated:  Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in /var/www/html/custom_apps/dutycheck/tests/Unit/Service/ApiRateLimitServiceTest.php on line 23
+PHP Deprecated:  Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in /var/www/html/custom_apps/dutycheck/tests/Unit/Service/ApiRateLimitServiceTest.php on line 23
+..................                                        26 / 26 (100%)
+
+Time: 00:00.059, Memory: 44.00 MB
+
+OK (26 tests, 133 assertions)

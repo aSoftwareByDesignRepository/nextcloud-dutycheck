@@ -1,0 +1,11 @@
+{
+  "round": 6,
+  "batch": "api",
+  "completed_at": "2026-09-07T23:34:25Z",
+  "avd": false,
+  "verdict": "accepted",
+  "wow": 9,
+  "critic": "critic-api.json",
+  "must_fix": [],
+  "overall": "accepted"
+}

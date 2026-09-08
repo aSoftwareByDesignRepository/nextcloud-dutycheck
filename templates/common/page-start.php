@@ -53,6 +53,8 @@ $breadcrumbParent = is_array($_['breadcrumbParent'] ?? null) ? $_['breadcrumbPar
 
 $pageIcons = [
 	'dashboard' => 'layout-grid',
+	'today' => 'calendar-days',
+	'patterns' => 'rotate',
 	'roster' => 'clipboard-list',
 	'periods' => 'calendar',
 	'employees' => 'users',
@@ -114,37 +116,19 @@ $urlsJson = htmlspecialchars(json_encode($urls, JSON_THROW_ON_ERROR | JSON_UNESC
 					<?php print_unescaped(IconCatalog::render($headerIconName, 'dc-page-header__icon-svg')); ?>
 				</div>
 				<div class="dc-page-header__text">
-					<h1 id="dc-page-title"><?php p($pageTitle); ?></h1>
+					<div class="dc-page-header__title-row">
+						<h1 id="dc-page-title"><?php p($pageTitle); ?></h1>
+						<span class="dc-badge dc-badge--<?php p($role === 'admin' ? 'critical' : (($role === 'planner' || $role === 'planner_employee') ? 'info' : (($role === 'self_service') ? 'neutral' : 'success'))); ?>"
+							title="<?php p($l->t('Role')); ?>: <?php p($roleLabel); ?> · <?php p($timezone); ?><?php if ($weekStartDayName !== ''): ?> · <?php p($weekStartDayName); ?><?php endif; ?>">
+							<?php p($roleLabel); ?>
+						</span>
+					</div>
 					<?php if ($pageHelp !== ''): ?>
 						<p class="dc-page-header__lead"><?php p($pageHelp); ?></p>
 					<?php endif; ?>
 				</div>
 				<div id="dc-page-actions" class="dc-page-header__actions" aria-live="polite"></div>
 			</div>
-			<dl class="dc-scope-strip" aria-label="<?php p($l->t('Active session context')); ?>">
-				<div class="dc-scope-strip__item">
-					<dt class="dc-scope-strip__label"><?php p($l->t('Role')); ?></dt>
-					<dd class="dc-scope-strip__value">
-						<span class="dc-badge dc-badge--<?php p($role === 'admin' ? 'critical' : (($role === 'planner' || $role === 'planner_employee') ? 'info' : (($role === 'self_service') ? 'neutral' : 'success'))); ?>">
-							<?php p($roleLabel); ?>
-						</span>
-					</dd>
-				</div>
-				<div class="dc-scope-strip__item">
-					<dt class="dc-scope-strip__label"><?php p($l->t('Timezone')); ?></dt>
-					<dd class="dc-scope-strip__value"><?php p($timezone); ?></dd>
-				</div>
-				<?php if ($weekStartDayName !== ''): ?>
-				<div class="dc-scope-strip__item">
-					<dt class="dc-scope-strip__label"><?php p($l->t('Start of week')); ?></dt>
-					<dd class="dc-scope-strip__value"><?php p($weekStartDayName); ?></dd>
-				</div>
-				<?php endif; ?>
-				<div class="dc-scope-strip__item">
-					<dt class="dc-scope-strip__label"><?php p($l->t('Time format')); ?></dt>
-					<dd class="dc-scope-strip__value"><?php p($l->t('24-hour (HH:mm)')); ?></dd>
-				</div>
-			</dl>
 		</header>
 		<main id="dc-main-content" class="dc-main" tabindex="-1" aria-labelledby="dc-page-title">
 			<?php

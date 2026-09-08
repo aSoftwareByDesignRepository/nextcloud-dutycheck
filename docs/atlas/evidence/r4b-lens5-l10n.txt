@@ -1,0 +1,1 @@
+l10n placeholder check OK (da/da_DK/de/de_DE/en/es/es_ES/fr/fr_FR/it/it_IT/nb/nb_NO/nl/nl_NL/pl/pl_PL/pt_BR/sv/sv_SE printf and named placeholders match msgids).

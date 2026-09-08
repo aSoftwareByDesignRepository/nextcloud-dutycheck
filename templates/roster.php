@@ -37,9 +37,9 @@ foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as
 	</header>
 	<ol class="dc-quickstart">
 		<li class="dc-quickstart__item" data-step="select-period">
-			<strong><?php p($l->t('1. Choose the period to plan in')); ?></strong>
+			<strong><?php p($l->t('1. Choose the month to plan')); ?></strong>
 			<p>
-				<?php p($l->t('Use the period selector below. New assignments can only be added to "Open" periods; published and closed ones are read-only.')); ?>
+				<?php p($l->t('Use Previous / Next under Planning calendar. DutyCheck opens that month for you — no need to create a new period first. New assignments only work while the month’s period is Open.')); ?>
 			</p>
 		</li>
 		<li class="dc-quickstart__item" data-step="add-assignment">
@@ -69,20 +69,39 @@ foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as
 <section class="dc-card dc-section dc-roster-panel" id="dc-roster-period-section" aria-labelledby="dc-roster-period-title">
 	<header class="dc-section__header">
 		<div>
-			<h2 id="dc-roster-period-title"><?php p($l->t('Active period')); ?></h2>
+			<h2 id="dc-roster-period-title"><?php p($l->t('Planning calendar')); ?></h2>
 			<p class="dc-section__sub">
-				<?php p($l->t('Your choice here controls the assignment list and planning checks below. Only open periods accept new assignments.')); ?>
+				<?php p($l->t('Step through months continuously — DutyCheck opens or reuses a planning period for you. You do not need to create a new period every month.')); ?>
 			</p>
 		</div>
 	</header>
 	<div class="dc-form-grid dc-roster-panel__body">
 		<div class="dc-field dc-field--full">
+			<p class="dc-field__label" id="dc-roster-month-label"><?php p($l->t('Month')); ?></p>
+			<div class="dc-roster-month-nav" role="group" aria-labelledby="dc-roster-month-label">
+				<button type="button" class="button" id="dc-roster-month-prev" aria-label="<?php p($l->t('Previous month')); ?>">
+					<?php p($l->t('Previous')); ?>
+				</button>
+				<p class="dc-roster-month-nav__current" id="dc-roster-month-current" aria-live="polite"></p>
+				<button type="button" class="button" id="dc-roster-month-next" aria-label="<?php p($l->t('Next month')); ?>">
+					<?php p($l->t('Next')); ?>
+				</button>
+				<button type="button" class="button primary" id="dc-roster-month-today">
+					<?php p($l->t('This month')); ?>
+				</button>
+			</div>
+			<p id="dc-roster-month-hint" class="dc-field__hint">
+				<?php p($l->t('Arrow through months forever. Open months stay writable; published months stay read-only until you reopen them on Periods.')); ?>
+			</p>
+			<p id="dc-roster-month-status" class="dc-roster-flash" role="status" aria-live="polite" aria-atomic="true" hidden></p>
+		</div>
+		<div class="dc-field dc-field--full">
 			<label class="dc-field__label" for="dc-roster-period-switcher">
-				<?php p($l->t('Period')); ?>
+				<?php p($l->t('Period (advanced)')); ?>
 			</label>
 			<select id="dc-roster-period-switcher" class="dc-input" aria-describedby="dc-roster-period-hint"></select>
 			<p id="dc-roster-period-hint" class="dc-field__hint">
-				<?php p($l->t('Periods are listed newest first. Closed periods are read-only. Changing the period updates the list below — no full page reload.')); ?>
+				<?php p($l->t('Usually the month controls above are enough. Use this list only when you need a custom date range that is not a calendar month.')); ?>
 			</p>
 			<p id="dc-roster-ack-stats" class="dc-pill dc-roster-ack-stats" role="status" aria-live="polite" hidden></p>
 			<div class="dc-roster-period__lifecycle" role="note">
@@ -120,6 +139,13 @@ foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as
 				<button type="button" class="button" id="dc-roster-view-grid" aria-pressed="true"><?php p($l->t('Grid')); ?></button>
 				<button type="button" class="button" id="dc-roster-view-list" aria-pressed="false"><?php p($l->t('List')); ?></button>
 			</div>
+			<button type="button" class="button" id="dc-roster-suggest-fill"
+				aria-describedby="dc-roster-suggest-fill-desc">
+				<?php p($l->t('Suggest fill')); ?>
+			</button>
+			<span id="dc-roster-suggest-fill-desc" class="dc-sr-only">
+				<?php p($l->t('Preview filling empty cells from each person’s rotation pattern, then confirm.')); ?>
+			</span>
 			<button type="button" class="button primary dc-roster-add-assignment-trigger" id="dc-roster-add-assignment"
 				aria-describedby="dc-roster-add-assignment-desc" aria-disabled="true">
 				<?php p($l->t('Add assignment')); ?>
@@ -130,7 +156,18 @@ foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as
 		</div>
 	</header>
 	<p id="dc-roster-assignments-success" class="dc-roster-flash" role="status" aria-live="polite" aria-atomic="true" hidden></p>
+	<div id="dc-coverage-strip" class="dc-coverage-strip" role="status" aria-live="polite" hidden>
+		<span class="dc-coverage-strip__label"><?php p($l->t('Publish readiness')); ?></span>
+		<span id="dc-coverage-strip-text" class="dc-coverage-strip__text"></span>
+	</div>
 	<div id="dc-roster-grid-wrap" class="dc-roster-grid-wrap">
+		<div class="dc-roster-band-legend" aria-label="<?php p($l->t('Shift bands')); ?>">
+			<span class="dc-roster-band-legend__label"><?php p($l->t('Shift bands')); ?></span>
+			<span class="dc-roster-band-legend__chip dc-roster-band-legend__chip--early"><?php p($l->t('Früh')); ?></span>
+			<span class="dc-roster-band-legend__chip dc-roster-band-legend__chip--day"><?php p($l->t('Tag')); ?></span>
+			<span class="dc-roster-band-legend__chip dc-roster-band-legend__chip--late"><?php p($l->t('Spät')); ?></span>
+			<span class="dc-roster-band-legend__chip dc-roster-band-legend__chip--night"><?php p($l->t('Nacht')); ?></span>
+		</div>
 		<p id="dc-roster-grid-status" class="dc-roster-virtual-status" aria-hidden="true"></p>
 		<div id="dc-roster-grid-scroller" class="dc-roster-grid-scroller" tabindex="0" role="region" aria-labelledby="dc-assignments-title">
 			<div
@@ -141,7 +178,7 @@ foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as
 			></div>
 		</div>
 		<p id="dc-roster-grid-hint" class="dc-field__hint">
-			<?php p($l->t('Rows are people, columns are days. Arrow keys move between cells — including people who are scrolled out of view. Page Up and Page Down jump a screen. Home and End jump to the first or last day. Enter opens the shift. Space selects empty cells for bulk fill.')); ?>
+			<?php p($l->t('Rows are people, columns are days. For a full month, scroll sideways to see every date. Arrow keys move between cells — including people who are scrolled out of view. Page Up and Page Down jump a screen. Home and End jump to the first or last day. Enter opens the shift. Space selects empty cells for bulk fill.')); ?>
 		</p>
 		<div id="dc-roster-bulk-bar" class="dc-roster-bulk-bar" hidden>
 			<p class="dc-roster-bulk-bar__count" id="dc-roster-bulk-count" role="status" aria-live="polite"></p>

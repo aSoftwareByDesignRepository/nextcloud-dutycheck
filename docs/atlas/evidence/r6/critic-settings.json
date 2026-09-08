@@ -1,0 +1,37 @@
+{
+  "parts": [
+    "web-settings-access",
+    "web-settings-duty-roles",
+    "web-settings-planning",
+    "web-settings-companies",
+    "web-settings-conflicts",
+    "web-settings-shift-templates",
+    "web-settings-qualifications",
+    "web-settings-planner-scope",
+    "web-settings-operations",
+    "web-settings-dienst-team",
+    "web-settings-integration",
+    "web-settings-privacy",
+    "web-settings-license",
+    "web-settings-support"
+  ],
+  "wow": 9,
+  "verdict": "ACCEPT",
+  "must_fix": [],
+  "should_fix": [
+    "Theme token wait in settings-pages-smoke uses .catch(() => {}) after --color-main-* check \u2014 axe still runs, but a blank theme paint would not fail the case",
+    "Per-section coverage is landmark (#dc-main-content) + axe critical=[] only; no save/POST/form round-trip per settings partial (parity soft-gap with smoke-only web pages)",
+    "390px chip hop covers planning \u2192 privacy only; remaining sections assert count + single aria-current on planning/companies, not hop matrix",
+    "SettingsTemplateRenderTest / run-settings-pages-mutations.php exist but were outside this batch evidence \u2014 contract+PW gate was the proved bar",
+    "Optional r6-a11y-settings.txt covers access + legacy redirect/chip/banner (6/6) not the full 14-section matrix \u2014 settings-pages-smoke owns section axe"
+  ],
+  "evidence": [
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-settings-critic.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-settings-critic-phpunit.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-settings-pages-pw.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-settings-pages-phpunit.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-a11y-settings.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/STATUS-settings.md"
+  ],
+  "notes": "Harsh AAA critic. Adversarial re-run (not fixer trust): Playwright settings-pages-smoke workers=1 retries=0 \u2192 17 passed EXIT=0 in r6-settings-critic.txt (auth setup + 14 section routes #dc-main-content/axe-critical=0 + 390px chip hop planning\u2192privacy + sidebar aria-current companies). PHPUnit ./vendor/bin/phpunit SettingsPagesContractTest \u2192 14/14 OK (137 assertions) EXIT=0 in r6-settings-critic-phpunit.txt (legacy route, catalog dispatcher, fail-closed paths, non-admin guard, JS anchor map, redirect script, partial anchors, sidebar/nav/breadcrumb). Fixer STATUS-settings + r6-settings-pages-pw/phpunit corroborate. Optional a11y settings smoke 6/6. No product must_fix; soft depth/theme/mutation notes \u2192 should_fix only. Bare AAA wow=9 ACCEPT all 14 settings parts."
+}

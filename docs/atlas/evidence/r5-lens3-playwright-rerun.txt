@@ -1,0 +1,811 @@
+
+Running 31 tests using 1 worker
+
+(node:115279) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/31] [setup] › tests/e2e/auth.setup.js:9:1 › authenticate planner
+(node:118297) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[2/31] [chromium] › tests/e2e/roster-month-grid.spec.js:153:1 › month period keeps one column per day without overlapping headers
+[3/31] [chromium] › tests/e2e/roster-rolling-month.spec.js:5:1 › rolling month navigator ensures periods without manual Zeitraum creation
+[4/31] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: dashboard
+[5/31] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: roster
+[6/31] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: periods
+[7/31] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: absences
+[8/31] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: settings
+[9/31] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: dashboard
+[10/31] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: roster
+[11/31] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: periods
+[12/31] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: absences
+[13/31] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: settings
+[14/31] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: dashboard
+[15/31] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: roster
+[16/31] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: periods
+[17/31] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: absences
+[18/31] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: settings
+[19/31] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: dashboard
+[20/31] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: roster
+[21/31] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: periods
+[22/31] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: absences
+[23/31] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: settings
+[24/31] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:208:2 › DutyCheck theme × viewport a11y matrix › reset to default theme
+(node:151932) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[25/31] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: dashboard (retry #1)
+[26/31] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: roster (retry #1)
+[27/31] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: periods (retry #1)
+[28/31] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: absences (retry #1)
+[29/31] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: settings (retry #1)
+[30/31] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: dashboard (retry #1)
+[31/31] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: roster (retry #1)
+  1) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: roster 
+
+    Error: page.goto: Navigation to "http://localhost:8081/login" is interrupted by another navigation to "http://localhost:8081/apps/dashboard/"
+    Call log:
+      - navigating to "http://localhost:8081/login", waiting until "domcontentloaded"
+
+
+       at helpers/auth.js:41
+
+      39 |   const maxAttempts = 3
+      40 |   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    > 41 |     await page.goto('/login', { waitUntil: 'domcontentloaded' })
+         |                ^
+      42 |     await assertNotServerUpdater(page)
+      43 |     // Already authenticated (storageState / prior test).
+      44 |     if (!page.url().includes('/login')) {
+        at login (/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/helpers/auth.js:41:16)
+        at loginWithFallback (/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/helpers/auth.js:126:7)
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/theme-responsive-a11y.spec.js:188:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-4a778-ort-a11y-matrix-dark-roster-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-4a778-ort-a11y-matrix-dark-roster-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/theme-responsive-a11y-Duty-4a778-ort-a11y-matrix-dark-roster-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-4a778-ort-a11y-matrix-dark-roster-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/theme-responsive-a11y-Duty-4a778-ort-a11y-matrix-dark-roster-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[32/31] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: periods (retry #1)
+[33/31] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: absences (retry #1)
+[34/31] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: settings (retry #1)
+  2) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: settings 
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: axe violations at dark/settings@1280px:
+    [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "tags": [
+          "cat.color",
+          "wcag2aa",
+          "wcag143",
+          "TTv5",
+          "TT13.c",
+          "EN-301-549",
+          "EN-9.1.4.3",
+          "ACT",
+          "RGAAv4",
+          "RGAA-3.2.1"
+        ],
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "help": "Elements must meet minimum color contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/color-contrast?application=playwright",
+        "nodes": [
+          {
+            "any": [
+              {
+                "id": "color-contrast",
+                "data": {
+                  "fgColor": "#0091f2",
+                  "bgColor": "#132b3a",
+                  "contrastRatio": 4.41,
+                  "fontSize": "8.4pt (11.25px)",
+                  "fontWeight": "normal",
+                  "messageKey": null,
+                  "expectedContrastRatio": "4.5:1"
+                },
+                "relatedNodes": [
+                  {
+                    "html": "<div class=\"dc-callout dc-callout--info\" role=\"note\" aria-labelledby=\"dc-access-gate-title\">",
+                    "target": [
+                      ".dc-callout--info"
+                    ]
+                  }
+                ],
+                "impact": "serious",
+                "message": "Element has insufficient color contrast of 4.41 (foreground color: #0091f2, background color: #132b3a, font size: 8.4pt (11.25px), font weight: normal). Expected contrast ratio of 4.5:1"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": "serious",
+            "html": "<a class=\"dc-inline-link\" href=\"/apps/dutycheck/settings/duty-roles\">Planungsrollen unter Dienstrollen zuweisen</a>",
+            "target": [
+              ".dc-inline-link:nth-child(1)"
+            ],
+            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 4.41 (foreground color: #0091f2, background color: #132b3a, font size: 8.4pt (11.25px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "any": [
+              {
+                "id": "color-contrast",
+                "data": {
+                  "fgColor": "#0091f2",
+                  "bgColor": "#132b3a",
+                  "contrastRatio": 4.41,
+                  "fontSize": "8.4pt (11.25px)",
+                  "fontWeight": "normal",
+                  "messageKey": null,
+                  "expectedContrastRatio": "4.5:1"
+                },
+                "relatedNodes": [
+                  {
+                    "html": "<div class=\"dc-callout dc-callout--info\" role=\"note\" aria-labelledby=\"dc-access-gate-title\">",
+                    "target": [
+                      ".dc-callout--info"
+                    ]
+                  }
+                ],
+                "impact": "serious",
+                "message": "Element has insufficient color contrast of 4.41 (foreground color: #0091f2, background color: #132b3a, font size: 8.4pt (11.25px), font weight: normal). Expected contrast ratio of 4.5:1"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": "serious",
+            "html": "<a class=\"dc-inline-link\" href=\"/apps/dutycheck/employees\">Mitarbeiterkonten auf der Seite „Beschäftigte“ verknüpfen</a>",
+            "target": [
+              ".dc-inline-link[href$=\"employees\"]"
+            ],
+            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 4.41 (foreground color: #0091f2, background color: #132b3a, font size: 8.4pt (11.25px), font weight: normal). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      }
+    ]
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  -  1
+    + Received  + 93
+
+    - Array []
+    + Array [
+    +   Object {
+    +     "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+    +     "help": "Elements must meet minimum color contrast ratio thresholds",
+    +     "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/color-contrast?application=playwright",
+    +     "id": "color-contrast",
+    +     "impact": "serious",
+    +     "nodes": Array [
+    +       Object {
+    +         "all": Array [],
+    +         "any": Array [
+    +           Object {
+    +             "data": Object {
+    +               "bgColor": "#132b3a",
+    +               "contrastRatio": 4.41,
+    +               "expectedContrastRatio": "4.5:1",
+    +               "fgColor": "#0091f2",
+    +               "fontSize": "8.4pt (11.25px)",
+    +               "fontWeight": "normal",
+    +               "messageKey": null,
+    +             },
+    +             "id": "color-contrast",
+    +             "impact": "serious",
+    +             "message": "Element has insufficient color contrast of 4.41 (foreground color: #0091f2, background color: #132b3a, font size: 8.4pt (11.25px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +             "relatedNodes": Array [
+    +               Object {
+    +                 "html": "<div class=\"dc-callout dc-callout--info\" role=\"note\" aria-labelledby=\"dc-access-gate-title\">",
+    +                 "target": Array [
+    +                   ".dc-callout--info",
+    +                 ],
+    +               },
+    +             ],
+    +           },
+    +         ],
+    +         "failureSummary": "Fix any of the following:
+    +   Element has insufficient color contrast of 4.41 (foreground color: #0091f2, background color: #132b3a, font size: 8.4pt (11.25px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +         "html": "<a class=\"dc-inline-link\" href=\"/apps/dutycheck/settings/duty-roles\">Planungsrollen unter Dienstrollen zuweisen</a>",
+    +         "impact": "serious",
+    +         "none": Array [],
+    +         "target": Array [
+    +           ".dc-inline-link:nth-child(1)",
+    +         ],
+    +       },
+    +       Object {
+    +         "all": Array [],
+    +         "any": Array [
+    +           Object {
+    +             "data": Object {
+    +               "bgColor": "#132b3a",
+    +               "contrastRatio": 4.41,
+    +               "expectedContrastRatio": "4.5:1",
+    +               "fgColor": "#0091f2",
+    +               "fontSize": "8.4pt (11.25px)",
+    +               "fontWeight": "normal",
+    +               "messageKey": null,
+    +             },
+    +             "id": "color-contrast",
+    +             "impact": "serious",
+    +             "message": "Element has insufficient color contrast of 4.41 (foreground color: #0091f2, background color: #132b3a, font size: 8.4pt (11.25px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +             "relatedNodes": Array [
+    +               Object {
+    +                 "html": "<div class=\"dc-callout dc-callout--info\" role=\"note\" aria-labelledby=\"dc-access-gate-title\">",
+    +                 "target": Array [
+    +                   ".dc-callout--info",
+    +                 ],
+    +               },
+    +             ],
+    +           },
+    +         ],
+    +         "failureSummary": "Fix any of the following:
+    +   Element has insufficient color contrast of 4.41 (foreground color: #0091f2, background color: #132b3a, font size: 8.4pt (11.25px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +         "html": "<a class=\"dc-inline-link\" href=\"/apps/dutycheck/employees\">Mitarbeiterkonten auf der Seite „Beschäftigte“ verknüpfen</a>",
+    +         "impact": "serious",
+    +         "none": Array [],
+    +         "target": Array [
+    +           ".dc-inline-link[href$=\"employees\"]",
+    +         ],
+    +       },
+    +     ],
+    +     "tags": Array [
+    +       "cat.color",
+    +       "wcag2aa",
+    +       "wcag143",
+    +       "TTv5",
+    +       "TT13.c",
+    +       "EN-301-549",
+    +       "EN-9.1.4.3",
+    +       "ACT",
+    +       "RGAAv4",
+    +       "RGAA-3.2.1",
+    +     ],
+    +   },
+    + ]
+
+      159 | 		results.violations,
+      160 | 		`axe violations at ${label}:\n${JSON.stringify(results.violations, null, 2)}`,
+    > 161 | 	).toEqual([])
+          | 	  ^
+      162 | }
+      163 |
+      164 | /**
+        at runAxe (/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/theme-responsive-a11y.spec.js:161:4)
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/theme-responsive-a11y.spec.js:202:6
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-d82a6-t-a11y-matrix-dark-settings-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-d82a6-t-a11y-matrix-dark-settings-chromium-retry1/video-2.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-d82a6-t-a11y-matrix-dark-settings-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-d82a6-t-a11y-matrix-dark-settings-chromium-retry1/video-3.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #5: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-d82a6-t-a11y-matrix-dark-settings-chromium-retry1/video-1.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/theme-responsive-a11y-Duty-d82a6-t-a11y-matrix-dark-settings-chromium-retry1/error-context.md
+
+    attachment #7: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-d82a6-t-a11y-matrix-dark-settings-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/theme-responsive-a11y-Duty-d82a6-t-a11y-matrix-dark-settings-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[35/31] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: dashboard (retry #1)
+[36/31] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: roster (retry #1)
+[37/31] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: periods (retry #1)
+[38/31] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: absences (retry #1)
+[39/31] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: settings (retry #1)
+[40/31] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: dashboard (retry #1)
+[41/31] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: roster (retry #1)
+[42/31] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: periods (retry #1)
+[43/31] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: absences (retry #1)
+[44/31] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: settings (retry #1)
+[45/31] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:208:2 › DutyCheck theme × viewport a11y matrix › reset to default theme (retry #1)
+(node:199888) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[46/31] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:221:2 › DutyCheck custom accent colour › primary tokens follow instance accent and stay AA
+(node:206194) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[47/31] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:221:2 › DutyCheck custom accent colour › primary tokens follow instance accent and stay AA (retry #1)
+  3) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:221:2 › DutyCheck custom accent colour › primary tokens follow instance accent and stay AA 
+
+    Error: axe violations at custom-accent/settings@1280px:
+    [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "tags": [
+          "cat.color",
+          "wcag2aa",
+          "wcag143",
+          "TTv5",
+          "TT13.c",
+          "EN-301-549",
+          "EN-9.1.4.3",
+          "ACT",
+          "RGAAv4",
+          "RGAA-3.2.1"
+        ],
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "help": "Elements must meet minimum color contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/color-contrast?application=playwright",
+        "nodes": [
+          {
+            "any": [
+              {
+                "id": "color-contrast",
+                "data": {
+                  "fgColor": "#fc4f42",
+                  "bgColor": "#3c201e",
+                  "contrastRatio": 4.46,
+                  "fontSize": "8.4pt (11.25px)",
+                  "fontWeight": "normal",
+                  "messageKey": null,
+                  "expectedContrastRatio": "4.5:1"
+                },
+                "relatedNodes": [
+                  {
+                    "html": "<div class=\"dc-callout dc-callout--info\" role=\"note\" aria-labelledby=\"dc-access-gate-title\">",
+                    "target": [
+                      ".dc-callout--info"
+                    ]
+                  }
+                ],
+                "impact": "serious",
+                "message": "Element has insufficient color contrast of 4.46 (foreground color: #fc4f42, background color: #3c201e, font size: 8.4pt (11.25px), font weight: normal). Expected contrast ratio of 4.5:1"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": "serious",
+            "html": "<a class=\"dc-inline-link\" href=\"/apps/dutycheck/settings/duty-roles\">Planungsrollen unter Dienstrollen zuweisen</a>",
+            "target": [
+              ".dc-inline-link:nth-child(1)"
+            ],
+            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 4.46 (foreground color: #fc4f42, background color: #3c201e, font size: 8.4pt (11.25px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "any": [
+              {
+                "id": "color-contrast",
+                "data": {
+                  "fgColor": "#fc4f42",
+                  "bgColor": "#3c201e",
+                  "contrastRatio": 4.46,
+                  "fontSize": "8.4pt (11.25px)",
+                  "fontWeight": "normal",
+                  "messageKey": null,
+                  "expectedContrastRatio": "4.5:1"
+                },
+                "relatedNodes": [
+                  {
+                    "html": "<div class=\"dc-callout dc-callout--info\" role=\"note\" aria-labelledby=\"dc-access-gate-title\">",
+                    "target": [
+                      ".dc-callout--info"
+                    ]
+                  }
+                ],
+                "impact": "serious",
+                "message": "Element has insufficient color contrast of 4.46 (foreground color: #fc4f42, background color: #3c201e, font size: 8.4pt (11.25px), font weight: normal). Expected contrast ratio of 4.5:1"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": "serious",
+            "html": "<a class=\"dc-inline-link\" href=\"/apps/dutycheck/employees\">Mitarbeiterkonten auf der Seite „Beschäftigte“ verknüpfen</a>",
+            "target": [
+              ".dc-inline-link[href$=\"employees\"]"
+            ],
+            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 4.46 (foreground color: #fc4f42, background color: #3c201e, font size: 8.4pt (11.25px), font weight: normal). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      }
+    ]
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  -  1
+    + Received  + 93
+
+    - Array []
+    + Array [
+    +   Object {
+    +     "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+    +     "help": "Elements must meet minimum color contrast ratio thresholds",
+    +     "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/color-contrast?application=playwright",
+    +     "id": "color-contrast",
+    +     "impact": "serious",
+    +     "nodes": Array [
+    +       Object {
+    +         "all": Array [],
+    +         "any": Array [
+    +           Object {
+    +             "data": Object {
+    +               "bgColor": "#3c201e",
+    +               "contrastRatio": 4.46,
+    +               "expectedContrastRatio": "4.5:1",
+    +               "fgColor": "#fc4f42",
+    +               "fontSize": "8.4pt (11.25px)",
+    +               "fontWeight": "normal",
+    +               "messageKey": null,
+    +             },
+    +             "id": "color-contrast",
+    +             "impact": "serious",
+    +             "message": "Element has insufficient color contrast of 4.46 (foreground color: #fc4f42, background color: #3c201e, font size: 8.4pt (11.25px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +             "relatedNodes": Array [
+    +               Object {
+    +                 "html": "<div class=\"dc-callout dc-callout--info\" role=\"note\" aria-labelledby=\"dc-access-gate-title\">",
+    +                 "target": Array [
+    +                   ".dc-callout--info",
+    +                 ],
+    +               },
+    +             ],
+    +           },
+    +         ],
+    +         "failureSummary": "Fix any of the following:
+    +   Element has insufficient color contrast of 4.46 (foreground color: #fc4f42, background color: #3c201e, font size: 8.4pt (11.25px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +         "html": "<a class=\"dc-inline-link\" href=\"/apps/dutycheck/settings/duty-roles\">Planungsrollen unter Dienstrollen zuweisen</a>",
+    +         "impact": "serious",
+    +         "none": Array [],
+    +         "target": Array [
+    +           ".dc-inline-link:nth-child(1)",
+    +         ],
+    +       },
+    +       Object {
+    +         "all": Array [],
+    +         "any": Array [
+    +           Object {
+    +             "data": Object {
+    +               "bgColor": "#3c201e",
+    +               "contrastRatio": 4.46,
+    +               "expectedContrastRatio": "4.5:1",
+    +               "fgColor": "#fc4f42",
+    +               "fontSize": "8.4pt (11.25px)",
+    +               "fontWeight": "normal",
+    +               "messageKey": null,
+    +             },
+    +             "id": "color-contrast",
+    +             "impact": "serious",
+    +             "message": "Element has insufficient color contrast of 4.46 (foreground color: #fc4f42, background color: #3c201e, font size: 8.4pt (11.25px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +             "relatedNodes": Array [
+    +               Object {
+    +                 "html": "<div class=\"dc-callout dc-callout--info\" role=\"note\" aria-labelledby=\"dc-access-gate-title\">",
+    +                 "target": Array [
+    +                   ".dc-callout--info",
+    +                 ],
+    +               },
+    +             ],
+    +           },
+    +         ],
+    +         "failureSummary": "Fix any of the following:
+    +   Element has insufficient color contrast of 4.46 (foreground color: #fc4f42, background color: #3c201e, font size: 8.4pt (11.25px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +         "html": "<a class=\"dc-inline-link\" href=\"/apps/dutycheck/employees\">Mitarbeiterkonten auf der Seite „Beschäftigte“ verknüpfen</a>",
+    +         "impact": "serious",
+    +         "none": Array [],
+    +         "target": Array [
+    +           ".dc-inline-link[href$=\"employees\"]",
+    +         ],
+    +       },
+    +     ],
+    +     "tags": Array [
+    +       "cat.color",
+    +       "wcag2aa",
+    +       "wcag143",
+    +       "TTv5",
+    +       "TT13.c",
+    +       "EN-301-549",
+    +       "EN-9.1.4.3",
+    +       "ACT",
+    +       "RGAAv4",
+    +       "RGAA-3.2.1",
+    +     ],
+    +   },
+    + ]
+
+      159 | 		results.violations,
+      160 | 		`axe violations at ${label}:\n${JSON.stringify(results.violations, null, 2)}`,
+    > 161 | 	).toEqual([])
+          | 	  ^
+      162 | }
+      163 |
+      164 | /**
+        at runAxe (/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/theme-responsive-a11y.spec.js:161:4)
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/theme-responsive-a11y.spec.js:249:4
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-49ae5-instance-accent-and-stay-AA-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-49ae5-instance-accent-and-stay-AA-chromium/video-1.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-49ae5-instance-accent-and-stay-AA-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/theme-responsive-a11y-Duty-49ae5-instance-accent-and-stay-AA-chromium/error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-49ae5-instance-accent-and-stay-AA-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/theme-responsive-a11y-Duty-49ae5-instance-accent-and-stay-AA-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: axe violations at custom-accent/settings@1280px:
+    [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "tags": [
+          "cat.color",
+          "wcag2aa",
+          "wcag143",
+          "TTv5",
+          "TT13.c",
+          "EN-301-549",
+          "EN-9.1.4.3",
+          "ACT",
+          "RGAAv4",
+          "RGAA-3.2.1"
+        ],
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "help": "Elements must meet minimum color contrast ratio thresholds",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/color-contrast?application=playwright",
+        "nodes": [
+          {
+            "any": [
+              {
+                "id": "color-contrast",
+                "data": {
+                  "fgColor": "#fc4f42",
+                  "bgColor": "#3c201e",
+                  "contrastRatio": 4.46,
+                  "fontSize": "8.4pt (11.25px)",
+                  "fontWeight": "normal",
+                  "messageKey": null,
+                  "expectedContrastRatio": "4.5:1"
+                },
+                "relatedNodes": [
+                  {
+                    "html": "<div class=\"dc-callout dc-callout--info\" role=\"note\" aria-labelledby=\"dc-access-gate-title\">",
+                    "target": [
+                      ".dc-callout--info"
+                    ]
+                  }
+                ],
+                "impact": "serious",
+                "message": "Element has insufficient color contrast of 4.46 (foreground color: #fc4f42, background color: #3c201e, font size: 8.4pt (11.25px), font weight: normal). Expected contrast ratio of 4.5:1"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": "serious",
+            "html": "<a class=\"dc-inline-link\" href=\"/apps/dutycheck/settings/duty-roles\">Planungsrollen unter Dienstrollen zuweisen</a>",
+            "target": [
+              ".dc-inline-link:nth-child(1)"
+            ],
+            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 4.46 (foreground color: #fc4f42, background color: #3c201e, font size: 8.4pt (11.25px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "any": [
+              {
+                "id": "color-contrast",
+                "data": {
+                  "fgColor": "#fc4f42",
+                  "bgColor": "#3c201e",
+                  "contrastRatio": 4.46,
+                  "fontSize": "8.4pt (11.25px)",
+                  "fontWeight": "normal",
+                  "messageKey": null,
+                  "expectedContrastRatio": "4.5:1"
+                },
+                "relatedNodes": [
+                  {
+                    "html": "<div class=\"dc-callout dc-callout--info\" role=\"note\" aria-labelledby=\"dc-access-gate-title\">",
+                    "target": [
+                      ".dc-callout--info"
+                    ]
+                  }
+                ],
+                "impact": "serious",
+                "message": "Element has insufficient color contrast of 4.46 (foreground color: #fc4f42, background color: #3c201e, font size: 8.4pt (11.25px), font weight: normal). Expected contrast ratio of 4.5:1"
+              }
+            ],
+            "all": [],
+            "none": [],
+            "impact": "serious",
+            "html": "<a class=\"dc-inline-link\" href=\"/apps/dutycheck/employees\">Mitarbeiterkonten auf der Seite „Beschäftigte“ verknüpfen</a>",
+            "target": [
+              ".dc-inline-link[href$=\"employees\"]"
+            ],
+            "failureSummary": "Fix any of the following:\n  Element has insufficient color contrast of 4.46 (foreground color: #fc4f42, background color: #3c201e, font size: 8.4pt (11.25px), font weight: normal). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      }
+    ]
+
+    expect(received).toEqual(expected) // deep equality
+
+    - Expected  -  1
+    + Received  + 93
+
+    - Array []
+    + Array [
+    +   Object {
+    +     "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+    +     "help": "Elements must meet minimum color contrast ratio thresholds",
+    +     "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/color-contrast?application=playwright",
+    +     "id": "color-contrast",
+    +     "impact": "serious",
+    +     "nodes": Array [
+    +       Object {
+    +         "all": Array [],
+    +         "any": Array [
+    +           Object {
+    +             "data": Object {
+    +               "bgColor": "#3c201e",
+    +               "contrastRatio": 4.46,
+    +               "expectedContrastRatio": "4.5:1",
+    +               "fgColor": "#fc4f42",
+    +               "fontSize": "8.4pt (11.25px)",
+    +               "fontWeight": "normal",
+    +               "messageKey": null,
+    +             },
+    +             "id": "color-contrast",
+    +             "impact": "serious",
+    +             "message": "Element has insufficient color contrast of 4.46 (foreground color: #fc4f42, background color: #3c201e, font size: 8.4pt (11.25px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +             "relatedNodes": Array [
+    +               Object {
+    +                 "html": "<div class=\"dc-callout dc-callout--info\" role=\"note\" aria-labelledby=\"dc-access-gate-title\">",
+    +                 "target": Array [
+    +                   ".dc-callout--info",
+    +                 ],
+    +               },
+    +             ],
+    +           },
+    +         ],
+    +         "failureSummary": "Fix any of the following:
+    +   Element has insufficient color contrast of 4.46 (foreground color: #fc4f42, background color: #3c201e, font size: 8.4pt (11.25px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +         "html": "<a class=\"dc-inline-link\" href=\"/apps/dutycheck/settings/duty-roles\">Planungsrollen unter Dienstrollen zuweisen</a>",
+    +         "impact": "serious",
+    +         "none": Array [],
+    +         "target": Array [
+    +           ".dc-inline-link:nth-child(1)",
+    +         ],
+    +       },
+    +       Object {
+    +         "all": Array [],
+    +         "any": Array [
+    +           Object {
+    +             "data": Object {
+    +               "bgColor": "#3c201e",
+    +               "contrastRatio": 4.46,
+    +               "expectedContrastRatio": "4.5:1",
+    +               "fgColor": "#fc4f42",
+    +               "fontSize": "8.4pt (11.25px)",
+    +               "fontWeight": "normal",
+    +               "messageKey": null,
+    +             },
+    +             "id": "color-contrast",
+    +             "impact": "serious",
+    +             "message": "Element has insufficient color contrast of 4.46 (foreground color: #fc4f42, background color: #3c201e, font size: 8.4pt (11.25px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +             "relatedNodes": Array [
+    +               Object {
+    +                 "html": "<div class=\"dc-callout dc-callout--info\" role=\"note\" aria-labelledby=\"dc-access-gate-title\">",
+    +                 "target": Array [
+    +                   ".dc-callout--info",
+    +                 ],
+    +               },
+    +             ],
+    +           },
+    +         ],
+    +         "failureSummary": "Fix any of the following:
+    +   Element has insufficient color contrast of 4.46 (foreground color: #fc4f42, background color: #3c201e, font size: 8.4pt (11.25px), font weight: normal). Expected contrast ratio of 4.5:1",
+    +         "html": "<a class=\"dc-inline-link\" href=\"/apps/dutycheck/employees\">Mitarbeiterkonten auf der Seite „Beschäftigte“ verknüpfen</a>",
+    +         "impact": "serious",
+    +         "none": Array [],
+    +         "target": Array [
+    +           ".dc-inline-link[href$=\"employees\"]",
+    +         ],
+    +       },
+    +     ],
+    +     "tags": Array [
+    +       "cat.color",
+    +       "wcag2aa",
+    +       "wcag143",
+    +       "TTv5",
+    +       "TT13.c",
+    +       "EN-301-549",
+    +       "EN-9.1.4.3",
+    +       "ACT",
+    +       "RGAAv4",
+    +       "RGAA-3.2.1",
+    +     ],
+    +   },
+    + ]
+
+      159 | 		results.violations,
+      160 | 		`axe violations at ${label}:\n${JSON.stringify(results.violations, null, 2)}`,
+    > 161 | 	).toEqual([])
+          | 	  ^
+      162 | }
+      163 |
+      164 | /**
+        at runAxe (/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/theme-responsive-a11y.spec.js:161:4)
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/theme-responsive-a11y.spec.js:249:4
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-49ae5-instance-accent-and-stay-AA-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-49ae5-instance-accent-and-stay-AA-chromium-retry1/video-1.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-49ae5-instance-accent-and-stay-AA-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/theme-responsive-a11y-Duty-49ae5-instance-accent-and-stay-AA-chromium-retry1/error-context.md
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-49ae5-instance-accent-and-stay-AA-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/theme-responsive-a11y-Duty-49ae5-instance-accent-and-stay-AA-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+(node:214606) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[48/31] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light mobile-320
+[49/31] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light tablet-768
+[50/31] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light desktop-1440
+[51/31] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ dark mobile-320
+[52/31] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ dark tablet-768

@@ -256,6 +256,16 @@ class CompanyService
 		$this->addMember($id, $actor, 'admin');
 		// Keep actor on Default as well so they can still see legacy rows.
 		$this->addMember(self::DEFAULT_COMPANY_ID, $actor, 'admin');
+		// GA: new companies get quiet hours ON (D-23); existing rows were seeded OFF by migration.
+		if (SchemaProbe::hasColumn($this->db, 'dc_companies', 'settings_json')) {
+			$seed = $this->db->getQueryBuilder();
+			$seed->update('dc_companies')
+				->set('settings_json', $seed->createNamedParameter(
+					json_encode(SelfServiceSettingsService::defaultsForNewCompany(), JSON_THROW_ON_ERROR),
+				))
+				->where($seed->expr()->eq('id', $seed->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
+				->executeStatement();
+		}
 		return ['id' => $id, 'name' => $name, 'active' => true];
 	}
 

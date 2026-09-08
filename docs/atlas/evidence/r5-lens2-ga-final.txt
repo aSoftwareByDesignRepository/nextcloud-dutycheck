@@ -1,0 +1,18 @@
+Using location #9 (Zentrale), employee #36 (dc.review.employee)
+→ Enable Muster + Soll + blackouts + peer + today … OK (rotation+soll on)
+→ Create 2-week pattern with location … OK (pattern #31)
+→ Assign pattern to employee … OK (from 2026-09-07)
+→ Ensure open period … OK (reuse #48)
+→ Clear prior suggest assignments for employee … OK (freed 59 slots + blackouts cleared)
+→ Suggest preview … OK (would create 18)
+→ Suggest confirm … OK (wrote 18)
+→ Suggest mutex (second confirm → SUGGEST_IN_PROGRESS or empty) … OK (idempotent skip)
+→ Today board planner OK / employee FORBIDDEN … OK (shifts=1 employee=403)
+→ Peer visibility IDOR (other location empty/forbidden) … OK (team readable)
+→ Peer belonging locations (lookback-bound) … OK (locations=1)
+→ Settings revision CAS rejects stale client … OK (revision CAS ok)
+→ Blackout create + hard-block assign + override … OK (blackout #23 override assignment #457)
+→ Facade Planwoche + Soll minutes … OK (basis=published_roster mins=450 label=Planwoche A (odd KW))
+→ AZC provider respects Dual gate … OK (g2_default_off effective=0)
+
+ALL GA E2E STEPS PASSED

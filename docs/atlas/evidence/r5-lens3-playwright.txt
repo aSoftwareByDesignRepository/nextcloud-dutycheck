@@ -1,0 +1,467 @@
+
+Running 56 tests using 1 worker
+
+(node:15980) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/56] [setup] › tests/e2e/auth.setup.js:9:1 › authenticate planner
+(node:16293) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[2/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/
+[3/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/roster
+[4/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/periods
+[5/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/absences
+[6/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/access
+[7/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/duty-roles
+[8/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/planning
+[9/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/companies
+[10/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/conflicts
+[11/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/shift-templates
+[12/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/qualifications
+[13/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/planner-scope
+[14/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/operations
+[15/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/dienst-team
+[16/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/integration
+[17/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/privacy
+[18/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/license
+[19/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/support
+[20/56] [chromium] › tests/e2e/a11y-smoke.spec.js:76:5 › employee a11y › a11y smoke (employee): /apps/dutycheck/my-absences
+[21/56] [chromium] › tests/e2e/a11y-smoke.spec.js:76:5 › employee a11y › a11y smoke (employee): /apps/dutycheck/my-roster
+[22/56] [chromium] › tests/e2e/a11y-smoke.spec.js:84:1 › legacy /settings URL redirects to the default sub-page
+[23/56] [chromium] › tests/e2e/a11y-smoke.spec.js:91:1 › legacy /settings#anchor bookmark forwards to the owning sub-page
+[24/56] [chromium] › tests/e2e/a11y-smoke.spec.js:100:1 › settings sidebar sub-navigation marks the active sub-page
+[25/56] [chromium] › tests/e2e/a11y-smoke.spec.js:111:1 › settings in-page chip bar mirrors the catalog and marks the active page
+[26/56] [chromium] › tests/e2e/a11y-smoke.spec.js:126:1 › company-access banner is a labelled status region and hidden when membership exists
+[27/56] [chromium] › tests/e2e/roster-month-grid.spec.js:153:1 › month period keeps one column per day without overlapping headers
+[28/56] [chromium] › tests/e2e/roster-rolling-month.spec.js:5:1 › rolling month navigator ensures periods without manual Zeitraum creation
+[29/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: dashboard
+[30/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: roster
+[31/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: periods
+[32/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: absences
+[33/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: settings
+[34/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: dashboard
+[35/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: roster
+[36/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: periods
+[37/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: absences
+[38/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: settings
+[39/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: dashboard
+[40/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: roster
+[41/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: periods
+[42/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: absences
+[43/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: settings
+[44/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: dashboard
+[45/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: roster
+[46/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: periods
+[47/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: absences
+[48/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: settings
+[49/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:208:2 › DutyCheck theme × viewport a11y matrix › reset to default theme
+[50/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:221:2 › DutyCheck custom accent colour › primary tokens follow instance accent and stay AA
+[51/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light mobile-320
+(node:61121) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[52/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light mobile-320 (retry #1)
+  1) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light mobile-320 
+
+    Error: scope strip Role label must be start-aligned (got )
+
+    expect(received).toBeTruthy()
+
+    Received: false
+
+      313 | 					['start', 'left'].includes(metrics.scopeLabelAlign),
+      314 | 					`scope strip Role label must be start-aligned (got ${metrics.scopeLabelAlign})`,
+    > 315 | 				).toBeTruthy()
+          | 				  ^
+      316 | 				expect(
+      317 | 					metrics.scopeLabelWidthPx,
+      318 | 					'core dt width:130px must not apply to scope strip labels',
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/theme-responsive-a11y.spec.js:315:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-e1e16-ll-metrics-light-mobile-320-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-e1e16-ll-metrics-light-mobile-320-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/theme-responsive-a11y-Duty-e1e16-ll-metrics-light-mobile-320-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-e1e16-ll-metrics-light-mobile-320-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/theme-responsive-a11y-Duty-e1e16-ll-metrics-light-mobile-320-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: scope strip Role label must be start-aligned (got )
+
+    expect(received).toBeTruthy()
+
+    Received: false
+
+      313 | 					['start', 'left'].includes(metrics.scopeLabelAlign),
+      314 | 					`scope strip Role label must be start-aligned (got ${metrics.scopeLabelAlign})`,
+    > 315 | 				).toBeTruthy()
+          | 				  ^
+      316 | 				expect(
+      317 | 					metrics.scopeLabelWidthPx,
+      318 | 					'core dt width:130px must not apply to scope strip labels',
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/theme-responsive-a11y.spec.js:315:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-e1e16-ll-metrics-light-mobile-320-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-e1e16-ll-metrics-light-mobile-320-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/theme-responsive-a11y-Duty-e1e16-ll-metrics-light-mobile-320-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-e1e16-ll-metrics-light-mobile-320-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/theme-responsive-a11y-Duty-e1e16-ll-metrics-light-mobile-320-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+(node:66850) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[53/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light tablet-768
+(node:70886) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[54/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light tablet-768 (retry #1)
+  2) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light tablet-768 
+
+    Error: scope strip Role label must be start-aligned (got )
+
+    expect(received).toBeTruthy()
+
+    Received: false
+
+      313 | 					['start', 'left'].includes(metrics.scopeLabelAlign),
+      314 | 					`scope strip Role label must be start-aligned (got ${metrics.scopeLabelAlign})`,
+    > 315 | 				).toBeTruthy()
+          | 				  ^
+      316 | 				expect(
+      317 | 					metrics.scopeLabelWidthPx,
+      318 | 					'core dt width:130px must not apply to scope strip labels',
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/theme-responsive-a11y.spec.js:315:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-5a73f-ll-metrics-light-tablet-768-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-5a73f-ll-metrics-light-tablet-768-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/theme-responsive-a11y-Duty-5a73f-ll-metrics-light-tablet-768-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-5a73f-ll-metrics-light-tablet-768-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/theme-responsive-a11y-Duty-5a73f-ll-metrics-light-tablet-768-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: scope strip Role label must be start-aligned (got )
+
+    expect(received).toBeTruthy()
+
+    Received: false
+
+      313 | 					['start', 'left'].includes(metrics.scopeLabelAlign),
+      314 | 					`scope strip Role label must be start-aligned (got ${metrics.scopeLabelAlign})`,
+    > 315 | 				).toBeTruthy()
+          | 				  ^
+      316 | 				expect(
+      317 | 					metrics.scopeLabelWidthPx,
+      318 | 					'core dt width:130px must not apply to scope strip labels',
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/theme-responsive-a11y.spec.js:315:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-5a73f-ll-metrics-light-tablet-768-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-5a73f-ll-metrics-light-tablet-768-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/theme-responsive-a11y-Duty-5a73f-ll-metrics-light-tablet-768-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-5a73f-ll-metrics-light-tablet-768-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/theme-responsive-a11y-Duty-5a73f-ll-metrics-light-tablet-768-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+(node:73202) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[55/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light desktop-1440
+(node:78084) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[56/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light desktop-1440 (retry #1)
+  3) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light desktop-1440 
+
+    Error: scope strip Role label must be start-aligned (got )
+
+    expect(received).toBeTruthy()
+
+    Received: false
+
+      313 | 					['start', 'left'].includes(metrics.scopeLabelAlign),
+      314 | 					`scope strip Role label must be start-aligned (got ${metrics.scopeLabelAlign})`,
+    > 315 | 				).toBeTruthy()
+          | 				  ^
+      316 | 				expect(
+      317 | 					metrics.scopeLabelWidthPx,
+      318 | 					'core dt width:130px must not apply to scope strip labels',
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/theme-responsive-a11y.spec.js:315:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-4fb58--metrics-light-desktop-1440-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-4fb58--metrics-light-desktop-1440-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/theme-responsive-a11y-Duty-4fb58--metrics-light-desktop-1440-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-4fb58--metrics-light-desktop-1440-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/theme-responsive-a11y-Duty-4fb58--metrics-light-desktop-1440-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: scope strip Role label must be start-aligned (got )
+
+    expect(received).toBeTruthy()
+
+    Received: false
+
+      313 | 					['start', 'left'].includes(metrics.scopeLabelAlign),
+      314 | 					`scope strip Role label must be start-aligned (got ${metrics.scopeLabelAlign})`,
+    > 315 | 				).toBeTruthy()
+          | 				  ^
+      316 | 				expect(
+      317 | 					metrics.scopeLabelWidthPx,
+      318 | 					'core dt width:130px must not apply to scope strip labels',
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/theme-responsive-a11y.spec.js:315:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-4fb58--metrics-light-desktop-1440-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-4fb58--metrics-light-desktop-1440-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/theme-responsive-a11y-Duty-4fb58--metrics-light-desktop-1440-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-4fb58--metrics-light-desktop-1440-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/theme-responsive-a11y-Duty-4fb58--metrics-light-desktop-1440-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+(node:81221) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[57/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ dark mobile-320
+(node:86033) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[58/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ dark mobile-320 (retry #1)
+  4) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ dark mobile-320 
+
+    Error: scope strip Role label must be start-aligned (got )
+
+    expect(received).toBeTruthy()
+
+    Received: false
+
+      313 | 					['start', 'left'].includes(metrics.scopeLabelAlign),
+      314 | 					`scope strip Role label must be start-aligned (got ${metrics.scopeLabelAlign})`,
+    > 315 | 				).toBeTruthy()
+          | 				  ^
+      316 | 				expect(
+      317 | 					metrics.scopeLabelWidthPx,
+      318 | 					'core dt width:130px must not apply to scope strip labels',
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/theme-responsive-a11y.spec.js:315:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-74670-ell-metrics-dark-mobile-320-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-74670-ell-metrics-dark-mobile-320-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/theme-responsive-a11y-Duty-74670-ell-metrics-dark-mobile-320-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-74670-ell-metrics-dark-mobile-320-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/theme-responsive-a11y-Duty-74670-ell-metrics-dark-mobile-320-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: scope strip Role label must be start-aligned (got )
+
+    expect(received).toBeTruthy()
+
+    Received: false
+
+      313 | 					['start', 'left'].includes(metrics.scopeLabelAlign),
+      314 | 					`scope strip Role label must be start-aligned (got ${metrics.scopeLabelAlign})`,
+    > 315 | 				).toBeTruthy()
+          | 				  ^
+      316 | 				expect(
+      317 | 					metrics.scopeLabelWidthPx,
+      318 | 					'core dt width:130px must not apply to scope strip labels',
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/theme-responsive-a11y.spec.js:315:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-74670-ell-metrics-dark-mobile-320-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-74670-ell-metrics-dark-mobile-320-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/theme-responsive-a11y-Duty-74670-ell-metrics-dark-mobile-320-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-74670-ell-metrics-dark-mobile-320-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/theme-responsive-a11y-Duty-74670-ell-metrics-dark-mobile-320-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+(node:90653) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[59/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ dark tablet-768
+(node:93978) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[60/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ dark tablet-768 (retry #1)
+  5) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ dark tablet-768 
+
+    Error: scope strip Role label must be start-aligned (got )
+
+    expect(received).toBeTruthy()
+
+    Received: false
+
+      313 | 					['start', 'left'].includes(metrics.scopeLabelAlign),
+      314 | 					`scope strip Role label must be start-aligned (got ${metrics.scopeLabelAlign})`,
+    > 315 | 				).toBeTruthy()
+          | 				  ^
+      316 | 				expect(
+      317 | 					metrics.scopeLabelWidthPx,
+      318 | 					'core dt width:130px must not apply to scope strip labels',
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/theme-responsive-a11y.spec.js:315:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-3b4ec-ell-metrics-dark-tablet-768-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-3b4ec-ell-metrics-dark-tablet-768-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/theme-responsive-a11y-Duty-3b4ec-ell-metrics-dark-tablet-768-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-3b4ec-ell-metrics-dark-tablet-768-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/theme-responsive-a11y-Duty-3b4ec-ell-metrics-dark-tablet-768-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: scope strip Role label must be start-aligned (got )
+
+    expect(received).toBeTruthy()
+
+    Received: false
+
+      313 | 					['start', 'left'].includes(metrics.scopeLabelAlign),
+      314 | 					`scope strip Role label must be start-aligned (got ${metrics.scopeLabelAlign})`,
+    > 315 | 				).toBeTruthy()
+          | 				  ^
+      316 | 				expect(
+      317 | 					metrics.scopeLabelWidthPx,
+      318 | 					'core dt width:130px must not apply to scope strip labels',
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/theme-responsive-a11y.spec.js:315:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-3b4ec-ell-metrics-dark-tablet-768-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-3b4ec-ell-metrics-dark-tablet-768-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/theme-responsive-a11y-Duty-3b4ec-ell-metrics-dark-tablet-768-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-3b4ec-ell-metrics-dark-tablet-768-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/theme-responsive-a11y-Duty-3b4ec-ell-metrics-dark-tablet-768-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+(node:96737) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[61/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ dark desktop-1440

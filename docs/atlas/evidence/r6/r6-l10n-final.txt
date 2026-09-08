@@ -1,0 +1,9 @@
+=== check-l10n-parity.php ===
+l10n parity OK (1122 keys, en/de/fr/es/da/nl/it/pl/sv/nb/pt_BR).
+parity_exit:0
+=== check-l10n-placeholders.php ===
+l10n placeholder check OK (da/da_DK/de/de_DE/en/es/es_ES/fr/fr_FR/it/it_IT/nb/nb_NO/nl/nl_NL/pl/pl_PL/pt_BR/sv/sv_SE printf and named placeholders match msgids).
+placeholders_exit:0
+=== check-l10n-runtime.php ===
+l10n runtime OK (11 unique strings, security-critical scope, all in en.json).
+runtime_exit:0

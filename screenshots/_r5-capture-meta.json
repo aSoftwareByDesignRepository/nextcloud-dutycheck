@@ -1,0 +1,79 @@
+{
+  "captured_at": "2026-09-08T04:09:22.736Z",
+  "viewport": "1920x1040",
+  "locale": "de",
+  "theme": "light",
+  "round": 5,
+  "user": "dc_atlas_planner",
+  "shots": [
+    "dutycheck-screenshot-01.png",
+    "dutycheck-screenshot-02.png",
+    "dutycheck-screenshot-03.png",
+    "dutycheck-screenshot-04.png",
+    "dutycheck-screenshot-05.png",
+    "dutycheck-screenshot-06.png",
+    "dutycheck-screenshot-07.png",
+    "dutycheck-screenshot-08.png"
+  ],
+  "shot_map": {
+    "01": "Übersicht hard conflicts + KPI + activity strip (R4 kept)",
+    "02": "Heute DE multi-Standort 2×2 · 8 tiles/Standort · flock",
+    "03": "Zeiträume dual-pane (R4 kept)",
+    "04": "Dienstplan Nov + hard + swaps (R4 kept)",
+    "05": "Beschäftigte 8 AKTIV incl Jonas + Belegung",
+    "06": "Muster 4 cards · Woche labels",
+    "07": "Abwesenheiten Sep calendar + Sep list ≥10",
+    "08": "Marketplace hard + swaps (R4 kept)"
+  },
+  "md5s": {
+    "dutycheck-screenshot-01.png": "94acdaed30924f8c5163abbbb4b37a9f",
+    "dutycheck-screenshot-02.png": "8fa01e76d7e7687a14709ea9a9f1fb2c",
+    "dutycheck-screenshot-03.png": "eeafeb5f83608552babae328013d0505",
+    "dutycheck-screenshot-04.png": "9c6ac1a287a45fc72dca611ab7b85e19",
+    "dutycheck-screenshot-05.png": "ff9b9565ca9f4f06f1866c5279f0a912",
+    "dutycheck-screenshot-06.png": "a205b50c1de78c0c18ecbb4a611e9ded",
+    "dutycheck-screenshot-07.png": "6529cafdc77058e0a1679aecd2e13388",
+    "dutycheck-screenshot-08.png": "b5e0788a6260995df569c00cc3c42dfd"
+  },
+  "white245": {
+    "dutycheck-screenshot-01.png": 0.0163,
+    "dutycheck-screenshot-02.png": 0.0163,
+    "dutycheck-screenshot-03.png": 0.0202,
+    "dutycheck-screenshot-04.png": 0.2162,
+    "dutycheck-screenshot-05.png": 0.0163,
+    "dutycheck-screenshot-06.png": 0.1411,
+    "dutycheck-screenshot-07.png": 0.0163,
+    "dutycheck-screenshot-08.png": 0.031
+  },
+  "unique_md5": 8,
+  "ocr_gate": {
+    "ok": true,
+    "notes": [
+      "dutycheck-screenshot-02.png miss= [] bad= []",
+      "dutycheck-screenshot-05.png miss= [] bad= []",
+      "dutycheck-screenshot-06.png miss= [] bad= []",
+      "dutycheck-screenshot-07.png miss= [] bad= []",
+      "OCR_OK"
+    ]
+  },
+  "recaptured": [
+    "02",
+    "05",
+    "06",
+    "07"
+  ],
+  "kept": [
+    "01",
+    "03",
+    "04",
+    "08"
+  ],
+  "r4_musts": {
+    "de_02": true,
+    "klinik_flughafen_8": true,
+    "jonas_05": true,
+    "sep_align_07": true,
+    "woche_06": true,
+    "keep_densify_hard_swaps": true
+  }
+}

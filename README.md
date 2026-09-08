@@ -1,6 +1,6 @@
 # DutyCheck
 
-[![Nextcloud](https://img.shields.io/badge/Nextcloud-32–34-0082c9?logo=nextcloud&logoColor=white)](https://nextcloud.com/)
+[![Nextcloud](https://img.shields.io/badge/Nextcloud-32–35-0082c9?logo=nextcloud&logoColor=white)](https://nextcloud.com/)
 [![PHP](https://img.shields.io/badge/PHP-8.2–8.5-777BB4?logo=php&logoColor=white)](https://www.php.net/)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
 
@@ -36,7 +36,7 @@ DutyCheck builds duty rosters inside your self-hosted Nextcloud. Open a planning
 
 ### Requirements
 
-- Nextcloud 32–34 · PHP 8.2–8.5 · MySQL or PostgreSQL
+- Nextcloud 32–35 · PHP 8.2–8.5 · MySQL or PostgreSQL
 
 ### Install from Git
 
@@ -90,7 +90,7 @@ DutyCheck baut Dienstpläne in Ihrer selbst gehosteten Nextcloud. Periode öffne
 
 ### Voraussetzungen
 
-- Nextcloud 32–34 · PHP 8.2–8.5 · MySQL oder PostgreSQL
+- Nextcloud 32–35 · PHP 8.2–8.5 · MySQL oder PostgreSQL
 
 ### Lizenz
 

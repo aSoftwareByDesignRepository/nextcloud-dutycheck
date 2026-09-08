@@ -91,7 +91,12 @@ export function plannerCredsCandidates() {
   }
   push(process.env.E2E_USER, process.env.E2E_PASSWORD || process.env.E2E_PASS)
   push(process.env.NC_ADMIN_USER, process.env.NC_ADMIN_PASS || process.env.NC_ADMIN_PASSWORD)
-  push(process.env.NC_EMPLOYEE_USER, process.env.NC_EMPLOYEE_PASS || process.env.NC_EMPLOYEE_PASSWORD)
+  // Employee credentials are for employee-only specs. Including them in the
+  // planner fallback chain turns a mid-suite admin throttle into a false
+  // "e2e_employee wrong password" failure that aborts the theme matrix.
+  if (process.env.DC_E2E_ALLOW_EMPLOYEE_PLANNER_FALLBACK === '1') {
+    push(process.env.NC_EMPLOYEE_USER, process.env.NC_EMPLOYEE_PASS || process.env.NC_EMPLOYEE_PASSWORD)
+  }
   // Deduplicate identical pairs while preserving order.
   const seen = new Set()
   return out.filter((c) => {

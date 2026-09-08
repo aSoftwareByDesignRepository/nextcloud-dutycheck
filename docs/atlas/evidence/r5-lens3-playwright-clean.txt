@@ -1,0 +1,728 @@
+
+Running 56 tests using 1 worker
+
+(node:1258196) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/56] [setup] › tests/e2e/auth.setup.js:9:1 › authenticate planner
+(node:1292063) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[2/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/
+[3/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/roster
+[4/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/periods
+[5/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/absences
+[6/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/access
+[7/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/duty-roles
+[8/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/planning
+[9/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/companies
+[10/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/conflicts
+[11/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/shift-templates
+(node:1364340) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[12/56] (retries) [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/shift-templates (retry #1)
+  1) [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/shift-templates 
+
+    TimeoutError: page.waitForSelector: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('#dc-main-content') to be visible
+
+
+      48 |   await page.goto(path, { waitUntil: 'domcontentloaded' })
+      49 |   await assertNotServerUpdater(page)
+    > 50 |   await page.waitForSelector('#dc-main-content', { timeout: 30000 })
+         |              ^
+      51 |   // Wait for body theme variables so axe does not race NC dark/light CSS.
+      52 |   await page.waitForFunction(() => {
+      53 |     const body = getComputedStyle(document.body)
+        at assertA11y (/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:50:14)
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:68:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/a11y-smoke-a11y-smoke-apps-4ff93-ck-settings-shift-templates-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/a11y-smoke-a11y-smoke-apps-4ff93-ck-settings-shift-templates-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/a11y-smoke-a11y-smoke-apps-4ff93-ck-settings-shift-templates-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/a11y-smoke-a11y-smoke-apps-4ff93-ck-settings-shift-templates-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/a11y-smoke-a11y-smoke-apps-4ff93-ck-settings-shift-templates-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[13/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/qualifications
+[14/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/planner-scope
+[15/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/operations
+[16/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/dienst-team
+[17/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/integration
+[18/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/privacy
+[19/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/license
+[20/56] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/support
+(node:1475024) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[21/56] (retries) [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/support (retry #1)
+  2) [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/support ─
+
+    TimeoutError: page.waitForSelector: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('#dc-main-content') to be visible
+
+
+      48 |   await page.goto(path, { waitUntil: 'domcontentloaded' })
+      49 |   await assertNotServerUpdater(page)
+    > 50 |   await page.waitForSelector('#dc-main-content', { timeout: 30000 })
+         |              ^
+      51 |   // Wait for body theme variables so axe does not race NC dark/light CSS.
+      52 |   await page.waitForFunction(() => {
+      53 |     const body = getComputedStyle(document.body)
+        at assertA11y (/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:50:14)
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:68:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/a11y-smoke-a11y-smoke-apps-dutycheck-settings-support-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/a11y-smoke-a11y-smoke-apps-dutycheck-settings-support-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/a11y-smoke-a11y-smoke-apps-dutycheck-settings-support-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/a11y-smoke-a11y-smoke-apps-dutycheck-settings-support-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/a11y-smoke-a11y-smoke-apps-dutycheck-settings-support-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[22/56] [chromium] › tests/e2e/a11y-smoke.spec.js:76:5 › employee a11y › a11y smoke (employee): /apps/dutycheck/my-absences
+(node:1508091) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[23/56] (retries) [chromium] › tests/e2e/a11y-smoke.spec.js:76:5 › employee a11y › a11y smoke (employee): /apps/dutycheck/my-absences (retry #1)
+  3) [chromium] › tests/e2e/a11y-smoke.spec.js:76:5 › employee a11y › a11y smoke (employee): /apps/dutycheck/my-absences 
+
+    TimeoutError: page.waitForSelector: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('#dc-main-content') to be visible
+
+
+      48 |   await page.goto(path, { waitUntil: 'domcontentloaded' })
+      49 |   await assertNotServerUpdater(page)
+    > 50 |   await page.waitForSelector('#dc-main-content', { timeout: 30000 })
+         |              ^
+      51 |   // Wait for body theme variables so axe does not race NC dark/light CSS.
+      52 |   await page.waitForFunction(() => {
+      53 |     const body = getComputedStyle(document.body)
+        at assertA11y (/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:50:14)
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:79:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/a11y-smoke-employee-a11y-a-3eddf--apps-dutycheck-my-absences-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/a11y-smoke-employee-a11y-a-3eddf--apps-dutycheck-my-absences-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/a11y-smoke-employee-a11y-a-3eddf--apps-dutycheck-my-absences-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/a11y-smoke-employee-a11y-a-3eddf--apps-dutycheck-my-absences-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/a11y-smoke-employee-a11y-a-3eddf--apps-dutycheck-my-absences-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: page.waitForSelector: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('#dc-main-content') to be visible
+
+
+      48 |   await page.goto(path, { waitUntil: 'domcontentloaded' })
+      49 |   await assertNotServerUpdater(page)
+    > 50 |   await page.waitForSelector('#dc-main-content', { timeout: 30000 })
+         |              ^
+      51 |   // Wait for body theme variables so axe does not race NC dark/light CSS.
+      52 |   await page.waitForFunction(() => {
+      53 |     const body = getComputedStyle(document.body)
+        at assertA11y (/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:50:14)
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:79:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/a11y-smoke-employee-a11y-a-3eddf--apps-dutycheck-my-absences-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/a11y-smoke-employee-a11y-a-3eddf--apps-dutycheck-my-absences-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/a11y-smoke-employee-a11y-a-3eddf--apps-dutycheck-my-absences-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/a11y-smoke-employee-a11y-a-3eddf--apps-dutycheck-my-absences-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/a11y-smoke-employee-a11y-a-3eddf--apps-dutycheck-my-absences-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+(node:1547268) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[24/56] [chromium] › tests/e2e/a11y-smoke.spec.js:76:5 › employee a11y › a11y smoke (employee): /apps/dutycheck/my-roster
+(node:1610840) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[25/56] (retries) [chromium] › tests/e2e/a11y-smoke.spec.js:76:5 › employee a11y › a11y smoke (employee): /apps/dutycheck/my-roster (retry #1)
+  4) [chromium] › tests/e2e/a11y-smoke.spec.js:76:5 › employee a11y › a11y smoke (employee): /apps/dutycheck/my-roster 
+
+    TimeoutError: page.waitForSelector: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('#dc-main-content') to be visible
+
+
+      48 |   await page.goto(path, { waitUntil: 'domcontentloaded' })
+      49 |   await assertNotServerUpdater(page)
+    > 50 |   await page.waitForSelector('#dc-main-content', { timeout: 30000 })
+         |              ^
+      51 |   // Wait for body theme variables so axe does not race NC dark/light CSS.
+      52 |   await page.waitForFunction(() => {
+      53 |     const body = getComputedStyle(document.body)
+        at assertA11y (/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:50:14)
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:79:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/a11y-smoke-employee-a11y-a-810ec-ee-apps-dutycheck-my-roster-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/a11y-smoke-employee-a11y-a-810ec-ee-apps-dutycheck-my-roster-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/a11y-smoke-employee-a11y-a-810ec-ee-apps-dutycheck-my-roster-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/a11y-smoke-employee-a11y-a-810ec-ee-apps-dutycheck-my-roster-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/a11y-smoke-employee-a11y-a-810ec-ee-apps-dutycheck-my-roster-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: page.waitForSelector: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('#dc-main-content') to be visible
+
+
+      48 |   await page.goto(path, { waitUntil: 'domcontentloaded' })
+      49 |   await assertNotServerUpdater(page)
+    > 50 |   await page.waitForSelector('#dc-main-content', { timeout: 30000 })
+         |              ^
+      51 |   // Wait for body theme variables so axe does not race NC dark/light CSS.
+      52 |   await page.waitForFunction(() => {
+      53 |     const body = getComputedStyle(document.body)
+        at assertA11y (/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:50:14)
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:79:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/a11y-smoke-employee-a11y-a-810ec-ee-apps-dutycheck-my-roster-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/a11y-smoke-employee-a11y-a-810ec-ee-apps-dutycheck-my-roster-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/a11y-smoke-employee-a11y-a-810ec-ee-apps-dutycheck-my-roster-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/a11y-smoke-employee-a11y-a-810ec-ee-apps-dutycheck-my-roster-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/a11y-smoke-employee-a11y-a-810ec-ee-apps-dutycheck-my-roster-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+(node:1683282) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[26/56] [chromium] › tests/e2e/a11y-smoke.spec.js:84:1 › legacy /settings URL redirects to the default sub-page
+(node:1723944) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[27/56] (retries) [chromium] › tests/e2e/a11y-smoke.spec.js:84:1 › legacy /settings URL redirects to the default sub-page (retry #1)
+  5) [chromium] › tests/e2e/a11y-smoke.spec.js:84:1 › legacy /settings URL redirects to the default sub-page 
+
+    TimeoutError: page.waitForSelector: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('#dc-main-content') to be visible
+
+
+      85 |   test.skip(plannerCredsCandidates().length === 0, 'Requires E2E_* or NC_ADMIN_* or NC_EMPLOYEE_* credentials')
+      86 |   await page.goto('/apps/dutycheck/settings', { waitUntil: 'domcontentloaded' })
+    > 87 |   await page.waitForSelector('#dc-main-content', { timeout: 30000 })
+         |              ^
+      88 |   await expect(page).toHaveURL(/\/apps\/dutycheck\/settings\/access$/)
+      89 | })
+      90 |
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:87:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/a11y-smoke-legacy-settings-1a0d1-cts-to-the-default-sub-page-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/a11y-smoke-legacy-settings-1a0d1-cts-to-the-default-sub-page-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/a11y-smoke-legacy-settings-1a0d1-cts-to-the-default-sub-page-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/a11y-smoke-legacy-settings-1a0d1-cts-to-the-default-sub-page-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/a11y-smoke-legacy-settings-1a0d1-cts-to-the-default-sub-page-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[28/56] [chromium] › tests/e2e/a11y-smoke.spec.js:91:1 › legacy /settings#anchor bookmark forwards to the owning sub-page
+(node:1771001) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[29/56] (retries) [chromium] › tests/e2e/a11y-smoke.spec.js:91:1 › legacy /settings#anchor bookmark forwards to the owning sub-page (retry #1)
+  6) [chromium] › tests/e2e/a11y-smoke.spec.js:91:1 › legacy /settings#anchor bookmark forwards to the owning sub-page 
+
+    TimeoutError: page.waitForURL: Timeout 30000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation until "load"
+    ============================================================
+
+      94 |   // Server redirect lands on /settings/access#dc-settings-quals, then
+      95 |   // settings-legacy-redirect.js forwards to the qualifications sub-page.
+    > 96 |   await page.waitForURL(/\/apps\/dutycheck\/settings\/qualifications#dc-settings-quals$/, { timeout: 30000 })
+         |              ^
+      97 |   await page.waitForSelector('#dc-settings-quals', { timeout: 30000 })
+      98 | })
+      99 |
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:96:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/a11y-smoke-legacy-settings-9c687-ards-to-the-owning-sub-page-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/a11y-smoke-legacy-settings-9c687-ards-to-the-owning-sub-page-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/a11y-smoke-legacy-settings-9c687-ards-to-the-owning-sub-page-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/a11y-smoke-legacy-settings-9c687-ards-to-the-owning-sub-page-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/a11y-smoke-legacy-settings-9c687-ards-to-the-owning-sub-page-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[30/56] [chromium] › tests/e2e/a11y-smoke.spec.js:100:1 › settings sidebar sub-navigation marks the active sub-page
+[31/56] [chromium] › tests/e2e/a11y-smoke.spec.js:111:1 › settings in-page chip bar mirrors the catalog and marks the active page
+(node:1804729) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[32/56] (retries) [chromium] › tests/e2e/a11y-smoke.spec.js:111:1 › settings in-page chip bar mirrors the catalog and marks the active page (retry #1)
+  7) [chromium] › tests/e2e/a11y-smoke.spec.js:111:1 › settings in-page chip bar mirrors the catalog and marks the active page 
+
+    TimeoutError: page.waitForSelector: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('#dc-settings-pages') to be visible
+        63 × locator resolved to hidden <nav id="dc-settings-pages" class="dc-settings-nav" aria-label="Settings pages">…</nav>
+
+
+      112 |   test.skip(plannerCredsCandidates().length === 0, 'Requires E2E_* or NC_ADMIN_* or NC_EMPLOYEE_* credentials')
+      113 |   await page.goto('/apps/dutycheck/settings/planning', { waitUntil: 'domcontentloaded' })
+    > 114 |   await page.waitForSelector('#dc-settings-pages', { timeout: 30000 })
+          |              ^
+      115 |   const chips = page.locator('#dc-settings-pages .dc-settings-nav__link')
+      116 |   await expect(chips).toHaveCount(settingsSections.length)
+      117 |   const activeChip = page.locator('#dc-settings-pages .dc-settings-nav__link[aria-current="page"]')
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:114:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/a11y-smoke-settings-in-pag-4a641-g-and-marks-the-active-page-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/a11y-smoke-settings-in-pag-4a641-g-and-marks-the-active-page-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/a11y-smoke-settings-in-pag-4a641-g-and-marks-the-active-page-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/a11y-smoke-settings-in-pag-4a641-g-and-marks-the-active-page-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/a11y-smoke-settings-in-pag-4a641-g-and-marks-the-active-page-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: page.waitForSelector: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('#dc-settings-pages') to be visible
+        63 × locator resolved to hidden <nav id="dc-settings-pages" class="dc-settings-nav" aria-label="Settings pages">…</nav>
+
+
+      112 |   test.skip(plannerCredsCandidates().length === 0, 'Requires E2E_* or NC_ADMIN_* or NC_EMPLOYEE_* credentials')
+      113 |   await page.goto('/apps/dutycheck/settings/planning', { waitUntil: 'domcontentloaded' })
+    > 114 |   await page.waitForSelector('#dc-settings-pages', { timeout: 30000 })
+          |              ^
+      115 |   const chips = page.locator('#dc-settings-pages .dc-settings-nav__link')
+      116 |   await expect(chips).toHaveCount(settingsSections.length)
+      117 |   const activeChip = page.locator('#dc-settings-pages .dc-settings-nav__link[aria-current="page"]')
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:114:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/a11y-smoke-settings-in-pag-4a641-g-and-marks-the-active-page-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/a11y-smoke-settings-in-pag-4a641-g-and-marks-the-active-page-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/a11y-smoke-settings-in-pag-4a641-g-and-marks-the-active-page-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/a11y-smoke-settings-in-pag-4a641-g-and-marks-the-active-page-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/a11y-smoke-settings-in-pag-4a641-g-and-marks-the-active-page-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+(node:1845850) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[33/56] [chromium] › tests/e2e/a11y-smoke.spec.js:126:1 › company-access banner is a labelled status region and hidden when membership exists
+[34/56] [chromium] › tests/e2e/roster-month-grid.spec.js:153:1 › month period keeps one column per day without overlapping headers
+[35/56] [chromium] › tests/e2e/roster-rolling-month.spec.js:5:1 › rolling month navigator ensures periods without manual Zeitraum creation
+(node:1907671) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[36/56] (retries) [chromium] › tests/e2e/roster-rolling-month.spec.js:5:1 › rolling month navigator ensures periods without manual Zeitraum creation (retry #1)
+  8) [chromium] › tests/e2e/roster-rolling-month.spec.js:5:1 › rolling month navigator ensures periods without manual Zeitraum creation 
+
+    TimeoutError: page.waitForSelector: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('#dc-roster-month-current') to be visible
+
+
+       9 | 	await page.goto('/apps/dutycheck/roster', { waitUntil: 'domcontentloaded' })
+      10 | 	await assertNotServerUpdater(page)
+    > 11 | 	await page.waitForSelector('#dc-roster-month-current', { timeout: 30000 })
+         | 	           ^
+      12 | 	await page.waitForSelector('#dc-roster-grid', { timeout: 30000 })
+      13 |
+      14 | 	const nextBtn = page.locator('#dc-roster-month-next')
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/roster-rolling-month.spec.js:11:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/roster-rolling-month-rolli-57b27-ut-manual-Zeitraum-creation-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/roster-rolling-month-rolli-57b27-ut-manual-Zeitraum-creation-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/roster-rolling-month-rolli-57b27-ut-manual-Zeitraum-creation-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/roster-rolling-month-rolli-57b27-ut-manual-Zeitraum-creation-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/roster-rolling-month-rolli-57b27-ut-manual-Zeitraum-creation-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[37/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: dashboard
+[38/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: roster
+[39/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: periods
+[40/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: absences
+[41/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: settings
+[42/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: dashboard
+[43/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: roster
+[44/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: periods
+[45/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: absences
+[46/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: settings
+[47/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: dashboard
+[48/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: roster
+[49/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: periods
+[50/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: absences
+[51/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: settings
+[52/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: dashboard
+[53/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: roster
+[54/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: periods
+[55/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: absences
+[56/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: settings
+[57/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:208:2 › DutyCheck theme × viewport a11y matrix › reset to default theme
+(node:2007674) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[58/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: dashboard (retry #1)
+[59/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: roster (retry #1)
+  9) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: roster 
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: page.waitForSelector: Timeout 15000ms exceeded.
+    Call log:
+      - waiting for locator('body[data-theme-light]') to be visible
+
+
+       at helpers/theming.js:45
+
+      43 | 	}
+      44 | 	await page.reload({ waitUntil: 'domcontentloaded' })
+    > 45 | 	await page.waitForSelector(`body[data-theme-${themeId}]`, { timeout: 15_000 })
+         | 	           ^
+      46 | }
+      47 |
+      48 | /**
+        at setUserTheme (/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/helpers/theming.js:45:13)
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/theme-responsive-a11y.spec.js:190:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-2a730-rt-a11y-matrix-light-roster-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-2a730-rt-a11y-matrix-light-roster-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/theme-responsive-a11y-Duty-2a730-rt-a11y-matrix-light-roster-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-2a730-rt-a11y-matrix-light-roster-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/theme-responsive-a11y-Duty-2a730-rt-a11y-matrix-light-roster-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[60/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: dashboard (retry #1)
+  10) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: dashboard 
+
+    TimeoutError: page.waitForSelector: Timeout 15000ms exceeded.
+    Call log:
+      - waiting for locator('body[data-theme-dark]') to be visible
+
+
+       at helpers/theming.js:45
+
+      43 | 	}
+      44 | 	await page.reload({ waitUntil: 'domcontentloaded' })
+    > 45 | 	await page.waitForSelector(`body[data-theme-${themeId}]`, { timeout: 15_000 })
+         | 	           ^
+      46 | }
+      47 |
+      48 | /**
+        at setUserTheme (/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/helpers/theming.js:45:13)
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/theme-responsive-a11y.spec.js:190:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-cc331--a11y-matrix-dark-dashboard-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-cc331--a11y-matrix-dark-dashboard-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/theme-responsive-a11y-Duty-cc331--a11y-matrix-dark-dashboard-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-cc331--a11y-matrix-dark-dashboard-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/theme-responsive-a11y-Duty-cc331--a11y-matrix-dark-dashboard-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[61/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: periods (retry #1)
+[62/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: absences (retry #1)
+[63/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: settings (retry #1)
+[64/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: roster (retry #1)
+[65/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: periods (retry #1)
+[66/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: absences (retry #1)
+[67/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: settings (retry #1)
+[68/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: dashboard (retry #1)
+[69/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: roster (retry #1)
+[70/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: periods (retry #1)
+[71/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: absences (retry #1)
+[72/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: settings (retry #1)
+[73/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: dashboard (retry #1)
+[74/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: roster (retry #1)
+[75/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: periods (retry #1)
+[76/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: absences (retry #1)
+[77/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: settings (retry #1)
+[78/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:208:2 › DutyCheck theme × viewport a11y matrix › reset to default theme (retry #1)
+(node:2032243) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[79/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:221:2 › DutyCheck custom accent colour › primary tokens follow instance accent and stay AA
+[80/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light mobile-320
+(node:2072190) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[81/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light mobile-320 (retry #1)
+  11) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light mobile-320 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('#dc-main-content')
+    Expected: visible
+    Timeout: 30000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 30000ms
+      - waiting for locator('#dc-main-content')
+
+
+      168 | async function gotoReady(page, path) {
+      169 | 	await page.goto(path, { waitUntil: 'domcontentloaded' })
+    > 170 | 	await expect(page.locator('#dc-main-content')).toBeVisible({ timeout: 30_000 })
+          | 	                                               ^
+      171 | 	await page.waitForFunction(() => {
+      172 | 		const body = getComputedStyle(document.body)
+      173 | 		return body.getPropertyValue('--color-main-text').trim() !== ''
+        at gotoReady (/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/theme-responsive-a11y.spec.js:170:49)
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/theme-responsive-a11y.spec.js:277:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-e1e16-ll-metrics-light-mobile-320-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-e1e16-ll-metrics-light-mobile-320-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/theme-responsive-a11y-Duty-e1e16-ll-metrics-light-mobile-320-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-e1e16-ll-metrics-light-mobile-320-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/theme-responsive-a11y-Duty-e1e16-ll-metrics-light-mobile-320-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[82/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light tablet-768
+[83/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light desktop-1440
+(node:2110919) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[84/56] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light desktop-1440 (retry #1)
+  12) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light desktop-1440 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('#dc-main-content')
+    Expected: visible
+    Timeout: 30000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 30000ms
+      - waiting for locator('#dc-main-content')
+
+
+      168 | async function gotoReady(page, path) {
+      169 | 	await page.goto(path, { waitUntil: 'domcontentloaded' })
+    > 170 | 	await expect(page.locator('#dc-main-content')).toBeVisible({ timeout: 30_000 })
+          | 	                                               ^
+      171 | 	await page.waitForFunction(() => {
+      172 | 		const body = getComputedStyle(document.body)
+      173 | 		return body.getPropertyValue('--color-main-text').trim() !== ''
+        at gotoReady (/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/theme-responsive-a11y.spec.js:170:49)
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/theme-responsive-a11y.spec.js:277:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-4fb58--metrics-light-desktop-1440-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-4fb58--metrics-light-desktop-1440-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/theme-responsive-a11y-Duty-4fb58--metrics-light-desktop-1440-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-4fb58--metrics-light-desktop-1440-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/theme-responsive-a11y-Duty-4fb58--metrics-light-desktop-1440-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[85/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ dark mobile-320
+[86/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ dark tablet-768
+[87/56] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ dark desktop-1440
+  4 failed
+    [chromium] › tests/e2e/a11y-smoke.spec.js:76:5 › employee a11y › a11y smoke (employee): /apps/dutycheck/my-absences 
+    [chromium] › tests/e2e/a11y-smoke.spec.js:76:5 › employee a11y › a11y smoke (employee): /apps/dutycheck/my-roster 
+    [chromium] › tests/e2e/a11y-smoke.spec.js:111:1 › settings in-page chip bar mirrors the catalog and marks the active page 
+    [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: dashboard 
+  8 flaky
+    [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/shift-templates 
+    [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/support ──
+    [chromium] › tests/e2e/a11y-smoke.spec.js:84:1 › legacy /settings URL redirects to the default sub-page 
+    [chromium] › tests/e2e/a11y-smoke.spec.js:91:1 › legacy /settings#anchor bookmark forwards to the owning sub-page 
+    [chromium] › tests/e2e/roster-rolling-month.spec.js:5:1 › rolling month navigator ensures periods without manual Zeitraum creation 
+    [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: roster 
+    [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light mobile-320 
+    [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light desktop-1440 
+  15 did not run
+  29 passed (17.8m)

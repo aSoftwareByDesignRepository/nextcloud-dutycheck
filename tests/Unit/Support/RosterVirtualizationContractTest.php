@@ -111,6 +111,31 @@ final class RosterVirtualizationContractTest extends TestCase
 			$css,
 		);
 		self::assertStringContainsString('min-height: var(--dc-touch)', $css);
+		self::assertMatchesRegularExpression(
+			'/\.dc-roster-grid__row \{[\s\S]{0,400}minmax\(9rem,\s*12rem\)\s+repeat\(var\(--dc-roster-day-count/s',
+			$css,
+			'Month periods need an explicit day-column count — auto-fit collapses headers',
+		);
+		self::assertDoesNotMatchRegularExpression(
+			'/\.dc-roster-grid__row \{[\s\S]{0,400}minmax\(9rem,\s*12rem\)\s+repeat\(auto-fit/s',
+			$css,
+		);
+		self::assertStringContainsString('--dc-roster-day-min', $css);
+		self::assertStringContainsString('dc-roster-grid__colhead--today', $css);
+		self::assertStringContainsString('dc-roster-grid__colhead--weekend', $css);
+		self::assertStringContainsString('scroll sideways to see every date', $tpl);
+	}
+
+	public function testRosterJsSetsExplicitDayTracksAndCompactHeaders(): void
+	{
+		$src = $this->read('js/roster.js');
+		self::assertStringContainsString("setProperty('--dc-roster-day-count'", $src);
+		self::assertStringContainsString("setProperty('--dc-roster-day-min'", $src);
+		self::assertStringContainsString('formatRosterColumnParts', $src);
+		self::assertStringContainsString('buildDutyDayMeta', $src);
+		self::assertStringContainsString('Scroll sideways to see every day in this period.', $src);
+		self::assertStringContainsString('dc-roster-grid__colhead--weekend', $src);
+		self::assertStringContainsString('dc-roster-grid__colhead--today', $src);
 	}
 
 	public function testListAssignmentsStaysUnpaginated(): void

@@ -65,7 +65,7 @@ final class ThresholdApproachAndScopeTest extends TestCase
 		$db->method('getQueryBuilder')->willReturn($qb);
 		$scope = new PlannerLocationScopeService($db, $access);
 		$this->expectException(\InvalidArgumentException::class);
-		$this->expectExceptionMessage('FORBIDDEN');
+		$this->expectExceptionMessage('LOCATION_OUT_OF_SCOPE');
 		$scope->assertCanPlanLocation('bob', 9);
 	}
 }

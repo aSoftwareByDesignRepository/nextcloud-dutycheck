@@ -334,6 +334,22 @@ final class DesignSystemCssContractTest extends TestCase
 			$this->appCss,
 			'Support Us CTAs must wrap long labels on narrow screens',
 		);
+		// DutyCheck shell `#app-content.dc-app a.button { white-space: nowrap }`
+		// is ID-specificity — CTA override must include the same ID prefix.
+		self::assertMatchesRegularExpression(
+			'/#app-content\.dc-app a\.button\.dc-support-us__cta[\s\S]{0,900}white-space:\s*normal/s',
+			$this->appCss,
+			'Support Us CTA must beat #app-content.dc-app a.button nowrap',
+		);
+	}
+
+	public function testFormActionButtonsWrapAgainstShellNowrap(): void
+	{
+		self::assertMatchesRegularExpression(
+			'/#app-content\.dc-app \.dc-form-actions \.button[\s\S]{0,500}white-space:\s*normal/s',
+			$this->appCss,
+			'Settings form action buttons must wrap long DE labels @320 (beat shell nowrap)',
+		);
 	}
 
 	public function testCheckboxControlsResetNextcloudMinHeightAndStayThemeSafe(): void

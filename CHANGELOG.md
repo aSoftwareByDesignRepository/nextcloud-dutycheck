@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.3.0 - 2026-09-07
+
+### Added — Roster Self-Service GA (`DC-AZC-ROSTER-GA-1`)
+
+- **N-week rotation patterns** (1–4): CRUD, per-employee assign, forward-only anchors, suggest-fill preview/confirm with period mutex
+- **Soll facade** (`EffectiveTargetHoursFacade` v1) for ArbeitszeitCheck opt-in; sealed months ignore live drift
+- **Peer Team week** (default off), **bilateral swap** path sharing planner CAS apply, **preferences** (Früh/Spät bands), **hard blackouts**
+- **Today board** (“Wer ist wo?”) planner-only; **Dienst & Team** settings section (Bachus first-paint toggles)
+- **Push quiet hours** with bounded queue (200/user, 24h TTL); legacy companies default **off**, new companies **on**
+- **ICS** Mobile create/copy/rotate + global IP spray rate limit; Duty Mobile Bachus tabs Heute · Woche · Team
+- Security: IDOR on peer/Today/blackouts/swaps; no preference free-text; ICS token never logged
+
+### Security / architecture
+
+- Swap/bilateral apply is a single Duty DB transaction + assignment version CAS
+- Suggest confirm all-or-nothing under `dc_period_locks`
+- Quiet push queue bounded (Zeus FM-QH-01)
+- Cross-app: read-only facade only — no shared transactions / no AZC SQL on `dc_*`
+
+## 0.2.0 - 2026-09-04
+
+### Changed
+- Nextcloud **35** support (`max-version` 35). Symfony Console 7–ready command signatures verified.
+
 ## 0.1.43 - 2026-08-19
 
 ### Fixed

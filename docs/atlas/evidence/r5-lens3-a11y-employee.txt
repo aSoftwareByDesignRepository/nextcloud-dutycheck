@@ -1,0 +1,15 @@
+
+Running 3 tests using 1 worker
+
+(node:3042785) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/3] [setup] › tests/e2e/auth.setup.js:9:1 › authenticate planner
+(node:3048200) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[2/3] [chromium] › tests/e2e/a11y-smoke.spec.js:76:5 › employee a11y › a11y smoke (employee): /apps/dutycheck/my-absences
+[3/3] [chromium] › tests/e2e/a11y-smoke.spec.js:76:5 › employee a11y › a11y smoke (employee): /apps/dutycheck/my-roster
+  3 passed (21.4s)

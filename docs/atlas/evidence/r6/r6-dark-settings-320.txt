@@ -1,0 +1,19 @@
+{"section":"access","overflow":0,"detail":{"doc":0,"app":0,"shell":0,"main":0,"theme":true,"ctaWS":null,"saveWS":"normal"},"ratios":{"h1":15.04,"chip":12.33,"link":12.33}}
+{"section":"duty-roles","overflow":0,"detail":{"doc":0,"app":0,"shell":0,"main":0,"theme":true,"ctaWS":null,"saveWS":"normal"},"ratios":{"h1":15.04,"chip":12.33}}
+{"section":"planning","overflow":0,"detail":{"doc":0,"app":0,"shell":0,"main":0,"theme":true,"ctaWS":null,"saveWS":"normal"},"ratios":{"h1":15.04,"chip":12.33}}
+{"section":"companies","overflow":0,"detail":{"doc":0,"app":0,"shell":0,"main":0,"theme":true,"ctaWS":null,"saveWS":"normal"},"ratios":{"h1":15.04,"chip":12.33}}
+{"section":"conflicts","overflow":0,"detail":{"doc":0,"app":0,"shell":0,"main":0,"theme":true,"ctaWS":null,"saveWS":"normal"},"ratios":{"h1":15.04,"chip":12.33}}
+{"section":"shift-templates","overflow":0,"detail":{"doc":0,"app":0,"shell":0,"main":0,"theme":false,"ctaWS":null,"saveWS":"normal"},"ratios":{"h1":15.91,"chip":12.51}}
+{"section":"qualifications","overflow":0,"detail":{"doc":0,"app":0,"shell":0,"main":0,"theme":false,"ctaWS":null,"saveWS":"normal"},"ratios":{"h1":15.91,"chip":12.51}}
+{"section":"planner-scope","overflow":0,"detail":{"doc":0,"app":0,"shell":0,"main":0,"theme":true,"ctaWS":null,"saveWS":"normal"},"ratios":{"h1":15.04,"chip":12.33}}
+{"section":"operations","overflow":0,"detail":{"doc":0,"app":0,"shell":0,"main":0,"theme":true,"ctaWS":null,"saveWS":"normal"},"ratios":{"h1":15.04,"chip":12.33}}
+{"section":"dienst-team","overflow":0,"detail":{"doc":0,"app":0,"shell":0,"main":0,"theme":true,"ctaWS":null,"saveWS":"normal"},"ratios":{"h1":15.04,"chip":12.33}}
+{"section":"integration","overflow":0,"detail":{"doc":0,"app":0,"shell":0,"main":0,"theme":true,"ctaWS":null,"saveWS":"normal"},"ratios":{"h1":15.04,"chip":12.33}}
+{"section":"privacy","overflow":0,"detail":{"doc":0,"app":0,"shell":0,"main":0,"theme":true,"ctaWS":null,"saveWS":null},"ratios":{"h1":15.04,"chip":12.33}}
+{"section":"license","overflow":0,"detail":{"doc":0,"app":0,"shell":0,"main":0,"theme":true,"ctaWS":null,"saveWS":null},"ratios":{"h1":13.75,"chip":12.33}}
+{"section":"support","overflow":0,"detail":{"doc":0,"app":0,"shell":0,"main":0,"theme":true,"ctaWS":"normal","saveWS":null},"ratios":{"h1":15.04,"chip":12.33}}
+SUMMARY fails 0
+{
+  "failSections": [],
+  "allOk": true
+}

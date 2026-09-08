@@ -1,0 +1,32 @@
+22:16:20.632 detox[1074260] B DETOX_ADB_NAME="emulator-5600" jest --config e2e/jest.config.js --maxWorkers 1 e2e/store-screenshots.e2e.js
+22:16:23.490 detox[1074272] i store-screenshots.e2e.js is assigned to AttachedDevice:emulator-5600
+22:16:24.485 detox[1074272] i DutyCheck store screenshots (live): phone-01 Login
+22:16:39.871 detox[1074272] i DutyCheck store screenshots (live): phone-01 Login [OK]
+22:16:39.872 detox[1074272] i DutyCheck store screenshots (live): phone-02 Home
+22:16:50.523 detox[1074272] i DutyCheck store screenshots (live): phone-02 Home [OK]
+22:16:50.525 detox[1074272] i DutyCheck store screenshots (live): phone-03 My week
+22:17:01.582 detox[1074272] i DutyCheck store screenshots (live): phone-03 My week [OK]
+22:17:01.582 detox[1074272] i DutyCheck store screenshots (live): phone-04 Marketplace
+22:17:13.403 detox[1074272] i DutyCheck store screenshots (live): phone-04 Marketplace [OK]
+22:17:13.404 detox[1074272] i DutyCheck store screenshots (live): phone-05 Time off
+22:17:26.515 detox[1074272] i DutyCheck store screenshots (live): phone-05 Time off [OK]
+22:17:26.515 detox[1074272] i DutyCheck store screenshots (live): phone-06 Settings
+22:17:37.115 detox[1074272] i DutyCheck store screenshots (live): phone-06 Settings [OK]
+22:17:37.116 detox[1074272] i DutyCheck store screenshots (live): phone-07 Seat required
+22:17:46.387 detox[1074272] i DutyCheck store screenshots (live): phone-07 Seat required [OK]
+
+PASS e2e/store-screenshots.e2e.js (85.413 s)
+  DutyCheck store screenshots (live)
+    ✓ phone-01 Login (15384 ms)
+    ✓ phone-02 Home (10650 ms)
+    ✓ phone-03 My week (11056 ms)
+    ✓ phone-04 Marketplace (11821 ms)
+    ✓ phone-05 Time off (13111 ms)
+    ✓ phone-06 Settings (10600 ms)
+    ✓ phone-07 Seat required (9272 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       7 passed, 7 total
+Snapshots:   0 total
+Time:        85.473 s
+Ran all test suites matching /e2e\/store-screenshots.e2e.js/i.

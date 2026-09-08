@@ -96,13 +96,10 @@ final class MobileDemoSeedServiceTest extends TestCase
 			'startDate' => '2026-08-18',
 			'endDate' => '2026-09-14',
 		]);
+		// listPeriods: open while creating assignment, still open before final publish.
 		$this->roster->method('listPeriods')->willReturn([
 			['id' => 99, 'status' => 'open', 'startDate' => '2026-08-18', 'endDate' => '2026-09-14'],
 		]);
-		$this->roster->expects(self::once())->method('transitionPeriod')
-			->with(99, 'published', 'admin')
-			->willReturn(['id' => 99, 'status' => 'published']);
-
 		$this->roster->method('myRoster')->willReturn([]);
 		$this->roster->expects(self::once())->method('createAssignment')->willReturn([
 			'assignments' => [['id' => 42]],
@@ -110,6 +107,11 @@ final class MobileDemoSeedServiceTest extends TestCase
 
 		$this->openShifts->method('listOpen')->willReturn([]);
 		$this->openShifts->expects(self::once())->method('create')->willReturn(['id' => 5]);
+
+		// Publish only after assignment + open-shift create (PERIOD_NOT_OPEN otherwise).
+		$this->roster->expects(self::once())->method('transitionPeriod')
+			->with(99, 'published', 'admin')
+			->willReturn(['id' => 99, 'status' => 'published']);
 
 		$result = $this->service->run(new MobileDemoSeedOptions(licenseWireKey: 'DTY2.demo.key'));
 

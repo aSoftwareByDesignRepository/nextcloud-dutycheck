@@ -263,6 +263,87 @@
 		}
 	}
 
+	/**
+	 * Calendar ISO (YYYY-MM-DD) for "today" in the company timezone.
+	 * en-CA yields a stable YYYY-MM-DD from Intl across engines.
+	 */
+	function todayIsoDate() {
+		try {
+			return new Intl.DateTimeFormat('en-CA', {
+				timeZone: currentTimezone(),
+				year: 'numeric',
+				month: '2-digit',
+				day: '2-digit',
+			}).format(new Date());
+		} catch (e) {
+			return new Date().toISOString().slice(0, 10);
+		}
+	}
+
+	/**
+	 * Compact planner column header (weekday short + day number).
+	 * Full medium date stays in title / aria-label so month grids stay readable.
+	 * Weekend/today flags use the duty calendar day (noon UTC), not local midnight.
+	 */
+	function formatRosterColumnParts(value) {
+		const raw = String(value ?? '').trim();
+		const isoMatch = raw.match(/^(\d{4}-\d{2}-\d{2})/);
+		const iso = isoMatch ? isoMatch[1] : '';
+		const date = iso ? new Date(`${iso}T12:00:00Z`) : safeDate(value);
+		const full = formatDisplayDate(iso || value) || raw;
+		if (!date) {
+			return {
+				weekdayShort: '',
+				day: '',
+				full,
+				ariaLabel: full,
+				isWeekend: false,
+				isToday: false,
+				iso: iso || '',
+			};
+		}
+		let weekdayShort = '';
+		let day = '';
+		try {
+			weekdayShort = new Intl.DateTimeFormat(currentLanguage(), {
+				weekday: 'short',
+				timeZone: 'UTC',
+			}).format(date);
+			day = new Intl.DateTimeFormat(currentLocale(), {
+				day: 'numeric',
+				timeZone: 'UTC',
+			}).format(date);
+		} catch (e) {
+			day = iso ? String(Number(iso.slice(8, 10))) : '';
+		}
+		const weekdayLong = formatWeekday(iso || value) || weekdayShort;
+		const dow = date.getUTCDay();
+		const isWeekend = dow === 0 || dow === 6;
+		const isToday = Boolean(iso) && iso === todayIsoDate();
+		const ariaLabel = weekdayLong && full ? `${weekdayLong}, ${full}` : full;
+		return {
+			weekdayShort,
+			day,
+			full,
+			ariaLabel,
+			isWeekend,
+			isToday,
+			iso: iso || '',
+		};
+	}
+
+	/** Day-column min width for CSS — tighter tracks when the period is long. */
+	function rosterDayColumnMin(dayCount) {
+		const n = Number(dayCount);
+		if (!Number.isFinite(n) || n <= 10) {
+			return '4.5rem';
+		}
+		if (n <= 21) {
+			return '3.75rem';
+		}
+		return '3.25rem';
+	}
+
 	function formatRelativeMinutes(diffMinutes) {
 		if (!Number.isFinite(diffMinutes)) return '';
 		try {
@@ -278,11 +359,74 @@
 		}
 	}
 
+	/**
+	 * Bare two-letter `lang` (e.g. `de`) makes Chromium use en-US-style date fields in some builds;
+	 * map to a default region (e.g. `de-DE`). Align with BudgetCheck / LocaleFormatService.
+	 */
+	function enrichTemporalHtmlLang(tag) {
+		const t = String(tag || '').replace(/_/g, '-').trim();
+		if (!t) return 'de-DE';
+		const parts = t.split('-');
+		const n = parts.length;
+		if (n >= 2 && parts[1].length === 2 && /^[A-Za-z]{2}$/.test(parts[1])) {
+			return parts[0].toLowerCase() + '-' + parts[1].toUpperCase();
+		}
+		if (n >= 3 && parts[2].length === 2 && /^[A-Za-z]{2}$/.test(parts[2])) {
+			return t;
+		}
+		const base = parts[0].toLowerCase();
+		const map = {
+			de: 'de-DE', fr: 'fr-FR', it: 'it-IT', es: 'es-ES', nl: 'nl-NL', pl: 'pl-PL', pt: 'pt-PT',
+			sv: 'sv-SE', da: 'da-DK', fi: 'fi-FI', cs: 'cs-CZ', sk: 'sk-SK', hu: 'hu-HU', ro: 'ro-RO',
+			tr: 'tr-TR', ru: 'ru-RU', uk: 'uk-UA', el: 'el-GR', en: 'en-GB', ja: 'ja-JP', ko: 'ko-KR', zh: 'zh-CN',
+			nb: 'nb-NO', nn: 'nb-NO',
+		};
+		return map[base] || t;
+	}
+
+	function resolveTemporalInputLang(locale) {
+		const app = document.getElementById('app-content');
+		const fromApp = app && app.getAttribute('lang');
+		if (fromApp && String(fromApp).trim() !== '') {
+			return enrichTemporalHtmlLang(String(fromApp).trim());
+		}
+		const fromDoc = document.documentElement.getAttribute('lang');
+		if (fromDoc && String(fromDoc).trim() !== '') {
+			return enrichTemporalHtmlLang(fromDoc);
+		}
+		return enrichTemporalHtmlLang(locale || currentLocale());
+	}
+
+	function dateInputPlaceholder(locale) {
+		const tag = String(locale || enrichTemporalHtmlLang(currentLanguage()) || 'en').toLowerCase().replace('_', '-');
+		if (
+			tag.startsWith('de') || tag.startsWith('nl') || tag.startsWith('da') || tag.startsWith('nb')
+			|| tag.startsWith('sv') || tag.startsWith('pl') || tag.startsWith('it') || tag.startsWith('es')
+			|| tag.startsWith('fr') || tag.startsWith('pt') || tag.startsWith('fi') || tag.startsWith('cs')
+		) {
+			return 'TT.MM.JJJJ';
+		}
+		if (tag.startsWith('en-gb') || tag.startsWith('en-au') || tag.startsWith('en-nz') || tag.startsWith('en-ie')) {
+			return 'dd/mm/yyyy';
+		}
+		return 'mm/dd/yyyy';
+	}
+
 	function applyLocaleToTemporalInputs(root) {
 		const scope = root || document;
-		const locale = currentLocale();
+		// Prefer account language for picker chrome when Locale alone still looks US (common NC default).
+		const dateLang = enrichTemporalHtmlLang(currentLanguage() || currentLocale());
+		const placeholder = dateInputPlaceholder(dateLang);
 		scope.querySelectorAll('input[type="date"], input[type="datetime-local"], input[type="month"]').forEach((input) => {
-			input.setAttribute('lang', locale);
+			input.setAttribute('lang', dateLang);
+			input.setAttribute('data-dc-date-placeholder', placeholder);
+			// Remove legacy under-field TT.MM.JJJJ hints — they leaked under Today
+			// quick-select buttons and doubled the overlay placeholder.
+			const parent = input.closest('.dc-field') || input.parentElement;
+			parent?.querySelectorAll(':scope > .dc-date-locale-hint').forEach((hint) => hint.remove());
+			if (input.type === 'date') {
+				ensureDateDisplayOverlay(input, dateLang);
+			}
 		});
 		const timeLocale = timeInputLocale();
 		scope.querySelectorAll('input[type="time"]').forEach((input) => {
@@ -293,6 +437,37 @@
 		});
 	}
 
+	function ensureDateDisplayOverlay(input, locale) {
+		if (!input || input.type !== 'date') return;
+		let wrap = input.closest('.dc-date-field');
+		if (!wrap) {
+			wrap = document.createElement('div');
+			wrap.className = 'dc-date-field';
+			input.parentNode.insertBefore(wrap, input);
+			wrap.appendChild(input);
+		}
+		let overlay = wrap.querySelector(':scope > .dc-date-display');
+		const paint = () => {
+			const iso = String(input.value || '');
+			const text = iso
+				? (formatDisplayDate(iso) || iso)
+				: (input.getAttribute('data-dc-date-placeholder') || dateInputPlaceholder(locale));
+			if (overlay) {
+				overlay.textContent = text;
+				overlay.classList.toggle('dc-date-display--empty', !iso);
+			}
+		};
+		if (!overlay) {
+			overlay = document.createElement('span');
+			overlay.className = 'dc-date-display';
+			overlay.setAttribute('aria-hidden', 'true');
+			wrap.appendChild(overlay);
+			input.addEventListener('change', paint);
+			input.addEventListener('input', paint);
+		}
+		paint();
+	}
+
 	window.DutyCheckDates = {
 		currentLocale,
 		currentLanguage,
@@ -300,6 +475,9 @@
 		currentTimezone,
 		timeInputLocale,
 		use24HourTimeInputs,
+		enrichTemporalHtmlLang,
+		resolveTemporalInputLang,
+		dateInputPlaceholder,
 		formatDisplayDate,
 		formatDisplayDateTime,
 		formatDisplayTime,
@@ -309,6 +487,9 @@
 		isOvernightWallClockShift,
 		formatYearMonth,
 		formatWeekday,
+		todayIsoDate,
+		formatRosterColumnParts,
+		rosterDayColumnMin,
 		formatRelativeMinutes,
 		applyLocaleToTemporalInputs,
 	};

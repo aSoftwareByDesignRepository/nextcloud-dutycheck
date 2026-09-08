@@ -39,6 +39,27 @@ class ApiJsonErrorResponseTest extends TestCase
 		self::assertSame(422, ApiJsonErrorResponse::statusForInvalidArgument('EQUAL_DUTY_TIMES'));
 	}
 
+	public function testMapsGaSelfServiceValidationTo422(): void
+	{
+		foreach ([
+			'BLACKOUT_CONFLICT',
+			'PATTERN_INACTIVE',
+			'PATTERN_NAME_INVALID',
+			'WEEK_START_INVALID',
+			'PREFERENCE_BAND_INVALID',
+			'PREFERENCE_MASK_INVALID',
+			'PREFERENCE_DATE_RANGE_INVALID',
+			'LOCATION_NOT_FOUND',
+		] as $code) {
+			$status = ApiJsonErrorResponse::statusForInvalidArgument($code);
+			self::assertContains(
+				$status,
+				$code === 'LOCATION_NOT_FOUND' ? [404] : [422],
+				"$code should map to a stable client status, got $status",
+			);
+		}
+	}
+
 	public function testMapsCompanyMismatchTo403(): void
 	{
 		self::assertSame(403, ApiJsonErrorResponse::statusForInvalidArgument('COMPANY_MISMATCH'));
@@ -55,6 +76,8 @@ class ApiJsonErrorResponseTest extends TestCase
 		self::assertSame(403, ApiJsonErrorResponse::statusForInvalidArgument('COMPANY_MEMBERSHIP_REQUIRED'));
 		self::assertSame(409, ApiJsonErrorResponse::statusForInvalidArgument('ABSENCE_STATUS_CONFLICT'));
 		self::assertSame(422, ApiJsonErrorResponse::statusForInvalidArgument('EXPECTED_VERSION_REQUIRED'));
+		self::assertSame(429, ApiJsonErrorResponse::statusForInvalidArgument('RATE_LIMITED'));
+		self::assertSame(403, ApiJsonErrorResponse::statusForInvalidArgument('LOCATION_OUT_OF_SCOPE'));
 	}
 
 	public function testMapsIntegrationAbsenceReadonlyTo403(): void

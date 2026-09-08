@@ -50,22 +50,23 @@ const axeViewports = [
  * @param {string} label
  */
 async function expectNoHorizontalOverflow(page, label) {
-	const overflow = await page.evaluate(() => {
-		const doc = document.documentElement
-		const app = document.querySelector('#app-content.dc-app')
-		const shell = document.querySelector('#app-content-wrapper.dc-shell, .dc-shell')
-		const main = document.getElementById('dc-main-content')
-		return {
-			doc: doc.scrollWidth - doc.clientWidth,
-			app: app ? app.scrollWidth - app.clientWidth : 0,
-			shell: shell ? shell.scrollWidth - shell.clientWidth : 0,
-			main: main ? main.scrollWidth - main.clientWidth : 0,
-		}
-	})
-	expect(overflow.doc, `document horizontal overflow at ${label}`).toBeLessThanOrEqual(1)
-	expect(overflow.app, `#app-content overflow at ${label}`).toBeLessThanOrEqual(1)
-	expect(overflow.shell, `.dc-shell overflow at ${label}`).toBeLessThanOrEqual(1)
-	expect(overflow.main, `#dc-main-content overflow at ${label}`).toBeLessThanOrEqual(1)
+	// Poll until layout settles after theme/viewport churn (HC fonts/borders can
+	// briefly report scrollWidth > clientWidth mid-reflow without a true overflow bug).
+	await expect.poll(async () => {
+		const overflow = await page.evaluate(() => {
+			const doc = document.documentElement
+			const app = document.querySelector('#app-content.dc-app')
+			const shell = document.querySelector('#app-content-wrapper.dc-shell, .dc-shell')
+			const main = document.getElementById('dc-main-content')
+			return {
+				doc: doc.scrollWidth - doc.clientWidth,
+				app: app ? app.scrollWidth - app.clientWidth : 0,
+				shell: shell ? shell.scrollWidth - shell.clientWidth : 0,
+				main: main ? main.scrollWidth - main.clientWidth : 0,
+			}
+		})
+		return Math.max(overflow.doc, overflow.app, overflow.shell, overflow.main)
+	}, { timeout: 8_000, message: `horizontal overflow at ${label}` }).toBeLessThanOrEqual(1)
 }
 
 /**
@@ -282,14 +283,13 @@ test.describe('DutyCheck visual shell metrics', () => {
 					const header = document.querySelector('.dc-page-header')
 					const nav = document.querySelector('#app-navigation')
 					const title = document.querySelector('#dc-page-title, .dc-page-header__text h1')
-					const roleLabel = document.querySelector('.dc-scope-strip__item .dc-scope-strip__label')
-					const roleItem = document.querySelector('.dc-scope-strip__item')
+					// Role chrome is the header badge (scope-strip definition list was retired).
+					const roleBadge = document.querySelector('.dc-page-header .dc-badge')
 					const shellRect = shell?.getBoundingClientRect()
 					const headerRect = header?.getBoundingClientRect()
 					const titleRect = title?.getBoundingClientRect()
-					const labelRect = roleLabel?.getBoundingClientRect()
-					const itemRect = roleItem?.getBoundingClientRect()
-					const labelStyle = roleLabel ? getComputedStyle(roleLabel) : null
+					const badgeRect = roleBadge?.getBoundingClientRect()
+					const badgeStyle = roleBadge ? getComputedStyle(roleBadge) : null
 					return {
 						shellWidth: shellRect ? Math.round(shellRect.width) : 0,
 						headerVisible: !!(headerRect && headerRect.height > 0),
@@ -298,28 +298,19 @@ test.describe('DutyCheck visual shell metrics', () => {
 							: false,
 						navPresent: !!nav,
 						viewport: window.innerWidth,
-						scopeLabelAlign: labelStyle?.textAlign ?? '',
-						scopeLabelWidthPx: labelStyle ? parseFloat(labelStyle.width) : NaN,
-						scopeLabelFlushStart: !!(labelRect && itemRect
-							&& Math.abs(labelRect.left - itemRect.left) <= 2),
+						roleBadgePresent: !!roleBadge,
+						roleBadgeVisible: !!(badgeRect && badgeRect.height > 0 && badgeRect.width > 0),
+						roleBadgeMinHeight: badgeRect ? badgeRect.height : 0,
+						roleBadgeColor: badgeStyle?.color ?? '',
 					}
 				})
 
 				expect(metrics.shellWidth, 'shell must fill usable content width').toBeGreaterThan(200)
 				expect(metrics.headerVisible, 'page header must render').toBeTruthy()
 				expect(metrics.titleClipped, 'page title must not clip outside shell').toBeFalsy()
-				expect(
-					['start', 'left'].includes(metrics.scopeLabelAlign),
-					`scope strip Role label must be start-aligned (got ${metrics.scopeLabelAlign})`,
-				).toBeTruthy()
-				expect(
-					metrics.scopeLabelWidthPx,
-					'core dt width:130px must not apply to scope strip labels',
-				).not.toBe(130)
-				expect(
-					metrics.scopeLabelFlushStart,
-					'Role label must sit flush at the start of its strip item (no fake icon gap)',
-				).toBeTruthy()
+				expect(metrics.roleBadgePresent, 'role badge must render in page header').toBeTruthy()
+				expect(metrics.roleBadgeVisible, 'role badge must be visible').toBeTruthy()
+				expect(metrics.roleBadgeMinHeight, 'role badge needs readable height').toBeGreaterThanOrEqual(18)
 				await expectNoHorizontalOverflow(page, `${theme}/${vp.name}`)
 			})
 		}

@@ -1,0 +1,67 @@
+
+Running 55 tests using 1 worker
+
+(node:959922) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/55] [setup] › tests/e2e/auth.setup.js:9:1 › authenticate planner
+(node:960252) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[2/55] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/
+[3/55] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/roster
+[4/55] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/periods
+[5/55] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/absences
+[6/55] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/access
+[7/55] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/duty-roles
+[8/55] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/planning
+[9/55] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/companies
+[10/55] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/conflicts
+[11/55] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/shift-templates
+[12/55] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/qualifications
+[13/55] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/planner-scope
+[14/55] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/operations
+[15/55] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/dienst-team
+[16/55] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/integration
+[17/55] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/privacy
+[18/55] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/license
+[19/55] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/support
+[20/55] [chromium] › tests/e2e/a11y-smoke.spec.js:76:5 › employee a11y › a11y smoke (employee): /apps/dutycheck/my-absences
+[21/55] [chromium] › tests/e2e/a11y-smoke.spec.js:76:5 › employee a11y › a11y smoke (employee): /apps/dutycheck/my-roster
+[22/55] [chromium] › tests/e2e/a11y-smoke.spec.js:84:1 › legacy /settings URL redirects to the default sub-page
+[23/55] [chromium] › tests/e2e/a11y-smoke.spec.js:91:1 › legacy /settings#anchor bookmark forwards to the owning sub-page
+[24/55] [chromium] › tests/e2e/a11y-smoke.spec.js:100:1 › settings sidebar sub-navigation marks the active sub-page
+[25/55] [chromium] › tests/e2e/a11y-smoke.spec.js:111:1 › settings in-page chip bar mirrors the catalog and marks the active page
+[26/55] [chromium] › tests/e2e/a11y-smoke.spec.js:126:1 › company-access banner is a labelled status region and hidden when membership exists
+[27/55] [chromium] › tests/e2e/roster-month-grid.spec.js:74:1 › month period keeps one column per day without overlapping headers
+[28/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: dashboard
+[29/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: roster
+[30/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: periods
+[31/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: absences
+[32/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: settings
+[33/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: dashboard
+[34/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: roster
+[35/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: periods
+[36/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: absences
+[37/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: settings
+[38/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: dashboard
+[39/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: roster
+[40/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: periods
+[41/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: absences
+[42/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: settings
+[43/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: dashboard
+[44/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: roster
+[45/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: periods
+[46/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: absences
+[47/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: settings
+[48/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:208:2 › DutyCheck theme × viewport a11y matrix › reset to default theme
+[49/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:221:2 › DutyCheck custom accent colour › primary tokens follow instance accent and stay AA
+[50/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light mobile-320
+[51/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light tablet-768
+[52/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light desktop-1440
+[53/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ dark mobile-320
+[54/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ dark tablet-768
+[55/55] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ dark desktop-1440
+  55 passed (6.1m)

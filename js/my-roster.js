@@ -642,6 +642,323 @@
 		}
 	}
 
+	async function wireAvailability() {
+		const section = document.getElementById('dc-my-availability');
+		if (!section) return;
+		const prefsBlock = document.getElementById('dc-my-prefs');
+		const blackoutsBlock = document.getElementById('dc-my-blackouts');
+		const status = document.getElementById('dc-my-availability-status');
+		const setAvailStatus = (text) => {
+			if (!status) return;
+			status.hidden = !text;
+			status.textContent = text || '';
+		};
+
+		let prefsOk = false;
+		let blackoutsOk = false;
+
+		async function loadPrefs() {
+			const list = document.getElementById('dc-my-prefs-list');
+			if (!list) return;
+			list.replaceChildren();
+			try {
+				const res = await Api.get('/apps/dutycheck/api/my/preferences');
+				const rows = res?.data?.preferences || [];
+				prefsOk = true;
+				if (!rows.length) {
+					list.appendChild(create('li', { class: 'dc-field__hint', text: t('dutycheck', 'No wishes yet.') }));
+					return;
+				}
+				rows.forEach((row) => {
+					const band = String(row.band || '');
+					const label = band === 'early'
+						? t('dutycheck', 'Früh')
+						: (band === 'late' ? t('dutycheck', 'Spät') : band);
+					const li = create('li', { class: 'dc-my-availability__row' }, [
+						create('span', { class: 'dc-pref-chip dc-pref-chip--static', text: label }),
+						create('button', {
+							type: 'button',
+							class: 'button',
+							text: t('dutycheck', 'Remove'),
+							on: {
+								click: async () => {
+									try {
+										await Api.del(`/apps/dutycheck/api/my/preferences/${row.id}`);
+										await loadPrefs();
+									} catch (err) {
+										Msg.handleApiError(err);
+									}
+								},
+							},
+						}),
+					]);
+					list.appendChild(li);
+				});
+			} catch (err) {
+				const code = String(err?.code || err?.payload?.error?.code || '');
+				if (code === 'PREFERENCES_DISABLED' || code === 'SCHEMA_NOT_READY') {
+					prefsOk = false;
+					return;
+				}
+				Msg.handleApiError(err);
+			}
+		}
+
+		async function loadBlackouts() {
+			const list = document.getElementById('dc-my-blackouts-list');
+			if (!list) return;
+			list.replaceChildren();
+			const from = new Date();
+			const to = new Date();
+			to.setDate(to.getDate() + 90);
+			const p = (n) => String(n).padStart(2, '0');
+			const iso = (d) => `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+			try {
+				const res = await Api.get('/apps/dutycheck/api/my/blackouts', { from: iso(from), to: iso(to) });
+				const rows = res?.data?.blackouts || [];
+				blackoutsOk = true;
+				if (!rows.length) {
+					list.appendChild(create('li', { class: 'dc-field__hint', text: t('dutycheck', 'No cannot-work days yet.') }));
+					return;
+				}
+				rows.forEach((row) => {
+					const start = String(row.startAt || row.start_at || '').slice(0, 10);
+					const end = String(row.endAt || row.end_at || '').slice(0, 10);
+					const label = String(row.label || row.labelEnum || '');
+					const li = create('li', { class: 'dc-my-availability__row' }, [
+						create('span', { text: `${start} → ${end}${label ? ` (${label})` : ''}` }),
+						create('button', {
+							type: 'button',
+							class: 'button',
+							text: t('dutycheck', 'Remove'),
+							on: {
+								click: async () => {
+									try {
+										await Api.del(`/apps/dutycheck/api/my/blackouts/${row.id}`);
+										await loadBlackouts();
+									} catch (err) {
+										Msg.handleApiError(err);
+									}
+								},
+							},
+						}),
+					]);
+					list.appendChild(li);
+				});
+			} catch (err) {
+				const code = String(err?.code || err?.payload?.error?.code || '');
+				if (code === 'BLACKOUTS_DISABLED' || code === 'SCHEMA_NOT_READY' || code === 'ROTATION_DISABLED') {
+					blackoutsOk = false;
+					return;
+				}
+				Msg.handleApiError(err);
+			}
+		}
+
+		await Promise.all([loadPrefs(), loadBlackouts()]);
+		if (!prefsOk && !blackoutsOk) {
+			section.hidden = true;
+			return;
+		}
+		section.hidden = false;
+		if (prefsBlock) prefsBlock.hidden = !prefsOk;
+		if (blackoutsBlock) blackoutsBlock.hidden = !blackoutsOk;
+
+		section.querySelectorAll('.dc-pref-chip[data-band]').forEach((btn) => {
+			btn.addEventListener('click', async () => {
+				const band = btn.getAttribute('data-band');
+				try {
+					await Api.post('/apps/dutycheck/api/my/preferences', {
+						band,
+						weekdayMask: 127,
+					});
+					setAvailStatus(section.getAttribute('data-msg-pref-saved') || '');
+					Msg.announce(section.getAttribute('data-msg-pref-saved') || '', 'success');
+					await loadPrefs();
+				} catch (err) {
+					Msg.handleApiError(err);
+				}
+			});
+		});
+
+		document.getElementById('dc-my-blackout-form')?.addEventListener('submit', async (event) => {
+			event.preventDefault();
+			const from = String(document.getElementById('dc-my-bo-from')?.value || '');
+			const to = String(document.getElementById('dc-my-bo-to')?.value || '');
+			const label = String(document.getElementById('dc-my-bo-label')?.value || 'personal');
+			if (!from || !to) return;
+			try {
+				await Api.post('/apps/dutycheck/api/my/blackouts', {
+					startAt: `${from} 00:00:00`,
+					endAt: `${to} 23:59:59`,
+					label,
+				});
+				setAvailStatus(section.getAttribute('data-msg-blackout-saved') || '');
+				Msg.announce(section.getAttribute('data-msg-blackout-saved') || '', 'success');
+				await loadBlackouts();
+			} catch (err) {
+				Msg.handleApiError(err);
+			}
+		});
+	}
+
+	async function wireTeamWeek() {
+		const section = document.getElementById('dc-my-team');
+		if (!section) return;
+
+		const locSelect = document.getElementById('dc-my-team-location');
+		const weekInput = document.getElementById('dc-my-team-week');
+		const list = document.getElementById('dc-my-team-list');
+		const status = document.getElementById('dc-my-team-status');
+		const disabledBox = document.getElementById('dc-my-team-disabled');
+		const disabledText = document.getElementById('dc-my-team-disabled-text');
+
+		function setTeamStatus(text, kind) {
+			if (!status) return;
+			status.textContent = text || '';
+			status.hidden = !text;
+			status.classList.toggle('dc-roster-flash--error', kind === 'error');
+		}
+
+		function mondayOf(date) {
+			const d = startOfDay(date);
+			const day = (d.getDay() + 6) % 7;
+			return addDays(d, -day);
+		}
+
+		function showDisabled(msgKey) {
+			section.hidden = false;
+			if (disabledBox) disabledBox.hidden = false;
+			if (disabledText) {
+				disabledText.textContent = section.getAttribute(msgKey) || '';
+			}
+			if (list) list.replaceChildren();
+			const filters = document.getElementById('dc-my-team-filters');
+			if (filters) filters.hidden = true;
+		}
+
+		function fillLocations(locations) {
+			if (!locSelect) return;
+			locSelect.replaceChildren();
+			locations.forEach((loc, idx) => {
+				const opt = document.createElement('option');
+				opt.value = String(loc.id);
+				opt.textContent = String(loc.name || loc.id);
+				if (idx === 0) opt.selected = true;
+				locSelect.appendChild(opt);
+			});
+		}
+
+		async function loadTeam() {
+			if (!locSelect || !weekInput || !list) return;
+			const locationId = Number(locSelect.value || 0);
+			let weekStart = String(weekInput.value || '');
+			if (!weekStart) {
+				weekStart = isoFromDate(mondayOf(new Date()));
+				weekInput.value = weekStart;
+			} else {
+				// Snap to Monday of the picked date for granny-simple weeks.
+				weekStart = isoFromDate(mondayOf(new Date(weekStart + 'T12:00:00')));
+				weekInput.value = weekStart;
+			}
+			if (locationId < 1) {
+				setTeamStatus(section.getAttribute('data-msg-no-loc') || '', 'error');
+				return;
+			}
+			setTeamStatus(section.getAttribute('data-msg-loading') || '');
+			list.replaceChildren();
+			try {
+				const res = await Api.get('/apps/dutycheck/api/team-week', {
+					locationId,
+					weekStart,
+					page: 1,
+					pageSize: 50,
+				});
+				const data = res?.data || {};
+				const items = data.items || [];
+				setTeamStatus('');
+				if (!items.length) {
+					list.appendChild(create('li', {
+						class: 'dc-field__hint',
+						text: section.getAttribute('data-msg-empty') || '',
+					}));
+					return;
+				}
+				items.forEach((row) => {
+					const name = String(row.displayName || '');
+					const date = String(row.dutyDate || '');
+					const start = String(row.startTime || '').slice(0, 5);
+					const end = String(row.endTime || '').slice(0, 5);
+					const loc = String(row.locationName || '');
+					const label = `${name}: ${date} ${start}–${end}${loc ? ` · ${loc}` : ''}`;
+					list.appendChild(create('li', {
+						class: 'dc-my-team__row',
+						attrs: { 'aria-label': label },
+					}, [
+						create('strong', { class: 'dc-my-team__name', text: name }),
+						create('span', { class: 'dc-my-team__when', text: `${date} · ${start}–${end}` }),
+						loc ? create('span', { class: 'dc-my-team__loc', text: loc }) : null,
+					].filter(Boolean)));
+				});
+			} catch (err) {
+				const code = String(err?.code || err?.payload?.error?.code || '');
+				if (code === 'PEER_VISIBILITY_DISABLED') {
+					showDisabled('data-msg-disabled');
+					return;
+				}
+				if (code === 'FORBIDDEN') {
+					showDisabled('data-msg-no-loc');
+					return;
+				}
+				setTeamStatus(section.getAttribute('data-msg-error') || '', 'error');
+				Msg.handleApiError(err);
+			}
+		}
+
+		try {
+			const res = await Api.get('/apps/dutycheck/api/team-locations');
+			const locations = res?.data?.locations || [];
+			if (!locations.length) {
+				// Peer may be on but no recent belonging — still show section with hint.
+				section.hidden = false;
+				showDisabled('data-msg-no-loc');
+				return;
+			}
+			section.hidden = false;
+			if (disabledBox) disabledBox.hidden = true;
+			const filters = document.getElementById('dc-my-team-filters');
+			if (filters) filters.hidden = false;
+			fillLocations(locations);
+			weekInput.value = isoFromDate(mondayOf(new Date()));
+			document.getElementById('dc-my-team-filters')?.addEventListener('submit', (e) => {
+				e.preventDefault();
+				void loadTeam();
+			});
+			document.getElementById('dc-my-team-prev')?.addEventListener('click', () => {
+				const cur = mondayOf(new Date((weekInput.value || isoFromDate(new Date())) + 'T12:00:00'));
+				weekInput.value = isoFromDate(addDays(cur, -7));
+				void loadTeam();
+			});
+			document.getElementById('dc-my-team-next')?.addEventListener('click', () => {
+				const cur = mondayOf(new Date((weekInput.value || isoFromDate(new Date())) + 'T12:00:00'));
+				weekInput.value = isoFromDate(addDays(cur, 7));
+				void loadTeam();
+			});
+			document.getElementById('dc-my-team-now')?.addEventListener('click', () => {
+				weekInput.value = isoFromDate(mondayOf(new Date()));
+				void loadTeam();
+			});
+			await loadTeam();
+		} catch (err) {
+			const code = String(err?.code || err?.payload?.error?.code || '');
+			if (code === 'PEER_VISIBILITY_DISABLED' || code === 'FORBIDDEN') {
+				showDisabled('data-msg-disabled');
+				return;
+			}
+			section.hidden = true;
+		}
+	}
+
 	document.addEventListener('DOMContentLoaded', async () => {
 		D?.applyLocaleToTemporalInputs?.(document);
 		hideAccountAlert();
@@ -652,6 +969,8 @@
 			fetchAndRender(),
 			loadOpenShifts(),
 			loadIcalMeta(),
+			wireAvailability(),
+			wireTeamWeek(),
 		]);
 		applyIcalAtDisclosure();
 		document.getElementById('dc-ical-rotate-button')?.addEventListener('click', rotateIcalToken);

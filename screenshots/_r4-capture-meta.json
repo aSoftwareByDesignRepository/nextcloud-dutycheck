@@ -1,0 +1,51 @@
+{
+  "captured_at": "2026-09-08T03:22:00Z",
+  "viewport": "1920x1040",
+  "locale": "de",
+  "theme": "light",
+  "round": 4,
+  "user": "dc_atlas_planner",
+  "periodNov": 46,
+  "shots": [
+    "dutycheck-screenshot-01.png",
+    "dutycheck-screenshot-02.png",
+    "dutycheck-screenshot-03.png",
+    "dutycheck-screenshot-04.png",
+    "dutycheck-screenshot-05.png",
+    "dutycheck-screenshot-06.png",
+    "dutycheck-screenshot-07.png",
+    "dutycheck-screenshot-08.png"
+  ],
+  "shot_map": {
+    "01": "\u00dcbersicht hard conflicts + KPI + activity strip",
+    "02": "Heute multi-Standort Ver\u00f6ffentlicht board",
+    "03": "Zeitr\u00e4ume \u22656\u20138 + snapshots dual-pane",
+    "04": "Dienstplan Nov + hard rows + both swaps",
+    "05": "Besch\u00e4ftigte roles/Standorte/hours densified",
+    "06": "Muster 4 week-preview cards stretch-fill",
+    "07": "Abwesenheiten \u226510 + calendar dual-pane",
+    "08": "Hard checks + Elena\u2192Ben + Anna\u2192David"
+  },
+  "md5s": {
+    "dutycheck-screenshot-01.png": "94acdaed30924f8c5163abbbb4b37a9f",
+    "dutycheck-screenshot-02.png": "adc053aa6b73491f364e33dd1a57cb8f",
+    "dutycheck-screenshot-03.png": "eeafeb5f83608552babae328013d0505",
+    "dutycheck-screenshot-04.png": "9c6ac1a287a45fc72dca611ab7b85e19",
+    "dutycheck-screenshot-05.png": "2a52d518454353d447b04c4c9eb7c7cd",
+    "dutycheck-screenshot-06.png": "596a5e5efce58051f4dc97143f9f23d7",
+    "dutycheck-screenshot-07.png": "c4adbea0d2479c69919642a1705ec39c",
+    "dutycheck-screenshot-08.png": "b5e0788a6260995df569c00cc3c42dfd"
+  },
+  "white245": {
+    "dutycheck-screenshot-01.png": 0.0163,
+    "dutycheck-screenshot-02.png": 0.0164,
+    "dutycheck-screenshot-03.png": 0.0202,
+    "dutycheck-screenshot-04.png": 0.2162,
+    "dutycheck-screenshot-05.png": 0.0002,
+    "dutycheck-screenshot-06.png": 0.0163,
+    "dutycheck-screenshot-07.png": 0.0174,
+    "dutycheck-screenshot-08.png": 0.031
+  },
+  "unique_md5": 8,
+  "tail": "ink-contrast densify 02/03/05/07"
+}

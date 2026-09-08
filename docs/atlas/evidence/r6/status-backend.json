@@ -1,0 +1,38 @@
+{
+  "round": 6,
+  "batch": "backend",
+  "completed_at": "2026-09-07T23:20:46Z",
+  "avd": false,
+  "verdicts": {
+    "backend-zeus-concurrency": {
+      "status": "proved",
+      "exit_code": 0,
+      "summary": "ALL ZEUS CONCURRENCY CHECKS PASSED",
+      "evidence": [
+        "r6-zeus.txt",
+        "r6-zeus-critique.txt"
+      ]
+    },
+    "backend-ga-security": {
+      "status": "proved",
+      "exit_code": 0,
+      "summary": "ALL GA E2E STEPS PASSED",
+      "evidence": [
+        "r6-ga.txt",
+        "r6-ga-critique.txt"
+      ]
+    },
+    "backend-momos": {
+      "status": "proved",
+      "exit_code": 0,
+      "summary": "proven=0 clean=13 errors=0",
+      "evidence": [
+        "r6-momos.txt",
+        "r6-momos-critique.txt"
+      ],
+      "fix_required": false
+    }
+  },
+  "overall": "proved",
+  "must_fix": []
+}

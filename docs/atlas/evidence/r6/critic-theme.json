@@ -1,0 +1,29 @@
+{
+  "parts": [
+    "web-theme-a11y",
+    "web-settings-access",
+    "web-l10n"
+  ],
+  "wow": 9,
+  "verdict": "ACCEPT",
+  "must_fix": [],
+  "should_fix": [
+    "Theme matrix routes are dashboard/roster/periods/absences/settings(access) only — employees/locations/patterns/today rely on separate smokes",
+    "Shell metrics cover light/dark × 320/768/1440 but skip high-contrast themes (axe still runs HC on those routes)",
+    "light-highcontrast:settings ran ~31.7s in r6-theme.txt — flake hotspot under farm load; keep workers=1",
+    "FR “Pick a location.” → “Choisissez un emplacement.” reads like file-location; prefer lieu/site for DutyCheck venues",
+    "Five newest msgids append at end of en.json (not alpha-sorted); parity locks that order — clean SOT order on next l10n touch",
+    "data-theme-dark briefly false mid dark-320 hop on shift-templates/qualifications in one poll — overflow still 0; consider persisting theme across SPA navigations"
+  ],
+  "evidence": [
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-theme.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-a11y-settings.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-css-hex-sample.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-dark-settings-320.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-support-overflow-diag.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-support-css-unit.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-l10n-final.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-l10n.txt"
+  ],
+  "notes": "Harsh AAA critic (wow≥9). Fresh theme-responsive-a11y --workers=1 --retries=1 → 29 passed / 5.9m (r6-theme.txt). Focused a11y-smoke (access + legacy redirects + chip bar + company banner) → 6/6 (r6-a11y-settings.txt). CSS: hardcoded hex outside var(...,#fallback) only in comments; .dc-inline-link uses --color-main-text (not primary-on-tint). Dark @320 settings spot: support overflow 5px from NC/shell #app-content.dc-app a.button{nowrap} beating .dc-support-us__cta; operations overflow 82px from long DE form-action buttons — fixed with ID-level white-space:normal overrides + DesignSystemCssContractTest contracts; re-spot allOk (r6-dark-settings-320.txt). L10n: initial parity FAILED (5 missing keys × 9 locales); added translations + reorder + regenerate-l10n-js; final parity/placeholders/runtime exit=0 (1122 keys). Soft coverage/i18n notes → should_fix only. Bare AAA wow=9 ACCEPT."
+}

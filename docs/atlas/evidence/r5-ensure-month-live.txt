@@ -1,0 +1,6 @@
+NOV_ID=46 created=1 writable=1
+NOV_REUSE_ID=46 created=0
+DEC_ID=47 created=1
+SAME=1
+DIFF_MONTH=1
+NOV_RANGE=2026-11-01..2026-11-30

@@ -48,4 +48,36 @@ final class PlannerLocationScopeServiceTest extends TestCase
 		$this->expectExceptionMessage('SCHEMA_NOT_READY');
 		$svc->setScope('planner', [1, 2]);
 	}
+
+	public function testScopedPlannerDeniedOutsideLocations(): void
+	{
+		$access = $this->createMock(AccessControlService::class);
+		$access->method('isAppAdmin')->willReturn(false);
+		$result = $this->createMock(\OCP\DB\IResult::class);
+		$result->method('fetchAll')->willReturn([
+			['location_id' => 9],
+			['location_id' => 12],
+		]);
+		$qb = $this->createMock(\OCP\DB\QueryBuilder\IQueryBuilder::class);
+		$qb->method('select')->willReturnSelf();
+		$qb->method('from')->willReturnSelf();
+		$qb->method('where')->willReturnSelf();
+		$qb->method('expr')->willReturn(new class {
+			public function eq(mixed ...$args): string
+			{
+				return 'eq';
+			}
+		});
+		$qb->method('createNamedParameter')->willReturnArgument(0);
+		$qb->method('executeQuery')->willReturn($result);
+		$db = $this->createMock(IDBConnection::class);
+		$db->method('tableExists')->with('dc_planner_locs')->willReturn(true);
+		$db->method('getQueryBuilder')->willReturn($qb);
+		$svc = new PlannerLocationScopeService($db, $access);
+		self::assertSame([9, 12], $svc->locationIdsFor('scoped.planner'));
+		$svc->assertCanPlanLocation('scoped.planner', 9);
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('LOCATION_OUT_OF_SCOPE');
+		$svc->assertCanPlanLocation('scoped.planner', 99);
+	}
 }

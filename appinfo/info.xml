@@ -13,7 +13,7 @@
 
 DutyCheck builds duty rosters inside your self-hosted Nextcloud. Open a planning period, assign people to locations, see hard blocks and soft warnings while you edit — then publish, close and keep a snapshot when someone asks who was on duty.
 
-**Free web app** (AGPL-3.0-or-later). Companion apps: https://nextcloud.software-by-design.de/
+**Free web app** (AGPL-3.0-or-later).
 
 ## Why teams install it
 
@@ -34,14 +34,14 @@ DutyCheck builds duty rosters inside your self-hosted Nextcloud. Open a planning
 
 ## Requirements
 
-- Nextcloud 32–34 · PHP 8.2–8.5 · MySQL or PostgreSQL
+- Nextcloud 32–35 · PHP 8.2–8.5 · MySQL or PostgreSQL
 	]]></description>
 	<description lang="de"><![CDATA[
 # Schichten planen. Konflikte sehen. Mit Nachweis veröffentlichen.
 
 DutyCheck baut Dienstpläne in Ihrer selbst gehosteten Nextcloud. Periode öffnen, Personen Standorten zuweisen, harte Sperren und weiche Warnungen schon beim Bearbeiten sehen — dann veröffentlichen, abschließen und einen Snapshot behalten, wenn jemand fragt, wer im Dienst war.
 
-**Kostenlose Web-App** (AGPL-3.0-or-later). Companion-Apps: https://nextcloud.software-by-design.de/
+**Kostenlose Web-App** (AGPL-3.0-or-later).
 
 ## Warum Teams es einsetzen
 
@@ -62,7 +62,7 @@ DutyCheck baut Dienstpläne in Ihrer selbst gehosteten Nextcloud. Periode öffne
 
 ## Voraussetzungen
 
-- Nextcloud 32–34 · PHP 8.2–8.5 · MySQL oder PostgreSQL
+- Nextcloud 32–35 · PHP 8.2–8.5 · MySQL oder PostgreSQL
 	]]></description>
 	<summary lang="fr">Plannings de service clairs, sans conflits et prêts pour l'audit — intégrés à votre Nextcloud</summary>
 	<summary lang="da">Klare, konfliktfri vagtplaner med revisionsspor — direkte i din Nextcloud</summary>
@@ -72,6 +72,7 @@ DutyCheck baut Dienstpläne in Ihrer selbst gehosteten Nextcloud. Periode öffne
 	<summary lang="pl">Przejrzyste harmonogramy dyżurów bez konfliktów, gotowe do audytu — w Twoim Nextcloud</summary>
 	<summary lang="sv">Tydliga, konfliktfria schema med revisionsspår — inbyggt i din Nextcloud</summary>
 	<summary lang="nb">Klare, konfliktfrie vaktplaner med revisjonsspor — direkte i din Nextcloud</summary>
+	<summary lang="pt">Publique escalas sem caos de planilhas — conflitos verificados no seu Nextcloud</summary>
 	<description lang="fr"><![CDATA[
 # DutyCheck — des plannings de service sur lesquels votre équipe peut compter
 
@@ -97,7 +98,7 @@ Avec **ArbeitszeitCheck**, DutyCheck peut refléter les absences automatiquement
 
 ## Prérequis
 
-- Nextcloud 32–34
+- Nextcloud 32–35
 - PHP 8.2–8.5
 - MySQL ou PostgreSQL
 	]]></description>
@@ -126,7 +127,7 @@ Med **ArbeitszeitCheck** kan DutyCheck spejle fravær automatisk (integration er
 
 ## Krav
 
-- Nextcloud 32–34
+- Nextcloud 32–35
 - PHP 8.2–8.5
 - MySQL eller PostgreSQL
 	]]></description>
@@ -155,7 +156,7 @@ Con **ArbeitszeitCheck**, DutyCheck puede reflejar ausencias automáticamente (i
 
 ## Requisitos
 
-- Nextcloud 32–34
+- Nextcloud 32–35
 - PHP 8.2–8.5
 - MySQL o PostgreSQL
 	]]></description>
@@ -164,7 +165,7 @@ Con **ArbeitszeitCheck**, DutyCheck puede reflejar ausencias automáticamente (i
 
 DutyCheck bouwt dienstroosters in uw zelf-gehoste Nextcloud. Open een planperiode, wijs mensen aan locaties toe, zie harde blokkades en zachte waarschuwingen terwijl u bewerkt — publiceer vervolgens, sluit af en bewaar een snapshot wanneer iemand vraagt wie er dienst had.
 
-**Gratis webapp** (AGPL-3.0-or-later). Companion-apps: https://nextcloud.software-by-design.de/
+**Gratis webapp** (AGPL-3.0-or-later).
 
 ## Waarom teams het installeren
 
@@ -185,7 +186,7 @@ DutyCheck bouwt dienstroosters in uw zelf-gehoste Nextcloud. Open een planperiod
 
 ## Vereisten
 
-- Nextcloud 32–34 · PHP 8.2–8.5 · MySQL of PostgreSQL
+- Nextcloud 32–35 · PHP 8.2–8.5 · MySQL of PostgreSQL
 	]]></description>
 	<description lang="it"><![CDATA[
 # Pianifica i turni. Scopri i conflitti. Pubblica con una traccia.
@@ -213,7 +214,7 @@ DutyCheck costruisce i turni nella vostra Nextcloud auto-ospitata. Aprite un per
 
 ## Requisiti
 
-- Nextcloud 32–34 · PHP 8.2–8.5 · MySQL o PostgreSQL
+- Nextcloud 32–35 · PHP 8.2–8.5 · MySQL o PostgreSQL
 	]]></description>
 	<description lang="pl"><![CDATA[
 # Planuj zmiany. Wykrywaj konflikty. Publikuj z historią.
@@ -241,14 +242,14 @@ DutyCheck tworzy grafiki zmian w Państwa samodzielnie hostowanej Nextcloud. Otw
 
 ## Wymagania
 
-- Nextcloud 32–34 · PHP 8.2–8.5 · MySQL lub PostgreSQL
+- Nextcloud 32–35 · PHP 8.2–8.5 · MySQL lub PostgreSQL
 	]]></description>
 	<description lang="sv"><![CDATA[
 # Planera pass. Fånga konflikter. Publicera med en spårbarhet.
 
 DutyCheck bygger passlistor i er självhostade Nextcloud. Öppna en planeringsperiod, tilldela personer till platser, se hårda spärrar och mjuka varningar medan ni redigerar — publicera sedan, stäng perioden och behåll en snapshot när någon frågar vem som var på tjänst.
 
-**Gratis webbapp** (AGPL-3.0-or-later). Companion-appar: https://nextcloud.software-by-design.de/
+**Gratis webbapp** (AGPL-3.0-or-later).
 
 ## Varför team installerar den
 
@@ -269,7 +270,7 @@ DutyCheck bygger passlistor i er självhostade Nextcloud. Öppna en planeringspe
 
 ## Krav
 
-- Nextcloud 32–34 · PHP 8.2–8.5 · MySQL eller PostgreSQL
+- Nextcloud 32–35 · PHP 8.2–8.5 · MySQL eller PostgreSQL
 	]]></description>
 	<description lang="nb"><![CDATA[
 # Planlegg skift. Oppdag konflikter. Publiser med et spor.
@@ -297,9 +298,37 @@ DutyCheck bygger skiftplaner i deres selvhostede Nextcloud. Åpne en planlegging
 
 ## Krav
 
-- Nextcloud 32–34 · PHP 8.2–8.5 · MySQL eller PostgreSQL
+- Nextcloud 32–35 · PHP 8.2–8.5 · MySQL eller PostgreSQL
 	]]></description>
-	<version>0.1.43</version>
+	<description lang="pt"><![CDATA[
+# Planeie turnos. Veja conflitos. Publique com rasto.
+
+O DutyCheck cria escalas de serviço na Nextcloud que já alojam. Abra um período, atribua pessoas a locais, veja bloqueios duros e avisos suaves enquanto edita — depois publique, feche e guarde um snapshot quando alguém perguntar quem estava de serviço.
+
+**Aplicação web gratuita** (AGPL-3.0-or-later).
+
+## Porque as equipas instalam
+
+- **Editar com confiança** — sobreposições, subdimensionamento, pausas curtas e totais do período antes de publicar
+- **Um fluxo que todos compreendem** — Aberto → Publicado → Fechado (com reabrir); limiares de conflito congelados ao criar
+- **Preencher mais depressa** — grelha e lista, modelos de turno, preenchimento em massa, escala imprimível com hash
+- **Self-service** — a minha escala, ausências, confirmação, turnos abertos, trocas, feed iCal
+- **Provar o planeado** — snapshots com cadeia de hash, auditoria do período, Activity e Notifications
+- **Manter o âmbito** — papéis planeador vs. colaborador, âmbito de local opcional, empresas opcionais
+- **ArbeitszeitCheck opcional** — espelhar ausências para conflitos (desligado até ativar; DutyCheck nunca escreve de volta)
+
+## Limites claros
+
+- Exportações HR CSV são minutos — não salários.
+- Entradas de auditoria são apenas acrescentáveis.
+- Verificações de conflito são orientadas para ArbZG e configuráveis — não uma certificação legal.
+- Bases de dados declaradas: MySQL e PostgreSQL.
+
+## Requisitos
+
+- Nextcloud 32–35 · PHP 8.2–8.5 · MySQL ou PostgreSQL
+	]]></description>
+	<version>0.3.0</version>
 	<licence>AGPL-3.0-or-later</licence>
 	<author mail="info@software-by-design.de" homepage="https://nextcloud.software-by-design.de">Software by Design GbR</author>
 	<namespace>DutyCheck</namespace>
@@ -332,15 +361,9 @@ DutyCheck bygger skiftplaner i deres selvhostede Nextcloud. Åpne en planlegging
 	<screenshot small-thumbnail="https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-08.png">
 		https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-08.png
 	</screenshot>
-	<screenshot small-thumbnail="https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-09.png">
-		https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-09.png
-	</screenshot>
-	<screenshot small-thumbnail="https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-10.png">
-		https://raw.githubusercontent.com/aSoftwareByDesignRepository/nextcloud-dutycheck/refs/heads/master/screenshots/dutycheck-screenshot-10.png
-	</screenshot>
 	<donation type="other" title="Software by Design">https://nextcloud.software-by-design.de/</donation>
 	<dependencies>
-		<nextcloud min-version="32" max-version="34"/>
+		<nextcloud min-version="32" max-version="35"/>
 		<php min-version="8.2" max-version="8.5"/>
 		<!-- Required under <dependencies>: MigrationService reads these for schema naming checks -->
 		<database>mysql</database>
@@ -354,6 +377,7 @@ DutyCheck bygger skiftplaner i deres selvhostede Nextcloud. Åpne en planlegging
 	</release>
 	<background-jobs>
 		<job>OCA\DutyCheck\BackgroundJob\ArbeitszeitCheckMirrorReconcileJob</job>
+		<job>OCA\DutyCheck\BackgroundJob\PushQuietQueueDrainJob</job>
 	</background-jobs>
 	<commands>
 		<command>OCA\DutyCheck\Command\UpgradeBackupCommand</command>

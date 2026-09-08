@@ -1,0 +1,215 @@
+
+Running 54 tests using 1 worker
+
+(node:761688) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [setup] › tests/e2e/auth.setup.js:9:1 › authenticate planner (4.7s)
+(node:761853) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   2 [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/ (5.4s)
+  ✓   3 [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/roster (3.6s)
+  ✓   4 [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/periods (3.4s)
+  ✓   5 [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/absences (3.3s)
+  ✓   6 [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/access (3.3s)
+  ✓   7 [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/duty-roles (3.3s)
+  ✓   8 [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/planning (3.1s)
+  ✓   9 [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/companies (3.8s)
+  ✓  10 [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/conflicts (3.6s)
+  ✓  11 [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/shift-templates (4.0s)
+  ✓  12 [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/qualifications (5.3s)
+  ✓  13 [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/planner-scope (4.4s)
+  ✓  14 [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/operations (7.1s)
+  ✓  15 [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/dienst-team (6.4s)
+  ✓  16 [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/integration (6.0s)
+  ✓  17 [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/privacy (3.8s)
+  ✓  18 [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/license (3.0s)
+  ✓  19 [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/support (3.3s)
+  ✘  20 [chromium] › tests/e2e/a11y-smoke.spec.js:76:5 › employee a11y › a11y smoke (employee): /apps/dutycheck/my-absences (3.1s)
+(node:765703) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  21 [chromium] › tests/e2e/a11y-smoke.spec.js:76:5 › employee a11y › a11y smoke (employee): /apps/dutycheck/my-absences (retry #1) (3.5s)
+(node:765850) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  22 [chromium] › tests/e2e/a11y-smoke.spec.js:76:5 › employee a11y › a11y smoke (employee): /apps/dutycheck/my-roster (3.1s)
+(node:765984) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  23 [chromium] › tests/e2e/a11y-smoke.spec.js:76:5 › employee a11y › a11y smoke (employee): /apps/dutycheck/my-roster (retry #1) (3.0s)
+(node:766161) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  24 [chromium] › tests/e2e/a11y-smoke.spec.js:84:1 › legacy /settings URL redirects to the default sub-page (2.6s)
+  ✓  25 [chromium] › tests/e2e/a11y-smoke.spec.js:91:1 › legacy /settings#anchor bookmark forwards to the owning sub-page (3.5s)
+  ✓  26 [chromium] › tests/e2e/a11y-smoke.spec.js:100:1 › settings sidebar sub-navigation marks the active sub-page (2.4s)
+  ✓  27 [chromium] › tests/e2e/a11y-smoke.spec.js:111:1 › settings in-page chip bar mirrors the catalog and marks the active page (4.7s)
+  ✓  28 [chromium] › tests/e2e/a11y-smoke.spec.js:126:1 › company-access banner is a labelled status region and hidden when membership exists (2.9s)
+  ✓  29 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: dashboard (13.0s)
+  ✓  30 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: roster (14.2s)
+  ✓  31 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: periods (10.8s)
+  ✓  32 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: absences (10.5s)
+  ✓  33 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: settings (9.0s)
+  ✓  34 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: dashboard (10.7s)
+  ✓  35 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: roster (17.6s)
+  ✓  36 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: periods (14.5s)
+  ✓  37 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: absences (9.7s)
+  ✓  38 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: settings (12.2s)
+  ✓  39 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: dashboard (12.0s)
+  ✓  40 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: roster (14.7s)
+  ✓  41 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: periods (12.5s)
+  ✓  42 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: absences (13.8s)
+  ✓  43 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: settings (14.4s)
+  ✓  44 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: dashboard (9.5s)
+  ✓  45 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: roster (10.9s)
+  ✓  46 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: periods (10.2s)
+  ✓  47 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: absences (9.3s)
+  ✓  48 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: settings (8.9s)
+  ✓  49 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:208:2 › DutyCheck theme × viewport a11y matrix › reset to default theme (7.1s)
+  ✓  50 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:221:2 › DutyCheck custom accent colour › primary tokens follow instance accent and stay AA (15.6s)
+  ✓  51 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light mobile-320 (6.9s)
+  ✓  52 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light tablet-768 (6.9s)
+  ✓  53 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light desktop-1440 (6.8s)
+  ✓  54 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ dark mobile-320 (7.1s)
+  ✓  55 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ dark tablet-768 (7.1s)
+  ✓  56 [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ dark desktop-1440 (7.0s)
+
+
+  1) [chromium] › tests/e2e/a11y-smoke.spec.js:76:5 › employee a11y › a11y smoke (employee): /apps/dutycheck/my-absences 
+
+    Error: Login rejected for user "e2e_employee" (Wrong login or password)
+
+       at helpers/auth.js:70
+
+      68 |     ])
+      69 |     if (outcome === 'bad') {
+    > 70 |       throw new Error(`Login rejected for user "${username}" (Wrong login or password)`)
+         |             ^
+      71 |     }
+      72 |     await page.waitForLoadState('domcontentloaded')
+      73 |     await assertNotServerUpdater(page)
+        at login (/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/helpers/auth.js:70:13)
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:78:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/a11y-smoke-employee-a11y-a-3eddf--apps-dutycheck-my-absences-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/a11y-smoke-employee-a11y-a-3eddf--apps-dutycheck-my-absences-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/a11y-smoke-employee-a11y-a-3eddf--apps-dutycheck-my-absences-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/a11y-smoke-employee-a11y-a-3eddf--apps-dutycheck-my-absences-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/a11y-smoke-employee-a11y-a-3eddf--apps-dutycheck-my-absences-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: Login rejected for user "e2e_employee" (Wrong login or password)
+
+       at helpers/auth.js:70
+
+      68 |     ])
+      69 |     if (outcome === 'bad') {
+    > 70 |       throw new Error(`Login rejected for user "${username}" (Wrong login or password)`)
+         |             ^
+      71 |     }
+      72 |     await page.waitForLoadState('domcontentloaded')
+      73 |     await assertNotServerUpdater(page)
+        at login (/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/helpers/auth.js:70:13)
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:78:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/a11y-smoke-employee-a11y-a-3eddf--apps-dutycheck-my-absences-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/a11y-smoke-employee-a11y-a-3eddf--apps-dutycheck-my-absences-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/a11y-smoke-employee-a11y-a-3eddf--apps-dutycheck-my-absences-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/a11y-smoke-employee-a11y-a-3eddf--apps-dutycheck-my-absences-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/a11y-smoke-employee-a11y-a-3eddf--apps-dutycheck-my-absences-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [chromium] › tests/e2e/a11y-smoke.spec.js:76:5 › employee a11y › a11y smoke (employee): /apps/dutycheck/my-roster 
+
+    Error: Login rejected for user "e2e_employee" (Wrong login or password)
+
+       at helpers/auth.js:70
+
+      68 |     ])
+      69 |     if (outcome === 'bad') {
+    > 70 |       throw new Error(`Login rejected for user "${username}" (Wrong login or password)`)
+         |             ^
+      71 |     }
+      72 |     await page.waitForLoadState('domcontentloaded')
+      73 |     await assertNotServerUpdater(page)
+        at login (/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/helpers/auth.js:70:13)
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:78:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/a11y-smoke-employee-a11y-a-810ec-ee-apps-dutycheck-my-roster-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/a11y-smoke-employee-a11y-a-810ec-ee-apps-dutycheck-my-roster-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/a11y-smoke-employee-a11y-a-810ec-ee-apps-dutycheck-my-roster-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/a11y-smoke-employee-a11y-a-810ec-ee-apps-dutycheck-my-roster-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/a11y-smoke-employee-a11y-a-810ec-ee-apps-dutycheck-my-roster-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: Login rejected for user "e2e_employee" (Wrong login or password)
+
+       at helpers/auth.js:70
+
+      68 |     ])
+      69 |     if (outcome === 'bad') {
+    > 70 |       throw new Error(`Login rejected for user "${username}" (Wrong login or password)`)
+         |             ^
+      71 |     }
+      72 |     await page.waitForLoadState('domcontentloaded')
+      73 |     await assertNotServerUpdater(page)
+        at login (/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/helpers/auth.js:70:13)
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:78:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/a11y-smoke-employee-a11y-a-810ec-ee-apps-dutycheck-my-roster-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/a11y-smoke-employee-a11y-a-810ec-ee-apps-dutycheck-my-roster-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/a11y-smoke-employee-a11y-a-810ec-ee-apps-dutycheck-my-roster-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/a11y-smoke-employee-a11y-a-810ec-ee-apps-dutycheck-my-roster-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/a11y-smoke-employee-a11y-a-810ec-ee-apps-dutycheck-my-roster-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  Slow test file: [chromium] › tests/e2e/theme-responsive-a11y.spec.js (5.0m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  2 failed
+    [chromium] › tests/e2e/a11y-smoke.spec.js:76:5 › employee a11y › a11y smoke (employee): /apps/dutycheck/my-absences 
+    [chromium] › tests/e2e/a11y-smoke.spec.js:76:5 › employee a11y › a11y smoke (employee): /apps/dutycheck/my-roster 
+  52 passed (7.0m)

@@ -9,6 +9,73 @@ include __DIR__ . '/common/page-start.php';
 $htmlLang = (string) (($_['clientHints']['htmlLang'] ?? 'en-US'));
 $isAppAdmin = !empty($_['isAppAdmin']);
 ?>
+<aside id="dc-publish-ceremony" class="dc-publish-ceremony" aria-labelledby="dc-publish-ceremony-title" hidden>
+	<p class="dc-publish-ceremony__kicker"><?php p($l->t('Publish ceremony')); ?></p>
+	<h2 id="dc-publish-ceremony-title" class="dc-publish-ceremony__title"><?php p($l->t('Ready to freeze the roster')); ?></h2>
+	<div class="dc-publish-ceremony__meta" id="dc-publish-ceremony-meta"></div>
+	<p class="dc-publish-ceremony__hint" id="dc-publish-ceremony-hint"><?php p($l->t('Publishing freezes a tamper-evident snapshot for this period.')); ?></p>
+	<div class="dc-publish-ceremony__actions" id="dc-publish-ceremony-actions"></div>
+</aside>
+
+<section class="dc-card dc-section" aria-labelledby="dc-periods-title">
+	<header class="dc-section__header">
+		<div>
+			<h2 id="dc-periods-title"><?php p($l->t('Periods')); ?></h2>
+			<p class="dc-section__sub">
+				<?php p($l->t('Select a period to load its lifecycle, snapshots, and audit trail. You can publish only when every “Must fix” issue is resolved and “Confirm to continue” items are confirmed.')); ?>
+			</p>
+		</div>
+		<div class="dc-section__controls">
+			<span id="dc-publish-readiness" class="dc-pill" role="status" aria-live="polite" hidden></span>
+			<span id="dc-period-ack-stats" class="dc-pill" role="status" aria-live="polite" hidden></span>
+		</div>
+	</header>
+	<div class="dc-table-wrap" tabindex="0" role="region" aria-labelledby="dc-periods-title">
+		<table class="dc-table" aria-busy="true">
+			<caption class="dc-sr-only"><?php p($l->t('Periods and their lifecycle actions')); ?></caption>
+			<thead>
+				<tr>
+					<th scope="col"><?php p($l->t('Range')); ?></th>
+					<th scope="col"><?php p($l->t('Status')); ?></th>
+					<th scope="col" class="dc-table__col--actions"><?php p($l->t('Actions')); ?></th>
+				</tr>
+			</thead>
+			<tbody id="dc-periods-table-body" data-can-reopen="<?php p($isAppAdmin ? '1' : '0'); ?>">
+				<tr class="dc-table__loading-row">
+					<td class="dc-loading" colspan="3"><?php p($l->t('Loading…')); ?></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</section>
+
+<section class="dc-card dc-section dc-period-create--secondary" aria-labelledby="dc-period-create-title">
+	<header class="dc-section__header">
+		<div>
+			<h2 id="dc-period-create-title"><?php p($l->t('Create period')); ?></h2>
+			<p class="dc-section__sub">
+				<?php p($l->t('A period is a date range during which assignments are planned, published, and closed.')); ?>
+			</p>
+		</div>
+	</header>
+	<div id="dc-period-empty-callout" class="dc-callout dc-callout--info" role="status" aria-live="polite" hidden>
+		<p><strong><?php p($l->t('No periods yet.')); ?></strong> <?php p($l->t('Pick a start and end date below to create your first planning period.')); ?></p>
+	</div>
+	<form id="dc-period-form" class="dc-form-grid" novalidate>
+		<div class="dc-field">
+			<label class="dc-field__label" for="dc-period-start"><?php p($l->t('Start date')); ?></label>
+			<input id="dc-period-start" type="date" name="startDate" class="dc-input" lang="<?php p($htmlLang); ?>" required>
+		</div>
+		<div class="dc-field">
+			<label class="dc-field__label" for="dc-period-end"><?php p($l->t('End date')); ?></label>
+			<input id="dc-period-end" type="date" name="endDate" class="dc-input" lang="<?php p($htmlLang); ?>" required>
+		</div>
+		<div class="dc-form-actions">
+			<button type="submit" class="button primary"><?php p($l->t('Create period')); ?></button>
+		</div>
+	</form>
+</section>
+
 <section class="dc-card dc-empty dc-empty--quickstart" id="dc-periods-quickstart" hidden aria-labelledby="dc-periods-quickstart-title">
 	<header class="dc-section__header">
 		<div>
@@ -44,65 +111,6 @@ $isAppAdmin = !empty($_['isAppAdmin']);
 	</ol>
 </section>
 
-<section class="dc-card dc-section" aria-labelledby="dc-period-create-title">
-	<header class="dc-section__header">
-		<div>
-			<h2 id="dc-period-create-title"><?php p($l->t('Create period')); ?></h2>
-			<p class="dc-section__sub">
-				<?php p($l->t('A period is a date range during which assignments are planned, published, and closed.')); ?>
-			</p>
-		</div>
-	</header>
-	<div id="dc-period-empty-callout" class="dc-callout dc-callout--info" role="status" aria-live="polite" hidden>
-		<p><strong><?php p($l->t('No periods yet.')); ?></strong> <?php p($l->t('Pick a start and end date below to create your first planning period.')); ?></p>
-	</div>
-	<form id="dc-period-form" class="dc-form-grid" novalidate>
-		<div class="dc-field">
-			<label class="dc-field__label" for="dc-period-start"><?php p($l->t('Start date')); ?></label>
-			<input id="dc-period-start" type="date" name="startDate" class="dc-input" lang="<?php p($htmlLang); ?>" required>
-		</div>
-		<div class="dc-field">
-			<label class="dc-field__label" for="dc-period-end"><?php p($l->t('End date')); ?></label>
-			<input id="dc-period-end" type="date" name="endDate" class="dc-input" lang="<?php p($htmlLang); ?>" required>
-		</div>
-		<div class="dc-form-actions">
-			<button type="submit" class="button primary"><?php p($l->t('Create period')); ?></button>
-		</div>
-	</form>
-</section>
-
-<section class="dc-card dc-section" aria-labelledby="dc-periods-title">
-	<header class="dc-section__header">
-		<div>
-			<h2 id="dc-periods-title"><?php p($l->t('Periods')); ?></h2>
-			<p class="dc-section__sub">
-				<?php p($l->t('Select a period to load its lifecycle, snapshots, and audit trail. You can publish only when every “Must fix” issue is resolved and “Confirm to continue” items are confirmed.')); ?>
-			</p>
-		</div>
-		<div class="dc-section__controls">
-			<span id="dc-publish-readiness" class="dc-pill" role="status" aria-live="polite" aria-busy="true"><?php p($l->t('Loading…')); ?></span>
-			<span id="dc-period-ack-stats" class="dc-pill" role="status" aria-live="polite" hidden></span>
-		</div>
-	</header>
-	<div class="dc-table-wrap" tabindex="0" role="region" aria-labelledby="dc-periods-title">
-		<table class="dc-table" aria-busy="true">
-			<caption class="dc-sr-only"><?php p($l->t('Periods and their lifecycle actions')); ?></caption>
-			<thead>
-				<tr>
-					<th scope="col"><?php p($l->t('Range')); ?></th>
-					<th scope="col"><?php p($l->t('Status')); ?></th>
-					<th scope="col" class="dc-table__col--actions"><?php p($l->t('Actions')); ?></th>
-				</tr>
-			</thead>
-			<tbody id="dc-periods-table-body" data-can-reopen="<?php p($isAppAdmin ? '1' : '0'); ?>">
-				<tr class="dc-table__loading-row">
-					<td class="dc-loading" colspan="3"><?php p($l->t('Loading…')); ?></td>
-				</tr>
-			</tbody>
-		</table>
-	</div>
-</section>
-
 <section class="dc-card dc-section" aria-labelledby="dc-snapshot-title">
 	<header class="dc-section__header">
 		<div>
@@ -112,7 +120,7 @@ $isAppAdmin = !empty($_['isAppAdmin']);
 			</p>
 		</div>
 		<div class="dc-section__controls">
-			<button type="button" id="dc-verify-snapshots-button" class="button" disabled>
+			<button type="button" class="button" id="dc-verify-snapshots-button" disabled>
 				<?php p($l->t('Verify integrity')); ?>
 			</button>
 		</div>

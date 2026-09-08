@@ -1,0 +1,112 @@
+
+Running 6 tests using 1 worker
+
+(node:3000763) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/6] [setup] › tests/e2e/auth.setup.js:9:1 › authenticate planner
+(node:3005485) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[2/6] [chromium] › tests/e2e/a11y-smoke.spec.js:84:1 › legacy /settings URL redirects to the default sub-page
+[3/6] [chromium] › tests/e2e/a11y-smoke.spec.js:91:1 › legacy /settings#anchor bookmark forwards to the owning sub-page
+[4/6] [chromium] › tests/e2e/a11y-smoke.spec.js:100:1 › settings sidebar sub-navigation marks the active sub-page
+[5/6] [chromium] › tests/e2e/a11y-smoke.spec.js:111:1 › settings in-page chip bar mirrors the catalog and marks the active page
+(node:3025337) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[6/6] (retries) [chromium] › tests/e2e/a11y-smoke.spec.js:111:1 › settings in-page chip bar mirrors the catalog and marks the active page (retry #1)
+  1) [chromium] › tests/e2e/a11y-smoke.spec.js:111:1 › settings in-page chip bar mirrors the catalog and marks the active page 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('#dc-settings-pages .dc-settings-nav')
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 10000ms
+      - waiting for locator('#dc-settings-pages .dc-settings-nav')
+
+
+      115 |   await page.goto('/apps/dutycheck/settings/planning', { waitUntil: 'domcontentloaded' })
+      116 |   await page.waitForSelector('#dc-settings-pages', { timeout: 30000 })
+    > 117 |   await expect(page.locator('#dc-settings-pages .dc-settings-nav')).toBeVisible()
+          |                                                                     ^
+      118 |   const chips = page.locator('#dc-settings-pages .dc-settings-nav__link')
+      119 |   await expect(chips).toHaveCount(settingsSections.length)
+      120 |   const activeChip = page.locator('#dc-settings-pages .dc-settings-nav__link[aria-current="page"]')
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:117:69
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/a11y-smoke-settings-in-pag-4a641-g-and-marks-the-active-page-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/a11y-smoke-settings-in-pag-4a641-g-and-marks-the-active-page-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/a11y-smoke-settings-in-pag-4a641-g-and-marks-the-active-page-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/a11y-smoke-settings-in-pag-4a641-g-and-marks-the-active-page-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/a11y-smoke-settings-in-pag-4a641-g-and-marks-the-active-page-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: locator('#dc-settings-pages .dc-settings-nav')
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 10000ms
+      - waiting for locator('#dc-settings-pages .dc-settings-nav')
+
+
+      115 |   await page.goto('/apps/dutycheck/settings/planning', { waitUntil: 'domcontentloaded' })
+      116 |   await page.waitForSelector('#dc-settings-pages', { timeout: 30000 })
+    > 117 |   await expect(page.locator('#dc-settings-pages .dc-settings-nav')).toBeVisible()
+          |                                                                     ^
+      118 |   const chips = page.locator('#dc-settings-pages .dc-settings-nav__link')
+      119 |   await expect(chips).toHaveCount(settingsSections.length)
+      120 |   const activeChip = page.locator('#dc-settings-pages .dc-settings-nav__link[aria-current="page"]')
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:117:69
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/a11y-smoke-settings-in-pag-4a641-g-and-marks-the-active-page-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/a11y-smoke-settings-in-pag-4a641-g-and-marks-the-active-page-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/a11y-smoke-settings-in-pag-4a641-g-and-marks-the-active-page-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/a11y-smoke-settings-in-pag-4a641-g-and-marks-the-active-page-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/a11y-smoke-settings-in-pag-4a641-g-and-marks-the-active-page-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+(node:3038525) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[7/6] [chromium] › tests/e2e/a11y-smoke.spec.js:129:1 › company-access banner is a labelled status region and hidden when membership exists
+  1 failed
+    [chromium] › tests/e2e/a11y-smoke.spec.js:111:1 › settings in-page chip bar mirrors the catalog and marks the active page 
+  5 passed (43.2s)

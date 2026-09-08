@@ -34,17 +34,21 @@
 	}
 
 	function publishReadinessLine(canPublish, mustFix, confirm, pendingOpen, integrationStale) {
-		if (canPublish) {
+		const hard = Number(mustFix) || 0;
+		const soft = Number(confirm) || 0;
+		const pending = Number(pendingOpen) || 0;
+		if (canPublish || (hard === 0 && !integrationStale)) {
+			// Never paint “Publishing blocked: 0 …” — zero hard issues means ready copy.
 			return t('dutycheck', 'Ready to publish: {mustFix} must fix · {confirm} confirm to continue ({pending} open)')
-				.replace('{mustFix}', String(mustFix))
-				.replace('{confirm}', String(confirm))
-				.replace('{pending}', String(pendingOpen));
+				.replace('{mustFix}', String(hard))
+				.replace('{confirm}', String(soft))
+				.replace('{pending}', String(pending));
 		}
 		if (integrationStale) {
 			return t('dutycheck', 'Publishing blocked: ArbeitszeitCheck absences are stale or the sync breaker is open. Sync in Settings, then try again.');
 		}
 		return t('dutycheck', 'Publishing blocked: {mustFix} “must fix” issue(s) remain')
-			.replace('{mustFix}', String(mustFix));
+			.replace('{mustFix}', String(hard));
 	}
 
 	window.DutyCheckConflictLabels = {

@@ -1,0 +1,24 @@
+{
+  "parts": [
+    "companion-detox-suite",
+    "companion-auth-gates",
+    "companion-home-today",
+    "companion-marketplace",
+    "companion-settings-stack"
+  ],
+  "wow": 9,
+  "verdict": "ACCEPT",
+  "must_fix": [],
+  "should_fix": [
+    "store-screenshots.e2e.js intentionally skipped (optional / flaky-slow) \u2014 not in R6 Detox gate; revisit before store listing freeze",
+    "Team/Kollegenplan covered only via journeys Team-tab test, not a named queue part \u2014 fine for R6 scope",
+    "STATUS-companion-detox.md proved_at label used Z with wall-clock offset mismatch risk; prefer explicit local+UTC in future STATUS stamps"
+  ],
+  "evidence": [
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-companion-detox.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/STATUS-companion-detox.md",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-companion-detox-critic.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/critic-companion-detox.json"
+  ],
+  "notes": "Harsh AAA critic (wow\u22659) companion Detox batch (5 parts). AVD DutyCheck_Atlas_R2_API_33 acquired without steal (boot on emulator-5602); adversarial re-run: smoke+login-reachability+home+journeys \u2192 4 suites / 14 tests PASS EXIT=0 (r6-companion-detox-critic.txt matches fixer r6-companion-detox.txt EXIT=0). Suite\u2192part map airtight: detox-suite=all4; auth-gates=login-reachability+license+unofficial; home-today=home roster+journeys Home/Week/tabs; marketplace=home claim+journeys claim/pool; settings-stack=Absences/About/Sign-out. Soft skips/coverage \u2192 should_fix only. Bare AAA wow=9 ACCEPT. AVD released --kill-if-booted."
+}

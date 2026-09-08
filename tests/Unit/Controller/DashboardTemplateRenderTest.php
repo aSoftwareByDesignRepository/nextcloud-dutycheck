@@ -93,12 +93,12 @@ final class DashboardTemplateRenderTest extends TestCase
 	{
 		$html = $this->renderDashboard();
 
-		self::assertStringContainsString('class="dc-scope-strip"', $html);
-		self::assertStringContainsString('dc-scope-strip__item', $html);
-		self::assertStringContainsString('<dt class="dc-scope-strip__label"', $html);
-		self::assertStringContainsString('<dd class="dc-scope-strip__value"', $html);
-		self::assertStringNotContainsString('dc-scope-strip__sep', $html);
-		self::assertStringContainsString('Start of week', $html);
+		// Scope strip retired — role + timezone (+ week-start name) live on the page-header badge.
+		self::assertStringNotContainsString('dc-scope-strip', $html);
+		self::assertStringContainsString('class="dc-page-header"', $html);
+		self::assertStringContainsString('dc-page-header__title-row', $html);
+		self::assertStringContainsString('class="dc-badge', $html);
+		self::assertStringContainsString('id="dc-page-title"', $html);
 		self::assertStringContainsString('Monday', $html);
 		self::assertStringContainsString('id="dc-main-content"', $html);
 		self::assertStringContainsString('class="dc-skip-link" href="#dc-main-content"', $html);
@@ -314,7 +314,6 @@ final class DashboardTemplateRenderTest extends TestCase
 		self::assertMatchesRegularExpression('/id="app-content"[^>]*\sdata-language="en"/', $html);
 		self::assertMatchesRegularExpression('/id="app-content"[^>]*\sdata-locale="nl-NL"/', $html);
 		self::assertMatchesRegularExpression('/id="app-content"[^>]*\sdata-first-day-of-week="1"/', $html);
-		self::assertStringContainsString('Start of week', $html);
 		self::assertStringContainsString('Monday', $html);
 		self::assertDoesNotMatchRegularExpression('/id="app-content"[^>]*\slang="nl-NL"/', $html);
 	}

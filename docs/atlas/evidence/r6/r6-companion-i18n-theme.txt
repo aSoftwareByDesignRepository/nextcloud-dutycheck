@@ -1,0 +1,64 @@
+=== DutyCheck R6 companion-i18n-theme ===
+cwd: /home/alex/Development/nextcloud-dev/mobile/dutycheck
+date: 2026-09-07T23:38:05Z
+needs_avd: false
+
+=== 1) npm run i18n:parity ===
+
+> dutycheck-mobile@1.0.2 i18n:parity
+> node scripts/i18n-parity.mjs
+
+PASS i18n parity (341 keys × 11 locales)
+I18N_PARITY_EXIT=0
+
+=== 2) npm run a11y:contrast ===
+
+> dutycheck-mobile@1.0.2 a11y:contrast
+> node scripts/contrast-check.mjs
+
+--- LIGHT ---
+  PASS  13.65:1 (min 4.5)  text/bg  [#102a43 on #f5f7fb]
+  PASS  14.64:1 (min 4.5)  text/surface  [#102a43 on #ffffff]
+  PASS  5.67:1 (min 4.5)  textMuted/bg  [#486581 on #f5f7fb]
+  PASS  6.08:1 (min 4.5)  textMuted/surface  [#486581 on #ffffff]
+  PASS  5.27:1 (min 4.5)  textSubtle/bg  [#56697d on #f5f7fb]
+  PASS  5.66:1 (min 4.5)  textSubtle/surface  [#56697d on #ffffff]
+  PASS  5.18:1 (min 4.5)  primary link text/surface  [#0073ad on #ffffff]
+  PASS  4.83:1 (min 4.5)  primary link text/bg  [#0073ad on #f5f7fb]
+  PASS  5.18:1 (min 4.5)  white on primary (button)  [#ffffff on #0073ad]
+  PASS  6.44:1 (min 4.5)  white on danger (button)  [#ffffff on #ba1b1b]
+  PASS  6.26:1 (min 4.5)  warningText/warningBg  [#8a4b08 on #fff4e6]
+  PASS  5.38:1 (min 4.5)  trafficGreen/surface  [#0d7a4a on #ffffff]
+  PASS  6.79:1 (min 4.5)  trafficYellow/surface  [#8a4b08 on #ffffff]
+  PASS  6.44:1 (min 4.5)  trafficRed/surface  [#ba1b1b on #ffffff]
+  PASS  5.18:1 (min 3)  primary as UI accent/surface  [#0073ad on #ffffff]
+
+--- DARK ---
+  PASS  16.49:1 (min 4.5)  text/bg  [#f0f4f8 on #0b1622]
+  PASS  9.49:1 (min 4.5)  textMuted/surface  [#bcccdc on #152536]
+  PASS  7.23:1 (min 4.5)  textSubtle/surface  [#9fb3c8 on #152536]
+  PASS  6.29:1 (min 4.5)  primary link/surface  [#4dabf7 on #152536]
+  PASS  7.36:1 (min 4.5)  primary link/bg  [#4dabf7 on #0b1622]
+  PASS  7.75:1 (min 4.5)  success/surface  [#51cf66 on #152536]
+
+ALL PASS
+A11Y_CONTRAST_EXIT=0
+
+=== 3) jest i18n + theme unit tests ===
+PASS src/i18n/__tests__/usedKeys.test.ts
+PASS src/__tests__/azcUiParity.test.ts
+PASS src/i18n/__tests__/localeParity.test.ts
+
+Test Suites: 3 passed, 3 total
+Tests:       8 passed, 8 total
+Snapshots:   0 total
+Time:        2.268 s
+Ran all test suites matching /src\/i18n\/__tests__\/localeParity.test.ts|src\/i18n\/__tests__\/usedKeys.test.ts|src\/__tests__\/azcUiParity.test.ts/i.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?
+JEST_EXIT=0
+
+=== SUMMARY ===
+I18N_PARITY_EXIT=0
+A11Y_CONTRAST_EXIT=0
+JEST_EXIT=0
+OVERALL_EXIT=0

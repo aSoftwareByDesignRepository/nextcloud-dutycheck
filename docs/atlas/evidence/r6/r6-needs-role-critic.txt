@@ -1,0 +1,28 @@
+=== OpenAccessModeContractTest ===
+PHPUnit 9.6.34 by Sebastian Bergmann and contributors.
+
+..                                                                  2 / 2 (100%)
+
+Time: 00:00.011, Memory: 12.00 MB
+
+OK (2 tests, 9 assertions)
+open_access_exit:0
+=== AccessControlServiceTest (needsRole) ===
+PHPUnit 9.6.34 by Sebastian Bergmann and contributors.
+
+.                                                                   1 / 1 (100%)
+
+Time: 00:00.053, Memory: 14.00 MB
+
+OK (1 test, 2 assertions)
+access_control_exit:0
+
+=== AccessControlServiceTest (broader needsRoleEnrollment coverage) ===
+PHPUnit 9.6.34 by Sebastian Bergmann and contributors.
+
+..                                                                  2 / 2 (100%)
+
+Time: 00:00.054, Memory: 14.00 MB
+
+OK (2 tests, 5 assertions)
+broader_exit:0

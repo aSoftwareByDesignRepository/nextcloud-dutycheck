@@ -1,0 +1,74 @@
+22:09:18.484 detox[976194] B DETOX_ADB_NAME="emulator-5600" jest --config e2e/jest.config.js --maxWorkers 1 e2e/smoke.e2e.js e2e/login-reachability.e2e.js e2e/home.e2e.js e2e/journeys.e2e.js
+22:09:21.919 detox[976321] i journeys.e2e.js is assigned to AttachedDevice:emulator-5600
+22:09:23.687 detox[976321] i DutyCheck journeys (mock API): Home → My Week → Shift detail → acknowledge
+22:09:36.712 detox[976321] i DutyCheck journeys (mock API): Home → My Week → Shift detail → acknowledge [OK]
+22:09:36.713 detox[976321] i DutyCheck journeys (mock API): Home → Shift detail from this-week row
+22:09:48.039 detox[976321] i DutyCheck journeys (mock API): Home → Shift detail from this-week row [OK]
+22:09:48.039 detox[976321] i DutyCheck journeys (mock API): Team tab shows peer week when Kollegenplan is on
+22:09:57.931 detox[976321] i DutyCheck journeys (mock API): Team tab shows peer week when Kollegenplan is on [OK]
+22:09:57.932 detox[976321] i DutyCheck journeys (mock API): Marketplace claim + pool swap
+22:10:10.203 detox[976321] i DutyCheck journeys (mock API): Marketplace claim + pool swap [OK]
+22:10:10.204 detox[976321] i DutyCheck journeys (mock API): Settings → Absences → submit
+22:10:24.641 detox[976321] i DutyCheck journeys (mock API): Settings → Absences → submit [OK]
+22:10:24.641 detox[976321] i DutyCheck journeys (mock API): Settings → About opens and returns
+22:10:40.118 detox[976321] i DutyCheck journeys (mock API): Settings → About opens and returns [OK]
+22:10:40.118 detox[976321] i DutyCheck journeys (mock API): Settings → Sign out returns to Login
+22:10:55.039 detox[976321] i DutyCheck journeys (mock API): Settings → Sign out returns to Login [OK]
+22:10:55.040 detox[976321] i DutyCheck journeys (mock API): Tab bar reaches Today, Week, Team, Marketplace, and Settings
+22:11:09.004 detox[976321] i DutyCheck journeys (mock API): Tab bar reaches Today, Week, Team, Marketplace, and Settings [OK]
+
+PASS e2e/journeys.e2e.js (110.143 s)
+  DutyCheck journeys (mock API)
+    ✓ Home → My Week → Shift detail → acknowledge (13024 ms)
+    ✓ Home → Shift detail from this-week row (11326 ms)
+    ✓ Team tab shows peer week when Kollegenplan is on (9891 ms)
+    ✓ Marketplace claim + pool swap (12272 ms)
+    ✓ Settings → Absences → submit (14436 ms)
+    ✓ Settings → About opens and returns (15476 ms)
+    ✓ Settings → Sign out returns to Login (14921 ms)
+    ✓ Tab bar reaches Today, Week, Team, Marketplace, and Settings (13964 ms)
+
+22:11:12.174 detox[976321] i home.e2e.js is assigned to AttachedDevice:emulator-5600
+22:11:12.176 detox[976321] i Home (E2E mock): shows duty roster home and acknowledges next shift
+22:11:22.622 detox[976321] i Home (E2E mock): shows duty roster home and acknowledges next shift [OK]
+
+22:11:22.624 detox[976321] i License gate (E2E mock): blocks when the user has no seat
+22:11:32.315 detox[976321] i License gate (E2E mock): blocks when the user has no seat [OK]
+
+22:11:32.316 detox[976321] i Unofficial server (E2E mock): shows unofficial / unlicensed wall
+22:11:41.250 detox[976321] i Unofficial server (E2E mock): shows unofficial / unlicensed wall [OK]
+
+22:11:41.252 detox[976321] i Marketplace (E2E mock): opens marketplace from Settings and allows claim
+22:11:52.741 detox[976321] i Marketplace (E2E mock): opens marketplace from Settings and allows claim [OK]
+
+PASS e2e/home.e2e.js (43.713 s)
+  Home (E2E mock)
+    ✓ shows duty roster home and acknowledges next shift (10447 ms)
+  License gate (E2E mock)
+    ✓ blocks when the user has no seat (9691 ms)
+  Unofficial server (E2E mock)
+    ✓ shows unofficial / unlicensed wall (8934 ms)
+  Marketplace (E2E mock)
+    ✓ opens marketplace from Settings and allows claim (11488 ms)
+
+22:11:55.420 detox[976321] i login-reachability.e2e.js is assigned to AttachedDevice:emulator-5600
+22:11:56.912 detox[976321] i Login shell (no mock): shows the login screen
+22:12:05.947 detox[976321] i Login shell (no mock): shows the login screen [OK]
+
+PASS e2e/login-reachability.e2e.js (13.191 s)
+  Login shell (no mock)
+    ✓ shows the login screen (9034 ms)
+
+22:12:08.128 detox[976321] i smoke.e2e.js is assigned to AttachedDevice:emulator-5600
+22:12:17.175 detox[976321] i DutyCheck smoke (E2E mock): lands on home with acknowledge CTA and core tabs
+22:12:17.208 detox[976321] i DutyCheck smoke (E2E mock): lands on home with acknowledge CTA and core tabs [OK]
+
+PASS e2e/smoke.e2e.js (11.246 s)
+  DutyCheck smoke (E2E mock)
+    ✓ lands on home with acknowledge CTA and core tabs (32 ms)
+
+Test Suites: 4 passed, 4 total
+Tests:       14 passed, 14 total
+Snapshots:   0 total
+Time:        178.415 s
+Ran all test suites matching /e2e\/smoke.e2e.js|e2e\/login-reachability.e2e.js|e2e\/home.e2e.js|e2e\/journeys.e2e.js/i.

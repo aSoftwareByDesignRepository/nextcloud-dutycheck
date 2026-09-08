@@ -43,3 +43,6 @@ config/config.php
 # Build / release artifacts
 build/
 appinfo/signature.json
+
+# Playwright / local auth dumps (never commit)
+.auth/

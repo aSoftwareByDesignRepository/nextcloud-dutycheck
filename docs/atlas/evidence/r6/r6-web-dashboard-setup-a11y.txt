@@ -1,0 +1,15 @@
+
+Running 4 tests using 1 worker
+
+(node:3340195) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [setup] › tests/e2e/auth.setup.js:9:1 › authenticate planner (16.2s)
+(node:3347569) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 [chromium] › tests/e2e/setup-progress-a11y.spec.js:89:2 › setup progress a11y + journey › fixture done-status ink contrasts ≥ 4.5:1 under live NC theme tokens (15.5s)
+  -  3 [chromium] › tests/e2e/setup-progress-a11y.spec.js:166:2 › setup progress a11y + journey › live setup shows one primary CTA and suppresses Quick start
+  -  4 [chromium] › tests/e2e/setup-progress-a11y.spec.js:191:2 › setup progress a11y + journey › CTA completes a one-click jump into the next setup page
+
+  2 skipped
+  2 passed (1.3m)
+EXIT=0

@@ -1,0 +1,39 @@
+Momos attack surface: company=1 locA=9 locB=10 period=45 empA=36 empB=15
+
+=== [M-01] claimRequiresPlanner=true but employee claim still succeeds (dead policy flag) ===
+ERROR: An exception occurred while executing a query: SQLSTATE[22001]: String data, right truncated: 1406 Data too long for column 'start_time' at row 1 @ DbalException.php:50
+
+=== [M-02] Employee Today board must be FORBIDDEN ===
+CLEAN: FORBIDDEN as required
+
+=== [M-03] Peer team-week IDOR: location without belonging → FORBIDDEN ===
+CLEAN: FORBIDDEN without belonging
+
+=== [M-04] Wrong user accepts swap destined for someone else ===
+CLEAN: blocked: EMPLOYEE_LINK_NOT_FOUND
+
+=== [M-05] Unauthenticated / wrong role: settings update by linked employee ===
+PROVEN: SelfServiceSettingsService::updateForCompany accepted employee actor (controller ACL is only gate)
+
+=== [M-06] Swap candidates: any employee scrapes full company directory ===
+PROVEN: listSwapCandidates returned 12 colleagues with no peer/swap feature gate; sample=Atlas Inj ' OR 1=1 --,atlas-l1-1d6d5c92-emp,atlas-l1-20f04630-emp,atlas-l1-2ab78854-emp,atlas-l1-9190738d-emp
+
+=== [M-07] ICS: valid-format garbage token must not distinguish missing vs wrong (timing/enum) ===
+CLEAN: opaque ICAL_TOKEN_INVALID for both (20.386631ms)
+
+=== [M-08] Peer week includes draft/open period shifts (privacy: should be published-only) ===
+CLEAN: PEER_VISIBILITY_DISABLED
+
+=== [M-09] userMayDisableQuiet flag is stored but never enforced (dead control) ===
+PROVEN: settings expose/store userMayDisableQuiet but PushQuietHoursService never reads it
+
+=== [M-10] Blackout create as employee for another employeeId (IDOR) ===
+CLEAN: FORBIDDEN
+
+=== [M-11] Preference save band injection / free-text PII path ===
+ERROR: OCA\DutyCheck\Service\ShiftPreferenceService::save(): Argument #1 ($employeeId) must be of type int, null given, called in /var/www/html/custom_apps/dutycheck/scripts/_momos_attack.php on line 347 @ ShiftPreferenceService.php:93
+
+=== [M-12] Bilateral_auto: concurrent double-accept must not double-apply ===
+ERROR: ASSIGNMENT_NOT_FOUND @ SwapService.php:682
+
+======== SUMMARY proven=3 clean=6 errors=3 ========

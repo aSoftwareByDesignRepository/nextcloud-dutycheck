@@ -47,7 +47,7 @@ final class SettingsSectionCatalogTest extends TestCase
 	{
 		$sections = SettingsSectionCatalog::SECTIONS;
 		self::assertSame($sections, array_values(array_unique($sections)), 'Section slugs must be unique');
-		self::assertCount(13, $sections);
+		self::assertCount(14, $sections);
 		foreach ($sections as $section) {
 			self::assertMatchesRegularExpression(
 				'/^[a-z]+(-[a-z]+)*$/',
@@ -140,6 +140,7 @@ final class SettingsSectionCatalogTest extends TestCase
 			'qualifications' => 'T:Qualifications',
 			'planner-scope' => 'T:Planner location scope',
 			'operations' => 'T:Notifications & retention',
+			'dienst-team' => 'T:Duty & team',
 			'integration' => 'T:ArbeitszeitCheck integration',
 			'privacy' => 'T:Privacy & words we use',
 			'license' => 'T:Official mobile & terminal licenses',
@@ -164,6 +165,7 @@ final class SettingsSectionCatalogTest extends TestCase
 			'qualifications' => 'T:Qualifications',
 			'planner-scope' => 'T:Planner scope',
 			'operations' => 'T:Operations',
+			'dienst-team' => 'T:Duty & team',
 			'integration' => 'T:Integration',
 			'privacy' => 'T:Privacy',
 			'license' => 'T:License',
@@ -206,6 +208,7 @@ final class SettingsSectionCatalogTest extends TestCase
 			'qualifications' => 'block assign/publish',
 			'planner-scope' => 'never scoped',
 			'operations' => 'cold-archive retention',
+			'dienst-team' => 'one place for self-service',
 			'integration' => 'never writes to ArbeitszeitCheck',
 			'privacy' => 'plain-language terms',
 		];

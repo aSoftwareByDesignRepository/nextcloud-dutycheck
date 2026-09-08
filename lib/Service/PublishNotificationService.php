@@ -18,6 +18,8 @@ use Throwable;
 
 /**
  * Notify linked employees when a period is published (no colleague PII in payload).
+ *
+ * Optional quiet-hours deps are append-only / nullable for backward-compatible DI.
  */
 class PublishNotificationService
 {
@@ -28,16 +30,34 @@ class PublishNotificationService
 		private readonly IURLGenerator $urlGenerator,
 		private readonly IFactory $l10nFactory,
 		private readonly LoggerInterface $logger,
+		private readonly ?PushQuietHoursService $quiet = null,
+		private readonly ?CompanyService $companies = null,
 	) {
 	}
 
 	public function notifyPeriodPublished(int $periodId, string $actorUserId): void
 	{
 		$period = $this->periodLabel($periodId);
+		$companyId = $this->periodCompanyId($periodId);
 		$recipients = $this->linkedUserIdsForPeriod($periodId);
 		foreach ($recipients as $uid) {
 			try {
-				$this->sendNotification($uid, $periodId, $period);
+				if ($this->quiet !== null
+					&& $companyId > 0
+					&& $this->quiet->shouldDefer($companyId, 'roster_published_change')
+				) {
+					// Enqueue with Notifier-compatible subject; defer check uses urgent type.
+					$deferred = $this->quiet->enqueue($uid, $companyId, 'roster_published', [
+						'period' => $period,
+						'periodId' => (string) $periodId,
+						'type' => 'roster_published',
+					]);
+					if (!$deferred) {
+						$this->sendNotification($uid, $periodId, $period);
+					}
+				} else {
+					$this->sendNotification($uid, $periodId, $period);
+				}
 				$this->sendActivity($uid, $actorUserId, $periodId, $period);
 			} catch (Throwable $e) {
 				$this->logger->warning('DutyCheck publish notification failed', [
@@ -88,6 +108,24 @@ class PublishNotificationService
 			return '#' . $periodId;
 		}
 		return (string) $row['start_date'] . ' – ' . (string) $row['end_date'];
+	}
+
+	private function periodCompanyId(int $periodId): int
+	{
+		if (SchemaProbe::hasColumn($this->db, 'dc_periods', 'company_id')) {
+			$qb = $this->db->getQueryBuilder();
+			$qb->select('company_id')
+				->from('dc_periods')
+				->where($qb->expr()->eq('id', $qb->createNamedParameter($periodId, IQueryBuilder::PARAM_INT)));
+			$raw = $qb->executeQuery()->fetchOne();
+			if ($raw !== false && $raw !== null) {
+				return (int) $raw;
+			}
+		}
+		if ($this->companies !== null) {
+			return CompanyService::DEFAULT_COMPANY_ID;
+		}
+		return 0;
 	}
 
 	/**

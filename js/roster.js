@@ -28,6 +28,11 @@
 		editingAssignmentId: null,
 		editingAssignmentVersion: null,
 		copyPreviewReady: false,
+		preferencesByEmployee: {},
+		blackoutsByEmployeeDate: {},
+		calendarYearMonth: null,
+		/** When set (YYYY-MM), the person×day grid shows only that month — even if the backing open period covers a wider range. Cleared when the advanced period switcher is used. */
+		gridMonthClamp: null,
 	};
 	let assignmentModalInstance = null;
 	let suggestedBreakMinutes = 0;
@@ -573,6 +578,130 @@
 		}
 	}
 
+	function yearMonthFromIso(iso) {
+		const raw = String(iso || '').trim();
+		const m = raw.match(/^(\d{4}-\d{2})/);
+		return m ? m[1] : '';
+	}
+
+	function shiftYearMonth(ym, deltaMonths) {
+		const base = String(ym || '').match(/^(\d{4})-(\d{2})$/);
+		if (!base) {
+			return ym;
+		}
+		const cursor = new Date(Date.UTC(Number(base[1]), Number(base[2]) - 1 + deltaMonths, 1));
+		return `${cursor.getUTCFullYear()}-${String(cursor.getUTCMonth() + 1).padStart(2, '0')}`;
+	}
+
+	function currentCompanyYearMonth() {
+		const todayIso = D?.todayIsoDate?.();
+		if (typeof todayIso === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(todayIso)) {
+			return todayIso.slice(0, 7);
+		}
+		const now = new Date();
+		return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
+	}
+
+	function syncMonthNavigator(ym) {
+		const label = document.getElementById('dc-roster-month-current');
+		if (!label) {
+			return;
+		}
+		const resolved = ym || state.calendarYearMonth || currentCompanyYearMonth();
+		state.calendarYearMonth = resolved;
+		label.textContent = D?.formatYearMonth?.(resolved) || resolved;
+	}
+
+	function setMonthStatus(message, isError) {
+		const el = document.getElementById('dc-roster-month-status');
+		if (!el) {
+			return;
+		}
+		if (!message) {
+			el.hidden = true;
+			el.textContent = '';
+			return;
+		}
+		el.hidden = false;
+		el.textContent = message;
+		el.classList.toggle('dc-roster-flash--error', !!isError);
+	}
+
+	async function goToCalendarMonth(yearMonth, options) {
+		const ym = String(yearMonth || '').trim();
+		if (!/^\d{4}-\d{2}$/.test(ym)) {
+			setMonthStatus(t('dutycheck', 'That month looks invalid.'), true);
+			return;
+		}
+		const quiet = !!(options && options.quiet);
+		const prev = document.getElementById('dc-roster-month-prev');
+		const next = document.getElementById('dc-roster-month-next');
+		const todayBtn = document.getElementById('dc-roster-month-today');
+		[prev, next, todayBtn].forEach((btn) => {
+			if (btn) {
+				btn.disabled = true;
+			}
+		});
+		try {
+			const ensured = await Api.post('/apps/dutycheck/api/periods/ensure-calendar-month', { yearMonth: ym });
+			const period = ensured?.data?.period;
+			const created = !!ensured?.data?.created;
+			const writable = ensured?.data?.writable !== false;
+			const periodId = Number(period?.id || 0);
+			state.calendarYearMonth = ensured?.data?.yearMonth || ym;
+			state.gridMonthClamp = state.calendarYearMonth;
+			syncMonthNavigator(state.calendarYearMonth);
+			if (!quiet) {
+				if (created) {
+					setMonthStatus(t('dutycheck', 'Opened {month} for planning.').replace('{month}', D?.formatYearMonth?.(ym) || ym), false);
+				} else if (!writable) {
+					setMonthStatus(t('dutycheck', '{month} is read-only (published or closed).').replace('{month}', D?.formatYearMonth?.(ym) || ym), false);
+				} else {
+					setMonthStatus('', false);
+				}
+			}
+			if (Number.isInteger(periodId) && periodId > 0) {
+				await loadRoster(periodId);
+			} else {
+				await loadRoster(null);
+			}
+			await Promise.all([loadPendingSwaps(), loadPendingOpenClaims()]);
+		} catch (err) {
+			const code = err?.code || err?.error?.code || '';
+			if (code === 'ENSURE_MONTH_IN_PROGRESS' || code === 'RATE_LIMITED') {
+				setMonthStatus(t('dutycheck', 'Please wait a moment and try that month again.'), true);
+			} else {
+				setMonthStatus(t('dutycheck', 'Could not open that month. Check your connection and try again.'), true);
+			}
+			Msg?.showError?.(err);
+		} finally {
+			[prev, next, todayBtn].forEach((btn) => {
+				if (btn) {
+					btn.disabled = false;
+				}
+			});
+		}
+	}
+
+	function wireMonthNavigator() {
+		const prev = document.getElementById('dc-roster-month-prev');
+		const next = document.getElementById('dc-roster-month-next');
+		const todayBtn = document.getElementById('dc-roster-month-today');
+		if (!prev && !next && !todayBtn) {
+			return;
+		}
+		syncMonthNavigator(state.calendarYearMonth || currentCompanyYearMonth());
+		prev?.addEventListener('click', () => {
+			void goToCalendarMonth(shiftYearMonth(state.calendarYearMonth || currentCompanyYearMonth(), -1));
+		});
+		next?.addEventListener('click', () => {
+			void goToCalendarMonth(shiftYearMonth(state.calendarYearMonth || currentCompanyYearMonth(), 1));
+		});
+		todayBtn?.addEventListener('click', () => {
+			void goToCalendarMonth(currentCompanyYearMonth());
+		});
+	}
+
 	function severityBadge(severity) {
 		const sev = String(severity || 'info');
 		const label = ConflictLabels ? ConflictLabels.severityLabel(severity) : sev;
@@ -601,14 +730,22 @@
 		if (!conflicts.length) {
 			return;
 		}
-		for (const conflict of conflicts) {
+		const severityRank = (sev) => (sev === 'hard' ? 0 : sev === 'soft' ? 1 : 2);
+		const ordered = [...conflicts].sort((a, b) => {
+			const d = severityRank(a?.severity) - severityRank(b?.severity);
+			if (d !== 0) return d;
+			return Number(a?.id || 0) - Number(b?.id || 0);
+		});
+		for (const conflict of ordered) {
 			const li = create('li', { class: 'dc-conflict dc-conflict--' + (conflict?.severity || 'info') });
 			li.appendChild(severityBadge(conflict?.severity));
 			const conflictMessage = String(conflict?.message || '');
-			const titleText = conflictMessage
+			const baseText = conflictMessage
 				? translateConflictMessage(conflictMessage)
 				: t('dutycheck', 'Unknown conflict');
-			const titleId = `dc-conflict-title-${String(conflict?.id || conflicts.indexOf(conflict))}`;
+			const who = String(conflict?.employeeName || '').trim();
+			const titleText = who ? `${who}: ${baseText}` : baseText;
+			const titleId = `dc-conflict-title-${String(conflict?.id || ordered.indexOf(conflict))}`;
 			const body = create('div', { class: 'dc-conflict__body' });
 			const title = create('span', { class: 'dc-conflict__title', text: titleText });
 			title.id = titleId;
@@ -987,9 +1124,28 @@
 		if (!period?.startDate || !period?.endDate) {
 			return [];
 		}
+		let startIso = String(period.startDate).slice(0, 10);
+		let endIso = String(period.endDate).slice(0, 10);
+		const clampYm = state.gridMonthClamp;
+		if (typeof clampYm === 'string' && /^\d{4}-\d{2}$/.test(clampYm)) {
+			const monthStart = `${clampYm}-01`;
+			const last = new Date(`${monthStart}T12:00:00Z`);
+			last.setUTCMonth(last.getUTCMonth() + 1);
+			last.setUTCDate(0);
+			const monthEnd = last.toISOString().slice(0, 10);
+			if (startIso < monthStart) {
+				startIso = monthStart;
+			}
+			if (endIso > monthEnd) {
+				endIso = monthEnd;
+			}
+			if (startIso > endIso) {
+				return [];
+			}
+		}
 		const out = [];
-		const cursor = new Date(`${period.startDate}T00:00:00Z`);
-		const end = new Date(`${period.endDate}T00:00:00Z`);
+		const cursor = new Date(`${startIso}T00:00:00Z`);
+		const end = new Date(`${endIso}T00:00:00Z`);
 		while (cursor <= end) {
 			out.push(cursor.toISOString().slice(0, 10));
 			cursor.setUTCDate(cursor.getUTCDate() + 1);
@@ -1000,24 +1156,30 @@
 		return out;
 	}
 
-	function updateGridWindowStatus(range, total) {
+	function updateGridWindowStatus(range, total, dayCount) {
 		const el = document.getElementById('dc-roster-grid-status');
 		if (!el) {
 			return;
 		}
+		const days = Number.isFinite(dayCount) ? dayCount : periodDateList().length;
 		const cap = virtualApi().windowCaption({ start: range.start, end: range.end, total });
 		if (cap.mode === 'empty') {
 			el.textContent = '';
 			return;
 		}
+		let text = '';
 		if (cap.mode === 'all') {
-			el.textContent = t('dutycheck', 'All {total} people are on screen.').replace('{total}', String(cap.total));
-			return;
+			text = t('dutycheck', 'All {total} people are on screen.').replace('{total}', String(cap.total));
+		} else {
+			text = t('dutycheck', 'Showing people {from}–{to} of {total}. Scroll to see everyone.')
+				.replace('{from}', String(cap.from))
+				.replace('{to}', String(cap.to))
+				.replace('{total}', String(cap.total));
 		}
-		el.textContent = t('dutycheck', 'Showing people {from}–{to} of {total}. Scroll to see everyone.')
-			.replace('{from}', String(cap.from))
-			.replace('{to}', String(cap.to))
-			.replace('{total}', String(cap.total));
+		if (days > 10) {
+			text += ' ' + t('dutycheck', 'Scroll sideways to see every day in this period.');
+		}
+		el.textContent = text;
 	}
 
 	function createGridSpacer(px) {
@@ -1032,6 +1194,9 @@
 		root.removeAttribute('aria-rowcount');
 		root.removeAttribute('aria-colcount');
 		root.removeAttribute('tabindex');
+		root.style.removeProperty('--dc-roster-day-count');
+		root.style.removeProperty('--dc-roster-day-min');
+		root.classList.remove('dc-roster-grid--long', 'dc-roster-grid--month');
 		root.setAttribute('role', 'status');
 		root.setAttribute('aria-live', 'polite');
 		root.replaceChildren(create('p', {
@@ -1046,23 +1211,101 @@
 		root.removeAttribute('aria-live');
 		root.setAttribute('aria-rowcount', String(employees.length + 1));
 		root.setAttribute('aria-colcount', String(Math.max(1, dates.length + 1)));
+		root.style.setProperty('--dc-roster-day-count', String(Math.max(1, dates.length)));
+		const dayMin = D?.rosterDayColumnMin?.(dates.length) || (dates.length > 21 ? '3.25rem' : (dates.length > 10 ? '3.75rem' : '4.5rem'));
+		root.style.setProperty('--dc-roster-day-min', dayMin);
+		root.classList.toggle('dc-roster-grid--long', dates.length > 10);
+		root.classList.toggle('dc-roster-grid--month', dates.length >= 28);
 	}
 
-	function buildGridRow(emp, rowIdx, dates, byKey) {
+	function buildColHead(day, colIdx, dayMeta) {
+		const parts = dayMeta || D?.formatRosterColumnParts?.(day);
+		const full = parts?.full || D?.formatDisplayDate?.(day) || day;
+		let ariaLabel = parts?.ariaLabel || full;
+		if (parts?.isToday) {
+			ariaLabel = `${ariaLabel} — ${t('dutycheck', 'Today')}`;
+		}
+		const weekdayShort = parts?.weekdayShort || '';
+		const dayNum = parts?.day || '';
+		const classNames = ['dc-roster-grid__colhead'];
+		if (parts?.isWeekend) {
+			classNames.push('dc-roster-grid__colhead--weekend');
+		}
+		if (parts?.isToday) {
+			classNames.push('dc-roster-grid__colhead--today');
+		}
+		const children = [];
+		if (weekdayShort) {
+			children.push(create('span', { class: 'dc-roster-grid__colhead-wd', text: weekdayShort }));
+		}
+		if (dayNum) {
+			children.push(create('span', { class: 'dc-roster-grid__colhead-day', text: dayNum }));
+		}
+		const attrs = {
+			'data-col': String(colIdx),
+			'aria-colindex': String(colIdx + 2),
+			title: full,
+			'aria-label': ariaLabel,
+		};
+		if (parts?.iso) {
+			attrs['data-duty-date'] = parts.iso;
+		}
+		if (!children.length) {
+			return create('div', {
+				class: classNames.join(' '),
+				role: 'columnheader',
+				text: full,
+				attrs,
+			});
+		}
+		return create('div', {
+			class: classNames.join(' '),
+			role: 'columnheader',
+			attrs,
+		}, children);
+	}
+
+	function buildDutyDayMeta(dates) {
+		const map = new Map();
+		(dates || []).forEach((day) => {
+			map.set(day, D?.formatRosterColumnParts?.(day) || null);
+		});
+		return map;
+	}
+
+	function buildGridRow(emp, rowIdx, dates, byKey, dayMetaByDate) {
 		const row = create('div', {
 			class: 'dc-roster-grid__row',
 			role: 'row',
 			attrs: { 'aria-rowindex': String(rowIdx + 2) },
 		});
+		const prefs = state.preferencesByEmployee[String(emp.id)] || [];
+		const prefChips = prefs.slice(0, 2).map((p) => {
+			const band = String(p.band || '');
+			const label = band === 'early'
+				? t('dutycheck', 'Früh')
+				: (band === 'late' ? t('dutycheck', 'Spät') : band);
+			return create('span', {
+				class: 'dc-pref-chip dc-pref-chip--static',
+				text: label,
+				attrs: { title: label },
+			});
+		});
+		const headKids = [
+			create('span', { class: 'dc-roster-grid__rowhead-name', text: String(emp.name || emp.displayName || emp.id) }),
+		];
+		if (prefChips.length) {
+			headKids.push(create('span', { class: 'dc-roster-grid__pref-chips', attrs: { 'aria-label': t('dutycheck', 'Wishes') } }, prefChips));
+		}
 		row.appendChild(create('div', {
 			class: 'dc-roster-grid__rowhead',
 			role: 'rowheader',
-			text: String(emp.name || emp.displayName || emp.id),
 			attrs: { 'aria-colindex': '1' },
-		}));
+		}, headKids));
 		dates.forEach((day, colIdx) => {
 			const key = cellSelectionKey(emp.id, day);
 			const cellAssignments = byKey.get(key) || [];
+			const dayParts = dayMetaByDate?.get?.(day) || D?.formatRosterColumnParts?.(day);
 			const cell = create('div', {
 				class: 'dc-roster-grid__cell',
 				role: 'gridcell',
@@ -1076,18 +1319,42 @@
 					'aria-selected': gridState.selected.has(key) ? 'true' : 'false',
 				},
 			});
+			if (dayParts?.isWeekend) {
+				cell.classList.add('dc-roster-grid__cell--weekend');
+			}
+			if (dayParts?.isToday) {
+				cell.classList.add('dc-roster-grid__cell--today');
+			}
 			if (cellAssignments.length) {
 				cell.classList.add('dc-roster-grid__cell--filled');
 				const first = cellAssignments[0];
-				const label = `${String(first.startTime || '').slice(0, 5)}–${String(first.endTime || '').slice(0, 5)}`;
+				const startH = Number(String(first.startTime || '').slice(0, 2));
+				let band = 'day';
+				if (Number.isFinite(startH)) {
+					if (startH >= 22 || startH < 6) band = 'night';
+					else if (startH < 9) band = 'early';
+					else if (startH >= 14) band = 'late';
+				}
+				const bandName = band === 'early'
+					? t('dutycheck', 'Früh')
+					: (band === 'late'
+						? t('dutycheck', 'Spät')
+						: (band === 'night'
+							? t('dutycheck', 'Nacht')
+							: t('dutycheck', 'Tag')));
+				cell.classList.add('dc-roster-grid__cell--' + band);
+				cell.setAttribute('data-shift-band', band);
+				const clock = `${String(first.startTime || '').slice(0, 5)}–${String(first.endTime || '').slice(0, 5)}`;
+				// Signature craft: band-name pill is primary (Früh/Tag/Spät/Nacht); clock stays in title/a11y.
 				cell.appendChild(create('span', {
-					class: 'dc-roster-grid__shift',
-					text: label,
+					class: 'dc-roster-grid__shift dc-roster-grid__shift--' + band,
+					text: bandName,
+					attrs: { title: clock, 'data-shift-clock': clock },
 				}));
 				const editLabel = canAddAssignment()
 					? t('dutycheck', 'Edit assignment')
 					: t('dutycheck', 'View assignment (read-only)');
-				cell.setAttribute('aria-label', `${editLabel}: ${label}`);
+				cell.setAttribute('aria-label', `${editLabel}: ${bandName} ${clock}`);
 				if (cellAssignments.length > 1) {
 					cell.appendChild(create('span', {
 						class: 'dc-roster-grid__more',
@@ -1096,12 +1363,26 @@
 				}
 			} else {
 				cell.classList.add('dc-roster-grid__cell--empty');
-				cell.setAttribute(
-					'aria-label',
-					canAddAssignment()
-						? t('dutycheck', 'Empty cell — Space to select for bulk fill')
-						: t('dutycheck', 'Empty cell'),
-				);
+				const blackoutKey = `${emp.id}|${day}`;
+				const hasBlackout = !!state.blackoutsByEmployeeDate[blackoutKey];
+				if (hasBlackout) {
+					cell.classList.add('dc-roster-grid__cell--blackout');
+					cell.appendChild(create('span', {
+						class: 'dc-blackout-mark',
+						attrs: { title: t('dutycheck', 'Kann nicht') },
+					}, [
+						create('span', { class: 'dc-blackout-mark__icon', attrs: { 'aria-hidden': 'true' }, text: '⊘' }),
+						create('span', { class: 'dc-blackout-mark__text', text: t('dutycheck', 'Kann nicht') }),
+					]));
+					cell.setAttribute('aria-label', t('dutycheck', 'Cannot work (blackout)'));
+				} else {
+					cell.setAttribute(
+						'aria-label',
+						canAddAssignment()
+							? t('dutycheck', 'Empty cell — Space to select for bulk fill')
+							: t('dutycheck', 'Empty cell'),
+					);
+				}
 			}
 			if (gridState.selected.has(key)) {
 				cell.classList.add('is-selected');
@@ -1223,7 +1504,7 @@
 			gridState.windowEnd = 0;
 			gridState.paintedEmployeeCount = employees.length;
 			gridState.paintedDateCount = dates.length;
-			updateGridWindowStatus({ start: 0, end: 0 }, 0);
+			updateGridWindowStatus({ start: 0, end: 0 }, 0, 0);
 			updateBulkBar();
 			return;
 		}
@@ -1254,13 +1535,14 @@
 			&& gridState.paintedEmployeeCount === employees.length
 			&& gridState.paintedDateCount === dates.length) {
 			syncVisibleGridChrome();
-			updateGridWindowStatus(range, employees.length);
+			updateGridWindowStatus(range, employees.length, dates.length);
 			updateBulkBar();
 			return;
 		}
 
 		const savedTop = scroller ? scroller.scrollTop : 0;
 		const savedLeft = scroller ? scroller.scrollLeft : 0;
+		const dayMetaByDate = buildDutyDayMeta(dates);
 		const frag = document.createDocumentFragment();
 		const header = create('div', {
 			class: 'dc-roster-grid__row dc-roster-grid__row--head',
@@ -1274,13 +1556,7 @@
 			attrs: { 'aria-colindex': '1' },
 		}));
 		dates.forEach((day, colIdx) => {
-			const label = D?.formatDisplayDate?.(day) || day;
-			header.appendChild(create('div', {
-				class: 'dc-roster-grid__colhead',
-				role: 'columnheader',
-				text: label,
-				attrs: { 'data-col': String(colIdx), 'aria-colindex': String(colIdx + 2) },
-			}));
+			header.appendChild(buildColHead(day, colIdx, dayMetaByDate.get(day)));
 		});
 		frag.appendChild(header);
 		if (range.padBefore > 0) {
@@ -1288,7 +1564,7 @@
 		}
 		const windowEmployees = employees.slice(range.start, range.end);
 		windowEmployees.forEach((emp, offset) => {
-			frag.appendChild(buildGridRow(emp, range.start + offset, dates, byKey));
+			frag.appendChild(buildGridRow(emp, range.start + offset, dates, byKey, dayMetaByDate));
 		});
 		if (range.padAfter > 0) {
 			frag.appendChild(createGridSpacer(range.padAfter));
@@ -1327,7 +1603,7 @@
 			gridState.rowHeight = measuredRow;
 		}
 		bindGridInteractions(root);
-		updateGridWindowStatus(range, employees.length);
+		updateGridWindowStatus(range, employees.length, dates.length);
 		updateBulkBar();
 	}
 
@@ -1739,6 +2015,23 @@
 				}
 				const acknowledgements = conflictTypes.map((type) => ({ conflictType: type, reason }));
 				return submitAssignment({ ...payload, acknowledgements }, false);
+			}
+			if (retryWithAck && code === 'BLACKOUT_CONFLICT' && !String(payload.blackoutOverrideReason || payload.blackout_override_reason || '').trim()) {
+				const reason = await C.promptReason({
+					title: t('dutycheck', 'Employee cannot work (blackout)'),
+					label: t(
+						'dutycheck',
+						'This employee marked that they cannot work during this time. To schedule anyway, type a short planning reason (at least 10 characters). Do not enter medical details.',
+					),
+					confirmLabel: t('dutycheck', 'Schedule anyway'),
+					cancelLabel: t('dutycheck', 'Cancel'),
+					minLength: 10,
+					maxLength: 200,
+				});
+				if (reason === null || reason.length < 10) {
+					throw error;
+				}
+				return submitAssignment({ ...payload, blackoutOverrideReason: reason.slice(0, 200) }, true);
 			}
 			throw error;
 		}
@@ -2465,17 +2758,33 @@
 		state.absenceBlocks = data.absenceBlocks || [];
 		state.canCreateAssignments = Boolean(data.canCreateAssignments);
 		fillPeriodSwitcher(state.periods, data.selectedPeriodId);
+		const selectedPeriod = state.periods.find((p) => Number(p.id) === Number(data.selectedPeriodId));
+		if (data.calendarYearMonth) {
+			state.calendarYearMonth = String(data.calendarYearMonth);
+		} else if (state.gridMonthClamp && /^\d{4}-\d{2}$/.test(state.gridMonthClamp)) {
+			// Keep the month the planner navigated to when the open period covers a wider range.
+			state.calendarYearMonth = state.gridMonthClamp;
+		} else if (selectedPeriod?.startDate) {
+			state.calendarYearMonth = yearMonthFromIso(selectedPeriod.startDate) || state.calendarYearMonth;
+		}
+		syncMonthNavigator(state.calendarYearMonth);
 		const periodHidden = document.getElementById('dc-assignment-period');
 		if (periodHidden) {
 			periodHidden.value = data.selectedPeriodId ? String(data.selectedPeriodId) : '';
 		}
 		const dateInput = document.getElementById('dc-assignment-date');
-		const selectedPeriod = state.periods.find((p) => Number(p.id) === Number(data.selectedPeriodId));
 		if (dateInput && selectedPeriod?.startDate && selectedPeriod?.endDate) {
 			dateInput.min = String(selectedPeriod.startDate);
 			dateInput.max = String(selectedPeriod.endDate);
 			if (!dateInput.value && state.canCreateAssignments) {
-				dateInput.value = String(selectedPeriod.startDate);
+				const clampStart = state.gridMonthClamp && /^\d{4}-\d{2}$/.test(state.gridMonthClamp)
+					? `${state.gridMonthClamp}-01`
+					: '';
+				if (clampStart && clampStart >= dateInput.min && clampStart <= dateInput.max) {
+					dateInput.value = clampStart;
+				} else {
+					dateInput.value = String(selectedPeriod.startDate);
+				}
 			}
 		} else if (dateInput) {
 			dateInput.removeAttribute('min');
@@ -2527,6 +2836,8 @@
 			const response = await Api.get('/apps/dutycheck/api/roster', { periodId });
 			render(response?.data || {});
 			updateUrlPeriodId(response?.data?.selectedPeriodId || null);
+			void loadRosterSignals(response?.data || {});
+			void loadCoverageStrip(response?.data?.selectedPeriodId);
 			return response?.data || {};
 		} catch (err) {
 			const code = String(err?.payload?.error?.code || err?.code || '');
@@ -2535,6 +2846,8 @@
 					const fallback = await Api.get('/apps/dutycheck/api/roster', {});
 					render(fallback?.data || {});
 					updateUrlPeriodId(fallback?.data?.selectedPeriodId || null);
+					void loadRosterSignals(fallback?.data || {});
+					void loadCoverageStrip(fallback?.data?.selectedPeriodId);
 					Msg.announce(
 						t('dutycheck', 'That planning period is not available. Showing the roster for the current period instead.'),
 						'warning',
@@ -2551,6 +2864,207 @@
 			return null;
 		} finally {
 			C.clearLoadingRow(tbody);
+		}
+	}
+
+	function dateOverlapsBlackout(day, blackout) {
+		const start = String(blackout.startAt || blackout.start_at || '').slice(0, 10);
+		const end = String(blackout.endAt || blackout.end_at || '').slice(0, 10);
+		if (!start || !end) return false;
+		return day >= start && day <= end;
+	}
+
+	async function loadRosterSignals(data) {
+		state.preferencesByEmployee = {};
+		state.blackoutsByEmployeeDate = {};
+		const employees = data.employees || state.employees || [];
+		const period = (data.periods || state.periods || []).find(
+			(p) => Number(p.id) === Number(data.selectedPeriodId),
+		);
+		const from = period?.startDate || period?.start_date || '';
+		const to = period?.endDate || period?.end_date || '';
+		const ids = employees.map((e) => Number(e.id)).filter((n) => n > 0);
+		if (!ids.length) return;
+		try {
+			const res = await Api.get('/apps/dutycheck/api/roster/signals', {
+				employeeIds: ids,
+				from,
+				to,
+			});
+			const prefs = res?.data?.preferences || [];
+			const blackouts = res?.data?.blackouts || [];
+			prefs.forEach((p) => {
+				const eid = String(p.employeeId || p.employee_id || '');
+				if (!eid) return;
+				if (!state.preferencesByEmployee[eid]) state.preferencesByEmployee[eid] = [];
+				state.preferencesByEmployee[eid].push(p);
+			});
+			const days = [];
+			if (from && to) {
+				const cur = new Date(from + 'T12:00:00');
+				const end = new Date(to + 'T12:00:00');
+				while (cur <= end) {
+					const pad = (n) => String(n).padStart(2, '0');
+					days.push(`${cur.getFullYear()}-${pad(cur.getMonth() + 1)}-${pad(cur.getDate())}`);
+					cur.setDate(cur.getDate() + 1);
+				}
+			}
+			blackouts.forEach((b) => {
+				const eid = Number(b.employeeId || b.employee_id || 0);
+				if (!eid) return;
+				days.forEach((day) => {
+					if (dateOverlapsBlackout(day, b)) {
+						state.blackoutsByEmployeeDate[`${eid}|${day}`] = true;
+					}
+				});
+			});
+			if (Object.keys(state.preferencesByEmployee).length || Object.keys(state.blackoutsByEmployeeDate).length) {
+				paintGridWindow({ force: true });
+			}
+		} catch (_) {
+			// Optional enrichment — ignore failures.
+		}
+	}
+
+	async function loadCoverageStrip(periodId) {
+		const strip = document.getElementById('dc-coverage-strip');
+		const text = document.getElementById('dc-coverage-strip-text');
+		if (!strip || !text) return;
+		const id = Number(periodId || 0);
+		if (!id) {
+			strip.hidden = true;
+			return;
+		}
+		try {
+			const res = await Api.get(`/apps/dutycheck/api/periods/${id}/publish-readiness`);
+			const d = res?.data || {};
+			const hard = Number(d.hardConflicts ?? d.blockingConflicts ?? d.hard ?? 0);
+			const soft = Number(d.softConflicts ?? d.ackRequired ?? d.soft ?? 0);
+			const ready = d.ready === true || (hard === 0 && soft === 0 && d.blocking !== true);
+			let message;
+			if (ready || (hard === 0 && soft === 0)) {
+				message = t('dutycheck', 'Ready to publish — no blocking issues.');
+				strip.classList.remove('dc-coverage-strip--warn', 'dc-coverage-strip--critical');
+				strip.classList.add('dc-coverage-strip--ok');
+			} else if (hard > 0) {
+				message = t('dutycheck', '{n} must-fix issues before publish.')
+					.replace('{n}', String(hard));
+				strip.classList.remove('dc-coverage-strip--ok', 'dc-coverage-strip--warn');
+				strip.classList.add('dc-coverage-strip--critical');
+			} else {
+				message = t('dutycheck', '{n} items need confirmation.')
+					.replace('{n}', String(soft));
+				strip.classList.remove('dc-coverage-strip--ok', 'dc-coverage-strip--critical');
+				strip.classList.add('dc-coverage-strip--warn');
+			}
+			text.textContent = message;
+			strip.hidden = false;
+		} catch (_) {
+			strip.hidden = true;
+		}
+	}
+
+	function currentSuggestLocationId() {
+		const params = new URLSearchParams(window.location.search || '');
+		const fromUrl = Number(params.get('locationId') || 0);
+		if (Number.isInteger(fromUrl) && fromUrl > 0) {
+			return fromUrl;
+		}
+		const filterEl = document.getElementById('dc-roster-location')
+			|| document.getElementById('dc-assignment-location');
+		const fromUi = Number(filterEl?.value || 0);
+		if (Number.isInteger(fromUi) && fromUi > 0) {
+			return fromUi;
+		}
+		return null;
+	}
+
+	async function runSuggestFill() {
+		const periodId = Number(selectedPeriodId() || 0);
+		if (!periodId) {
+			Msg.announce(t('dutycheck', 'Pick an open period first.'), 'warning');
+			return;
+		}
+		const btn = document.getElementById('dc-roster-suggest-fill');
+		if (btn) {
+			btn.disabled = true;
+			btn.setAttribute('aria-busy', 'true');
+		}
+		const locId = currentSuggestLocationId();
+		const suggestBody = { locationId: locId || null };
+		try {
+			const preview = await Api.post(`/apps/dutycheck/api/periods/${periodId}/suggest-preview`, suggestBody);
+			const d = preview?.data || {};
+			if ((d.created ?? 0) === 0 && (d.skippedNoPattern ?? 0) === 0) {
+				const noLoc = Number(d.skippedNoLocation ?? 0);
+				Msg.announce(
+					noLoc > 0
+						? t('dutycheck', 'No shifts to fill. Patterns need a default location on working days (or pick a location filter).')
+						: t('dutycheck', 'No shifts to fill. Check that patterns have a default location and working days with times.'),
+					'warning',
+				);
+				return;
+			}
+			const body = create('div', { class: 'dc-suggest-preview' }, [
+				create('p', {
+					text: t('dutycheck', 'Would create {n} shifts from patterns.')
+						.replace('{n}', String(d.created ?? 0)),
+				}),
+				create('ul', { class: 'dc-suggest-preview__counts' }, [
+					create('li', { text: t('dutycheck', 'Skipped (already filled): {n}').replace('{n}', String(d.skippedExisting ?? 0)) }),
+					create('li', { text: t('dutycheck', 'Skipped (absence): {n}').replace('{n}', String(d.skippedAbsence ?? 0)) }),
+					create('li', { text: t('dutycheck', 'Skipped (kann nicht): {n}').replace('{n}', String(d.skippedBlackout ?? 0)) }),
+					create('li', { text: t('dutycheck', 'Skipped (no pattern): {n}').replace('{n}', String(d.skippedNoPattern ?? 0)) }),
+					create('li', { text: t('dutycheck', 'Skipped (no location): {n}').replace('{n}', String(d.skippedNoLocation ?? 0)) }),
+				]),
+			]);
+			const confirmed = await new Promise((resolve) => {
+				let settled = false;
+				const finish = (value) => {
+					if (settled) return;
+					settled = true;
+					resolve(value);
+				};
+				C.openModal({
+					title: t('dutycheck', 'Suggest fill preview'),
+					primaryLabel: t('dutycheck', 'Apply suggest fill'),
+					cancelLabel: t('dutycheck', 'Cancel'),
+					render: () => body,
+					onSubmit: async () => {
+						finish(true);
+						return true;
+					},
+					onCancel: () => finish(false),
+					onClose: () => finish(false),
+				});
+			});
+			if (!confirmed) return;
+			if ((d.created ?? 0) < 1) {
+				Msg.announce(t('dutycheck', 'Nothing to fill.'), 'info');
+				return;
+			}
+			await Api.post(`/apps/dutycheck/api/periods/${periodId}/suggest-confirm`, suggestBody);
+			Msg.announce(t('dutycheck', 'Suggest fill applied.'), 'success');
+			await loadRoster(periodId);
+		} catch (err) {
+			const code = String(err?.code || err?.payload?.error?.code || '');
+			if (code === 'ROTATION_DISABLED') {
+				Msg.announce(t('dutycheck', 'Turn on Muster in Duty & team settings first.'), 'warning');
+			} else if (code === 'SUGGEST_LOCATION_REQUIRED') {
+				Msg.announce(
+					t('dutycheck', 'Suggest fill needs a location. Set a default location on pattern working days, or filter the roster by location.'),
+					'warning',
+				);
+			} else if (code === 'RATE_LIMITED') {
+				Msg.announce(t('dutycheck', 'Too many suggest-fill requests. Wait a minute and try again.'), 'warning');
+			} else {
+				Msg.handleApiError(err);
+			}
+		} finally {
+			if (btn) {
+				btn.disabled = false;
+				btn.removeAttribute('aria-busy');
+			}
 		}
 	}
 
@@ -2698,6 +3212,8 @@
 				return t('dutycheck', 'This edit is out of date. Reload the roster and open the assignment again.');
 			case 'ABSENCE_CONFLICT':
 				return t('dutycheck', 'This employee has an approved absence on that date.');
+			case 'BLACKOUT_CONFLICT':
+				return t('dutycheck', 'This employee marked that they cannot work during this time.');
 			case 'CONFLICT_ACK_REQUIRED':
 				return t('dutycheck', 'A planning rule needs your confirmation before this shift can be saved.');
 			case 'REASON_TOO_SHORT':
@@ -2725,6 +3241,36 @@
 	}
 
 
+	function employeeLabel(id, apiName) {
+		const n = Number(id);
+		if (!Number.isFinite(n) || n <= 0) return '';
+		if (apiName && String(apiName).trim()) return String(apiName).trim();
+		const emp = (state.employees || []).find((row) => Number(row.id) === n);
+		return emp ? String(emp.name || emp.displayName || '').trim() : '';
+	}
+
+	function swapRowLabel(row) {
+		const fromName = employeeLabel(row.fromEmployeeId, row.fromEmployeeName || row.fromDisplayName);
+		const toName = employeeLabel(row.toEmployeeId, row.toEmployeeName || row.toDisplayName);
+		const duty = row.dutyDate
+			? (D?.formatDisplayDate?.(row.dutyDate) || String(row.dutyDate))
+			: '';
+		const times = (row.startTime || row.endTime)
+			? (D?.formatClock24Range?.(row.startTime, row.endTime)
+				|| `${String(row.startTime || '').slice(0, 5)}–${String(row.endTime || '').slice(0, 5)}`)
+			: '';
+		const loc = String(row.locationName || row.location || '').trim();
+		const shiftBits = [duty, times, loc || null].filter(Boolean).join(' · ');
+		const from = fromName || String(row.fromEmployeeId || '—');
+		// Prefer named people + duty window; never ship bare numeric IDs in store shots.
+		if (row.toEmployeeId) {
+			const to = toName || String(row.toEmployeeId);
+			return [shiftBits || null, `${from} → ${to}`].filter(Boolean).join(' · ');
+		}
+		const openPool = t('dutycheck', 'open pool');
+		return [shiftBits || null, `${from} → ${openPool}`].filter(Boolean).join(' · ');
+	}
+
 	async function loadPendingSwaps() {
 		const list = document.getElementById('dc-swap-list');
 		const empty = document.getElementById('dc-swap-empty');
@@ -2737,14 +3283,7 @@
 			for (const row of rows) {
 				const li = create('li', { class: 'dc-conflicts__item' });
 				li.appendChild(create('p', {
-					text: row.toEmployeeId
-						? t('dutycheck', 'Assignment #{id} · from #{from} → employee #{to}')
-							.replace('{id}', String(row.assignmentId))
-							.replace('{from}', String(row.fromEmployeeId))
-							.replace('{to}', String(row.toEmployeeId))
-						: t('dutycheck', 'Assignment #{id} · from employee #{from} → open pool')
-							.replace('{id}', String(row.assignmentId))
-							.replace('{from}', String(row.fromEmployeeId)),
+					text: swapRowLabel(row),
 				}));
 				const approve = create('button', { type: 'button', class: 'button primary', text: t('dutycheck', 'Approve') });
 				const reject = create('button', { type: 'button', class: 'button', text: t('dutycheck', 'Reject') });
@@ -2827,10 +3366,14 @@
 			for (const row of rows) {
 				const li = create('li', { class: 'dc-conflicts__item' });
 				const when = D?.formatDisplayDate?.(row.dutyDate) || row.dutyDate;
+				const empName = employeeLabel(
+					row.claimedByEmployeeId,
+					row.claimedByEmployeeName || row.claimedByDisplayName || row.employeeName,
+				);
+				const emp = empName || String(row.claimedByEmployeeId || '—');
+				// Avoid catalog templates that hardcode "#" before {emp} (ID theater).
 				li.appendChild(create('p', {
-					text: t('dutycheck', '{date} · employee #{emp}')
-						.replace('{date}', String(when))
-						.replace('{emp}', String(row.claimedByEmployeeId || '—')),
+					text: [when, emp].filter(Boolean).join(' · '),
 				}));
 				const approve = create('button', { type: 'button', class: 'button primary', text: t('dutycheck', 'Approve claim') });
 				const reject = create('button', { type: 'button', class: 'button', text: t('dutycheck', 'Reject claim') });
@@ -2930,8 +3473,21 @@
 		document.getElementById('dc-roster-bulk-apply')?.addEventListener('click', () => {
 			void applyBulkFromTemplate();
 		});
+		document.getElementById('dc-roster-suggest-fill')?.addEventListener('click', () => {
+			void runSuggestFill();
+		});
+		// Wire month nav before the initial ensure so E2E/users never click dead buttons
+		// while #dc-roster-grid (present in HTML) already satisfies waitForSelector.
+		wireMonthNavigator();
 		await Promise.all([
-			loadRoster(selectedPeriodIdFromUrl()),
+			(async () => {
+				const fromUrl = selectedPeriodIdFromUrl();
+				if (fromUrl) {
+					await loadRoster(fromUrl);
+					return;
+				}
+				await goToCalendarMonth(currentCompanyYearMonth(), { quiet: true });
+			})(),
 			loadPendingSwaps(),
 			loadPendingOpenClaims(),
 		]);
@@ -2939,6 +3495,8 @@
 		const switcher = document.getElementById('dc-roster-period-switcher');
 		switcher?.addEventListener('change', async () => {
 			clearAssignmentsSectionSuccess();
+			// Advanced switcher: show the full custom range (no month clamp).
+			state.gridMonthClamp = null;
 			const periodId = Number(switcher.value);
 			await Promise.all([
 				loadRoster(Number.isInteger(periodId) && periodId > 0 ? periodId : null),

@@ -145,6 +145,8 @@ final class SwapServiceGuardTest extends TestCase
 
 	public function testReviewMapsTransferConflictToSwapConflict(): void
 	{
+		\OCA\DutyCheck\Db\SchemaProbe::resetCache();
+
 		$swapResult = $this->createMock(IResult::class);
 		$swapResult->method('fetch')->willReturn([
 			'id' => 3,
@@ -172,33 +174,42 @@ final class SwapServiceGuardTest extends TestCase
 		]);
 
 		$db = $this->createMock(IDBConnection::class);
-		$casQb = $this->createMock(IQueryBuilder::class);
-		$casQb->method('update')->willReturnSelf();
-		$casQb->method('set')->willReturnSelf();
-		$casQb->method('where')->willReturnSelf();
-		$casQb->method('andWhere')->willReturnSelf();
-		$casQb->method('expr')->willReturn($this->expr());
-		$casQb->method('createNamedParameter')->willReturn('p');
-		$casQb->method('executeStatement')->willReturn(1);
+		$db->method('tableExists')->willReturn(false);
 
-		$revertQb = $this->createMock(IQueryBuilder::class);
-		$revertQb->method('update')->willReturnSelf();
-		$revertQb->method('set')->willReturnSelf();
-		$revertQb->method('where')->willReturnSelf();
-		$revertQb->method('andWhere')->willReturnSelf();
-		$revertQb->method('expr')->willReturn($this->expr());
-		$revertQb->method('createNamedParameter')->willReturn('p');
-		$revertQb->method('executeStatement')->willReturn(1);
+		$makeWriteQb = function (): IQueryBuilder {
+			$qb = $this->createMock(IQueryBuilder::class);
+			$qb->method('update')->willReturnSelf();
+			$qb->method('set')->willReturnSelf();
+			$qb->method('select')->willReturnSelf();
+			$qb->method('from')->willReturnSelf();
+			$qb->method('where')->willReturnSelf();
+			$qb->method('andWhere')->willReturnSelf();
+			$qb->method('setMaxResults')->willReturnSelf();
+			$qb->method('expr')->willReturn($this->expr());
+			$qb->method('createNamedParameter')->willReturn('p');
+			$qb->method('executeStatement')->willReturn(1);
+			$res = $this->createMock(IResult::class);
+			$res->method('fetch')->willReturn(false);
+			$res->method('closeCursor');
+			$qb->method('executeQuery')->willReturn($res);
+			return $qb;
+		};
 
-		$db->method('getQueryBuilder')->willReturnOnConsecutiveCalls(
-			$this->qbReturning($swapResult),
-			$this->qbReturning($asgResult),
-			$casQb,
-			$revertQb,
-		);
+		$calls = 0;
+		$db->method('getQueryBuilder')->willReturnCallback(function () use (&$calls, $swapResult, $asgResult, $makeWriteQb) {
+			$calls++;
+			if ($calls === 1) {
+				return $this->qbReturning($swapResult);
+			}
+			if ($calls === 2) {
+				return $this->qbReturning($asgResult);
+			}
+			return $makeWriteQb();
+		});
 
 		$roster = $this->createMock(RosterService::class);
 		$roster->expects($this->once())->method('assertPeriodCompanyAccess');
+		$roster->method('assertHardMarketplaceSlot');
 		$roster->method('transferAssignmentEmployee')->willThrowException(
 			new \InvalidArgumentException('ASSIGNMENT_OVERLAP'),
 		);

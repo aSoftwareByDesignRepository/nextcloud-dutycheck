@@ -1,0 +1,2 @@
+after 60 bad: invalid=60 limited=0
+GOOD_TOKEN_OK len=320

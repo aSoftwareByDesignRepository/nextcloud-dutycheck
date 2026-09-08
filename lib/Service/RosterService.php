@@ -33,6 +33,10 @@ class RosterService
 		private ?ThresholdApproachNotifier $thresholdNotifier = null,
 		private ?LateChangeNotificationService $lateChangeNotifications = null,
 		private ?CompanyService $companies = null,
+		private ?AvailabilityBlackoutService $blackouts = null,
+		private ?PlannerLocationScopeService $plannerScope = null,
+		private ?ApiRateLimitService $apiRateLimits = null,
+		private ?PeriodLockService $periodLocks = null,
 	) {
 	}
 
@@ -225,6 +229,115 @@ class RosterService
 		$qb->insert('dc_periods')->values($values)->executeStatement();
 
 		return $this->periodById((int) $qb->getLastInsertId());
+	}
+
+	/**
+	 * Ensure an open (or viewable) period covers a calendar month so planners
+	 * never need to hand-create a new Zeitraum each month.
+	 *
+	 * Prefer an existing open period that fully covers the month; otherwise
+	 * create a month-bounded open period. Exact published/closed month ranges
+	 * are returned for read-only viewing (no silent reopen).
+	 *
+	 * @return array{period: array<string,mixed>, created: bool, yearMonth: string, writable: bool}
+	 */
+	public function ensureOpenCalendarMonth(string $actor, ?string $yearMonth = null): array
+	{
+		$ym = $this->normalizeCalendarYearMonth($yearMonth);
+		$start = $ym . '-01';
+		$end = (new DateTimeImmutable($start . 'T12:00:00Z'))->modify('last day of this month')->format('Y-m-d');
+
+		$companyId = ($this->companies !== null && $this->companies->schemaReady())
+			? $this->companies->writeCompanyIdFor($actor)
+			: 0;
+		$lockId = abs(crc32('cm:' . $companyId . ':' . $ym)) ?: 1;
+		$holder = 'ensure-month:' . mb_substr($actor, 0, 40);
+		$locked = false;
+		if ($this->periodLocks !== null) {
+			$locked = $this->periodLocks->acquire($lockId, PeriodLockService::KIND_ENSURE_MONTH, $holder, 45);
+			if (!$locked) {
+				throw new \InvalidArgumentException('ENSURE_MONTH_IN_PROGRESS');
+			}
+		}
+		try {
+			if ($this->apiRateLimits !== null) {
+				$this->apiRateLimits->assertAllowed('ensure-month:' . $actor, 30, 60);
+			}
+			$periods = $this->listPeriods($actor);
+			foreach ($periods as $period) {
+				if (($period['status'] ?? '') !== 'open') {
+					continue;
+				}
+				if ((string) $period['startDate'] <= $start && (string) $period['endDate'] >= $end) {
+					return [
+						'period' => $period,
+						'created' => false,
+						'yearMonth' => $ym,
+						'writable' => true,
+					];
+				}
+			}
+			foreach ($periods as $period) {
+				if ((string) $period['startDate'] === $start && (string) $period['endDate'] === $end) {
+					$open = ($period['status'] ?? '') === 'open';
+					return [
+						'period' => $period,
+						'created' => false,
+						'yearMonth' => $ym,
+						'writable' => $open,
+					];
+				}
+			}
+			try {
+				$created = $this->createPeriod($start, $end, $actor);
+			} catch (\InvalidArgumentException $e) {
+				if ($e->getMessage() !== 'PERIOD_RANGE_EXISTS') {
+					throw $e;
+				}
+				$periods = $this->listPeriods($actor);
+				foreach ($periods as $period) {
+					if ((string) $period['startDate'] === $start && (string) $period['endDate'] === $end) {
+						$open = ($period['status'] ?? '') === 'open';
+						return [
+							'period' => $period,
+							'created' => false,
+							'yearMonth' => $ym,
+							'writable' => $open,
+						];
+					}
+				}
+				throw $e;
+			}
+			return [
+				'period' => $created,
+				'created' => true,
+				'yearMonth' => $ym,
+				'writable' => true,
+			];
+		} finally {
+			if ($locked && $this->periodLocks !== null) {
+				$this->periodLocks->release($lockId, PeriodLockService::KIND_ENSURE_MONTH, $holder);
+			}
+		}
+	}
+
+	/**
+	 * @return non-empty-string YYYY-MM
+	 */
+	private function normalizeCalendarYearMonth(?string $yearMonth): string
+	{
+		$raw = trim((string) $yearMonth);
+		if ($raw === '') {
+			return (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format('Y-m');
+		}
+		if (!preg_match('/^(\d{4})-(\d{2})$/', $raw, $m)) {
+			throw new \InvalidArgumentException('INVALID_YEAR_MONTH');
+		}
+		$month = (int) $m[2];
+		if ($month < 1 || $month > 12) {
+			throw new \InvalidArgumentException('INVALID_YEAR_MONTH');
+		}
+		return sprintf('%04d-%02d', (int) $m[1], $month);
 	}
 
 	public function transitionPeriod(int $periodId, string $targetStatus, string $actorUserId, string $reason = ''): array
@@ -813,7 +926,7 @@ class RosterService
 	 * @param array<string,mixed> $payload
 	 * @return array<string,mixed>
 	 */
-	public function createAssignment(array $payload, string $actor, bool $allowPublishedMarketplace = false, bool $hydrateRoster = true, bool $refreshConflicts = true, bool $useTransaction = true): array
+	public function createAssignment(array $payload, string $actor, bool $allowPublishedMarketplace = false, bool $hydrateRoster = true, bool $refreshConflicts = true, bool $useTransaction = true, bool $trustedMarketplaceApply = false): array
 	{
 		$periodId = (int) ($payload['periodId'] ?? 0);
 		$employeeId = (int) ($payload['employeeId'] ?? 0);
@@ -824,6 +937,7 @@ class RosterService
 		$breakMinutes = PlanningDefaultsService::parseAssignmentBreakMinutes($payload['breakMinutes'] ?? null);
 		$note = trim((string) ($payload['note'] ?? ''));
 		$acknowledgements = is_array($payload['acknowledgements'] ?? null) ? $payload['acknowledgements'] : [];
+		$pendingBlackoutOverride = null;
 
 		if ($periodId <= 0) {
 			throw new \InvalidArgumentException('PERIOD_ID_REQUIRED');
@@ -849,7 +963,7 @@ class RosterService
 		}
 
 		$period = $this->periodById($periodId);
-		if ($this->companies !== null) {
+		if (!$trustedMarketplaceApply && $this->companies !== null) {
 			$this->companies->assertRowCompany($actor, 'dc_periods', $periodId);
 		}
 		$allowedStatuses = $allowPublishedMarketplace ? ['open', 'published'] : ['open'];
@@ -862,7 +976,11 @@ class RosterService
 		$this->assertEmployeeExists($employeeId);
 		$this->assertLocationExists($locationId);
 		$this->assertEntitiesSharePeriodCompany($periodId, $employeeId, $locationId);
+		if (!$trustedMarketplaceApply && $this->plannerScope !== null) {
+			$this->plannerScope->assertCanPlanLocation($actor, $locationId);
+		}
 		$this->assertNoAbsenceConflict($employeeId, $dutyDate);
+		$pendingBlackoutOverride = $this->assertNoBlackoutConflict($employeeId, $dutyDate, $startTime, $endTime, $locationId, $payload, $actor);
 		$this->assertNoOverlapConflict($periodId, $employeeId, $dutyDate, $startTime, $endTime);
 		$qualConflicts = $this->qualificationConflicts($employeeId, $locationId, $dutyDate);
 		foreach ($qualConflicts as $qc) {
@@ -925,6 +1043,11 @@ class RosterService
 			if ($refreshConflicts) {
 				$this->refreshAndListConflicts($periodId);
 			}
+			if ($pendingBlackoutOverride !== null && $createdAssignmentId > 0) {
+				// Fail closed inside the same TX when an override was required.
+				$this->commitBlackoutOverride($createdAssignmentId, $pendingBlackoutOverride);
+				$pendingBlackoutOverride = null;
+			}
 			if ($useTransaction) {
 				$this->db->commit();
 			}
@@ -941,6 +1064,11 @@ class RosterService
 			} catch (Throwable) {
 				// Non-fatal.
 			}
+		}
+
+		// Nested writers (useTransaction=false) still need override in the outer TX.
+		if ($pendingBlackoutOverride !== null && $createdAssignmentId > 0) {
+			$this->commitBlackoutOverride($createdAssignmentId, $pendingBlackoutOverride);
 		}
 
 		if (!$hydrateRoster) {
@@ -1015,7 +1143,11 @@ class RosterService
 		$this->assertEmployeeExists($employeeId);
 		$this->assertLocationExists($locationId);
 		$this->assertEntitiesSharePeriodCompany($periodId, $employeeId, $locationId);
+		if ($this->plannerScope !== null) {
+			$this->plannerScope->assertCanPlanLocation($actor, $locationId);
+		}
 		$this->assertNoAbsenceConflict($employeeId, $dutyDate);
+		$pendingBlackoutOverride = $this->assertNoBlackoutConflict($employeeId, $dutyDate, $startTime, $endTime, $locationId, $payload, $actor);
 		$this->assertNoOverlapConflict($periodId, $employeeId, $dutyDate, $startTime, $endTime, $assignmentId);
 		$qualConflicts = $this->qualificationConflicts($employeeId, $locationId, $dutyDate);
 		foreach ($qualConflicts as $qc) {
@@ -1091,6 +1223,9 @@ class RosterService
 				'version' => $casVersion + 1,
 			]);
 			$this->refreshAndListConflicts($periodId);
+			if ($pendingBlackoutOverride !== null) {
+				$this->commitBlackoutOverride($assignmentId, $pendingBlackoutOverride);
+			}
 			$this->db->commit();
 		} catch (Throwable $e) {
 			if ($this->db->inTransaction()) {
@@ -1140,8 +1275,13 @@ class RosterService
 		$this->cancelAssignment($assignmentId, $actor, false);
 	}
 
-	public function cancelAssignment(int $assignmentId, string $actor, bool $notifyLateChange = true): array
-	{
+	public function cancelAssignment(
+		int $assignmentId,
+		string $actor,
+		bool $notifyLateChange = true,
+		bool $useTransaction = true,
+		bool $trustedSwapApply = false,
+	): array {
 		// Fail closed: cancel requires status CAS + version bump + slot_key free.
 		if (!$this->assignmentHasStatusColumn()
 			|| !$this->assignmentHasVersionColumn()
@@ -1156,16 +1296,21 @@ class RosterService
 			return $this->rosterData((int) $row['period_id'], $actor);
 		}
 		$periodId = (int) $row['period_id'];
-		if ($this->companies !== null) {
+		if (!$trustedSwapApply && $this->companies !== null) {
 			$this->companies->assertRowCompany($actor, 'dc_periods', $periodId);
 		}
 		$period = $this->periodById($periodId);
 		if (!in_array($period['status'], ['open', 'published'], true)) {
 			throw new \InvalidArgumentException('PERIOD_NOT_OPEN');
 		}
+		if (!$trustedSwapApply && $this->plannerScope !== null) {
+			$this->plannerScope->assertCanPlanLocation($actor, (int) $row['location_id']);
+		}
 		$casVersion = (int) ($row['version'] ?? 0);
 
-		$this->db->beginTransaction();
+		if ($useTransaction) {
+			$this->db->beginTransaction();
+		}
 		try {
 			$qb = $this->db->getQueryBuilder();
 			$qb->update('dc_assignments')
@@ -1184,7 +1329,9 @@ class RosterService
 			if ($affected !== 1) {
 				$fresh = $this->assignmentRowById($assignmentId);
 				if ($fresh !== null && (string) ($fresh['status'] ?? 'active') === 'cancelled') {
-					$this->db->rollBack();
+					if ($useTransaction) {
+						$this->db->rollBack();
+					}
 					return $this->rosterData($periodId, $actor);
 				}
 				throw new \InvalidArgumentException('STALE_VERSION');
@@ -1192,9 +1339,11 @@ class RosterService
 
 			$this->writeAuditEvent($periodId, $actor, 'assignment_cancelled', 'assignment', $assignmentId, []);
 			$this->refreshAndListConflicts($periodId);
-			$this->db->commit();
+			if ($useTransaction) {
+				$this->db->commit();
+			}
 		} catch (Throwable $e) {
-			if ($this->db->inTransaction()) {
+			if ($useTransaction && $this->db->inTransaction()) {
 				$this->db->rollBack();
 			}
 			throw $e;
@@ -1384,10 +1533,19 @@ class RosterService
 	 * Transfer assignment to another employee (swap approval). Allowed on open or published periods.
 	 * CAS: status active, employee still the swap donor, version bump + slot_key rewrite.
 	 *
+	 * @param bool $useTransaction false when caller already holds the outer TX (swap apply)
+	 * @param bool $trustedSwapApply true when SwapService already authenticated the parties —
+	 *        skips planner membership / location-scope actor checks (employees are not company members)
 	 * @return array<string,mixed>
 	 */
-	public function transferAssignmentEmployee(int $assignmentId, int $fromEmployeeId, int $toEmployeeId, string $actor): array
-	{
+	public function transferAssignmentEmployee(
+		int $assignmentId,
+		int $fromEmployeeId,
+		int $toEmployeeId,
+		string $actor,
+		bool $useTransaction = true,
+		bool $trustedSwapApply = false,
+	): array {
 		if (!$this->assignmentHasStatusColumn()
 			|| !$this->assignmentHasVersionColumn()
 			|| !$this->assignmentHasSlotKeyColumn()) {
@@ -1407,7 +1565,7 @@ class RosterService
 			throw new \InvalidArgumentException('ASSIGNMENT_TRANSFER_STALE');
 		}
 		$periodId = (int) $row['period_id'];
-		if ($this->companies !== null) {
+		if (!$trustedSwapApply && $this->companies !== null) {
 			$this->companies->assertRowCompany($actor, 'dc_periods', $periodId);
 		}
 		$period = $this->periodById($periodId);
@@ -1416,14 +1574,28 @@ class RosterService
 		}
 		$this->assertEmployeeExists($toEmployeeId);
 		$this->assertEntitiesSharePeriodCompany($periodId, $toEmployeeId, (int) $row['location_id']);
+		if (!$trustedSwapApply && $this->plannerScope !== null) {
+			$this->plannerScope->assertCanPlanLocation($actor, (int) $row['location_id']);
+		}
 		$dutyDate = (string) $row['duty_date'];
 		$startTime = (string) $row['start_time'];
 		$endTime = (string) $row['end_time'];
 		$this->assertNoAbsenceConflict($toEmployeeId, $dutyDate);
+		$this->assertNoBlackoutConflict(
+			$toEmployeeId,
+			$dutyDate,
+			$startTime,
+			$endTime,
+			(int) $row['location_id'],
+			[],
+			$actor,
+		);
 		$this->assertNoOverlapConflict($periodId, $toEmployeeId, $dutyDate, $startTime, $endTime, $assignmentId);
 
 		$casVersion = (int) ($row['version'] ?? 0);
-		$this->db->beginTransaction();
+		if ($useTransaction) {
+			$this->db->beginTransaction();
+		}
 		try {
 			$qb = $this->db->getQueryBuilder();
 			$qb->update('dc_assignments')
@@ -1464,9 +1636,11 @@ class RosterService
 					throw new \InvalidArgumentException('SWAP_CONFLICT');
 				}
 			}
-			$this->db->commit();
+			if ($useTransaction) {
+				$this->db->commit();
+			}
 		} catch (Throwable $e) {
-			if ($this->db->inTransaction()) {
+			if ($useTransaction && $this->db->inTransaction()) {
 				$this->db->rollBack();
 			}
 			throw $e;
@@ -2136,7 +2310,8 @@ class RosterService
 		if ($employeeId < 1 || !$this->isValidIcalToken($token)) {
 			throw new \InvalidArgumentException('ICAL_TOKEN_INVALID');
 		}
-		$this->assertIcalRequestAllowed($employeeId, $remoteAddress);
+		// Spray budget first (all probes). Employee bucket only after successful auth.
+		$this->assertIcalIpSprayAllowed($remoteAddress);
 		try {
 			$userId = $this->linkedUserIdByEmployeeId($employeeId);
 		} catch (\InvalidArgumentException) {
@@ -2147,6 +2322,7 @@ class RosterService
 		if ($storedHash === null || !hash_equals($storedHash, hash('sha256', $employeeId . ':' . $token))) {
 			throw new \InvalidArgumentException('ICAL_TOKEN_INVALID');
 		}
+		$this->assertIcalSuccessAllowed($employeeId, $remoteAddress);
 
 		$rows = $this->publishedAssignmentsForEmployee($employeeId);
 		$ics = [
@@ -2178,31 +2354,24 @@ class RosterService
 		return implode("\r\n", $ics) . "\r\n";
 	}
 
-	private function assertIcalRequestAllowed(int $employeeId, string $remoteAddress): void
+	/** Global per-IP spray bucket (≤120/min) — applies to probes and successes. */
+	private function assertIcalIpSprayAllowed(string $remoteAddress): void
 	{
-		$ipHash = hash('sha256', trim($remoteAddress) !== '' ? trim($remoteAddress) : 'unknown');
-		$windowStart = (new DateTimeImmutable('now -60 seconds'))->format('Y-m-d H:i:s');
-		$now = $this->now();
-		$cleanup = $this->db->getQueryBuilder();
-		$cleanup->delete('dc_api_rate_limits')
-			->where($cleanup->expr()->lt('created_at', $cleanup->createNamedParameter($windowStart)))
-			->executeStatement();
-
-		$qb = $this->db->getQueryBuilder();
-		$qb->select($qb->func()->count('*', 'cnt'))
-			->from('dc_api_rate_limits')
-			->where($qb->expr()->eq('bucket_key', $qb->createNamedParameter('ical:' . $employeeId . ':' . $ipHash)));
-		$current = (int) $qb->executeQuery()->fetchOne();
-		if ($current >= 60) {
-			throw new \InvalidArgumentException('RATE_LIMITED');
+		if ($this->apiRateLimits === null) {
+			return;
 		}
+		$ipHash = hash('sha256', trim($remoteAddress) !== '' ? trim($remoteAddress) : 'unknown');
+		$this->apiRateLimits->assertAllowed('ical-ip:' . $ipHash, 120, 60);
+	}
 
-		$insert = $this->db->getQueryBuilder();
-		$insert->insert('dc_api_rate_limits')
-			->values([
-				'bucket_key' => $insert->createNamedParameter('ical:' . $employeeId . ':' . $ipHash),
-				'created_at' => $insert->createNamedParameter($now),
-			])->executeStatement();
+	/** Per-employee + IP bucket (≤60/min) — only after token verifies. */
+	private function assertIcalSuccessAllowed(int $employeeId, string $remoteAddress): void
+	{
+		if ($this->apiRateLimits === null) {
+			return;
+		}
+		$ipHash = hash('sha256', trim($remoteAddress) !== '' ? trim($remoteAddress) : 'unknown');
+		$this->apiRateLimits->assertAllowed('ical:' . $employeeId . ':' . $ipHash, 60, 60);
 	}
 
 	private function isValidIcalToken(string $token): bool
@@ -2976,12 +3145,25 @@ class RosterService
 	private function listPersistedConflicts(int $periodId): array
 	{
 		$qb = $this->db->getQueryBuilder();
-		$qb->select('id', 'type', 'severity', 'payload_json', 'is_resolved', 'ack_reason', 'ack_context_hash', 'context_hash')
-			->from('dc_conflicts')
-			->where($qb->expr()->eq('period_id', $qb->createNamedParameter($periodId, IQueryBuilder::PARAM_INT)))
-			->andWhere($qb->expr()->eq('is_resolved', $qb->createNamedParameter(0, IQueryBuilder::PARAM_INT)))
-			->orderBy('severity', 'DESC')
-			->addOrderBy('id', 'ASC');
+		$qb->select(
+			'c.id',
+			'c.type',
+			'c.severity',
+			'c.payload_json',
+			'c.is_resolved',
+			'c.ack_reason',
+			'c.ack_context_hash',
+			'c.context_hash',
+			'c.employee_id',
+			'e.display_name',
+		)
+			->from('dc_conflicts', 'c')
+			->leftJoin('c', 'dc_employees', 'e', $qb->expr()->eq('c.employee_id', 'e.id'))
+			->where($qb->expr()->eq('c.period_id', $qb->createNamedParameter($periodId, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->eq('c.is_resolved', $qb->createNamedParameter(0, IQueryBuilder::PARAM_INT)))
+			// hard before soft (ASC: "hard" < "soft") so must-fix theatre leads the fold
+			->orderBy('c.severity', 'ASC')
+			->addOrderBy('c.id', 'ASC');
 		$rows = $qb->executeQuery()->fetchAll();
 		return array_map(static function (array $row): array {
 			$payload = [];
@@ -3005,11 +3187,15 @@ class RosterService
 					break;
 				}
 			}
+			$employeeId = (int) ($row['employee_id'] ?? $payload['employeeId'] ?? 0);
+			$employeeName = trim((string) ($row['display_name'] ?? ''));
 			return [
 				'id' => (int) $row['id'],
 				'type' => (string) $row['type'],
 				'severity' => (string) $row['severity'],
 				'message' => (string) ($payload['message'] ?? 'Conflict'),
+				'employeeId' => $employeeId,
+				'employeeName' => $employeeName,
 				'assignmentIds' => $assignmentIds,
 				'details' => [],
 				'acknowledged' => $ack['acknowledged'],
@@ -3083,6 +3269,67 @@ class RosterService
 		if ($this->hasApprovedAbsenceOnDate($employeeId, $dutyDate)) {
 			throw new \InvalidArgumentException('ABSENCE_CONFLICT');
 		}
+	}
+
+	/**
+	 * Hard blackouts block assign unless planner supplies blackoutOverrideReason (≥10 chars).
+	 * Respects company blackouts_enabled. Does not auto-cancel published shifts (ADR-GA-05).
+	 *
+	 * @param array<string,mixed> $payload
+	 * @return array{blackoutId:?int,employeeId:int,reason:string,actor:string}|null
+	 */
+	private function assertNoBlackoutConflict(
+		int $employeeId,
+		string $dutyDate,
+		string $startTime,
+		string $endTime,
+		int $locationId,
+		array $payload,
+		string $actor,
+	): ?array {
+		if ($this->blackouts === null) {
+			return null;
+		}
+		try {
+			$blocking = $this->blackouts->findBlockingForAssign($employeeId, $dutyDate, $startTime, $endTime, $locationId);
+		} catch (Throwable) {
+			return null;
+		}
+		if ($blocking === null) {
+			return null;
+		}
+		$reason = trim((string) ($payload['blackoutOverrideReason'] ?? $payload['blackout_override_reason'] ?? ''));
+		if (mb_strlen($reason) >= 10 && mb_strlen($reason) <= 200) {
+			return [
+				'blackoutId' => ((int) ($blocking['id'] ?? 0)) > 0 ? (int) $blocking['id'] : null,
+				'employeeId' => $employeeId,
+				'reason' => $reason,
+				'actor' => $actor,
+			];
+		}
+		throw new \InvalidArgumentException('BLACKOUT_CONFLICT');
+	}
+
+	/**
+	 * Persist blackout override audit. Throws on failure so callers can roll back.
+	 *
+	 * @param array{blackoutId:?int,employeeId:int,reason:string,actor:string} $pending
+	 */
+	private function commitBlackoutOverride(int $assignmentId, array $pending): void
+	{
+		if ($assignmentId < 1) {
+			throw new \InvalidArgumentException('ASSIGNMENT_NOT_FOUND');
+		}
+		if ($this->blackouts === null) {
+			throw new \InvalidArgumentException('SCHEMA_NOT_READY');
+		}
+		$this->blackouts->recordOverride(
+			$assignmentId,
+			$pending['blackoutId'],
+			$pending['employeeId'],
+			$pending['reason'],
+			$pending['actor'],
+		);
 	}
 
 	private function assertNoOverlapConflict(int $periodId, int $employeeId, string $dutyDate, string $startTime, string $endTime, ?int $excludeAssignmentId = null): void

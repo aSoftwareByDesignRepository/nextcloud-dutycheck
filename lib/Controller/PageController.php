@@ -12,6 +12,7 @@ use OCA\DutyCheck\Service\LicenseService;
 use OCA\DutyCheck\Service\LicenseUiStrings;
 use OCA\DutyCheck\Service\LocaleFormatService;
 use OCA\DutyCheck\Service\RosterService;
+use OCA\DutyCheck\Service\SelfServiceSettingsService;
 use OCA\DutyCheck\Service\SettingsSectionCatalog;
 use OCA\DutyCheck\Support\SupportUsLinks;
 use OCP\AppFramework\Controller;
@@ -40,6 +41,7 @@ class PageController extends Controller
 		private IArbeitszeitCheckIntegration $arbeitszeitCheckIntegration,
 		private SettingsSectionCatalog $settingsSections,
 		private LicenseService $licenseService,
+		private ?SelfServiceSettingsService $selfService = null,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -52,10 +54,26 @@ class PageController extends Controller
 		if ($this->access->needsRoleEnrollment($userId)) {
 			return $this->needsRolePage();
 		}
+		if ($this->access->isPlannerOrAdmin($userId) && $this->plannerLandsOnTodayBoard($userId)) {
+			return new RedirectResponse($this->urlGenerator->linkToRoute('dutycheck.page.todayBoard'));
+		}
 		$route = $this->access->isPlannerOrAdmin($userId)
 			? 'dutycheck.page.dashboard'
 			: 'dutycheck.page.myRoster';
 		return new RedirectResponse($this->urlGenerator->linkToRoute($route));
+	}
+
+	private function plannerLandsOnTodayBoard(string $userId): bool
+	{
+		if ($this->selfService === null) {
+			return false;
+		}
+		try {
+			$settings = $this->selfService->getForActor($userId);
+			return !empty($settings['today_board_enabled']);
+		} catch (\Throwable) {
+			return false;
+		}
 	}
 
 	/**
@@ -95,6 +113,30 @@ class PageController extends Controller
 			'dashboard',
 			$this->l10n->t('Coverage, conflicts, and publish-readiness at a glance.'),
 			$this->dashboardPageExtras(),
+		);
+	}
+
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function todayBoard(): TemplateResponse
+	{
+		$this->access->requirePlannerOrAdmin($this->access->currentUserId());
+		return $this->page(
+			'today',
+			'today',
+			$this->l10n->t('See who is on duty at a location today.'),
+		);
+	}
+
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function patterns(): TemplateResponse
+	{
+		$this->access->requirePlannerOrAdmin($this->access->currentUserId());
+		return $this->page(
+			'patterns',
+			'patterns',
+			$this->l10n->t('Define multi-week rotation patterns and assign them to employees.'),
 		);
 	}
 
@@ -380,6 +422,9 @@ class PageController extends Controller
 			Util::addScript(Application::APP_ID, 'settings-legacy-redirect');
 		}
 		Util::addScript(Application::APP_ID, $script);
+		if ($template === 'settings' && ($extra['settingsSection'] ?? '') === 'dienst-team') {
+			Util::addScript(Application::APP_ID, 'settings-dienst-team');
+		}
 
 		$isEmployee = $this->access->isEmployee($userId);
 		$hasLinkedEmployee = $this->access->hasActiveLinkedEmployee($userId);
@@ -456,6 +501,8 @@ class PageController extends Controller
 			'readonlyAbsencesForCurrentUser' => (bool)($integrationBootstrap['readonlyAbsencesForCurrentUser'] ?? false),
 			'urls' => [
 				'dashboard' => $this->urlGenerator->linkToRoute('dutycheck.page.dashboard'),
+				'today' => $this->urlGenerator->linkToRoute('dutycheck.page.todayBoard'),
+				'patterns' => $this->urlGenerator->linkToRoute('dutycheck.page.patterns'),
 				'roster' => $this->urlGenerator->linkToRoute('dutycheck.page.roster'),
 				'periods' => $this->urlGenerator->linkToRoute('dutycheck.page.periods'),
 				'employees' => $this->urlGenerator->linkToRoute('dutycheck.page.employees'),
@@ -469,6 +516,10 @@ class PageController extends Controller
 					'dutycheck.page.settingsSection',
 					['section' => 'companies'],
 				),
+				'dienstTeamSettings' => $this->urlGenerator->linkToRoute(
+					'dutycheck.page.settingsSection',
+					['section' => 'dienst-team'],
+				),
 				'home' => $this->urlGenerator->linkToDefaultPageUrl(),
 				'rosterExportCsv' => $this->urlGenerator->linkToRoute('dutycheck.rosterApi.exportRosterCsv'),
 				'rosterPrint' => $this->urlGenerator->linkToRoute('dutycheck.page.rosterPrint'),
@@ -480,6 +531,8 @@ class PageController extends Controller
 	{
 		return match ($pageId) {
 			'dashboard' => $this->l10n->t('Dashboard'),
+			'today' => $this->l10n->t('Today'),
+			'patterns' => $this->l10n->t('Patterns'),
 			'roster' => $this->l10n->t('Roster'),
 			'periods' => $this->l10n->t('Periods'),
 			'employees' => $this->l10n->t('Employees'),

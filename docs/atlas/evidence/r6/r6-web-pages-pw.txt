@@ -1,0 +1,18 @@
+
+Running 8 tests using 1 worker
+
+(node:3314222) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [setup] › tests/e2e/auth.setup.js:9:1 › authenticate planner (6.7s)
+(node:3318330) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 [chromium] › tests/e2e/web-pages-smoke.spec.js:22:2 › web-pages smoke: web-dashboard (/apps/dutycheck/dashboard) (4.5s)
+  ✓  3 [chromium] › tests/e2e/web-pages-smoke.spec.js:22:2 › web-pages smoke: web-today-board (/apps/dutycheck/today) (3.8s)
+  ✓  4 [chromium] › tests/e2e/web-pages-smoke.spec.js:22:2 › web-pages smoke: web-periods (/apps/dutycheck/periods) (4.0s)
+  ✓  5 [chromium] › tests/e2e/web-pages-smoke.spec.js:22:2 › web-pages smoke: web-patterns (/apps/dutycheck/patterns) (4.9s)
+  ✓  6 [chromium] › tests/e2e/web-pages-smoke.spec.js:22:2 › web-pages smoke: web-absences-planner (/apps/dutycheck/absences) (4.2s)
+  ✓  7 [chromium] › tests/e2e/web-pages-smoke.spec.js:22:2 › web-pages smoke: web-employees (/apps/dutycheck/employees) (3.8s)
+  ✓  8 [chromium] › tests/e2e/web-pages-smoke.spec.js:22:2 › web-pages smoke: web-locations (/apps/dutycheck/locations) (3.7s)
+
+  8 passed (38.9s)
+EXIT=0

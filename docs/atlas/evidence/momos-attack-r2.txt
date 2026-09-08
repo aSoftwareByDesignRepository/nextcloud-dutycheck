@@ -1,0 +1,42 @@
+Momos attack surface: company=1 locA=9 locB=10 period=45 empA=36 empB=15
+
+=== [M-01] claim_requires_planner=false must auto-claim (not leave pending forever) ===
+CLEAN: auto-claimed status=claimed assignment=203
+
+=== [M-01b] claim_requires_planner=true must stay pending for planner ===
+CLEAN: pending as required
+
+=== [M-02] Employee Today board must be FORBIDDEN ===
+CLEAN: FORBIDDEN as required
+
+=== [M-03] Peer team-week IDOR: location without belonging → FORBIDDEN ===
+CLEAN: FORBIDDEN without belonging
+
+=== [M-04] Wrong user accepts swap destined for someone else ===
+ERROR: SWAP_ALREADY_PENDING @ SwapService.php:605
+
+=== [M-05] Unauthenticated / wrong role: settings update by linked employee ===
+CLEAN: service blocked: FORBIDDEN
+
+=== [M-06] Swap candidates: any employee scrapes full company directory ===
+PROVEN: directory scrape of 1 names (small tenant)
+
+=== [M-07] ICS: valid-format garbage token must not distinguish missing vs wrong (timing/enum) ===
+CLEAN: opaque ICAL_TOKEN_INVALID for both (4.82179ms)
+
+=== [M-08] Peer week includes draft/open period shifts (privacy: should be published-only) ===
+CLEAN: items=0 periodStatus=open; no open-period rows
+
+=== [M-09] userMayDisableQuiet flag is stored but never enforced (dead control) ===
+PROVEN: settings expose/store userMayDisableQuiet but PushQuietHoursService never reads it
+
+=== [M-10] Blackout create as employee for another employeeId (IDOR) ===
+CLEAN: FORBIDDEN
+
+=== [M-11] Preference save band injection / free-text PII path ===
+ERROR: OCA\DutyCheck\Service\ShiftPreferenceService::save(): Argument #1 ($employeeId) must be of type int, null given, called in /var/www/html/custom_apps/dutycheck/scripts/_momos_attack.php on line 361 @ ShiftPreferenceService.php:93
+
+=== [M-12] Bilateral_auto: concurrent double-accept must not double-apply ===
+ERROR: ASSIGNMENT_NOT_FOUND @ SwapService.php:739
+
+======== SUMMARY proven=2 clean=8 errors=3 ========

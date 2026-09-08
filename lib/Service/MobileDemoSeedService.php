@@ -50,7 +50,8 @@ final class MobileDemoSeedService
 
 		$employeeId = $this->ensureEmployee($options);
 		$locationId = $this->ensureLocation($options);
-		[$periodId, $periodStatus] = $this->ensurePublishedPeriod($options->adminUserId);
+		// Assignments may only be created while the period is open — never publish first.
+		[$periodId] = $this->ensureDemoPeriod($options->adminUserId);
 
 		$today = new \DateTimeImmutable('today', new \DateTimeZone('UTC'));
 		$shiftDate = $today->modify('+1 day')->format('Y-m-d');
@@ -71,6 +72,7 @@ final class MobileDemoSeedService
 			$openShiftDate,
 			$options->employeeUserId,
 		);
+		$periodStatus = $this->ensureDemoPeriodPublished($periodId, $options->adminUserId);
 
 		return new MobileDemoSeedResult(
 			employeeUserId: $options->employeeUserId,
@@ -186,9 +188,11 @@ final class MobileDemoSeedService
 	}
 
 	/**
+	 * Find or create a period covering today. Leaves status unchanged (may be open or published).
+	 *
 	 * @return array{0: int, 1: string}
 	 */
-	private function ensurePublishedPeriod(string $adminUserId): array
+	private function ensureDemoPeriod(string $adminUserId): array
 	{
 		$today = new \DateTimeImmutable('today', new \DateTimeZone('UTC'));
 		$periodStart = $today->modify('monday this week')->format('Y-m-d');
@@ -196,15 +200,18 @@ final class MobileDemoSeedService
 		$nowIso = $today->format('Y-m-d');
 
 		$periodId = null;
+		$status = 'open';
 		try {
 			$period = $this->roster->createPeriod($periodStart, $periodEnd, $adminUserId);
 			$periodId = (int) ($period['id'] ?? 0);
+			$status = (string) ($period['status'] ?? 'open');
 		} catch (Throwable) {
 			foreach ($this->roster->listPeriods($adminUserId) as $periodRow) {
 				$start = (string) ($periodRow['startDate'] ?? '');
 				$end = (string) ($periodRow['endDate'] ?? '');
 				if ($start <= $nowIso && $end >= $nowIso) {
 					$periodId = (int) ($periodRow['id'] ?? 0);
+					$status = (string) ($periodRow['status'] ?? 'open');
 					break;
 				}
 			}
@@ -214,6 +221,14 @@ final class MobileDemoSeedService
 			throw new MobileDemoSeedException('Could not create or find a demo period covering today.');
 		}
 
+		return [$periodId, $status];
+	}
+
+	/**
+	 * Publish after planning mutations. Idempotent when already published/closed.
+	 */
+	private function ensureDemoPeriodPublished(int $periodId, string $adminUserId): string
+	{
 		$status = 'open';
 		foreach ($this->roster->listPeriods($adminUserId) as $periodRow) {
 			if ((int) ($periodRow['id'] ?? 0) === $periodId) {
@@ -239,7 +254,41 @@ final class MobileDemoSeedService
 			throw new MobileDemoSeedException('Demo period must be published for mobile roster (status=' . $status . ').');
 		}
 
-		return [$periodId, $status];
+		return $status;
+	}
+
+	/**
+	 * createAssignment requires status=open. Reopen published periods via closed → open.
+	 */
+	private function ensurePeriodOpenForAssignment(int $periodId, string $adminUserId): void
+	{
+		$status = 'open';
+		foreach ($this->roster->listPeriods($adminUserId) as $periodRow) {
+			if ((int) ($periodRow['id'] ?? 0) === $periodId) {
+				$status = (string) ($periodRow['status'] ?? 'open');
+				break;
+			}
+		}
+		if ($status === 'open') {
+			return;
+		}
+
+		$reason = 'Mobile demo seed: reopen period to add companion assignment';
+		try {
+			if ($status === 'published') {
+				$this->roster->transitionPeriod($periodId, 'closed', $adminUserId, $reason);
+				$status = 'closed';
+			}
+			if ($status === 'closed') {
+				$this->roster->transitionPeriod($periodId, 'open', $adminUserId, $reason);
+			}
+		} catch (Throwable $e) {
+			throw new MobileDemoSeedException(
+				'Could not reopen demo period for assignment create: ' . $e->getMessage(),
+				0,
+				$e,
+			);
+		}
 	}
 
 	private function ensureAcknowledgableAssignment(
@@ -250,16 +299,35 @@ final class MobileDemoSeedService
 		int $locationId,
 		string $shiftDate,
 	): ?int {
+		$reuseId = null;
 		try {
 			$existing = $this->roster->myRoster($employeeUserId);
 			foreach ($existing as $row) {
-				if (($row['dutyDate'] ?? '') === $shiftDate && ($row['acknowledged'] ?? false) === false) {
-					return (int) ($row['id'] ?? 0) ?: null;
+				if (($row['dutyDate'] ?? '') === $shiftDate) {
+					$reuseId = (int) ($row['id'] ?? 0) ?: null;
+					// Idempotent reseed: clear ack so Home still has an acknowledge CTA.
+					if ($reuseId !== null && ($row['acknowledged'] ?? false) === true) {
+						$this->ensurePeriodOpenForAssignment($periodId, $adminUserId);
+						$this->roster->updateAssignment($reuseId, [
+							'locationId' => $locationId,
+							'dutyDate' => $shiftDate,
+							'startTime' => (string) ($row['startTime'] ?? '09:00'),
+							'endTime' => (string) ($row['endTime'] ?? '17:00'),
+							'breakMinutes' => (int) ($row['breakMinutes'] ?? 30),
+							'note' => 'Mobile demo shift — acknowledge on Home',
+							'version' => (int) ($row['version'] ?? 1),
+						], $adminUserId);
+					}
+					if ($reuseId !== null) {
+						return $reuseId;
+					}
 				}
 			}
 		} catch (Throwable) {
 			// fall through to create
 		}
+
+		$this->ensurePeriodOpenForAssignment($periodId, $adminUserId);
 
 		try {
 			$data = $this->roster->createAssignment([
@@ -275,8 +343,49 @@ final class MobileDemoSeedService
 			$id = (int) (($data['assignments'][0] ?? [])['id'] ?? 0);
 			return $id > 0 ? $id : null;
 		} catch (Throwable $e) {
+			$msg = $e->getMessage();
+			if ($msg !== 'ASSIGNMENT_OVERLAP' && $msg !== 'ASSIGNMENT_DUPLICATE_SLOT') {
+				throw new MobileDemoSeedException(
+					'Could not create demo assignment: ' . $msg,
+					0,
+					$e,
+				);
+			}
+			// Slot already exists while period is still open — myRoster only lists
+			// published/closed periods, so publish briefly to resolve the row id.
+			$this->ensureDemoPeriodPublished($periodId, $adminUserId);
+			try {
+				foreach ($this->roster->myRoster($employeeUserId) as $row) {
+					if (($row['dutyDate'] ?? '') !== $shiftDate) {
+						continue;
+					}
+					$reuseId = (int) ($row['id'] ?? 0);
+					if ($reuseId <= 0) {
+						continue;
+					}
+					if (($row['acknowledged'] ?? false) === true) {
+						$this->ensurePeriodOpenForAssignment($periodId, $adminUserId);
+						$this->roster->updateAssignment($reuseId, [
+							'locationId' => $locationId,
+							'dutyDate' => $shiftDate,
+							'startTime' => (string) ($row['startTime'] ?? '09:00'),
+							'endTime' => (string) ($row['endTime'] ?? '17:00'),
+							'breakMinutes' => (int) ($row['breakMinutes'] ?? 30),
+							'note' => 'Mobile demo shift — acknowledge on Home',
+							'version' => (int) ($row['version'] ?? 1),
+						], $adminUserId);
+					}
+					return $reuseId;
+				}
+			} catch (Throwable $inner) {
+				throw new MobileDemoSeedException(
+					'Demo assignment slot occupied but could not be resolved: ' . $inner->getMessage(),
+					0,
+					$inner,
+				);
+			}
 			throw new MobileDemoSeedException(
-				'Could not create demo assignment: ' . $e->getMessage(),
+				'Demo assignment slot occupied but not visible on myRoster — clear overlaps and re-run.',
 				0,
 				$e,
 			);

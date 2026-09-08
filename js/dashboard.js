@@ -169,6 +169,7 @@
 			root.appendChild(create('div', { class: 'dc-callout dc-callout--info' }, [
 				create('p', { text: t('dutycheck', 'No periods yet. Start by creating one to begin planning.') }),
 			]));
+			clearDashboardConflictList();
 			return;
 		}
 		let mustFix;
@@ -195,6 +196,59 @@
 			create('p', {}, [create('strong', { text: title })]),
 			create('p', { class: 'dc-callout__hint', text: subtitle }),
 		]));
+		const periodId = Number(data?.periodId || periods[0]?.id || 0);
+		if (periodId > 0 && mustFix > 0) {
+			void loadDashboardConflictList(periodId);
+		} else {
+			clearDashboardConflictList();
+		}
+	}
+
+	function clearDashboardConflictList() {
+		const list = document.getElementById('dc-dashboard-conflict-list');
+		if (!list) return;
+		list.replaceChildren();
+		list.hidden = true;
+	}
+
+	function conflictTitle(conflict) {
+		const raw = String(conflict?.message || '');
+		const base = raw ? t('dutycheck', raw) : t('dutycheck', 'Unknown conflict');
+		const who = String(conflict?.employeeName || '').trim();
+		return who ? `${who}: ${base}` : base;
+	}
+
+	async function loadDashboardConflictList(periodId) {
+		const list = document.getElementById('dc-dashboard-conflict-list');
+		if (!list || !Api?.get) return;
+		try {
+			const res = await Api.get('/apps/dutycheck/api/roster?periodId=' + encodeURIComponent(String(periodId)));
+			const conflicts = Array.isArray(res?.data?.conflicts) ? res.data.conflicts : [];
+			const hard = conflicts
+				.filter((c) => String(c?.severity) === 'hard')
+				.sort((a, b) => Number(a?.id || 0) - Number(b?.id || 0))
+				.slice(0, 6);
+			list.replaceChildren();
+			if (!hard.length) {
+				list.hidden = true;
+				return;
+			}
+			hard.forEach((conflict) => {
+				const li = create('li', { class: 'dc-conflict dc-conflict--hard' });
+				const badge = create('span', {
+					class: 'dc-severity dc-severity--hard',
+					text: ConflictLabels ? ConflictLabels.severityLabel('hard') : t('dutycheck', 'Must fix'),
+				});
+				li.appendChild(badge);
+				li.appendChild(create('div', { class: 'dc-conflict__body' }, [
+					create('span', { class: 'dc-conflict__title', text: conflictTitle(conflict) }),
+				]));
+				list.appendChild(li);
+			});
+			list.hidden = false;
+		} catch {
+			clearDashboardConflictList();
+		}
 	}
 
 	function readSsrSummary() {
@@ -259,6 +313,7 @@
 		}
 		renderConflictPulse({
 			periods: [{ id: pulse.periodId, status: 'open' }],
+			periodId: pulse.periodId,
 			readiness: pulse.readiness || {},
 		});
 	}

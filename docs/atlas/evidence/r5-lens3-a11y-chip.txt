@@ -1,0 +1,14 @@
+
+Running 2 tests using 1 worker
+
+(node:3110692) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/2] [setup] › tests/e2e/auth.setup.js:9:1 › authenticate planner
+(node:3113278) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[2/2] [chromium] › tests/e2e/a11y-smoke.spec.js:111:1 › settings in-page chip bar mirrors the catalog and marks the active page
+  2 passed (10.3s)

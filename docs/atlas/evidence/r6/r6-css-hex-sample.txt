@@ -1,0 +1,45 @@
+=== .dc-inline-link block ===
+3589-	font-weight: 700;
+3590-}
+3591:.dc-inline-link {
+3592-	/* Primary-on-info-tint fails WCAG AA on dark/custom accents (~4.4:1).
+3593-	   Use main-text ink + underline (same pattern as .dc-settings-nav__link.is-active). */
+3594-	color: var(--color-main-text, #222);
+3595-	font-weight: 600;
+3596-	text-decoration: underline;
+3597-	text-underline-offset: 2px;
+3598-	overflow-wrap: anywhere;
+3599-	word-break: break-word;
+3600-}
+3601:.dc-inline-link:hover,
+3602:.dc-inline-link:focus-visible {
+3603-	color: var(--color-main-text, #222);
+3604-	text-decoration-thickness: 2px;
+3605-}
+3606:.dc-inline-link:focus-visible {
+3607-	outline: 3px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 60%, transparent);
+3608-	outline-offset: 2px;
+3609-}
+3610-@media (max-width: 640px) {
+3611-	.dc-settings-nav {
+3612-		flex-direction: column;
+3613-	}
+3614-	.dc-app .dc-settings-nav__link {
+
+=== primary-on-tint usages near inline-link / settings-nav ===
+3555:.dc-app .dc-settings-nav__link {
+3574:.dc-app .dc-settings-nav__link:hover {
+3579:.dc-app .dc-settings-nav__link:focus-visible {
+3583:.dc-app .dc-settings-nav__link.is-active,
+3584:.dc-app .dc-settings-nav__link[aria-current="page"] {
+3591:.dc-inline-link {
+3593:	   Use main-text ink + underline (same pattern as .dc-settings-nav__link.is-active). */
+3601:.dc-inline-link:hover,
+3602:.dc-inline-link:focus-visible {
+3606:.dc-inline-link:focus-visible {
+3614:	.dc-app .dc-settings-nav__link {
+
+=== hardcoded hex NOT inside var(..., #fallback) — sample ===
+total_suspicious_lines=2
+L70: ['#fff'] | * falls back to light #fff while text inherits dark-theme --color-main-text
+L782: ['#D8F3DA'] | * measured white-on-#D8F3DA ≈ 1.18:1 (fails WCAG 1.4.11). Use the

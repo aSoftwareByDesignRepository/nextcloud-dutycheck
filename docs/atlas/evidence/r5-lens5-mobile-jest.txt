@@ -1,0 +1,19 @@
+
+> dutycheck-mobile@1.0.2 test
+> jest --testPathPattern=localeParity --watchAll=false
+
+PASS src/i18n/__tests__/localeParity.test.ts
+  i18n locale parity
+    ✓ covers the Check-suite language family (2 ms)
+    ✓ keeps every locale key tree identical to English (11 ms)
+    ✓ keeps %{var} placeholders aligned with English in every locale (183 ms)
+    ✓ uses i18n-js %{var} interpolation markers (1 ms)
+    ✓ does not translate planning copy as menstruation (2 ms)
+    ✓ rejects machine-translation placeholder garbage (⟦PH…⟧) in every locale (2 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       6 passed, 6 total
+Snapshots:   0 total
+Time:        1.647 s
+Ran all test suites matching /localeParity/i.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?

@@ -1,0 +1,22 @@
+PHPUnit 9.6.34 by Sebastian Bergmann and contributors.
+
+...PHP Deprecated:  Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in /var/www/html/custom_apps/dutycheck/tests/Unit/Service/RosterServicePeriodsPageReadTest.php on line 28
+.PHP Deprecated:  Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in /var/www/html/custom_apps/dutycheck/tests/Unit/Service/RosterServicePeriodsPageReadTest.php on line 28
+.PHP Deprecated:  Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in /var/www/html/custom_apps/dutycheck/tests/Unit/Service/RosterServicePeriodsPageReadTest.php on line 28
+.PHP Deprecated:  Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in /var/www/html/custom_apps/dutycheck/tests/Unit/Service/RosterServicePeriodsPageReadTest.php on line 28
+.PHP Deprecated:  Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in /var/www/html/custom_apps/dutycheck/tests/Unit/Service/RosterServicePeriodsPageReadTest.php on line 28
+.PHP Deprecated:  Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in /var/www/html/custom_apps/dutycheck/tests/Unit/Service/RosterServicePeriodsPageReadTest.php on line 28
+.PHP Deprecated:  Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in /var/www/html/custom_apps/dutycheck/tests/Unit/Service/RosterServicePeriodsPageReadTest.php on line 28
+.PHP Deprecated:  Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in /var/www/html/custom_apps/dutycheck/tests/Unit/Service/RosterServicePeriodsPageReadTest.php on line 28
+.PHP Deprecated:  Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in /var/www/html/custom_apps/dutycheck/tests/Unit/Service/RosterServicePeriodsPageReadTest.php on line 28
+.PHP Deprecated:  Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in /var/www/html/custom_apps/dutycheck/tests/Unit/Service/RosterServicePeriodsPageReadTest.php on line 28
+.PHP Deprecated:  Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in /var/www/html/custom_apps/dutycheck/tests/Unit/Service/RosterServicePeriodsPageReadTest.php on line 28
+.PHP Deprecated:  Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in /var/www/html/custom_apps/dutycheck/tests/Unit/Service/RosterServicePeriodsPageReadTest.php on line 28
+.PHP Deprecated:  Method ReflectionProperty::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in /var/www/html/custom_apps/dutycheck/tests/Unit/Service/RosterServicePeriodsPageReadTest.php on line 28
+PHP Deprecated:  Method ReflectionMethod::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in /var/www/html/custom_apps/dutycheck/tests/Unit/Service/RosterServicePeriodsPageReadTest.php on line 258
+...                                                18 / 18 (100%)
+
+Time: 00:02.569, Memory: 26.00 MB
+
+OK (18 tests, 77 assertions)
+EXIT=0

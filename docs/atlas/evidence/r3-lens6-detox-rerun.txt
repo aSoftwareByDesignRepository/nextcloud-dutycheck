@@ -1,0 +1,167 @@
+21:16:23.607 detox[821440] B DETOX_ADB_NAME="emulator-5602" jest --config e2e/jest.config.js --maxWorkers 1 e2e/smoke.e2e.js e2e/login-reachability.e2e.js e2e/home.e2e.js
+21:16:29.595 detox[821465] i home.e2e.js is assigned to AttachedDevice:null
+21:16:29.602 detox[821465] i Home (E2E mock): shows duty roster home and acknowledges next shift
+21:16:37.637 detox[821465] i An error occurred while waiting for the app to become ready. Waiting for disconnection...
+  error: Failed to run application on the device
+  
+  HINT: Most likely, your tests have timed out and called detox.cleanup() while it was waiting for "ready" message (over WebSocket) from the instrumentation process.
+21:16:37.638 detox[821465] i The app disconnected.
+21:16:44.031 detox[821465] i An error occurred while waiting for the app to become ready. Waiting for disconnection...
+  error: Failed to run application on the device
+  
+  HINT: Most likely, your tests have timed out and called detox.cleanup() while it was waiting for "ready" message (over WebSocket) from the instrumentation process.
+21:16:44.032 detox[821465] i The app disconnected.
+21:16:44.044 detox[821465] i Home (E2E mock): shows duty roster home and acknowledges next shift [FAIL]
+
+21:16:44.049 detox[821465] i License gate (E2E mock): blocks when the user has no seat
+21:16:52.289 detox[821465] i An error occurred while waiting for the app to become ready. Waiting for disconnection...
+  error: Failed to run application on the device
+  
+  HINT: Most likely, your tests have timed out and called detox.cleanup() while it was waiting for "ready" message (over WebSocket) from the instrumentation process.
+21:16:52.296 detox[821465] i The app disconnected.
+21:17:00.809 detox[821465] i An error occurred while waiting for the app to become ready. Waiting for disconnection...
+  error: The pending request #-1000 ("isReady") has been rejected due to the following error:
+  
+  The app has unexpectedly disconnected from Detox server.
+21:17:00.809 detox[821465] i The app disconnected.
+21:17:00.810 detox[821465] i License gate (E2E mock): blocks when the user has no seat [FAIL]
+
+21:17:00.811 detox[821465] i Unofficial server (E2E mock): shows unofficial / unlicensed wall
+21:17:07.189 detox[821465] i An error occurred while waiting for the app to become ready. Waiting for disconnection...
+  error: Failed to run application on the device
+  
+  HINT: Most likely, your tests have timed out and called detox.cleanup() while it was waiting for "ready" message (over WebSocket) from the instrumentation process.
+21:17:07.189 detox[821465] i The app disconnected.
+21:17:21.587 detox[821465] i Unofficial server (E2E mock): shows unofficial / unlicensed wall [OK]
+
+21:17:21.588 detox[821465] i Marketplace (E2E mock): opens marketplace from Settings and allows claim
+21:17:36.582 detox[821465] i Marketplace (E2E mock): opens marketplace from Settings and allows claim [OK]
+
+FAIL e2e/home.e2e.js (72.096 s)
+  Home (E2E mock)
+    ✕ shows duty roster home and acknowledges next shift (14439 ms)
+  License gate (E2E mock)
+    ✕ blocks when the user has no seat (16761 ms)
+  Unofficial server (E2E mock)
+    ✓ shows unofficial / unlicensed wall (20775 ms)
+  Marketplace (E2E mock)
+    ✓ opens marketplace from Settings and allows claim (14993 ms)
+
+  ● Home (E2E mock) › shows duty roster home and acknowledges next shift
+
+    Failed to run application on the device
+
+    HINT: Most likely, your tests have timed out and called detox.cleanup() while it was waiting for "ready" message (over WebSocket) from the instrumentation process.
+
+      27 |     launchArgs.e2eLocale = locale.split(/[-_]/)[0];
+      28 |   }
+    > 29 |   await device.launchApp({
+         |                ^
+      30 |     newInstance: true,
+      31 |     delete: true,
+      32 |     launchArgs,
+
+      at launchApp (e2e/helpers.js:29:16)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (e2e/helpers.js:35:2)
+      at apply (e2e/helpers.js:20:26)
+      at launchOnce (e2e/helpers.js:40:11)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (e2e/helpers.js:56:2)
+      at apply (e2e/helpers.js:38:28)
+      at Object.launchE2eApp (e2e/home.e2e.js:5:11)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  ● License gate (E2E mock) › blocks when the user has no seat
+
+    Failed to run application on the device
+
+    HINT: Most likely, your tests have timed out and called detox.cleanup() while it was waiting for "ready" message (over WebSocket) from the instrumentation process.
+
+      27 |     launchArgs.e2eLocale = locale.split(/[-_]/)[0];
+      28 |   }
+    > 29 |   await device.launchApp({
+         |                ^
+      30 |     newInstance: true,
+      31 |     delete: true,
+      32 |     launchArgs,
+
+      at launchApp (e2e/helpers.js:29:16)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (e2e/helpers.js:20:26)
+      at launchOnce (e2e/helpers.js:40:11)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (e2e/helpers.js:38:28)
+      at Object.launchE2eApp (e2e/home.e2e.js:22:11)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+21:17:43.290 detox[821465] i smoke.e2e.js is assigned to AttachedDevice:emulator-5602
+21:17:52.024 detox[821465] i ""/home/alex/Android/Sdk/platform-tools/adb" -s emulator-5602 shell "ps | grep \"de\.softwarebydesign\.dutycheck$\""" failed with error = Error: Command failed: "/home/alex/Android/Sdk/platform-tools/adb" -s emulator-5602 shell "ps | grep \"de\.softwarebydesign\.dutycheck$\""
+ (code=1), stdout and stderr:
+
+21:17:52.024 detox[821465] i 
+21:17:52.025 detox[821465] i 
+21:18:04.579 detox[821465] i DutyCheck smoke (E2E mock): lands on home with acknowledge CTA and core tabs
+21:18:04.648 detox[821465] i DutyCheck smoke (E2E mock): lands on home with acknowledge CTA and core tabs [OK]
+
+PASS e2e/smoke.e2e.js (27.901 s)
+  DutyCheck smoke (E2E mock)
+    ✓ lands on home with acknowledge CTA and core tabs (68 ms)
+
+21:18:08.256 detox[821465] i login-reachability.e2e.js is assigned to AttachedDevice:emulator-5602
+21:18:10.064 detox[821465] i Login shell (no mock): shows the login screen
+21:18:13.659 detox[821465] i ""/home/alex/Android/Sdk/platform-tools/adb" -s emulator-5602 shell "ps | grep \"de\.softwarebydesign\.dutycheck$\""" failed with error = Error: Command failed: "/home/alex/Android/Sdk/platform-tools/adb" -s emulator-5602 shell "ps | grep \"de\.softwarebydesign\.dutycheck$\""
+ (code=1), stdout and stderr:
+
+21:18:13.659 detox[821465] i 
+21:18:13.660 detox[821465] i 
+21:18:21.159 detox[821465] i Login shell (no mock): shows the login screen [OK]
+
+PASS e2e/login-reachability.e2e.js (16.482 s)
+  Login shell (no mock)
+    ✓ shows the login screen (11095 ms)
+
+Test Suites: 1 failed, 2 passed, 3 total
+Tests:       2 failed, 4 passed, 6 total
+Snapshots:   0 total
+Time:        116.817 s
+Ran all test suites matching /e2e\/smoke.e2e.js|e2e\/login-reachability.e2e.js|e2e\/home.e2e.js/i.
+21:18:21.296 detox[821440] E Command failed with exit code = 1:
+DETOX_ADB_NAME="emulator-5602" jest --config e2e/jest.config.js --maxWorkers 1 e2e/smoke.e2e.js e2e/login-reachability.e2e.js e2e/home.e2e.js
+eneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (e2e/helpers.js:85:2)
+      at apply (e2e/helpers.js:58:32)
+      at Object.launchLoginShell (e2e/login-reachability.e2e.js:9:11)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+Test Suites: 2 failed, 1 passed, 3 total
+Tests:       2 failed, 4 passed, 6 total
+Snapshots:   0 total
+Time:        100.547 s
+Ran all test suites matching /e2e\/smoke.e2e.js|e2e\/login-reachability.e2e.js|e2e\/home.e2e.js/i.
+21:17:13.737 detox[817915] E Command failed with exit code = 1:
+DETOX_ADB_NAME="emulator-5602" jest --config e2e/jest.config.js --maxWorkers 1 e2e/smoke.e2e.js e2e/login-reachability.e2e.js e2e/home.e2e.js

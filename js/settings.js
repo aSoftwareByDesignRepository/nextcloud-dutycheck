@@ -54,6 +54,12 @@
 			badge.classList.add('dc-status-badge--published');
 			badge.textContent = t('dutycheck', 'No directory restriction');
 		}
+		const gate = document.getElementById('dc-access-gate-visual');
+		if (gate) {
+			gate.textContent = state.restrictionEnabled
+				? t('dutycheck', 'Restricted')
+				: t('dutycheck', 'No directory restriction');
+		}
 	}
 
 	function snapshotMatchesBaseline() {

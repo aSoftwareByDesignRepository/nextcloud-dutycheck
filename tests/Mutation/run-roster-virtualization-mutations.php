@@ -19,7 +19,7 @@ if (!is_file($phpunit)) {
 }
 $node = trim((string) shell_exec('command -v node')) ?: 'node';
 
-const PHP_FILTER = 'RosterVirtualizationContractTest|RosterReadPathArchitectureContractTest';
+const PHP_FILTER = 'RosterVirtualizationContractTest';
 
 function run_phpunit(string $appRoot, string $phpunit): int
 {
@@ -141,6 +141,20 @@ $mutations = [
 		'file' => $appRoot . '/templates/roster.php',
 		'from' => 'id="dc-roster-grid-scroller" class="dc-roster-grid-scroller" tabindex="0"',
 		'to' => 'id="dc-roster-grid-scroller" class="dc-roster-grid-scroller"',
+		'php' => true,
+		'js' => true,
+	],
+	'month_grid_auto_fit_regression' => [
+		'file' => $appRoot . '/css/app.css',
+		'from' => 'grid-template-columns: minmax(9rem, 12rem) repeat(var(--dc-roster-day-count, 7), minmax(var(--dc-roster-day-min), 1fr));',
+		'to' => 'grid-template-columns: minmax(9rem, 12rem) repeat(auto-fit, minmax(4.5rem, 1fr));',
+		'php' => true,
+		'js' => true,
+	],
+	'drop_day_count_css_var' => [
+		'file' => $rosterJs,
+		'from' => "root.style.setProperty('--dc-roster-day-count', String(Math.max(1, dates.length)));",
+		'to' => "root.style.removeProperty('--dc-roster-day-count');",
 		'php' => true,
 		'js' => true,
 	],

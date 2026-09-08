@@ -6,7 +6,9 @@ namespace OCA\DutyCheck\Controller;
 
 use OCA\DutyCheck\Integration\IArbeitszeitCheckIntegration;
 use OCA\DutyCheck\Service\AccessControlService;
+use OCA\DutyCheck\Service\CompanyService;
 use OCA\DutyCheck\Service\RosterService;
+use OCA\DutyCheck\Service\SelfServiceSettingsService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\DataResponse;
@@ -21,6 +23,8 @@ class ApiController extends Controller
 		private AccessControlService $access,
 		private RosterService $roster,
 		private IArbeitszeitCheckIntegration $arbeitszeitCheckIntegration,
+		private ?SelfServiceSettingsService $selfService = null,
+		private ?CompanyService $companies = null,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -35,6 +39,20 @@ class ApiController extends Controller
 			// Identity + integration flags only. Pages load their own lists
 			// (/api/dashboard, /api/roster, /api/my-roster). Hydrating a year of
 			// assignments here made every absences tab-focus poll expensive.
+
+			$selfService = null;
+			if ($this->selfService !== null && $this->companies !== null) {
+				try {
+					$companyId = $this->companies->writeCompanyIdFor($userId);
+					$selfService = $this->selfService->toApi($companyId);
+				} catch (Throwable) {
+					try {
+						$selfService = $this->selfService->toApi(CompanyService::DEFAULT_COMPANY_ID);
+					} catch (Throwable) {
+						$selfService = null;
+					}
+				}
+			}
 
 			return new DataResponse([
 				'ok' => true,
@@ -51,6 +69,7 @@ class ApiController extends Controller
 						'myAbsences' => null,
 					],
 					'arbeitszeitCheckIntegration' => $this->arbeitszeitCheckIntegration->buildBootstrapForUser($userId, $hasLink),
+					'selfService' => $selfService,
 				],
 			]);
 		} catch (Throwable $e) {

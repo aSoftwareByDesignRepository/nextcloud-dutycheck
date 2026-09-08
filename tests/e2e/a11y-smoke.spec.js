@@ -20,6 +20,7 @@ const settingsSections = [
   'qualifications',
   'planner-scope',
   'operations',
+  'dienst-team',
   'integration',
   'privacy',
   'license',
@@ -109,15 +110,19 @@ test('settings sidebar sub-navigation marks the active sub-page', async ({ page 
 
 test('settings in-page chip bar mirrors the catalog and marks the active page', async ({ page }) => {
   test.skip(plannerCredsCandidates().length === 0, 'Requires E2E_* or NC_ADMIN_* or NC_EMPLOYEE_* credentials')
+  // Chip bar is intentionally display:none at ≥1025px (sidebar owns navigation).
+  await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/apps/dutycheck/settings/planning', { waitUntil: 'domcontentloaded' })
   await page.waitForSelector('#dc-settings-pages', { timeout: 30000 })
-  const chips = page.locator('#dc-settings-pages .dc-settings-nav__link')
-  await expect(chips).toHaveCount(settingsSections.length)
-  const activeChip = page.locator('#dc-settings-pages .dc-settings-nav__link[aria-current="page"]')
+  // #dc-settings-pages IS the nav element; links are direct children.
+  await expect(page.locator('#dc-settings-pages.dc-settings-nav')).toBeVisible()
+  const chipLinks = page.locator('#dc-settings-pages > a.dc-settings-nav__link')
+  await expect(chipLinks).toHaveCount(settingsSections.length)
+  const activeChip = page.locator('#dc-settings-pages > a.dc-settings-nav__link[aria-current="page"]')
   await expect(activeChip).toHaveCount(1)
   await expect(activeChip).toHaveAttribute('href', /\/settings\/planning$/)
   // Chip bar is the mobile path when the sidebar collapses — hopping must work.
-  await page.locator('#dc-settings-pages .dc-settings-nav__link[href*="/settings/privacy"]').click()
+  await page.locator('#dc-settings-pages > a.dc-settings-nav__link[href*="/settings/privacy"]').click()
   await page.waitForURL(/\/apps\/dutycheck\/settings\/privacy$/, { timeout: 30000 })
   await page.waitForSelector('#dc-settings-privacy', { timeout: 30000 })
 })

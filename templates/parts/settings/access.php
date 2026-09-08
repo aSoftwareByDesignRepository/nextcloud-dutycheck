@@ -49,13 +49,21 @@ $dcEmployeesUrl = (string) ($_['urls']['employees'] ?? '');
 <section class="dc-card dc-section" id="dc-settings-policy" aria-labelledby="dc-settings-policy-title">
 	<header class="dc-section__header">
 		<div>
-			<h2 id="dc-settings-policy-title" class="dc-sr-only"><?php p($l->t('Access control')); ?></h2>
+			<p class="dc-access-gate__kicker"><?php p($l->t('Access gate')); ?></p>
+			<h2 id="dc-settings-policy-title"><?php p($l->t('Who may open DutyCheck')); ?></h2>
+			<p class="dc-section__sub"><?php p($l->t('Directory door for the suite — allowlist before the lock.')); ?></p>
 		</div>
 		<div class="dc-section__controls">
 			<span id="dc-policy-state-badge" class="dc-status-badge" aria-live="polite"></span>
 			<span id="dc-policy-dirty" class="dc-pill" hidden><?php p($l->t('Unsaved changes')); ?></span>
 		</div>
 	</header>
+	<div class="dc-access-gate" aria-hidden="true">
+		<div class="dc-access-gate__panel">
+			<span class="dc-access-gate__label"><?php p($l->t('Access control')); ?></span>
+			<span class="dc-access-gate__state" id="dc-access-gate-visual">—</span>
+		</div>
+	</div>
 	<div class="dc-callout dc-callout--info" role="note" aria-labelledby="dc-access-gate-title">
 		<p id="dc-access-gate-title"><strong><?php p($l->t('This list controls the door, not the data.')); ?></strong></p>
 		<p class="dc-field__hint">
@@ -68,7 +76,7 @@ $dcEmployeesUrl = (string) ($_['urls']['employees'] ?? '');
 			<?php endif; ?>
 		</p>
 	</div>
-	<form id="dc-app-policy-form" class="dc-form-grid" novalidate>
+	<form id="dc-app-policy-form" class="dc-form-grid dc-form-grid--access-quiet" novalidate>
 		<div class="dc-field dc-field--full">
 			<label class="dc-checkbox" for="dc-policy-restriction">
 				<input id="dc-policy-restriction" type="checkbox" name="accessRestrictionEnabled">

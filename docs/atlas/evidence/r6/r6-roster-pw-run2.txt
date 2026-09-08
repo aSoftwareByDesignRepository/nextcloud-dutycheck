@@ -1,0 +1,12 @@
+
+Running 3 tests using 1 worker
+
+(node:3290095) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [setup] › tests/e2e/auth.setup.js:9:1 › authenticate planner (5.5s)
+(node:3293784) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  2 [chromium] › tests/e2e/roster-month-grid.spec.js:153:1 › month period keeps one column per day without overlapping headers (8.1s)
+  ✓  3 [chromium] › tests/e2e/roster-rolling-month.spec.js:5:1 › rolling month navigator ensures periods without manual Zeitraum creation (16.4s)
+
+  3 passed (31.6s)

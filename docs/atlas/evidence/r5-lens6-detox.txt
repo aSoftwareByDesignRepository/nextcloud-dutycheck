@@ -1,0 +1,105 @@
+23:25:13.579 detox[15974] B DETOX_ADB_NAME="emulator-5600" jest --config e2e/jest.config.js --maxWorkers 1 e2e/smoke.e2e.js e2e/login-reachability.e2e.js e2e/home.e2e.js e2e/journeys.e2e.js e2e/store-screenshots.e2e.js
+23:25:17.660 detox[15993] i journeys.e2e.js is assigned to AttachedDevice:emulator-5600
+23:25:20.137 detox[15993] i DutyCheck journeys (mock API): Home → My Week → Shift detail → acknowledge
+23:25:32.051 detox[15993] i DutyCheck journeys (mock API): Home → My Week → Shift detail → acknowledge [OK]
+23:25:32.052 detox[15993] i DutyCheck journeys (mock API): Home → Shift detail from this-week row
+23:25:43.834 detox[15993] i DutyCheck journeys (mock API): Home → Shift detail from this-week row [OK]
+23:25:43.835 detox[15993] i DutyCheck journeys (mock API): Team tab shows peer week when Kollegenplan is on
+23:25:55.124 detox[15993] i DutyCheck journeys (mock API): Team tab shows peer week when Kollegenplan is on [OK]
+23:25:55.124 detox[15993] i DutyCheck journeys (mock API): Marketplace claim + pool swap
+23:26:06.075 detox[15993] i DutyCheck journeys (mock API): Marketplace claim + pool swap [OK]
+23:26:06.075 detox[15993] i DutyCheck journeys (mock API): Settings → Absences → submit
+23:26:20.583 detox[15993] i DutyCheck journeys (mock API): Settings → Absences → submit [OK]
+23:26:20.583 detox[15993] i DutyCheck journeys (mock API): Settings → About opens and returns
+23:26:35.288 detox[15993] i DutyCheck journeys (mock API): Settings → About opens and returns [OK]
+23:26:35.289 detox[15993] i DutyCheck journeys (mock API): Settings → Sign out returns to Login
+23:26:49.611 detox[15993] i DutyCheck journeys (mock API): Settings → Sign out returns to Login [OK]
+23:26:49.612 detox[15993] i DutyCheck journeys (mock API): Tab bar reaches Today, Week, Team, Marketplace, and Settings
+23:27:02.537 detox[15993] i DutyCheck journeys (mock API): Tab bar reaches Today, Week, Team, Marketplace, and Settings [OK]
+
+PASS e2e/journeys.e2e.js (108.063 s)
+  DutyCheck journeys (mock API)
+    ✓ Home → My Week → Shift detail → acknowledge (11912 ms)
+    ✓ Home → Shift detail from this-week row (11783 ms)
+    ✓ Team tab shows peer week when Kollegenplan is on (11288 ms)
+    ✓ Marketplace claim + pool swap (10950 ms)
+    ✓ Settings → Absences → submit (14507 ms)
+    ✓ Settings → About opens and returns (14704 ms)
+    ✓ Settings → Sign out returns to Login (14323 ms)
+    ✓ Tab bar reaches Today, Week, Team, Marketplace, and Settings (12923 ms)
+
+23:27:04.912 detox[15993] i store-screenshots.e2e.js is assigned to AttachedDevice:emulator-5600
+23:27:06.242 detox[15993] i DutyCheck store screenshots (live): phone-01 Login
+23:27:21.081 detox[15993] i DutyCheck store screenshots (live): phone-01 Login [OK]
+23:27:21.081 detox[15993] i DutyCheck store screenshots (live): phone-02 Home
+23:27:30.031 detox[15993] i DutyCheck store screenshots (live): phone-02 Home [OK]
+23:27:30.031 detox[15993] i DutyCheck store screenshots (live): phone-03 My week
+23:27:40.271 detox[15993] i DutyCheck store screenshots (live): phone-03 My week [OK]
+23:27:40.271 detox[15993] i DutyCheck store screenshots (live): phone-04 Marketplace
+23:27:50.494 detox[15993] i DutyCheck store screenshots (live): phone-04 Marketplace [OK]
+23:27:50.495 detox[15993] i DutyCheck store screenshots (live): phone-05 Time off
+23:28:03.922 detox[15993] i DutyCheck store screenshots (live): phone-05 Time off [OK]
+23:28:03.923 detox[15993] i DutyCheck store screenshots (live): phone-06 Settings
+23:28:13.958 detox[15993] i DutyCheck store screenshots (live): phone-06 Settings [OK]
+23:28:13.958 detox[15993] i DutyCheck store screenshots (live): phone-07 Seat required
+23:28:23.785 detox[15993] i DutyCheck store screenshots (live): phone-07 Seat required [OK]
+
+PASS e2e/store-screenshots.e2e.js (81.221 s)
+  DutyCheck store screenshots (live)
+    ✓ phone-01 Login (14838 ms)
+    ✓ phone-02 Home (8948 ms)
+    ✓ phone-03 My week (10239 ms)
+    ✓ phone-04 Marketplace (10223 ms)
+    ✓ phone-05 Time off (13427 ms)
+    ✓ phone-06 Settings (10034 ms)
+    ✓ phone-07 Seat required (9826 ms)
+
+23:28:26.068 detox[15993] i home.e2e.js is assigned to AttachedDevice:emulator-5600
+23:28:26.069 detox[15993] i Home (E2E mock): shows duty roster home and acknowledges next shift
+23:28:36.194 detox[15993] i Home (E2E mock): shows duty roster home and acknowledges next shift [OK]
+
+23:28:36.195 detox[15993] i License gate (E2E mock): blocks when the user has no seat
+23:28:48.185 detox[15993] i License gate (E2E mock): blocks when the user has no seat [OK]
+
+23:28:48.186 detox[15993] i Unofficial server (E2E mock): shows unofficial / unlicensed wall
+23:28:58.121 detox[15993] i Unofficial server (E2E mock): shows unofficial / unlicensed wall [OK]
+
+23:28:58.123 detox[15993] i Marketplace (E2E mock): opens marketplace from tab and allows claim
+23:29:09.044 detox[15993] i Marketplace (E2E mock): opens marketplace from tab and allows claim [OK]
+
+PASS e2e/home.e2e.js (45.238 s)
+  Home (E2E mock)
+    ✓ shows duty roster home and acknowledges next shift (10124 ms)
+  License gate (E2E mock)
+    ✓ blocks when the user has no seat (11990 ms)
+  Unofficial server (E2E mock)
+    ✓ shows unofficial / unlicensed wall (9934 ms)
+  Marketplace (E2E mock)
+    ✓ opens marketplace from tab and allows claim (10921 ms)
+
+23:29:11.398 detox[15993] i smoke.e2e.js is assigned to AttachedDevice:emulator-5600
+23:29:20.989 detox[15993] i DutyCheck smoke (E2E mock): lands on home with acknowledge CTA and core tabs
+23:29:21.046 detox[15993] i DutyCheck smoke (E2E mock): lands on home with acknowledge CTA and core tabs [OK]
+
+PASS e2e/smoke.e2e.js (11.985 s)
+  DutyCheck smoke (E2E mock)
+    ✓ lands on home with acknowledge CTA and core tabs (57 ms)
+
+23:29:23.705 detox[15993] i login-reachability.e2e.js is assigned to AttachedDevice:emulator-5600
+23:29:25.206 detox[15993] i Login shell (no mock): shows the login screen
+23:29:29.276 detox[15993] i ""/home/alex/Android/Sdk/platform-tools/adb" -s emulator-5600 shell "ps | grep \"de\.softwarebydesign\.dutycheck$\""" failed with error = Error: Command failed: "/home/alex/Android/Sdk/platform-tools/adb" -s emulator-5600 shell "ps | grep \"de\.softwarebydesign\.dutycheck$\""
+ (code=1), stdout and stderr:
+
+23:29:29.276 detox[15993] i 
+23:29:29.277 detox[15993] i 
+23:29:36.950 detox[15993] i Login shell (no mock): shows the login screen [OK]
+
+PASS e2e/login-reachability.e2e.js (15.881 s)
+  Login shell (no mock)
+    ✓ shows the login screen (11744 ms)
+
+Test Suites: 5 passed, 5 total
+Tests:       21 passed, 21 total
+Snapshots:   0 total
+Time:        262.587 s
+Ran all test suites matching /e2e\/smoke.e2e.js|e2e\/login-reachability.e2e.js|e2e\/home.e2e.js|e2e\/journeys.e2e.js|e2e\/store-screenshots.e2e.js/i.

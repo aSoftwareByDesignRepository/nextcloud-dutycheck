@@ -71,6 +71,26 @@ $metricAssignments = $summary === null ? 0 : max(0, (int) ($summary['assignments
 	</ol>
 </section>
 
+<section class="dc-card dc-section dc-dashboard-pulse-card" aria-labelledby="dc-dashboard-conflicts-title">
+	<header class="dc-section__header">
+		<div>
+			<h2 id="dc-dashboard-conflicts-title"><?php p($l->t('Planning status')); ?></h2>
+			<p class="dc-section__sub">
+				<?php p($l->t('A quick read on open planning issues in the latest editable period. “Must fix” always blocks publishing.')); ?>
+			</p>
+		</div>
+		<a class="button primary" href="<?php p((string) ($urls['roster'] ?? '#')); ?>">
+			<?php p($l->t('Go to Roster')); ?>
+		</a>
+	</header>
+	<div id="dc-dashboard-conflict-pulse" class="dc-loading dc-dashboard-pulse"
+		role="status" aria-live="polite" aria-busy="true">
+		<?php p($l->t('Loading planning checks…')); ?>
+	</div>
+	<ul id="dc-dashboard-conflict-list" class="dc-conflicts dc-dashboard-conflict-list" role="list"
+		aria-label="<?php p($l->t('Open must-fix planning issues')); ?>" hidden></ul>
+</section>
+
 <section class="dc-card dc-section" aria-labelledby="dc-dashboard-summary-title">
 	<header class="dc-section__header">
 		<div>
@@ -104,15 +124,15 @@ $metricAssignments = $summary === null ? 0 : max(0, (int) ($summary['assignments
 	</div>
 </section>
 
-<section class="dc-card dc-section" aria-labelledby="dc-dashboard-checklist-title">
-	<header class="dc-section__header">
+<details class="dc-card dc-section" id="dc-dashboard-checklist" aria-labelledby="dc-dashboard-checklist-title">
+	<summary class="dc-section__header" style="cursor:pointer;list-style:none;">
 		<div>
 			<h2 id="dc-dashboard-checklist-title"><?php p($l->t('Planner checklist')); ?></h2>
 			<p class="dc-section__sub">
 				<?php p($l->t('Walk through this list each time you prepare a period for publication.')); ?>
 			</p>
 		</div>
-	</header>
+	</summary>
 	<ol class="dc-quickstart">
 		<li class="dc-quickstart__item">
 			<strong><?php p($l->t('Create or review the period')); ?></strong>
@@ -140,20 +160,5 @@ $metricAssignments = $summary === null ? 0 : max(0, (int) ($summary['assignments
 			</a>
 		</li>
 	</ol>
-</section>
-
-<section class="dc-card dc-section" aria-labelledby="dc-dashboard-conflicts-title">
-	<header class="dc-section__header">
-		<div>
-			<h2 id="dc-dashboard-conflicts-title"><?php p($l->t('Planning status')); ?></h2>
-			<p class="dc-section__sub">
-				<?php p($l->t('A quick read on open planning issues in the latest editable period. “Must fix” always blocks publishing.')); ?>
-			</p>
-		</div>
-	</header>
-	<div id="dc-dashboard-conflict-pulse" class="dc-loading"
-		role="status" aria-live="polite" aria-busy="true">
-		<?php p($l->t('Loading planning checks…')); ?>
-	</div>
-</section>
+</details>
 <?php include __DIR__ . '/common/page-end.php'; ?>

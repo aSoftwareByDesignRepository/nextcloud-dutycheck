@@ -1,0 +1,169 @@
+
+Running 66 tests using 1 worker
+
+(node:1598055) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/66] [setup] › tests/e2e/auth.setup.js:9:1 › authenticate planner
+(node:1600303) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[2/66] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/
+[3/66] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/roster
+[4/66] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/periods
+[5/66] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/absences
+[6/66] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/access
+[7/66] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/duty-roles
+[8/66] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/planning
+[9/66] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/companies
+[10/66] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/conflicts
+[11/66] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/shift-templates
+[12/66] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/qualifications
+[13/66] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/planner-scope
+[14/66] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/operations
+(node:1627400) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[15/66] (retries) [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/operations (retry #1)
+  1) [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/operations 
+
+    Error: Nextcloud is showing the server updater. Run: docker compose exec -u www-data nextcloud php occ upgrade
+
+       at helpers/auth.js:22
+
+      20 | export async function assertNotServerUpdater(page) {
+      21 |   if (await isServerUpdater(page)) {
+    > 22 |     throw new Error('Nextcloud is showing the server updater. Run: docker compose exec -u www-data nextcloud php occ upgrade')
+         |           ^
+      23 |   }
+      24 | }
+      25 |
+        at assertNotServerUpdater (/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/helpers/auth.js:22:11)
+        at assertA11y (/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:49:3)
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:68:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/a11y-smoke-a11y-smoke-apps-dutycheck-settings-operations-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/a11y-smoke-a11y-smoke-apps-dutycheck-settings-operations-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/a11y-smoke-a11y-smoke-apps-dutycheck-settings-operations-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/a11y-smoke-a11y-smoke-apps-dutycheck-settings-operations-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/a11y-smoke-a11y-smoke-apps-dutycheck-settings-operations-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: Nextcloud is showing the server updater. Run: docker compose exec -u www-data nextcloud php occ upgrade
+
+       at helpers/auth.js:22
+
+      20 | export async function assertNotServerUpdater(page) {
+      21 |   if (await isServerUpdater(page)) {
+    > 22 |     throw new Error('Nextcloud is showing the server updater. Run: docker compose exec -u www-data nextcloud php occ upgrade')
+         |           ^
+      23 |   }
+      24 | }
+      25 |
+        at assertNotServerUpdater (/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/helpers/auth.js:22:11)
+        at assertA11y (/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:49:3)
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:68:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/a11y-smoke-a11y-smoke-apps-dutycheck-settings-operations-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/a11y-smoke-a11y-smoke-apps-dutycheck-settings-operations-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/a11y-smoke-a11y-smoke-apps-dutycheck-settings-operations-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/a11y-smoke-a11y-smoke-apps-dutycheck-settings-operations-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/a11y-smoke-a11y-smoke-apps-dutycheck-settings-operations-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+(node:1628672) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[16/66] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/dienst-team
+(node:1637825) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[17/66] (retries) [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/dienst-team (retry #1)
+  2) [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/dienst-team 
+
+    TimeoutError: page.waitForSelector: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('#dc-main-content') to be visible
+
+
+      48 |   await page.goto(path, { waitUntil: 'domcontentloaded' })
+      49 |   await assertNotServerUpdater(page)
+    > 50 |   await page.waitForSelector('#dc-main-content', { timeout: 30000 })
+         |              ^
+      51 |   // Wait for body theme variables so axe does not race NC dark/light CSS.
+      52 |   await page.waitForFunction(() => {
+      53 |     const body = getComputedStyle(document.body)
+        at assertA11y (/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:50:14)
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/a11y-smoke.spec.js:68:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/a11y-smoke-a11y-smoke-apps-dutycheck-settings-dienst-team-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/a11y-smoke-a11y-smoke-apps-dutycheck-settings-dienst-team-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/a11y-smoke-a11y-smoke-apps-dutycheck-settings-dienst-team-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/a11y-smoke-a11y-smoke-apps-dutycheck-settings-dienst-team-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[18/66] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/integration
+[19/66] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/privacy
+[20/66] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/license
+[21/66] [chromium] › tests/e2e/a11y-smoke.spec.js:66:3 › a11y smoke: /apps/dutycheck/settings/support
+[22/66] [chromium] › tests/e2e/a11y-smoke.spec.js:76:5 › employee a11y › a11y smoke (employee): /apps/dutycheck/my-absences
+[23/66] [chromium] › tests/e2e/a11y-smoke.spec.js:76:5 › employee a11y › a11y smoke (employee): /apps/dutycheck/my-roster
+[24/66] [chromium] › tests/e2e/a11y-smoke.spec.js:84:1 › legacy /settings URL redirects to the default sub-page
+[25/66] [chromium] › tests/e2e/a11y-smoke.spec.js:91:1 › legacy /settings#anchor bookmark forwards to the owning sub-page
+[26/66] [chromium] › tests/e2e/a11y-smoke.spec.js:100:1 › settings sidebar sub-navigation marks the active sub-page
+[27/66] [chromium] › tests/e2e/a11y-smoke.spec.js:111:1 › settings in-page chip bar mirrors the catalog and marks the active page
+[28/66] [chromium] › tests/e2e/a11y-smoke.spec.js:126:1 › company-access banner is a labelled status region and hidden when membership exists
+[29/66] [chromium] › tests/e2e/license-seat-search.spec.js:12:2 › DutyCheck license seat search › seat search returns directory hits and does not steal a11y
+[30/66] [chromium] › tests/e2e/license-seat-search.spec.js:57:2 › DutyCheck license seat search › legacy users-shaped payload still populates suggestions
+[31/66] [chromium] › tests/e2e/license-seat-search.spec.js:78:2 › DutyCheck license seat search › live search against the real directory finds the admin account
+[32/66] [chromium] › tests/e2e/nav-abort-no-network-toast.spec.js:9:1 › navigating away during pending API does not toast network error
+[33/66] [chromium] › tests/e2e/roster-month-grid.spec.js:153:1 › month period keeps one column per day without overlapping headers
+[34/66] [chromium] › tests/e2e/roster-rolling-month.spec.js:5:1 › rolling month navigator ensures periods without manual Zeitraum creation
+[35/66] [chromium] › tests/e2e/roster-virtualization.spec.js:90:1 › roster page loads virtual window + scroller chrome
+[36/66] [chromium] › tests/e2e/roster-virtualization.spec.js:156:1 › roster grid paints a bounded window for 80 people and keeps full JSON
+[37/66] [chromium] › tests/e2e/setup-progress-a11y.spec.js:89:2 › setup progress a11y + journey › fixture done-status ink contrasts ≥ 4.5:1 under live NC theme tokens
+[38/66] [chromium] › tests/e2e/setup-progress-a11y.spec.js:166:2 › setup progress a11y + journey › live setup shows one primary CTA and suppresses Quick start
+[39/66] [chromium] › tests/e2e/setup-progress-a11y.spec.js:191:2 › setup progress a11y + journey › CTA completes a one-click jump into the next setup page
+[40/66] [chromium] › tests/e2e/team-week-a11y.spec.js:12:2 › employee team week a11y › my-roster Team section is WCAG 2.1 AA when peer visibility is on
+[41/66] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: dashboard
+[42/66] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: roster
+[43/66] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: periods

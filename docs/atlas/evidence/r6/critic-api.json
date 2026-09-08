@@ -1,0 +1,34 @@
+{
+  "wow": 9,
+  "verdict": "ACCEPT",
+  "parts": [
+    "api-roster-periods-assignments",
+    "api-open-shifts-swaps",
+    "api-self-service-signals",
+    "api-admin-governance",
+    "api-mobile",
+    "api-ical",
+    "api-license"
+  ],
+  "must_fix": [],
+  "should_fix": [
+    "Broad adversarial filter RosterApi|Assignment|Cas|Acknowledge (not fixer-exact) surfaces RosterServiceCancelVersionCasTest STALE_VERSION contract miss + 1 error \u2014 expand proved roster filter or restore cancelAssignment STALE_VERSION within contract window",
+    "GA _ga_e2e peer steps assume oc_dc_employees#36.linked_user_id=dc.review.employee; concurrent seed drift to dc.seed.cfd0cd \u2192 EMPLOYEE_LINK_NOT_FOUND (restored \u2192 ALL PASSED); pin/assert link in script",
+    "SelfService unit filter alone is 5 OK (fixer note 8/8 used SelfService|ShiftPreference|AvailabilityBlackout|rosterSignals|Blackout \u2192 ~7\u20138); keep documented multi-token filter in STATUS",
+    "GA suggest-mutex step still only asserts post-unlock idempotent skip (created=0); concurrent second confirm under held KIND_SUGGEST \u2192 should_fix (parity with backend critic)",
+    "PHP 8.5 ReflectionProperty/Method::setAccessible() deprecations noise in Acknowledge/OpenShift/Admin/Ical unit runs \u2014 cleanup test harness"
+  ],
+  "evidence": [
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-api-critic.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-api-roster.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-api-open-shifts-swaps.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-api-self-service.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-api-self-service-extra.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-api-ga-spot.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-api-admin.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-api-mobile.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-api-ical.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-api-license.txt"
+  ],
+  "notes": "Harsh AAA critic. Re-ran fixer-exact --testsuite unit filters via docker: RosterApi|AssignmentSlotKey|RosterServiceMutationCreateAssignment|RosterServiceCasContract|Acknowledge* 70/70 ROSTER_EXIT=0; Swap|OpenShift 27/27; MomosGaPolicyWiring|PeriodLockEntityMutex|SecurityCriticalMutation 24/24; AccessControl|DedicatedAppAdmin|CompanyIsolation|ApiRateLimit|ConflictPolicy|OpenAccessMode|PlanningDefaultsApi 36/36; MobileCompanionWire|MobileController|MobileGate|MobileDemo 22/22; IcalToken|PublicIcal|isValidIcal|IcalEmployee|assertIcal 9/9; License 42/42. GA _ga_e2e initially FAIL peer EMPLOYEE_LINK_NOT_FOUND (seed link drift); after restore linked_user_id=dc.review.employee \u2192 ALL GA E2E STEPS PASSED GA_EXIT=0. No product must_fix. Soft harness/seed/broader-filter notes \u2192 should_fix only. Bare AAA wow=9 ACCEPT. No AVD."
+}

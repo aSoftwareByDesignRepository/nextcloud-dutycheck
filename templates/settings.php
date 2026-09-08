@@ -38,6 +38,7 @@ $canAdminApp = !empty($_['isAppAdmin']);
 		'qualifications' => 'qualifications.php',
 		'planner-scope' => 'planner-scope.php',
 		'operations' => 'operations.php',
+		'dienst-team' => 'dienst-team.php',
 		'integration' => 'integration.php',
 		'privacy' => 'privacy.php',
 		'license' => 'license.php',

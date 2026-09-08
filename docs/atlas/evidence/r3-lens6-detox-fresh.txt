@@ -1,0 +1,45 @@
+21:19:48.484 detox[830704] B DETOX_ADB_NAME="emulator-5602" jest --config e2e/jest.config.js --maxWorkers 1 e2e/smoke.e2e.js e2e/login-reachability.e2e.js e2e/home.e2e.js
+21:19:51.133 detox[830716] i home.e2e.js is assigned to AttachedDevice:emulator-5602
+21:19:51.137 detox[830716] i Home (E2E mock): shows duty roster home and acknowledges next shift
+21:20:00.930 detox[830716] i Home (E2E mock): shows duty roster home and acknowledges next shift [OK]
+
+21:20:00.932 detox[830716] i License gate (E2E mock): blocks when the user has no seat
+21:20:10.161 detox[830716] i License gate (E2E mock): blocks when the user has no seat [OK]
+
+21:20:10.162 detox[830716] i Unofficial server (E2E mock): shows unofficial / unlicensed wall
+21:20:19.983 detox[830716] i Unofficial server (E2E mock): shows unofficial / unlicensed wall [OK]
+
+21:20:19.985 detox[830716] i Marketplace (E2E mock): opens marketplace from Settings and allows claim
+21:20:37.329 detox[830716] i Marketplace (E2E mock): opens marketplace from Settings and allows claim [OK]
+
+PASS e2e/home.e2e.js (48.455 s)
+  Home (E2E mock)
+    ✓ shows duty roster home and acknowledges next shift (9792 ms)
+  License gate (E2E mock)
+    ✓ blocks when the user has no seat (9228 ms)
+  Unofficial server (E2E mock)
+    ✓ shows unofficial / unlicensed wall (9820 ms)
+  Marketplace (E2E mock)
+    ✓ opens marketplace from Settings and allows claim (17344 ms)
+
+21:20:40.057 detox[830716] i smoke.e2e.js is assigned to AttachedDevice:emulator-5602
+21:20:49.383 detox[830716] i DutyCheck smoke (E2E mock): lands on home with acknowledge CTA and core tabs
+21:20:49.421 detox[830716] i DutyCheck smoke (E2E mock): lands on home with acknowledge CTA and core tabs [OK]
+
+PASS e2e/smoke.e2e.js (12.068 s)
+  DutyCheck smoke (E2E mock)
+    ✓ lands on home with acknowledge CTA and core tabs (37 ms)
+
+21:20:52.610 detox[830716] i login-reachability.e2e.js is assigned to AttachedDevice:emulator-5602
+21:20:54.176 detox[830716] i Login shell (no mock): shows the login screen
+21:21:03.820 detox[830716] i Login shell (no mock): shows the login screen [OK]
+
+PASS e2e/login-reachability.e2e.js (14.381 s)
+  Login shell (no mock)
+    ✓ shows the login screen (9645 ms)
+
+Test Suites: 3 passed, 3 total
+Tests:       6 passed, 6 total
+Snapshots:   0 total
+Time:        75.009 s, estimated 102 s
+Ran all test suites matching /e2e\/smoke.e2e.js|e2e\/login-reachability.e2e.js|e2e\/home.e2e.js/i.

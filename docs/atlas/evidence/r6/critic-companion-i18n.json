@@ -1,0 +1,20 @@
+{
+  "parts": [
+    "companion-i18n-theme"
+  ],
+  "wow": 9,
+  "verdict": "ACCEPT",
+  "must_fix": [],
+  "should_fix": [
+    "contrast-check.mjs covers LIGHT+DARK token pairs only \u2014 no dedicated highContrast palette section",
+    "theme mode switching (light/dark/system) has no dedicated Jest suite beyond azcUiParity light token contract",
+    "Jest reports Force exiting due to open handles on these suites \u2014 consider --detectOpenHandles hygiene on next i18n/theme touch"
+  ],
+  "evidence": [
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-companion-i18n-theme.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/STATUS-companion-i18n-theme.md",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-companion-i18n-theme-critic.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/critic-companion-i18n.json"
+  ],
+  "notes": "Harsh AAA critic (wow\u22659) companion-i18n-theme only. Adversarial re-run of fixer no-AVD gates in mobile/dutycheck: i18n:parity PASS 341\u00d711 EXIT=0; a11y:contrast ALL PASS light+dark EXIT=0; jest localeParity+usedKeys+azcUiParity 3 suites/8 tests EXIT=0 (r6-companion-i18n-theme-critic.txt matches fixer r6-companion-i18n-theme.txt). Soft coverage gaps (highContrast section, theme-mode suite, jest open-handles) \u2192 should_fix only. Bare AAA wow=9 ACCEPT."
+}

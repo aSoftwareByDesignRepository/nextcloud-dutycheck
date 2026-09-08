@@ -1,0 +1,28 @@
+{
+  "parts": [
+    "web-roster-rolling-months",
+    "web-roster-grid",
+    "web-roster-virtualization"
+  ],
+  "wow": 9,
+  "verdict": "ACCEPT",
+  "must_fix": [],
+  "should_fix": [
+    "#dc-roster-grid-status / #dc-roster-list-status stay aria-hidden while JS writes window captions — sighted granny copy works; SR users never hear Showing people X–Y of Z (rely on aria-rowcount + hint only)",
+    "Covering open Zeitraum (e.g. Jan–Mar) is reused for mid-month ensure; period switcher still shows the wide range while gridMonthClamp crops columns — advanced-switcher clearing clamp is easy to miss",
+    "Month-nav DE strings (Dieser Monat / Vorheriger Monat / long September labels) wrap via flex-wrap but .dc-roster-month-nav__current min-width:11rem can feel tight on narrow viewports — no overflow truncation test"
+  ],
+  "evidence": [
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-roster-phpunit.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-roster-mutation.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-roster-js-virt.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-roster-pw-run1.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-roster-pw-run2.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-ensure-month-live.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-roster-sleep-grep.txt",
+    "apps/dutycheck/docs/atlas/evidence/r6/r6-roster-critic-gates.txt",
+    "apps/dutycheck/docs/atlas/evidence/screenshots/web/roster-rolling-month.png",
+    "apps/dutycheck/docs/atlas/evidence/screenshots/web/roster-month-grid.png"
+  ],
+  "notes": "Harsh AAA critic. Gates: PHPUnit EnsureCalendarMonth+RosterVirtualization 4/4 OK; mutate:roster-virtualization 15 killed; node roster-virtualization 23/23; Playwright roster-rolling-month+roster-month-grid workers=1 retries=0 twice (3/3 each). Live ensureOpenCalendarMonth: far 2031-06 create+reuse, past 2024-03 create+reuse, concurrent 2035-11 A created / B reuse same id, covering Jan–Mar returns wide period with ym=2036-02 (clamp owned by UI). Sleep grep: no waitForTimeout — only test.setTimeout(120_000). Adversarial review: dead-button race wired (wireMonthNavigator before initial ensure; nav disabled during POST); auto-fit regression locked by CSS contract+mutation; month clamp vs covering periods proven; axe clean on month grid wrap; DE l10n keys present; theme tokens via --color-*; lock KIND_ENSURE_MONTH + rate limit. Soft a11y/UX notes → should_fix only. Bare AAA wow=9 ACCEPT."
+}

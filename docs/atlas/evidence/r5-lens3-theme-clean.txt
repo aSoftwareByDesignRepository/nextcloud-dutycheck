@@ -1,0 +1,158 @@
+
+Running 29 tests using 1 worker
+
+(node:2500085) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/29] [setup] › tests/e2e/auth.setup.js:9:1 › authenticate planner
+(node:2506022) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[2/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: dashboard
+[3/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: roster
+[4/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: periods
+[5/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: absences
+[6/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: settings
+[7/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: dashboard
+[8/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: roster
+[9/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: periods
+[10/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: absences
+[11/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: settings
+[12/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: dashboard
+[13/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: roster
+[14/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: periods
+[15/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: absences
+[16/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: settings
+[17/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: dashboard
+[18/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: roster
+[19/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: periods
+[20/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: absences
+[21/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: settings
+[22/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:208:2 › DutyCheck theme × viewport a11y matrix › reset to default theme
+(node:2607840) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[23/29] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: dashboard (retry #1)
+[24/29] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: roster (retry #1)
+[25/29] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: periods (retry #1)
+[26/29] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: absences (retry #1)
+[27/29] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light: settings (retry #1)
+[28/29] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: dashboard (retry #1)
+  1) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: dashboard 
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: page.waitForSelector: Timeout 15000ms exceeded.
+    Call log:
+      - waiting for locator('body[data-theme-dark]') to be visible
+
+
+       at helpers/theming.js:45
+
+      43 | 	}
+      44 | 	await page.reload({ waitUntil: 'domcontentloaded' })
+    > 45 | 	await page.waitForSelector(`body[data-theme-${themeId}]`, { timeout: 15_000 })
+         | 	           ^
+      46 | }
+      47 |
+      48 | /**
+        at setUserTheme (/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/helpers/theming.js:45:13)
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/theme-responsive-a11y.spec.js:190:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-cc331--a11y-matrix-dark-dashboard-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-cc331--a11y-matrix-dark-dashboard-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/theme-responsive-a11y-Duty-cc331--a11y-matrix-dark-dashboard-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-cc331--a11y-matrix-dark-dashboard-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/theme-responsive-a11y-Duty-cc331--a11y-matrix-dark-dashboard-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[29/29] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: settings (retry #1)
+  2) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: settings 
+
+    Error: horizontal overflow at dark/settings@320px
+
+    horizontal overflow at dark/settings@320px
+
+    expect(received).toBeLessThanOrEqual(expected)
+
+    Expected: <= 1
+    Received:    29
+
+    Call Log:
+    - Timeout 8000ms exceeded while waiting on the predicate
+
+      67 | 		})
+      68 | 		return Math.max(overflow.doc, overflow.app, overflow.shell, overflow.main)
+    > 69 | 	}, { timeout: 8_000, message: `horizontal overflow at ${label}` }).toBeLessThanOrEqual(1)
+         | 	                                                                   ^
+      70 | }
+      71 |
+      72 | /**
+        at expectNoHorizontalOverflow (/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/theme-responsive-a11y.spec.js:69:69)
+        at /home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/tests/e2e/theme-responsive-a11y.spec.js:196:12
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-d82a6-t-a11y-matrix-dark-settings-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-d82a6-t-a11y-matrix-dark-settings-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/theme-responsive-a11y-Duty-d82a6-t-a11y-matrix-dark-settings-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/theme-responsive-a11y-Duty-d82a6-t-a11y-matrix-dark-settings-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/theme-responsive-a11y-Duty-d82a6-t-a11y-matrix-dark-settings-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[30/29] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: roster (retry #1)
+[31/29] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: periods (retry #1)
+[32/29] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: absences (retry #1)
+[33/29] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: dashboard (retry #1)
+[34/29] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: roster (retry #1)
+[35/29] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: periods (retry #1)
+[36/29] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: absences (retry #1)
+[37/29] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › light-highcontrast: settings (retry #1)
+[38/29] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: dashboard (retry #1)
+[39/29] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: roster (retry #1)
+[40/29] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: periods (retry #1)
+[41/29] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: absences (retry #1)
+[42/29] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark-highcontrast: settings (retry #1)
+[43/29] (retries) [chromium] › tests/e2e/theme-responsive-a11y.spec.js:208:2 › DutyCheck theme × viewport a11y matrix › reset to default theme (retry #1)
+(node:2699676) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[44/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:221:2 › DutyCheck custom accent colour › primary tokens follow instance accent and stay AA
+[45/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light mobile-320
+[46/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light tablet-768
+[47/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ light desktop-1440
+[48/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ dark mobile-320
+[49/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ dark tablet-768
+[50/29] [chromium] › tests/e2e/theme-responsive-a11y.spec.js:272:4 › DutyCheck visual shell metrics › shell metrics @ dark desktop-1440
+  1 failed
+    [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: settings 
+  1 flaky
+    [chromium] › tests/e2e/theme-responsive-a11y.spec.js:184:4 › DutyCheck theme × viewport a11y matrix › dark: dashboard 
+  11 did not run
+  16 passed (5.6m)

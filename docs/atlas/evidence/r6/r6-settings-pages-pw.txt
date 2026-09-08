@@ -1,0 +1,30 @@
+
+Running 17 tests using 1 worker
+
+(node:3399958) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/17] [setup] › tests/e2e/auth.setup.js:9:1 › authenticate planner
+(node:3403155) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[2/17] [chromium] › tests/e2e/settings-pages-smoke.spec.js:37:2 › settings-pages smoke: web-settings-access (/apps/dutycheck/settings/access)
+[3/17] [chromium] › tests/e2e/settings-pages-smoke.spec.js:37:2 › settings-pages smoke: web-settings-duty-roles (/apps/dutycheck/settings/duty-roles)
+[4/17] [chromium] › tests/e2e/settings-pages-smoke.spec.js:37:2 › settings-pages smoke: web-settings-planning (/apps/dutycheck/settings/planning)
+[5/17] [chromium] › tests/e2e/settings-pages-smoke.spec.js:37:2 › settings-pages smoke: web-settings-companies (/apps/dutycheck/settings/companies)
+[6/17] [chromium] › tests/e2e/settings-pages-smoke.spec.js:37:2 › settings-pages smoke: web-settings-conflicts (/apps/dutycheck/settings/conflicts)
+[7/17] [chromium] › tests/e2e/settings-pages-smoke.spec.js:37:2 › settings-pages smoke: web-settings-shift-templates (/apps/dutycheck/settings/shift-templates)
+[8/17] [chromium] › tests/e2e/settings-pages-smoke.spec.js:37:2 › settings-pages smoke: web-settings-qualifications (/apps/dutycheck/settings/qualifications)
+[9/17] [chromium] › tests/e2e/settings-pages-smoke.spec.js:37:2 › settings-pages smoke: web-settings-planner-scope (/apps/dutycheck/settings/planner-scope)
+[10/17] [chromium] › tests/e2e/settings-pages-smoke.spec.js:37:2 › settings-pages smoke: web-settings-operations (/apps/dutycheck/settings/operations)
+[11/17] [chromium] › tests/e2e/settings-pages-smoke.spec.js:37:2 › settings-pages smoke: web-settings-dienst-team (/apps/dutycheck/settings/dienst-team)
+[12/17] [chromium] › tests/e2e/settings-pages-smoke.spec.js:37:2 › settings-pages smoke: web-settings-integration (/apps/dutycheck/settings/integration)
+[13/17] [chromium] › tests/e2e/settings-pages-smoke.spec.js:37:2 › settings-pages smoke: web-settings-privacy (/apps/dutycheck/settings/privacy)
+[14/17] [chromium] › tests/e2e/settings-pages-smoke.spec.js:37:2 › settings-pages smoke: web-settings-license (/apps/dutycheck/settings/license)
+[15/17] [chromium] › tests/e2e/settings-pages-smoke.spec.js:37:2 › settings-pages smoke: web-settings-support (/apps/dutycheck/settings/support)
+[16/17] [chromium] › tests/e2e/settings-pages-smoke.spec.js:62:1 › settings chip/nav ok at 390px (planning → privacy hop)
+[17/17] [chromium] › tests/e2e/settings-pages-smoke.spec.js:80:1 › settings sidebar sub-navigation marks the active sub-page
+  17 passed (1.1m)
+EXIT=0

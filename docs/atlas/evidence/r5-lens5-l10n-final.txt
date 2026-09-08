@@ -1,0 +1,5 @@
+npm error Missing script: "check-l10n-placeholders"
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: /home/alex/.npm/_logs/2026-09-07T23_16_28_355Z-debug-0.log

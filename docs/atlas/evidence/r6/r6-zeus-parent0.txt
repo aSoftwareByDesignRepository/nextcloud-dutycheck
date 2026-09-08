@@ -1,0 +1,20 @@
+OK  rot_assign first acquire
+OK  rot_assign second blocked
+OK  rot_assign after release
+OK  blackout first acquire
+OK  blackout second blocked
+OK  quiet undelivered age-purged after TTL (id=2439)
+OK  quiet overflow still deferred (shed, not fail-open)
+OK  quiet overflow pending ≤ max (pending=200)
+OK  PATTERN_INACTIVE→422
+OK  WEEK_START_INVALID→422
+OK  BLACKOUT_CONFLICT→422
+OK  PREFERENCE_BAND_INVALID→422
+OK  RotationPatternService has locks
+OK  AvailabilityBlackoutService has locks
+OK  SwapService has locks
+OK  SETTINGS_CONFLICT→409
+OK  ShiftPreferenceService has locks
+OK  settings CAS rejects stale raw
+
+ALL ZEUS CONCURRENCY CHECKS PASSED

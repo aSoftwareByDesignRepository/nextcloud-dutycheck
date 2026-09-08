@@ -1,0 +1,42 @@
+Momos attack surface: company=1 locA=9 locB=10 period=49 empA=36 empB=15
+
+=== [M-01] claim_requires_planner=false must auto-claim (not leave pending forever) ===
+CLEAN: auto-claim path hit OPEN_SHIFT_CONFLICT (capacity); planner flag is false
+
+=== [M-01b] claim_requires_planner=true must stay pending for planner ===
+CLEAN: pending as required
+
+=== [M-02] Employee Today board must be FORBIDDEN ===
+CLEAN: FORBIDDEN as required
+
+=== [M-03] Peer team-week IDOR: location without belonging → FORBIDDEN ===
+CLEAN: FORBIDDEN without belonging
+
+=== [M-04] Wrong user accepts swap destined for someone else ===
+CLEAN: blocked: EMPLOYEE_LINK_NOT_FOUND
+
+=== [M-05] Unauthenticated / wrong role: settings update by linked employee ===
+CLEAN: service blocked: FORBIDDEN
+
+=== [M-06] Swap candidates must not dump entire company directory ===
+CLEAN: scoped candidates=4 of companyActive=7
+
+=== [M-07] ICS: valid-format garbage token must not distinguish missing vs wrong (timing/enum) ===
+CLEAN: opaque ICAL_TOKEN_INVALID for both (3.337093ms)
+
+=== [M-08] Peer week includes draft/open period shifts (privacy: should be published-only) ===
+CLEAN: items=0 periodStatus=open; no open-period rows
+
+=== [M-09] userMayDisableQuiet must not be advertised on API if unenforced ===
+CLEAN: API no longer advertises unenforced quiet opt-out
+
+=== [M-10] Blackout create as employee for another employeeId (IDOR) ===
+CLEAN: FORBIDDEN
+
+=== [M-11] Preference save band injection / free-text PII path ===
+CLEAN: rejected: PREFERENCE_BAND_INVALID
+
+=== [M-12] Bilateral_auto: concurrent double-accept must not double-apply ===
+CLEAN: single apply; owner=15; rejects=SWAP_NOT_PENDING
+
+======== SUMMARY proven=0 clean=13 errors=0 ========

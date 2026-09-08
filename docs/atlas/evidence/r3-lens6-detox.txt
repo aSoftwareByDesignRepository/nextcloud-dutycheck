@@ -1,0 +1,84 @@
+21:09:09.953 detox[790103] B DETOX_ADB_NAME="emulator-5602" jest --config e2e/jest.config.js --maxWorkers 1 e2e/smoke.e2e.js e2e/login-reachability.e2e.js e2e/home.e2e.js
+21:09:14.114 detox[790208] i home.e2e.js is assigned to AttachedDevice:emulator-5602
+21:09:14.119 detox[790208] i Home (E2E mock): shows duty roster home and acknowledges next shift
+21:09:26.396 detox[790208] i Home (E2E mock): shows duty roster home and acknowledges next shift [OK]
+
+21:09:26.398 detox[790208] i License gate (E2E mock): blocks when the user has no seat
+21:09:37.765 detox[790208] i License gate (E2E mock): blocks when the user has no seat [OK]
+
+21:09:37.766 detox[790208] i Unofficial server (E2E mock): shows unofficial / unlicensed wall
+21:09:48.783 detox[790208] i Unofficial server (E2E mock): shows unofficial / unlicensed wall [OK]
+
+21:09:48.784 detox[790208] i Marketplace (E2E mock): shows open shifts and allows claim
+21:09:59.342 detox[790208] i Marketplace (E2E mock): shows open shifts and allows claim [FAIL]
+
+FAIL e2e/home.e2e.js (48.48 s)
+  Home (E2E mock)
+    ✓ shows duty roster home and acknowledges next shift (12276 ms)
+  License gate (E2E mock)
+    ✓ blocks when the user has no seat (11367 ms)
+  Unofficial server (E2E mock)
+    ✓ shows unofficial / unlicensed wall (11016 ms)
+  Marketplace (E2E mock)
+    ✕ shows open shifts and allows claim (10557 ms)
+
+  ● Marketplace (E2E mock) › shows open shifts and allows claim
+
+    Test Failed: No views in hierarchy found matching: (view.getTag() is "tab.marketplace" and view has effective visibility <VISIBLE>)
+
+
+    HINT: To print view hierarchy on failed actions/matches, use log-level verbose or higher.
+
+      35 |   it('shows open shifts and allows claim', async () => {
+      36 |     await launchE2eApp('seated');
+    > 37 |     await element(by.id('tab.marketplace')).tap();
+         |                                             ^
+      38 |     await waitFor(element(by.id('marketplace.screen')))
+      39 |       .toBeVisible()
+      40 |       .withTimeout(10_000);
+
+      at Object.tap (e2e/home.e2e.js:37:45)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+21:10:03.313 detox[790208] i smoke.e2e.js is assigned to AttachedDevice:emulator-5602
+21:10:12.196 detox[790208] i DutyCheck smoke (E2E mock): lands on home with acknowledge CTA and marketplace tab
+21:10:12.242 detox[790208] i DutyCheck smoke (E2E mock): lands on home with acknowledge CTA and marketplace tab [FAIL]
+
+FAIL e2e/smoke.e2e.js (12.846 s)
+  DutyCheck smoke (E2E mock)
+    ✕ lands on home with acknowledge CTA and marketplace tab (46 ms)
+
+  ● DutyCheck smoke (E2E mock) › lands on home with acknowledge CTA and marketplace tab
+
+    Test Failed: '(view has effective visibility <VISIBLE> and view.getGlobalVisibleRect() covers at least <75> percent of the view's area)' doesn't match the selected view.
+    Expected: (view has effective visibility <VISIBLE> and view.getGlobalVisibleRect() covers at least <75> percent of the view's area)
+         Got: was null
+
+      13 |     await expect(element(by.id('home.screen'))).toBeVisible();
+      14 |     await expect(element(by.id('home.ackNext'))).toBeVisible();
+    > 15 |     await expect(element(by.id('tab.home'))).toBeVisible();
+         |                                              ^
+      16 |     await expect(element(by.id('tab.marketplace'))).toBeVisible();
+      17 |   });
+      18 | });
+
+      at Object.toBeVisible (e2e/smoke.e2e.js:15:46)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+21:10:15.761 detox[790208] i login-reachability.e2e.js is assigned to AttachedDevice:emulator-5602
+21:10:17.277 detox[790208] i Login shell (no mock): shows the login screen
+21:10:27.532 detox[790208] i Login shell (no mock): shows the login screen [OK]
+
+PASS e2e/login-reachability.e2e.js (15.26 s)
+  Login shell (no mock)
+    ✓ shows the login screen (10254 ms)
+
+Test Suites: 2 failed, 1 passed, 3 total
+Tests:       2 failed, 4 passed, 6 total
+Snapshots:   0 total
+Time:        76.741 s
+Ran all test suites matching /e2e\/smoke.e2e.js|e2e\/login-reachability.e2e.js|e2e\/home.e2e.js/i.
+21:10:27.675 detox[790103] E Command failed with exit code = 1:
+DETOX_ADB_NAME="emulator-5602" jest --config e2e/jest.config.js --maxWorkers 1 e2e/smoke.e2e.js e2e/login-reachability.e2e.js e2e/home.e2e.js

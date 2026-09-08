@@ -1,0 +1,18 @@
+{
+  "web-roster-print": {
+    "status": "proved",
+    "note": "admin opened /roster/print (+ periodId=56)"
+  },
+  "web-my-roster": {
+    "status": "proved",
+    "note": "employee opened /apps/dutycheck/my-roster"
+  },
+  "web-my-absences": {
+    "status": "proved",
+    "note": "employee opened /apps/dutycheck/my-absences"
+  },
+  "web-needs-role": {
+    "status": "contract",
+    "note": "see r6-needs-role-contract.txt"
+  }
+}

@@ -1,0 +1,16 @@
+PHPUnit 9.6.34 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.5.10
+Configuration: /var/www/html/custom_apps/dutycheck/phpunit.xml
+
+.....PHP Deprecated:  Method ReflectionMethod::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in /var/www/html/custom_apps/dutycheck/tests/Unit/Service/RosterServiceConflictHelpersTest.php on line 110
+.PHP Deprecated:  Method ReflectionMethod::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in /var/www/html/custom_apps/dutycheck/tests/Unit/Service/RosterServiceConflictHelpersTest.php on line 121
+.PHP Deprecated:  Method ReflectionMethod::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in /var/www/html/custom_apps/dutycheck/tests/Unit/Service/RosterServiceMutationPureHelpersTest.php on line 32
+.PHP Deprecated:  Method ReflectionMethod::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in /var/www/html/custom_apps/dutycheck/tests/Unit/Service/RosterServiceMutationPureHelpersTest.php on line 32
+PHP Deprecated:  Method ReflectionMethod::setAccessible() is deprecated since 8.5, as it has no effect since PHP 8.1 in /var/www/html/custom_apps/dutycheck/tests/Unit/Service/RosterServiceMutationPureHelpersTest.php on line 32
+.                                                           9 / 9 (100%)
+
+Time: 00:00.083, Memory: 16.00 MB
+
+OK (9 tests, 23 assertions)
+ICAL_EXIT=0

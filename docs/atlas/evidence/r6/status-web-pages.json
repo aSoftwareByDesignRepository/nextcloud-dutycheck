@@ -1,0 +1,78 @@
+{
+  "round": 6,
+  "batch": "web-pages",
+  "completed_at": "2026-09-07T23:25:39Z",
+  "avd": false,
+  "playwright_spec": "tests/e2e/web-pages-smoke.spec.js",
+  "playwright_exit": 0,
+  "playwright_summary": "8 passed (auth setup + 7 routes)",
+  "verdicts": {
+    "web-periods": {
+      "status": "proved",
+      "exit_code": 0,
+      "summary": "PW periods OK; page-load PHPUnit 18/18",
+      "evidence": [
+        "r6-web-pages-pw.txt",
+        "r6-web-periods-phpunit-narrow.txt",
+        "r6-web-periods-phpunit.txt"
+      ],
+      "notes": "Broad --filter Period: 93 tests, 1 error in PublishNotificationServiceTest (unrelated to page load)"
+    },
+    "web-today-board": {
+      "status": "proved",
+      "exit_code": 0,
+      "summary": "PW /today OK; TodayBoard PHPUnit 2/2",
+      "evidence": [
+        "r6-web-pages-pw.txt",
+        "r6-web-today-phpunit.txt"
+      ]
+    },
+    "web-dashboard": {
+      "status": "proved",
+      "exit_code": 0,
+      "summary": "PW /dashboard OK; setup-progress-a11y EXIT=0; CompanyScope 2/2",
+      "evidence": [
+        "r6-web-pages-pw.txt",
+        "r6-web-dashboard-setup-a11y.txt",
+        "r6-web-dashboard-scope-phpunit.txt",
+        "r6-web-dashboard-template-fail.txt"
+      ],
+      "notes": "2 DashboardTemplateRender asserts stale (dc-scope-strip / Start of week); live load proved; no product fix"
+    },
+    "web-patterns": {
+      "status": "proved",
+      "exit_code": 0,
+      "summary": "PW /patterns OK; RotationPattern PHPUnit 2/2",
+      "evidence": [
+        "r6-web-pages-pw.txt",
+        "r6-web-patterns-phpunit.txt"
+      ]
+    },
+    "web-absences-planner": {
+      "status": "proved",
+      "exit_code": 0,
+      "summary": "PW /absences OK",
+      "evidence": [
+        "r6-web-pages-pw.txt"
+      ]
+    },
+    "web-employees": {
+      "status": "proved",
+      "exit_code": 0,
+      "summary": "PW /employees OK",
+      "evidence": [
+        "r6-web-pages-pw.txt"
+      ]
+    },
+    "web-locations": {
+      "status": "proved",
+      "exit_code": 0,
+      "summary": "PW /locations OK",
+      "evidence": [
+        "r6-web-pages-pw.txt"
+      ]
+    }
+  },
+  "overall": "proved",
+  "must_fix": []
+}

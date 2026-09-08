@@ -169,6 +169,42 @@ describe('dates.js language vs locale', () => {
 		assert.match(label, /monday/i);
 		assert.doesNotMatch(label, /maandag/i);
 	});
+
+	it('builds compact roster column parts with weekend flags and day mins', () => {
+		const d = load({
+			'data-locale': 'de-DE',
+			'data-language': 'de',
+			lang: 'de',
+			'data-first-day-of-week': '1',
+			'data-timezone': 'UTC',
+		});
+		assert.equal(typeof d.formatRosterColumnParts, 'function');
+		assert.equal(typeof d.rosterDayColumnMin, 'function');
+		assert.equal(typeof d.todayIsoDate, 'function');
+
+		const sat = d.formatRosterColumnParts('2026-10-03'); // Saturday
+		const sun = d.formatRosterColumnParts('2026-10-04'); // Sunday
+		const mon = d.formatRosterColumnParts('2026-10-05'); // Monday
+		assert.equal(sat.isWeekend, true);
+		assert.equal(sun.isWeekend, true);
+		assert.equal(mon.isWeekend, false);
+		assert.match(String(sat.day), /3/);
+		assert.match(String(mon.day), /5/);
+		assert.ok(sat.weekdayShort);
+		assert.ok(sat.ariaLabel);
+		assert.equal(sat.iso, '2026-10-03');
+
+		assert.equal(d.rosterDayColumnMin(7), '4.5rem');
+		assert.equal(d.rosterDayColumnMin(14), '3.75rem');
+		assert.equal(d.rosterDayColumnMin(31), '3.25rem');
+
+		const todayIso = d.todayIsoDate();
+		assert.match(todayIso, /^\d{4}-\d{2}-\d{2}$/);
+		const todayParts = d.formatRosterColumnParts(todayIso);
+		assert.equal(todayParts.isToday, true);
+		const other = d.formatRosterColumnParts(todayIso === '2026-10-01' ? '2026-10-02' : '2026-10-01');
+		assert.equal(other.isToday, false);
+	});
 });
 
 describe('publish readiness is a SQL count of persisted conflicts', () => {

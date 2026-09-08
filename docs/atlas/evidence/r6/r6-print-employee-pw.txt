@@ -1,0 +1,33 @@
+=== web-roster-print ===
+admin_user_set=true
+print_no_period url=http://localhost:8081/apps/dutycheck/roster/print
+print_no_period has_pick_period=true
+print_no_period not_login=true
+print_period56 url=http://localhost:8081/apps/dutycheck/roster/print?periodId=56
+print_period56 ok_shell=true denied=false
+print_period56 title_snip=Skip to main content Printable roster Period: 2036-01-01 – 2036-03-31 · Status: Open Generated: 2026-09-07 23:31:14 UTC Print Back to roster Duty assignments for this period Date Start End Employee
+=== web-my-roster ===
+employee_user_set=true
+web-my-roster url=http://localhost:8081/apps/dutycheck/my-roster visible=true login=false needsRole=false
+=== web-my-absences ===
+employee_user_set=true
+web-my-absences url=http://localhost:8081/apps/dutycheck/my-absences visible=true login=false needsRole=false
+=== RESULTS ===
+{
+  "web-roster-print": {
+    "status": "proved",
+    "note": "admin opened /roster/print (+ periodId=56)"
+  },
+  "web-my-roster": {
+    "status": "proved",
+    "note": "employee opened /apps/dutycheck/my-roster"
+  },
+  "web-my-absences": {
+    "status": "proved",
+    "note": "employee opened /apps/dutycheck/my-absences"
+  },
+  "web-needs-role": {
+    "status": "contract",
+    "note": "see r6-needs-role-contract.txt"
+  }
+}

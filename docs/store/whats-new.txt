@@ -1,0 +1,4 @@
+DutyCheck 0.3.0
+
+- Roster self-service GA: rotation patterns, Today board, peer team week, bilateral swaps, preferences and blackouts.
+- Push quiet hours with bounded queue; Nextcloud 35 support (max-version 35).

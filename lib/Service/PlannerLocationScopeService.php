@@ -9,7 +9,11 @@ use OCP\IDBConnection;
 
 /**
  * Optional per-location planner scope (Wave B3).
- * Empty scope = all locations (legacy / global planners).
+ *
+ * Empty scope = unrestricted (legacy global planners and app admins).
+ * Clearing scope via {@see setScope}([]) is an intentional "make global" action —
+ * not fail-closed — because every unscoped planner in production relies on this.
+ * Callers that need "was this user ever restricted?" must track that separately.
  */
 class PlannerLocationScopeService
 {
@@ -44,7 +48,7 @@ class PlannerLocationScopeService
 			return;
 		}
 		if (!in_array($locationId, $allowed, true)) {
-			throw new \InvalidArgumentException('FORBIDDEN');
+			throw new \InvalidArgumentException('LOCATION_OUT_OF_SCOPE');
 		}
 	}
 

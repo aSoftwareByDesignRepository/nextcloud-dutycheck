@@ -109,7 +109,18 @@ class RosterApiController extends Controller
 			$userId = $this->access->currentUserId();
 			$this->access->requirePlannerOrAdmin($userId);
 			$periodId = $this->request->getParam('periodId');
-			$data = $this->roster->rosterData($periodId !== null ? (int) $periodId : null, $userId);
+			$yearMonth = $this->request->getParam('yearMonth');
+			if (($periodId === null || $periodId === '') && is_string($yearMonth) && trim($yearMonth) !== '') {
+				$ensured = $this->roster->ensureOpenCalendarMonth($userId, $yearMonth);
+				$periodId = (int) ($ensured['period']['id'] ?? 0);
+			}
+			$data = $this->roster->rosterData(
+				$periodId !== null && $periodId !== '' ? (int) $periodId : null,
+				$userId,
+			);
+			if (is_string($yearMonth) && trim($yearMonth) !== '') {
+				$data['calendarYearMonth'] = trim($yearMonth);
+			}
 			return new DataResponse(['ok' => true, 'data' => $data]);
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);
@@ -141,6 +152,31 @@ class RosterApiController extends Controller
 			return new DataResponse(['ok' => true, 'data' => $created]);
 		} catch (\InvalidArgumentException $e) {
 			return new DataResponse(['ok' => false, 'error' => ['code' => $e->getMessage()]], 400);
+		} catch (Throwable $e) {
+			return ApiJsonErrorResponse::fromThrowable($e);
+		}
+	}
+
+	/**
+	 * Ensure a calendar month has a planning period (create or reuse).
+	 * Body/query: yearMonth=YYYY-MM (optional → current UTC month).
+	 */
+	#[NoAdminRequired]
+	public function ensureCalendarMonth(): DataResponse
+	{
+		try {
+			$userId = $this->access->currentUserId();
+			$this->access->requirePlannerOrAdmin($userId);
+			$yearMonth = $this->request->getParam('yearMonth');
+			$data = $this->roster->ensureOpenCalendarMonth(
+				$userId,
+				is_string($yearMonth) ? $yearMonth : null,
+			);
+			return new DataResponse(['ok' => true, 'data' => $data]);
+		} catch (\InvalidArgumentException $e) {
+			$code = $e->getMessage();
+			$status = ($code === 'ENSURE_MONTH_IN_PROGRESS' || $code === 'RATE_LIMITED') ? 429 : 400;
+			return new DataResponse(['ok' => false, 'error' => ['code' => $code]], $status);
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);
 		}
