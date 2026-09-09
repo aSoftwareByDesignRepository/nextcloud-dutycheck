@@ -412,21 +412,69 @@ attack('M-05', 'Unauthenticated / wrong role: settings update by linked employee
 	}
 });
 
-attack('M-06', 'Swap candidates must not dump entire company directory', function () use ($swaps, $empA, $db, $empAId) {
+attack('M-06', 'Swap candidates must not dump entire company directory', function () use ($swaps, $empA, $db, $empAId, $locA, $locB, $periodId, $roster, $admin, $momosCreateFreeAssignment) {
 	$list = $swaps->listSwapCandidates($empA);
 	$n = count($list);
+	$ids = array_map(static fn (array $r): int => (int) $r['id'], $list);
 	$qb = $db->getQueryBuilder();
 	$qb->select($qb->func()->count('*', 'c'))->from('dc_employees')
 		->where($qb->expr()->eq('active', $qb->createNamedParameter(1, \OCP\DB\QueryBuilder\IQueryBuilder::PARAM_INT)))
 		->andWhere($qb->expr()->neq('id', $qb->createNamedParameter($empAId, \OCP\DB\QueryBuilder\IQueryBuilder::PARAM_INT)));
 	$companyN = (int) $qb->executeQuery()->fetchOne();
-	if ($companyN >= 5 && $n >= $companyN) {
+
+	// Strong check: an employee who only ever worked at locB must not appear for empA@locA.
+	if ($locB === $locA) {
+		if ($companyN >= 5 && $n >= $companyN) {
+			return [
+				'verdict' => 'PROVEN',
+				'detail' => "listSwapCandidates returned $n/$companyN with only one location (cannot prove exclusion)",
+			];
+		}
+		return ['verdict' => 'CLEAN', 'detail' => "scoped candidates=$n of companyActive=$companyN (single-location company)"];
+	}
+
+	// Prefer an existing employee with no locA belonging; else plant a disposable fixture.
+	$otherId = 0;
+	$all = $db->getQueryBuilder();
+	$all->select('id')->from('dc_employees')
+		->where($all->expr()->eq('active', $all->createNamedParameter(1, IQueryBuilder::PARAM_INT)))
+		->andWhere($all->expr()->neq('id', $all->createNamedParameter($empAId, IQueryBuilder::PARAM_INT)));
+	foreach ($all->executeQuery()->fetchAll() as $row) {
+		$eid = (int) $row['id'];
+		$lq = $db->getQueryBuilder();
+		$lq->selectDistinct('location_id')->from('dc_assignments')
+			->where($lq->expr()->eq('employee_id', $lq->createNamedParameter($eid, IQueryBuilder::PARAM_INT)));
+		$locs = array_map(static fn (array $r): int => (int) $r['location_id'], $lq->executeQuery()->fetchAll());
+		if ($locs !== [] && !in_array($locA, $locs, true) && in_array($locB, $locs, true)) {
+			$otherId = $eid;
+			break;
+		}
+	}
+	if ($otherId < 1) {
+		// Create disposable employee + assignment only at locB.
+		$ins = $db->getQueryBuilder();
+		$now = (new DateTimeImmutable('now'))->format('Y-m-d H:i:s');
+		$ins->insert('dc_employees')->values([
+			'display_name' => $ins->createNamedParameter('Momos LocB Only'),
+			'active' => $ins->createNamedParameter(1, IQueryBuilder::PARAM_INT),
+			'company_id' => $ins->createNamedParameter(1, IQueryBuilder::PARAM_INT),
+			'linked_user_id' => $ins->createNamedParameter(null),
+			'created_at' => $ins->createNamedParameter($now),
+		])->executeStatement();
+		$otherId = (int) $ins->getLastInsertId();
+		$slot = $momosCreateFreeAssignment($roster, $periodId, $otherId, $locB, $admin, 'momos locB-only');
+		if ($slot === null) {
+			return ['verdict' => 'ERROR', 'detail' => "could not plant locB-only employee #$otherId"];
+		}
+	}
+
+	if (in_array($otherId, $ids, true)) {
 		return [
 			'verdict' => 'PROVEN',
-			'detail' => "listSwapCandidates returned $n/$companyN active colleagues (full directory dump)",
+			'detail' => "locB-only employee #$otherId leaked into swap candidates (n=$n companyActive=$companyN)",
 		];
 	}
-	return ['verdict' => 'CLEAN', 'detail' => "scoped candidates=$n of companyActive=$companyN"];
+	return ['verdict' => 'CLEAN', 'detail' => "scoped candidates=$n of companyActive=$companyN; excluded locB-only #$otherId"];
 });
 
 attack('M-07', 'ICS: valid-format garbage token must not distinguish missing vs wrong (timing/enum)', function () use ($roster, $empAId) {
@@ -454,35 +502,32 @@ attack('M-07', 'ICS: valid-format garbage token must not distinguish missing vs 
 
 attack('M-08', 'Peer week includes draft/open period shifts (privacy: should be published-only)', function () use ($peer, $empB, $locA, $db, $periodId) {
 	$week = (new DateTimeImmutable('monday this week'))->format('Y-m-d');
-	$status = null;
 	$qb = $db->getQueryBuilder();
 	$qb->select('status')->from('dc_periods')->where($qb->expr()->eq('id', $qb->createNamedParameter($periodId, IQueryBuilder::PARAM_INT)));
 	$status = (string) $qb->executeQuery()->fetchOne();
 	try {
 		$data = $peer->listTeamWeek($empB, $locA, $week);
 		$n = count($data['items'] ?? []);
-		if ($status === 'open' && $n > 0) {
-			return [
-				'verdict' => 'PROVEN',
-				'detail' => "team-week returned $n items while period #$periodId status=open (Argus: published-only). Check SQL filter.",
-			];
-		}
-		// Inspect SQL enforcement by checking if open-period assignments appear
+		// Do not treat "items>0 while some other open period exists" as a leak —
+		// published periods in the same week are expected. Prove by status of each row.
 		$openItems = 0;
+		$publishedItems = 0;
 		foreach ($data['items'] as $it) {
 			$q = $db->getQueryBuilder();
 			$q->select('p.status')->from('dc_assignments', 'a')
 				->join('a', 'dc_periods', 'p', $q->expr()->eq('a.period_id', 'p.id'))
 				->where($q->expr()->eq('a.id', $q->createNamedParameter((int) $it['assignmentId'], IQueryBuilder::PARAM_INT)));
 			$st = (string) $q->executeQuery()->fetchOne();
-			if ($st === 'open') {
+			if ($st === 'open' || $st === 'draft') {
 				$openItems++;
+			} elseif ($st === 'published') {
+				$publishedItems++;
 			}
 		}
 		if ($openItems > 0) {
-			return ['verdict' => 'PROVEN', 'detail' => "$openItems team-week rows from open periods"];
+			return ['verdict' => 'PROVEN', 'detail' => "$openItems team-week rows from open/draft periods"];
 		}
-		return ['verdict' => 'CLEAN', 'detail' => "items=$n periodStatus=$status; no open-period rows"];
+		return ['verdict' => 'CLEAN', 'detail' => "items=$n publishedRows=$publishedItems harnessPeriodStatus=$status; no open/draft rows"];
 	} catch (InvalidArgumentException $e) {
 		return ['verdict' => 'CLEAN', 'detail' => $e->getMessage()];
 	}

@@ -16,7 +16,8 @@
 		"nextcloud/ocp": "^32.0 || ^33.0 || ^34.0 || ^35.0",
 		"phpunit/phpunit": "^9.6",
 		"doctrine/dbal": "^3.0",
-		"symfony/http-foundation": "^6.4"
+		"symfony/http-foundation": "^6.4",
+		"dg/bypass-finals": "^1.4"
 	},
 	"autoload": {
 		"psr-4": {

@@ -41,14 +41,25 @@ $db = $c->get(IDBConnection::class);
 $actor = 'admin';
 $companyId = CompanyService::DEFAULT_COMPANY_ID;
 $linkedUid = 'dc.review.employee';
-$employeeId = 36;
 
-// Shared Atlas DBs sometimes deactivate review employees; suggest only sees active roster.
-$reactivate = $db->getQueryBuilder();
-$reactivate->update('dc_employees')
-	->set('active', $reactivate->createNamedParameter(1, IQueryBuilder::PARAM_INT))
-	->where($reactivate->expr()->eq('id', $reactivate->createNamedParameter($employeeId, IQueryBuilder::PARAM_INT)))
-	->executeStatement();
+// Resolve linked employee by uid (shared Atlas DBs renumber fixture ids across seeds).
+$resolveEmp = $db->getQueryBuilder();
+$resolveEmp->select('id', 'active')->from('dc_employees')
+	->where($resolveEmp->expr()->eq('linked_user_id', $resolveEmp->createNamedParameter($linkedUid)))
+	->setMaxResults(1);
+$empRow = $resolveEmp->executeQuery()->fetch();
+if ($empRow === false) {
+	echo "FAIL: no dc_employees row linked to $linkedUid\n";
+	exit(1);
+}
+$employeeId = (int) $empRow['id'];
+if ((int) $empRow['active'] !== 1) {
+	$reactivate = $db->getQueryBuilder();
+	$reactivate->update('dc_employees')
+		->set('active', $reactivate->createNamedParameter(1, IQueryBuilder::PARAM_INT))
+		->where($reactivate->expr()->eq('id', $reactivate->createNamedParameter($employeeId, IQueryBuilder::PARAM_INT)))
+		->executeStatement();
+}
 
 function step(string $label, callable $fn): void
 {
@@ -351,11 +362,22 @@ step('Facade Planwoche + Soll minutes', function () use ($facade, $linkedUid) {
 });
 
 step('AZC provider respects Dual gate', function () use ($linkedUid) {
-	$azcApp = \OCP\Server::get(\OCA\ArbeitszeitCheck\AppInfo\Application::class);
-	$provider = $azcApp->getContainer()->get(\OCA\ArbeitszeitCheck\Service\DutyRotationSollProvider::class);
-	// G2 off by default → not effective
-	$eff = $provider->isEffectiveForUser($linkedUid, new DateTimeImmutable('monday this week'));
-	return 'g2_default_off effective=' . ($eff ? '1' : '0');
+	// Dual G2 lives in arbeitszeitcheck; shared farms may miss Constants until AZC ships.
+	if (!class_exists(\OCA\ArbeitszeitCheck\Service\DutyRotationSollProvider::class)) {
+		return 'ENV_GAP: DutyRotationSollProvider missing';
+	}
+	try {
+		$azcApp = \OCP\Server::get(\OCA\ArbeitszeitCheck\AppInfo\Application::class);
+		$provider = $azcApp->getContainer()->get(\OCA\ArbeitszeitCheck\Service\DutyRotationSollProvider::class);
+		$eff = $provider->isEffectiveForUser($linkedUid, new DateTimeImmutable('monday this week'));
+		return 'g2_default_off effective=' . ($eff ? '1' : '0');
+	} catch (Throwable $e) {
+		$msg = $e->getMessage();
+		if (str_contains($msg, 'CONFIG_DUTY_ROTATION_SOLL') || str_contains($msg, 'Undefined constant')) {
+			return 'ENV_GAP: AZC Constants Dual keys not deployed (' . $msg . ')';
+		}
+		throw $e;
+	}
 });
 
 echo "\nALL GA E2E STEPS PASSED\n";

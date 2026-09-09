@@ -185,10 +185,11 @@ final class DesignSystemCssContractTest extends TestCase
 		);
 	}
 
-	public function testNavHintsEllipsizeInsteadOfOverflowing(): void
+	public function testNavHintsAreTooltipOnlyNotVisibleMicrocopy(): void
 	{
+		// Hints densify the rail when visible — keep them in link title tooltips only.
 		self::assertMatchesRegularExpression(
-			'/\.dc-nav__hint\s*\{[^}]*text-overflow:\s*ellipsis/s',
+			'/\.dc-nav__hint\s*\{[^}]*display:\s*none/s',
 			$this->appCss,
 		);
 	}
