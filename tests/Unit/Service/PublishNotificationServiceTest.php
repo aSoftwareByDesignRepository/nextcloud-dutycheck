@@ -31,7 +31,12 @@ final class PublishNotificationServiceTest extends TestCase
 		$ref = new ReflectionClass(SchemaProbe::class);
 		$prop = $ref->getProperty('columnCache');
 		$prop->setAccessible(true);
-		$prop->setValue(null, ['dc_assignments.status' => true]);
+		// company_id probe must stay false so tests do not consume an extra QB
+		// between periodLabel and linkedUserIdsForPeriod (periodCompanyId short-circuits).
+		$prop->setValue(null, [
+			'dc_assignments.status' => true,
+			'dc_periods.company_id' => false,
+		]);
 	}
 
 	protected function tearDown(): void

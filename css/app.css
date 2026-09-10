@@ -2044,8 +2044,11 @@ label.dc-checkbox {
 .dc-table .dc-period-select {
 	font-variant-numeric: tabular-nums;
 }
-.dc-table .dc-period-select[aria-current='true'] {
+/* Beat NC .button--text primary color on selected tint rows (dark ~4.41:1). */
+#app-content .dc-table tbody tr.is-selected .button.dc-period-select[aria-current='true'],
+#app-content .dc-table tbody tr[aria-selected='true'] .button.dc-period-select[aria-current='true'] {
 	font-weight: 700;
+	color: var(--color-main-text, #1d1d1d);
 }
 .dc-table .dc-row-actions {
 	display: flex;
@@ -2172,22 +2175,23 @@ label.dc-checkbox {
 	align-self: flex-start;
 }
 
-/* atlas-r8: quiet ADMINISTRATOR nav badge (role still available to SR via text) */
+/* Role cue lives on the page-header badge (shell metrics). Keep nav twin
+ * for screen readers / structure but do not paint low-contrast microtext. */
 .dc-nav__role.dc-badge,
 .dc-nav__role.dc-badge--critical,
 .dc-nav__role.dc-badge--info,
 .dc-nav__role.dc-badge--success,
 .dc-nav__role.dc-badge--neutral {
-	font-size: 0.58rem;
-	font-weight: 550;
-	letter-spacing: 0.03em;
-	text-transform: uppercase;
-	padding: 0.05rem 0.28rem;
-	opacity: 0.32;
-	background: transparent;
-	border: 1px solid color-mix(in srgb, #ffffff 10%, transparent);
-	color: #6e6e6e;
-	box-shadow: none;
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+	opacity: 1;
 }
 
 .dc-nav__group {
@@ -5474,18 +5478,19 @@ body.theme--dark #app-navigation .dc-nav__subtitle {
 	font-variant-numeric: tabular-nums;
 }
 
-/* === atlas-r7: less dual-ADMINISTRATOR craft (nav role holds; page badge quiet) === */
+/* Page-header role badge stays visible (shell metrics + granny role cue).
+ * Nav role badge remains quiet via .dc-nav__role rules — no dual-scream. */
 .dc-page-header__title-row > .dc-badge {
-	/* Keep for SR/tooltip via title on h1 area; hide visual twin of nav role */
-	position: absolute;
-	width: 1px;
-	height: 1px;
-	padding: 0;
-	margin: -1px;
-	overflow: hidden;
-	clip: rect(0, 0, 0, 0);
-	white-space: nowrap;
-	border: 0;
+	position: static;
+	width: auto;
+	height: auto;
+	padding: var(--dc-space-1) var(--dc-space-3);
+	margin: 0;
+	overflow: visible;
+	clip: auto;
+	white-space: normal;
+	border: 1px solid var(--dc-border);
+	min-height: 1.25rem;
 }
 
 /* Schichtband coverage strip — suite wow past hygiene pulse */
@@ -5655,7 +5660,8 @@ body.theme--dark #app-navigation .dc-nav__subtitle {
 	font-weight: 780;
 	letter-spacing: 0.12em;
 	text-transform: uppercase;
-	color: #9ec9ea;
+	/* On light page chrome (not the dark gate panel) — must clear WCAG AA vs white. */
+	color: var(--color-primary-element, #0073ad);
 }
 .dc-access-gate {
 	display: grid;
@@ -5838,7 +5844,8 @@ body.theme--dark #app-navigation .dc-nav__subtitle {
 .dc-access-gate__kicker {
 	font-size: 0.8rem;
 	letter-spacing: 0.14em;
-	color: #b8daf5;
+	/* Keep AA on white section background; dark panel text uses __label/__state. */
+	color: var(--color-primary-element, #0073ad);
 }
 .dc-access-gate__panel {
 	padding: 1rem 1.15rem;

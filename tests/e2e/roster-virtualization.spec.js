@@ -32,11 +32,14 @@ async function stubLargeRoster(page) {
 				active: true,
 			})
 		}
+		// Period must overlap the live month navigator clamp (gridMonthClamp /
+		// calendarYearMonth). A week entirely outside the visible month yields
+		// periodDateList()=[] → empty-state role=status and breaks this test.
 		const period = {
 			id: 909001,
 			status: 'open',
-			startDate: '2026-08-03',
-			endDate: '2026-08-09',
+			startDate: '2026-09-07',
+			endDate: '2026-09-13',
 			name: 'E2E virtualization week',
 		}
 		const assignments = [
@@ -44,7 +47,7 @@ async function stubLargeRoster(page) {
 				id: 909101,
 				employeeId: 900001,
 				employeeName: 'E2E Person 01',
-				dutyDate: '2026-08-03',
+				dutyDate: '2026-09-07',
 				startTime: '08:00:00',
 				endTime: '16:00:00',
 				breakMinutes: 30,
@@ -55,7 +58,7 @@ async function stubLargeRoster(page) {
 				id: 909180,
 				employeeId: 900080,
 				employeeName: 'E2E Person 80',
-				dutyDate: '2026-08-09',
+				dutyDate: '2026-09-13',
 				startTime: '09:00:00',
 				endTime: '17:00:00',
 				breakMinutes: 30,

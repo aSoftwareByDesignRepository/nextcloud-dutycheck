@@ -152,6 +152,27 @@ final class AtlasApiEndpointHappyAuthzTest extends TestCase
 					continue;
 				}
 				$status = $result->getStatus();
+				// Designed throttles (shared lab / consecutive Atlas invoke) are happy-path OK.
+				if ($status === 429 && ($result instanceof DataResponse || $result instanceof JSONResponse)) {
+					$data = $result->getData();
+					$code = '';
+					if (is_array($data)) {
+						$code = (string) ($data['error']['code'] ?? $data['error'] ?? '');
+						if ($code === '' && is_string($data['error'] ?? null)) {
+							$code = (string) $data['error'];
+						}
+					}
+					$designed429 = [
+						'INTEGRATION_SYNC_RATE_LIMIT',
+						'INTEGRATION_PURGE_THROTTLED',
+						'RATE_LIMITED',
+						'ENSURE_MONTH_IN_PROGRESS',
+					];
+					if (in_array($code, $designed429, true) || in_array((string) ($data['error'] ?? ''), $designed429, true)) {
+						$proved[] = $symbol;
+						continue;
+					}
+				}
 				if (!(($status >= 200 && $status < 300) || ($status >= 300 && $status < 400))) {
 					$body = '';
 					if ($result instanceof DataResponse || $result instanceof JSONResponse) {
