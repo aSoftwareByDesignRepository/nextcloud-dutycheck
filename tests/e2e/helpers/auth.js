@@ -63,8 +63,13 @@ export async function login(page, { username, password }) {
     await page.locator('button[type="submit"], input[type="submit"]').first().click()
 
     const outcome = await Promise.race([
-      page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 45_000 }).then(() => 'ok'),
-      page.getByText(/Wrong login or password/i).waitFor({ state: 'visible', timeout: 45_000 }).then(() => 'bad'),
+      page.waitForURL((url) => !url.pathname.includes('/login'), {
+        timeout: 45_000,
+        waitUntil: 'commit',
+      }).then(() => 'ok'),
+      page.getByText(/Wrong login or password|Falscher Benutzername oder Passwort/i)
+        .waitFor({ state: 'visible', timeout: 45_000 })
+        .then(() => 'bad'),
     ])
     if (outcome === 'bad') {
       throw new Error(`Login rejected for user "${username}" (Wrong login or password)`)

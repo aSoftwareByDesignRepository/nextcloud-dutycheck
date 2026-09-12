@@ -15,6 +15,9 @@
  */
 
 use OCA\DutyCheck\Service\IconCatalog;
+use OCP\Util;
+
+Util::addScript('dutycheck', 'common/mobile-nav');
 
 $urls = (array) ($_['urls'] ?? []);
 $pageId = (string) ($_['pageId'] ?? '');

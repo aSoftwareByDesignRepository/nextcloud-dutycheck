@@ -1,3 +1,5 @@
+@import url('common/mobile-nav.css');
+
 /*
  * DutyCheck design system.
  *
@@ -107,6 +109,14 @@ body,
 	--dc-tint-success-border: color-mix(in srgb, var(--color-element-success, var(--color-success-text, #005416)) 55%, var(--color-main-background, #fff));
 	--dc-tint-warning: color-mix(in srgb, var(--color-warning-text, var(--color-warning, #c98600)) 22%, var(--color-main-background, #fff));
 	--dc-tint-critical: color-mix(in srgb, var(--color-error-text, var(--color-error, #cc4646)) 18%, var(--color-main-background, #fff));
+	/*
+	 * Solid danger CTA fill (Check-family #ba1b1b / COMPANION-DESIGN-SYSTEM §3).
+	 * Prefer the family token over NC --color-element-error (#c90000 on this
+	 * server) so Atlas craft pixel proofs and companion parity stay aligned.
+	 * Never use pale --color-error surface tints for on-fill white text.
+	 */
+	--dc-danger-fill: #ba1b1b;
+	--dc-danger-on-fill: #ffffff;
 	--dc-scrim: color-mix(in srgb, var(--color-main-text, #000) 60%, transparent);
 
 	color: var(--color-main-text, #1d1d1d);
@@ -1895,15 +1905,29 @@ label.dc-checkbox {
 	padding: var(--dc-space-2);
 }
 
+/*
+ * Destructive confirm CTAs. confirmDialog / openModal append to document.body
+ * (outside #app-content.dc-app), so .dc-modal must be in the selector list —
+ * otherwise class "button danger primary" keeps NC primary blue and crafts
+ * show zero #ba1b1b / element-error fill.
+ */
 #app-content.dc-app button.danger,
-.dc-app .button.danger {
-	color: var(--color-primary-element-text, #fff);
-	background: var(--color-error, #cc4646);
-	border-color: var(--color-error, #cc4646);
+.dc-app .button.danger,
+.dc-modal .button.danger,
+.dc-modal button.danger,
+.dc-license-modal .dc-license-modal__confirm-danger,
+button.dc-license-modal__confirm-danger {
+	color: var(--dc-danger-on-fill, #fff) !important;
+	background: var(--dc-danger-fill, #ba1b1b) !important;
+	border-color: var(--dc-danger-fill, #ba1b1b) !important;
 }
 #app-content.dc-app button.danger:hover,
-.dc-app .button.danger:hover {
-	filter: brightness(0.9);
+.dc-app .button.danger:hover,
+.dc-modal .button.danger:hover,
+.dc-modal button.danger:hover,
+.dc-license-modal .dc-license-modal__confirm-danger:hover,
+button.dc-license-modal__confirm-danger:hover {
+	filter: brightness(0.92);
 }
 
 /* ── Tables ──────────────────────────────────────────────────── */

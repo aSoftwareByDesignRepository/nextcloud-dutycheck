@@ -2143,6 +2143,11 @@
 		}
 	}
 
+	/** Alias used by assignment modal onClose — keep panel host-restored after dismiss. */
+	function restoreAssignmentFormHost() {
+		restoreAssignmentFormPanel();
+	}
+
 	function selectedPeriodFromState() {
 		const switcher = document.getElementById('dc-roster-period-switcher');
 		const raw = switcher?.value || document.getElementById('dc-assignment-period')?.value;

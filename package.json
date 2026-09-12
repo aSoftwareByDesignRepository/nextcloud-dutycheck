@@ -15,9 +15,10 @@
         "mutate:first-paint": "php tests/Mutation/run-first-paint-mutations.php",
         "test:js": "node --test tests/js/*.test.mjs",
         "e2e": "playwright test",
+        "e2e:mobile-nav": "playwright test tests/e2e/atlas-mobile-nav.contract.spec.js",
         "test:a11y": "playwright test tests/e2e/a11y-smoke.spec.js",
         "test:theme-a11y": "playwright test tests/e2e/theme-responsive-a11y.spec.js",
-        "test:ui-gauntlet": "playwright test tests/e2e/a11y-smoke.spec.js tests/e2e/theme-responsive-a11y.spec.js tests/e2e/nav-abort-no-network-toast.spec.js tests/e2e/setup-progress-a11y.spec.js"
+        "test:ui-gauntlet": "playwright test tests/e2e/a11y-smoke.spec.js tests/e2e/theme-responsive-a11y.spec.js tests/e2e/nav-abort-no-network-toast.spec.js tests/e2e/setup-progress-a11y.spec.js tests/e2e/atlas-mobile-nav.contract.spec.js"
     },
     "devDependencies": {
         "@axe-core/playwright": "^4.10.2",

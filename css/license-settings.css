@@ -486,15 +486,17 @@
 	white-space: normal;
 }
 
+/* Solid danger fill — Check-family #ba1b1b (not pale --color-error / NC element-error). */
 .dc-license-modal__confirm-danger {
-	background: var(--color-error);
-	border-color: var(--color-error);
-	color: var(--color-primary-element-text, #fff);
+	background: var(--dc-danger-fill, #ba1b1b) !important;
+	border-color: var(--dc-danger-fill, #ba1b1b) !important;
+	color: var(--dc-danger-on-fill, #ffffff) !important;
 }
 
 .dc-license-modal__confirm-danger:hover {
-	background: var(--color-error-hover, var(--color-error));
-	border-color: var(--color-error-hover, var(--color-error));
+	background: var(--dc-danger-fill, #ba1b1b) !important;
+	border-color: var(--dc-danger-fill, #ba1b1b) !important;
+	filter: brightness(0.92);
 }
 
 /* ---- Shared focus-visible treatment ---- */

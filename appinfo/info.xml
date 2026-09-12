@@ -32,6 +32,10 @@ DutyCheck builds duty rosters inside your self-hosted Nextcloud. Open a planning
 - Conflict checks are ArbZG-oriented and configurable — not a legal certification.
 - Declared databases: MySQL and PostgreSQL.
 
+## Feedback welcome
+
+We improve this app with real-world use. Bug reports, rough edges, and ideas help — open a GitHub Issue (https://github.com/aSoftwareByDesignRepository/nextcloud-dutycheck/issues) or write to info@software-by-design.de. Your feedback directly shapes what we build next.
+
 ## Requirements
 
 - Nextcloud 32–35 · PHP 8.2–8.5 · MySQL or PostgreSQL
@@ -59,6 +63,10 @@ DutyCheck baut Dienstpläne in Ihrer selbst gehosteten Nextcloud. Periode öffne
 - Audit-Einträge sind nur anhängbar.
 - Konfliktprüfungen sind ArbZG-orientiert und konfigurierbar — keine Rechtszertifizierung.
 - Deklarierte Datenbanken: MySQL und PostgreSQL.
+
+## Feedback willkommen
+
+Wir verbessern diese App mit Rückmeldungen aus der Praxis. Fehlerberichte, Stolpersteine und Ideen helfen — öffnen Sie ein GitHub Issue (https://github.com/aSoftwareByDesignRepository/nextcloud-dutycheck/issues) oder schreiben Sie an info@software-by-design.de. Ihr Feedback prägt direkt, was wir als Nächstes bauen.
 
 ## Voraussetzungen
 
@@ -101,7 +109,11 @@ Avec **ArbeitszeitCheck**, DutyCheck peut refléter les absences automatiquement
 - Nextcloud 32–35
 - PHP 8.2–8.5
 - MySQL ou PostgreSQL
-	]]></description>
+
+## Retours bienvenus
+
+Nous améliorons cette app grâce à votre usage réel. Bugs, frottements et idées aident — ouvrez une GitHub Issue (https://github.com/aSoftwareByDesignRepository/nextcloud-dutycheck/issues) ou écrivez à info@software-by-design.de. Vos retours façonnent directement la suite.
+]]></description>
 	<description lang="da"><![CDATA[
 # DutyCheck — vagtplaner dit team faktisk kan stole på
 
@@ -124,6 +136,10 @@ Sundhedsvagter, driftsdækning, events, logistik, detailhandel, vagthold — ove
 ## Valgfrit: ArbeitszeitCheck
 
 Med **ArbeitszeitCheck** kan DutyCheck spejle fravær automatisk (integration er valgfri og slået fra, indtil du aktiverer den).
+
+## Feedback er velkommen
+
+Vi forbedrer denne app med brug i praksis. Fejlrapporter, friktioner og idéer hjælper — åbn et GitHub Issue (https://github.com/aSoftwareByDesignRepository/nextcloud-dutycheck/issues) eller skriv til info@software-by-design.de. Jeres feedback former direkte det, vi bygger næste gang.
 
 ## Krav
 
@@ -153,6 +169,10 @@ Rotaciones sanitarias, cobertura de instalaciones, eventos, logística, comercio
 ## Opcional: ArbeitszeitCheck
 
 Con **ArbeitszeitCheck**, DutyCheck puede reflejar ausencias automáticamente (integración opcional, desactivada hasta que la habilites).
+
+## Comentarios bienvenidos
+
+Mejoramos esta app con el uso real. Informes de errores, fricciones e ideas ayudan — abra un GitHub Issue (https://github.com/aSoftwareByDesignRepository/nextcloud-dutycheck/issues) o escriba a info@software-by-design.de. Su feedback da forma directa a lo que construimos después.
 
 ## Requisitos
 
@@ -184,6 +204,10 @@ DutyCheck bouwt dienstroosters in uw zelf-gehoste Nextcloud. Open een planperiod
 - Conflictcontroles zijn ArbZG-georiënteerd en configureerbaar — geen juridische certificering.
 - Gedeclareerde databases: MySQL en PostgreSQL.
 
+## Feedback welkom
+
+We verbeteren deze app met gebruik in de praktijk. Bugmeldingen, struikelblokken en ideeën helpen — open een GitHub Issue (https://github.com/aSoftwareByDesignRepository/nextcloud-dutycheck/issues) of mail naar info@software-by-design.de. Uw feedback bepaalt mede wat we als volgende bouwen.
+
 ## Vereisten
 
 - Nextcloud 32–35 · PHP 8.2–8.5 · MySQL of PostgreSQL
@@ -211,6 +235,10 @@ DutyCheck costruisce i turni nella vostra Nextcloud auto-ospitata. Aprite un per
 - Le voci di audit sono append-only.
 - I controlli dei conflitti sono orientati ad ArbZG e configurabili — non una certificazione legale.
 - Database dichiarati: MySQL e PostgreSQL.
+
+## Feedback benvenuto
+
+Miglioriamo questa app con l’uso reale. Segnalazioni di bug, punti deboli e idee aiutano — aprite una GitHub Issue (https://github.com/aSoftwareByDesignRepository/nextcloud-dutycheck/issues) o scrivete a info@software-by-design.de. Il vostro feedback guida direttamente ciò che costruiamo dopo.
 
 ## Requisiti
 
@@ -240,6 +268,10 @@ DutyCheck tworzy grafiki zmian w Państwa samodzielnie hostowanej Nextcloud. Otw
 - Kontrole konfliktów są zorientowane na ArbZG i konfigurowalne — nie jest to certyfikacja prawna.
 - Deklarowane bazy danych: MySQL i PostgreSQL.
 
+## Feedback mile widziany
+
+Ulepszamy tę aplikację dzięki realnemu użyciu. Zgłoszenia błędów, tarcia i pomysły pomagają — otwórz GitHub Issue (https://github.com/aSoftwareByDesignRepository/nextcloud-dutycheck/issues) lub napisz na info@software-by-design.de. Wasza opinia bezpośrednio kształtuje to, co budujemy dalej.
+
 ## Wymagania
 
 - Nextcloud 32–35 · PHP 8.2–8.5 · MySQL lub PostgreSQL
@@ -267,6 +299,10 @@ DutyCheck bygger passlistor i er självhostade Nextcloud. Öppna en planeringspe
 - Auditposter är append-only.
 - Konfliktkontroller är ArbZG-orienterade och konfigurerbara — inte en juridisk certifiering.
 - Deklarerade databaser: MySQL och PostgreSQL.
+
+## Feedback välkomnas
+
+Vi förbättrar den här appen med verklig användning. Felrapporter, friktioner och idéer hjälper — öppna en GitHub Issue (https://github.com/aSoftwareByDesignRepository/nextcloud-dutycheck/issues) eller skriv till info@software-by-design.de. Er feedback formar direkt det vi bygger härnäst.
 
 ## Krav
 
@@ -296,6 +332,10 @@ DutyCheck bygger skiftplaner i deres selvhostede Nextcloud. Åpne en planlegging
 - Konfliktkontroller er ArbZG-orienterte og kan konfigureres — ikke en juridisk sertifisering.
 - Deklarerte databaser: MySQL og PostgreSQL.
 
+## Feedback er velkommen
+
+Vi forbedrer denne appen med bruk i praksis. Feilrapporter, friksjon og idéer hjelper — åpne en GitHub Issue (https://github.com/aSoftwareByDesignRepository/nextcloud-dutycheck/issues) eller skriv til info@software-by-design.de. Tilbakemeldingen deres former direkte det vi bygger videre.
+
 ## Krav
 
 - Nextcloud 32–35 · PHP 8.2–8.5 · MySQL eller PostgreSQL
@@ -323,6 +363,10 @@ O DutyCheck cria escalas de serviço na Nextcloud que já alojam. Abra um perío
 - Entradas de auditoria são apenas acrescentáveis.
 - Verificações de conflito são orientadas para ArbZG e configuráveis — não uma certificação legal.
 - Bases de dados declaradas: MySQL e PostgreSQL.
+
+## Feedback bem-vindo
+
+Melhoramos este app com o uso real. Relatórios de bugs, atritos e ideias ajudam — abra um GitHub Issue (https://github.com/aSoftwareByDesignRepository/nextcloud-dutycheck/issues) ou escreva para info@software-by-design.de. O seu feedback molda diretamente o que construímos a seguir.
 
 ## Requisitos
 
