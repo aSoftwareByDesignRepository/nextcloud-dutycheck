@@ -153,14 +153,47 @@ body,
 	white-space: nowrap;
 }
 
-/* ── App shell ───────────────────────────────────────────────── */
+/* ── App shell ─────────────────────────────────────────────────
+ *
+ * Nextcloud `#content` is a fixed, overflow-clipped flex host. Tall pages
+ * (license seats, settings) MUST scroll inside `#app-content` — never rely
+ * on document/body scroll, and never put `overflow-x: clip` on a height-
+ * locked descendant without `overflow-y: auto` on the same box.
+ *
+ * CSS Overflow Level 3: if one axis is `clip` and the other would be
+ * `visible`, the visible axis computes to `clip`. That silently truncates
+ * the bottom of long settings pages when the shell is sized to the
+ * viewport (flex child of `#content`). DeskCheck / LogCheck / AZC avoid
+ * this with an explicit scrollport; DutyCheck must match.
+ */
+#content.app-dutycheck {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	min-width: 0;
+	min-height: 0;
+	overflow: hidden;
+}
+
+#content.app-dutycheck > #app-content.dc-app,
 #app-content.dc-app,
 .dc-app {
 	display: flex;
 	flex-direction: column;
-	min-height: 100%;
+	flex: 1 1 0%;
+	min-width: 0;
+	/* Critical: allow the flex item to shrink so overflow-y:auto engages. */
+	min-height: 0;
+	height: 100%;
 	background: var(--dc-bg-soft);
+	/* Horizontal clip + vertical scroll on the SAME box (budgetcheck pattern).
+	   `hidden` first for engines without `clip`; `clip` wins where supported. */
+	overflow-x: hidden;
 	overflow-x: clip;
+	overflow-y: auto;
+	-webkit-overflow-scrolling: touch;
+	overscroll-behavior-y: contain;
+	scroll-padding-bottom: max(var(--dc-space-6), env(safe-area-inset-bottom, 0px));
 }
 
 /*
@@ -168,21 +201,29 @@ body,
  * stretching its children. DutyCheck stacks header + main, so we must
  * force column direction here, otherwise the breadcrumb sits next to the
  * page body.
+ *
+ * Do NOT set overflow-x: clip here — the shell is often height-locked to
+ * the scrollport; unpaired clip would hide overflowing main content.
+ * Horizontal containment is min-width: 0 + the #app-content scrollport.
  */
 #app-content.dc-app #app-content-wrapper.dc-shell,
 .dc-shell {
 	display: flex;
 	flex-direction: column;
 	align-items: stretch;
+	flex: 0 0 auto;
 	width: 100%;
 	max-width: none;
+	min-width: 0;
+	height: auto;
+	min-height: 100%;
 	margin: 0;
 	padding: max(var(--dc-space-4), env(safe-area-inset-top, 0px))
 		max(var(--dc-space-4), env(safe-area-inset-right, 0px))
-		max(var(--dc-space-5), env(safe-area-inset-bottom, 0px))
+		max(var(--dc-space-6), env(safe-area-inset-bottom, 0px))
 		max(var(--dc-space-4), env(safe-area-inset-left, 0px));
 	box-sizing: border-box;
-	overflow-x: clip;
+	overflow: visible;
 }
 /* Shell width modifiers (AZC parity — reading measure stays on prose, not the page) */
 #app-content.dc-app #app-content-wrapper.dc-shell--wide,
@@ -209,7 +250,7 @@ body,
 	flex-direction: column;
 	gap: var(--dc-space-6);
 	outline: none;
-	overflow-x: clip;
+	overflow: visible;
 }
 .dc-page-stack {
 	display: flex;
@@ -316,9 +357,10 @@ body,
 }
 /*
  * The title column is a `1fr` grid track; without `min-width: 0` its
- * min-content size wins and the shell's `overflow-x: clip` cuts the h1
- * mid-glyph on very narrow viewports (split panes, <340px). `anywhere`
- * also lets long single-word titles participate in min-content shrinking.
+ * min-content size wins and the #app-content scrollport's overflow-x clip
+ * cuts the h1 mid-glyph on very narrow viewports (split panes, <340px).
+ * `anywhere` also lets long single-word titles participate in min-content
+ * shrinking.
  */
 .dc-page-header__text {
 	min-width: 0;

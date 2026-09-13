@@ -255,6 +255,55 @@ final class DesignSystemCssContractTest extends TestCase
 		self::assertStringContainsString('max-width: 72rem', $this->appCss);
 	}
 
+	/**
+	 * Tall settings (license seats) must scroll inside #app-content. Unpaired
+	 * overflow-x: clip on .dc-shell computes overflow-y to clip (CSS Overflow L3)
+	 * and truncates the page bottom — see documentation/dutycheck/bugs/.
+	 */
+	public function testAppContentIsVerticalScrollportWithoutShellClip(): void
+	{
+		$css = preg_replace('/\/\*[\s\S]*?\*\//', '', $this->appCss) ?? $this->appCss;
+
+		self::assertMatchesRegularExpression(
+			'/#app-content\.dc-app[\s\S]{0,240}?\{[^}]*overflow-y:\s*auto\s*;/s',
+			$css,
+			'#app-content.dc-app must be the vertical scrollport (overflow-y: auto)',
+		);
+		self::assertMatchesRegularExpression(
+			'/#app-content\.dc-app[\s\S]{0,240}?\{[^}]*min-height:\s*0\s*;/s',
+			$css,
+			'Scrollport needs min-height: 0 so flex children can shrink and scroll',
+		);
+		// Shell must not carry unpaired overflow-x: clip (pairs to overflow-y: clip).
+		self::assertDoesNotMatchRegularExpression(
+			'/#app-content-wrapper\.dc-shell,\s*\.dc-shell\s*\{[^}]*overflow-x:\s*clip\s*;/s',
+			$css,
+			'.dc-shell must not use overflow-x: clip (CSS Overflow L3 truncates tall pages)',
+		);
+		self::assertDoesNotMatchRegularExpression(
+			'/#dc-main-content\.dc-main,\s*\.dc-main\s*\{[^}]*overflow-x:\s*clip\s*;/s',
+			$css,
+			'.dc-main must not use overflow-x: clip without being a scrollport',
+		);
+		self::assertMatchesRegularExpression(
+			'/#app-content-wrapper\.dc-shell,\s*\.dc-shell\s*\{[^}]*overflow:\s*visible\s*;/s',
+			$css,
+			'.dc-shell must keep overflow visible so content contributes to scrollHeight',
+		);
+
+		$root = dirname(__DIR__, 3);
+		$licenseCss = preg_replace(
+			'/\/\*[\s\S]*?\*\//',
+			'',
+			(string) file_get_contents($root . '/css/license-settings.css'),
+		) ?? '';
+		self::assertDoesNotMatchRegularExpression(
+			'/\.dc-license-(section|panel|form)\s*\{[^}]*overflow-x:\s*clip\s*;/s',
+			$licenseCss,
+			'License panel must not unpaired overflow-x: clip (truncates seats block)',
+		);
+	}
+
 	public function testStatusInkUsesSemanticTextTokensNotInventedHex(): void
 	{
 		self::assertStringNotContainsString('#206027', $this->appCss);

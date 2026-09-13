@@ -14,14 +14,15 @@
 	scroll-margin-top: var(--dc-space-4);
 	min-width: 0;
 	max-width: 100%;
-	overflow-x: clip;
+	/* Horizontal shrink via min-width:0 only — do not set overflow-x to
+	   clip here (CSS Overflow L3 would pair the Y axis and truncate seats).
+	   Page scroll belongs on #app-content. */
 	box-sizing: border-box;
 }
 
 .dc-license-panel {
 	min-width: 0;
 	max-width: 100%;
-	overflow-x: clip;
 	box-sizing: border-box;
 }
 
@@ -208,7 +209,6 @@
 	margin-bottom: var(--dc-space-6);
 	min-width: 0;
 	max-width: 100%;
-	overflow-x: clip;
 	box-sizing: border-box;
 }
 
