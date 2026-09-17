@@ -1277,7 +1277,27 @@
 		"{title}: {have} of {need} staff ({time})": "{title} : {have} sur {need} personnes ({time})",
 		"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page.": "{unlinked} des {total} employés actifs n'ont pas de compte Nextcloud lié — les absences pour eux restent dans DutyCheck jusqu'à ce que les comptes soient liés sur la page Employés.",
 		"{used} of {total} seats used": "{used} sièges utilisés sur {total}",
-		"“Must fix” issues block publishing.": "Les problèmes « À corriger obligatoirement » bloquent la publication."
+		"“Must fix” issues block publishing.": "Les problèmes « À corriger obligatoirement » bloquent la publication.",
+		"Menu": "Menu de navigation",
+		"Open navigation menu": "Ouvrir le menu de navigation",
+		"Close navigation menu": "Fermer le menu de navigation",
+		"These limits decide when the roster shows “Must fix” or “Confirm to continue”. Values are minutes. Hard limits always block publishing.": "Ces limites déterminent quand le planning affiche « À corriger obligatoirement » ou « Confirmer pour continuer ». Les valeurs sont en minutes. Les limites strictes bloquent toujours la publication.",
+		"Open periods keep the caps from when they were created.": "Les périodes ouvertes conservent les plafonds fixés à leur création.",
+		"Saving here updates the default for new periods. To refresh caps on periods that are still Open, use the button below. Published and closed periods stay unchanged.": "L’enregistrement ici met à jour la valeur par défaut pour les nouvelles périodes. Pour actualiser les plafonds des périodes encore ouvertes, utilisez le bouton ci-dessous. Les périodes publiées et clôturées restent inchangées.",
+		"Apply to open periods": "Appliquer aux périodes ouvertes",
+		"Also used as the soft calendar-week total (Mon–Sun). Soft = confirm with a short reason.": "Sert aussi de total souple pour la semaine civile (lun.–dim.). Souple = confirmer avec un court motif.",
+		"Also used as the hard calendar-week total. Hard = must fix before publishing. Defaults (~60 h) fit a week; raise them for a full month.": "Sert aussi de total strict pour la semaine civile. Strict = à corriger avant la publication. Les valeurs par défaut (~60 h) conviennent à une semaine ; augmentez-les pour un mois entier.",
+		"About {hours} hours": "Environ {hours} heures",
+		"Conflict caps cannot be refreshed until the server upgrade finishes.": "Les plafonds de conflit ne peuvent être actualisés qu’après la fin de la mise à jour du serveur.",
+		"No open periods right now. New periods will use the saved limits.": "Aucune période ouverte pour le moment. Les nouvelles périodes utiliseront les limites enregistrées.",
+		"All {count} open period(s) already use the saved limits.": "Les {count} période(s) ouverte(s) utilisent déjà les limites enregistrées.",
+		"{outdated} of {open} open period(s) still use older caps. Apply to refresh them.": "{outdated} période(s) ouverte(s) sur {open} utilisent encore d’anciens plafonds. Appliquez pour les actualiser.",
+		"Apply the saved conflict thresholds to all open periods? Published and closed periods stay unchanged.": "Appliquer les seuils de conflit enregistrés à toutes les périodes ouvertes ? Les périodes publiées et clôturées restent inchangées.",
+		"Open periods already matched the saved limits.": "Les périodes ouvertes correspondaient déjà aux limites enregistrées.",
+		"Applied saved limits to {count} open period(s).": "Limites enregistrées appliquées à {count} période(s) ouverte(s).",
+		"Hour caps may be locked on this period.": "Les plafonds horaires peuvent être figés pour cette période.",
+		"Period and week totals freeze when the period is created. Raising thresholds in settings alone does not change an open period.": "Les totaux de période et de semaine sont figés à la création de la période. Augmenter les seuils dans les paramètres seuls ne modifie pas une période ouverte.",
+		"Open Conflict thresholds": "Ouvrir les seuils de conflit"
 	},
 	"pluralForm": "nplurals=2; plural=(n > 1);"
 }

@@ -1278,6 +1278,10 @@ OC.L10N.register(
 	"{title}: {have} of {need} staff ({time})" : "{title}: {have} of {need} staff ({time})",
 	"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page." : "{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page.",
 	"{used} of {total} seats used" : "{used} of {total} seats used",
-	"“Must fix” issues block publishing." : "“Must fix” issues block publishing."
-	}
+	"“Must fix” issues block publishing." : "“Must fix” issues block publishing.",
+	"Menu" : "Menu",
+	"Open navigation menu" : "Open navigation menu",
+	"Close navigation menu" : "Close navigation menu"
+	},
+	"nplurals=2; plural=(n != 1);"
 );

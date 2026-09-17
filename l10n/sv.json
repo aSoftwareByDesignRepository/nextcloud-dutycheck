@@ -1277,7 +1277,27 @@
 		"{title}: {have} of {need} staff ({time})": "{title}: {have} av {need} personal ({time})",
 		"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page.": "{unlinked} av {total} aktiva anställda har inget länkat Nextcloud-konto – frånvaro för dem stannar i DutyCheck tills konton länkas på sidan Anställda.",
 		"{used} of {total} seats used": "{used} av {total} säten används",
-		"“Must fix” issues block publishing.": "“Måste åtgärdas”-problem blockerar publicering."
+		"“Must fix” issues block publishing.": "“Måste åtgärdas”-problem blockerar publicering.",
+		"Menu": "Menukort",
+		"Open navigation menu": "Öppna navigeringsmenyn",
+		"Close navigation menu": "Stäng navigeringsmenyn",
+		"These limits decide when the roster shows “Must fix” or “Confirm to continue”. Values are minutes. Hard limits always block publishing.": "Dessa gränser avgör när schemat visar »Måste åtgärdas« eller »Bekräfta för att fortsätta«. Värdena anges i minuter. Hårda gränser blockerar alltid publicering.",
+		"Open periods keep the caps from when they were created.": "Öppna perioder behåller taken från när de skapades.",
+		"Saving here updates the default for new periods. To refresh caps on periods that are still Open, use the button below. Published and closed periods stay unchanged.": "Spara här uppdaterar standardvärdet för nya perioder. Använd knappen nedan för att uppdatera tak på perioder som fortfarande är öppna. Publicerade och stängda perioder ändras inte.",
+		"Apply to open periods": "Tillämpa på öppna perioder",
+		"Also used as the soft calendar-week total (Mon–Sun). Soft = confirm with a short reason.": "Används också som mjuk kalenderveckosumma (mån–sön). Mjuk = bekräfta med en kort motivering.",
+		"Also used as the hard calendar-week total. Hard = must fix before publishing. Defaults (~60 h) fit a week; raise them for a full month.": "Används också som hård kalenderveckosumma. Hård = måste åtgärdas före publicering. Standard (~60 h) passar en vecka; höj dem för en hel månad.",
+		"About {hours} hours": "Cirka {hours} timmar",
+		"Conflict caps cannot be refreshed until the server upgrade finishes.": "Konfliktgränser kan inte uppdateras förrän serveruppgraderingen är klar.",
+		"No open periods right now. New periods will use the saved limits.": "Inga öppna perioder just nu. Nya perioder använder de sparade gränserna.",
+		"All {count} open period(s) already use the saved limits.": "Alla {count} öppna perioder använder redan de sparade gränserna.",
+		"{outdated} of {open} open period(s) still use older caps. Apply to refresh them.": "{outdated} av {open} öppna perioder använder fortfarande äldre tak. Tillämpa för att uppdatera dem.",
+		"Apply the saved conflict thresholds to all open periods? Published and closed periods stay unchanged.": "Tillämpa sparade konflikttrösklar på alla öppna perioder? Publicerade och stängda perioder ändras inte.",
+		"Open periods already matched the saved limits.": "Öppna perioder matchade redan de sparade gränserna.",
+		"Applied saved limits to {count} open period(s).": "Sparade gränser tillämpades på {count} öppna perioder.",
+		"Hour caps may be locked on this period.": "Timtak kan vara låsta för den här perioden.",
+		"Period and week totals freeze when the period is created. Raising thresholds in settings alone does not change an open period.": "Period- och veckosummor fryses när perioden skapas. Att bara höja trösklar i inställningarna ändrar inte en öppen period.",
+		"Open Conflict thresholds": "Öppna konflikttrösklar"
 	},
 	"pluralForm": "nplurals=2; plural=(n != 1);"
 }

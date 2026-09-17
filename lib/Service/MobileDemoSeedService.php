@@ -109,8 +109,48 @@ final class MobileDemoSeedService
 			if ($this->license->isUserSeated($employeeUid)) {
 				return true;
 			}
+			// Shared-dev / re-run: prior dc.seed.* seats can exhaust a fresh 5-seat DTY2.
+			if ($e->getErrorCode() === 'seat_limit_reached' && $this->releaseDemoSeatsExcept($employeeUid)) {
+				try {
+					$result = $this->license->assignSeat($adminUid, $employeeUid);
+					return (bool) ($result['created'] ?? true);
+				} catch (LicenseException $retry) {
+					if ($this->license->isUserSeated($employeeUid)) {
+						return true;
+					}
+					throw new MobileDemoSeedException('Could not assign mobile seat: ' . $retry->getMessage(), 0, $retry);
+				}
+			}
 			throw new MobileDemoSeedException('Could not assign mobile seat: ' . $e->getMessage(), 0, $e);
 		}
+	}
+
+	/**
+	 * Drop leftover mobile-demo seats so a re-seed can assign under the current seat limit.
+	 * Keeps $keepUid when already seated.
+	 */
+	private function releaseDemoSeatsExcept(string $keepUid): bool
+	{
+		$released = false;
+		foreach ($this->license->listSeats(200, 0)['data'] as $row) {
+			$uid = (string) ($row['uid'] ?? '');
+			if ($uid === '' || $uid === $keepUid) {
+				continue;
+			}
+			if (
+				str_starts_with($uid, 'dc.seed.')
+				|| str_starts_with($uid, 'dc.noseat.')
+				|| str_starts_with($uid, 'dc.demo.')
+			) {
+				try {
+					$this->license->removeSeat($uid);
+					$released = true;
+				} catch (Throwable) {
+					// best-effort cleanup
+				}
+			}
+		}
+		return $released;
 	}
 
 	private function ensureEmployee(MobileDemoSeedOptions $options): int

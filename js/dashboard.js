@@ -209,6 +209,28 @@
 		if (!list) return;
 		list.replaceChildren();
 		list.hidden = true;
+		setCapHintVisible(false);
+	}
+
+	function setCapHintVisible(visible) {
+		const hint = document.getElementById('dc-dashboard-cap-hint');
+		if (!hint) return;
+		hint.hidden = !visible;
+		if (!visible) return;
+		const link = document.getElementById('dc-dashboard-cap-hint-link');
+		if (!link) return;
+		const urls = typeof C.getAppUrls === 'function' ? C.getAppUrls() : {};
+		const target = urls?.settingsSections?.conflicts || '';
+		if (target) {
+			link.setAttribute('href', target);
+		} else {
+			link.setAttribute('href', '/apps/dutycheck/settings/conflicts');
+		}
+	}
+
+	function isHourCapHardConflict(conflict) {
+		const type = String(conflict?.type || '');
+		return type === 'period_total_hard_cap' || type === 'weekly_hours_hard_cap';
 	}
 
 	function conflictTitle(conflict) {
@@ -231,6 +253,7 @@
 			list.replaceChildren();
 			if (!hard.length) {
 				list.hidden = true;
+				setCapHintVisible(false);
 				return;
 			}
 			hard.forEach((conflict) => {
@@ -246,6 +269,7 @@
 				list.appendChild(li);
 			});
 			list.hidden = false;
+			setCapHintVisible(hard.some(isHourCapHardConflict));
 		} catch {
 			clearDashboardConflictList();
 		}

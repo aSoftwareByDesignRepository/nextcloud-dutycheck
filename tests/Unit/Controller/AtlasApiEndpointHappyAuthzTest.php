@@ -105,7 +105,7 @@ final class AtlasApiEndpointHappyAuthzTest extends TestCase
 			'publicIcal', 'publishPeriod', 'publishReadiness', 'rejectOpenShiftClaim',
 			'removeCompanyMember', 'removeDutyRole', 'reopenPeriod',
 			'requireLocationQualification', 'reviewSwapRequest', 'rotateMyIcalToken',
-			'saveAppPolicy', 'saveConflictPolicy', 'saveOpsFlags', 'savePlanningDefaults',
+			'saveAppPolicy', 'saveConflictPolicy', 'applyConflictPolicyToOpenPeriods', 'saveOpsFlags', 'savePlanningDefaults',
 			'setDutyRole', 'setPlannerLocationScope', 'transitionAbsence', 'transitionPeriod',
 			'updateAssignment', 'updateEmployee', 'updateLocation', 'updateQualification',
 			'updateTemplate', 'verifyPeriodSnapshots',

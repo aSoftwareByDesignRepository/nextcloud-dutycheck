@@ -205,4 +205,26 @@ final class SettingsTemplateRenderTest extends TestCase
 		self::assertStringContainsString('Not configured', $html);
 		self::assertStringContainsString('test-token', $html, 'License forms need the CSRF request token');
 	}
+
+	public function testConflictsPartialKeepsFreezeApplyContract(): void
+	{
+		$html = $this->renderPartial('conflicts');
+		foreach ([
+			'dc-settings-conflict-policy',
+			'dc-conflict-policy-form',
+			'dc-conflict-freeze-callout',
+			'dc-conflict-apply-open',
+			'dc-conflict-open-status',
+			'dc-policy-max-hard',
+		] as $id) {
+			self::assertMatchesRegularExpression(
+				'/\sid="' . preg_quote($id, '/') . '"/',
+				$html,
+				"Conflicts page lost #{$id}",
+			);
+		}
+		self::assertStringContainsString('data-dc-minutes-hint', $html);
+		self::assertStringContainsString('Open periods keep the caps from when they were created.', $html);
+		self::assertStringContainsString('Apply to open periods', $html);
+	}
 }

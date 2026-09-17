@@ -159,6 +159,12 @@ final class DashboardTemplateRenderTest extends TestCase
 			'Conflict pulse must be a status live region',
 		);
 		self::assertStringContainsString('aria-busy="true"', $html);
+		self::assertMatchesRegularExpression(
+			'/id="dc-dashboard-cap-hint"[^>]*hidden/s',
+			$html,
+			'Cap freeze hint must exist and start hidden',
+		);
+		self::assertStringContainsString('id="dc-dashboard-cap-hint-link"', $html);
 
 		// Every dashboard section is a labelled region.
 		foreach ([

@@ -38,12 +38,13 @@ final class RosterServiceCancelVersionCasTest extends TestCase
 	public function testCancelSourceUsesVersionCasAndStaleVersion(): void
 	{
 		$src = (string) file_get_contents(dirname(__DIR__, 3) . '/lib/Service/RosterService.php');
+		// Match cancelAssignment( — not cancelAssignmentSilent(
 		self::assertMatchesRegularExpression(
-			'/function cancelAssignment[\s\S]{0,2200}?eq\(\'version\'/',
+			'/function cancelAssignment\([\s\S]{0,3500}?eq\(\'version\'/',
 			$src,
 		);
 		self::assertMatchesRegularExpression(
-			'/function cancelAssignment[\s\S]{0,2600}?STALE_VERSION/',
+			'/function cancelAssignment\([\s\S]{0,4000}?STALE_VERSION/',
 			$src,
 		);
 	}

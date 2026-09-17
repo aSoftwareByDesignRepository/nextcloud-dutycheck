@@ -53,6 +53,8 @@ final class IntegrityCloseoutContractTest extends TestCase
 		);
 		self::assertStringContainsString('conflict_thresholds_json', $src);
 		self::assertStringContainsString('policyThresholdsForPeriod', $src);
+		self::assertStringContainsString('applyLiveConflictThresholdsToOpenPeriods', $src);
+		self::assertStringContainsString('conflictThresholdOpenPeriodStatus', $src);
 		self::assertStringContainsString('weekly_hours_hard_cap', $src);
 		self::assertStringContainsString('break_too_short', $src);
 		self::assertMatchesRegularExpression(

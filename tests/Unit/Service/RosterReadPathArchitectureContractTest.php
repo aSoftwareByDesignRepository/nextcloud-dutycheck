@@ -110,7 +110,7 @@ final class RosterReadPathArchitectureContractTest extends TestCase
 		self::assertStringContainsString('$this->refreshAndListConflicts($periodId)', $create);
 		self::assertStringContainsString('$refreshConflicts', $create);
 
-		$cancel = $this->extractFunction('public function cancelAssignment(int $assignmentId');
+		$cancel = $this->extractFunction('public function cancelAssignment(');
 		self::assertStringContainsString('$this->refreshAndListConflicts($periodId)', $cancel);
 
 		$update = $this->extractFunction('public function updateAssignment');

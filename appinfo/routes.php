@@ -52,6 +52,7 @@ return [
 		['name' => 'rosterApi#deleteTemplate', 'url' => '/api/templates/{id}', 'verb' => 'DELETE'],
 		['name' => 'rosterApi#conflictPolicy', 'url' => '/api/admin/conflict-policy', 'verb' => 'GET'],
 		['name' => 'rosterApi#saveConflictPolicy', 'url' => '/api/admin/conflict-policy', 'verb' => 'POST'],
+		['name' => 'rosterApi#applyConflictPolicyToOpenPeriods', 'url' => '/api/admin/conflict-policy/apply-open', 'verb' => 'POST'],
 		['name' => 'rosterApi#listQualifications', 'url' => '/api/qualifications', 'verb' => 'GET'],
 		['name' => 'rosterApi#createQualification', 'url' => '/api/qualifications', 'verb' => 'POST'],
 		['name' => 'rosterApi#updateQualification', 'url' => '/api/qualifications/{id}', 'verb' => 'PUT'],

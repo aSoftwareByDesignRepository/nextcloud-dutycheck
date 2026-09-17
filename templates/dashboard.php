@@ -89,6 +89,13 @@ $metricAssignments = $summary === null ? 0 : max(0, (int) ($summary['assignments
 	</div>
 	<ul id="dc-dashboard-conflict-list" class="dc-conflicts dc-dashboard-conflict-list" role="list"
 		aria-label="<?php p($l->t('Open must-fix planning issues')); ?>" hidden></ul>
+	<div id="dc-dashboard-cap-hint" class="dc-callout dc-callout--info dc-dashboard-cap-hint" role="note" hidden>
+		<p><strong><?php p($l->t('Hour caps may be locked on this period.')); ?></strong></p>
+		<p class="dc-field__hint">
+			<?php p($l->t('Period and week totals freeze when the period is created. Raising thresholds in settings alone does not change an open period.')); ?>
+			<a class="dc-inline-link" id="dc-dashboard-cap-hint-link" href="#"><?php p($l->t('Open Conflict thresholds')); ?></a>
+		</p>
+	</div>
 </section>
 
 <section class="dc-card dc-section" aria-labelledby="dc-dashboard-summary-title">

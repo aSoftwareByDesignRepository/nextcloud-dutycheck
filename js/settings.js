@@ -938,6 +938,67 @@
 		const form = document.getElementById('dc-conflict-policy-form');
 		if (!form) return;
 		const status = document.getElementById('dc-conflict-policy-status');
+		const openStatus = document.getElementById('dc-conflict-open-status');
+		const applyBtn = document.getElementById('dc-conflict-apply-open');
+		const freezeCallout = document.getElementById('dc-conflict-freeze-callout');
+
+		function hoursHint(minutes) {
+			const n = Number(minutes);
+			if (!Number.isFinite(n) || n < 0) {
+				return '';
+			}
+			const hours = Math.round((n / 60) * 10) / 10;
+			return t('dutycheck', 'About {hours} hours').replace('{hours}', String(hours));
+		}
+
+		function refreshMinuteHints() {
+			form.querySelectorAll('[data-dc-minutes-hint]').forEach((hint) => {
+				const field = hint.closest('.dc-field');
+				const input = field ? field.querySelector('input[type="number"]') : null;
+				if (!input) return;
+				hint.textContent = hoursHint(input.value);
+			});
+		}
+
+		function renderOpenPeriodStatus(openPeriods) {
+			const info = openPeriods && typeof openPeriods === 'object' ? openPeriods : {};
+			const schemaReady = info.schemaReady !== false;
+			const openCount = Number(info.openCount || 0);
+			const outdated = Number(info.outdatedCount || 0);
+			if (openStatus) {
+				if (!schemaReady) {
+					openStatus.textContent = t('dutycheck', 'Conflict caps cannot be refreshed until the server upgrade finishes.');
+				} else if (openCount === 0) {
+					openStatus.textContent = t('dutycheck', 'No open periods right now. New periods will use the saved limits.');
+				} else if (outdated === 0) {
+					openStatus.textContent = t('dutycheck', 'All {count} open period(s) already use the saved limits.')
+						.replace('{count}', String(openCount));
+				} else {
+					openStatus.textContent = t('dutycheck', '{outdated} of {open} open period(s) still use older caps. Apply to refresh them.')
+						.replace('{outdated}', String(outdated))
+						.replace('{open}', String(openCount));
+				}
+			}
+			if (applyBtn) {
+				const canApply = schemaReady && outdated > 0;
+				applyBtn.disabled = !canApply;
+				if (canApply) {
+					applyBtn.removeAttribute('aria-disabled');
+				} else {
+					applyBtn.setAttribute('aria-disabled', 'true');
+				}
+			}
+			if (freezeCallout) {
+				freezeCallout.classList.toggle('dc-callout--warning', schemaReady && outdated > 0);
+				freezeCallout.classList.toggle('dc-callout--info', !(schemaReady && outdated > 0));
+			}
+		}
+
+		form.querySelectorAll('input[type="number"]').forEach((input) => {
+			input.addEventListener('input', refreshMinuteHints);
+			input.addEventListener('change', refreshMinuteHints);
+		});
+
 		try {
 			const res = await Api.get('/apps/dutycheck/api/admin/conflict-policy');
 			const d = res?.data || {};
@@ -946,13 +1007,16 @@
 			form.maxPeriodSoft.value = String(d.maxPeriodSoft ?? 2880);
 			form.maxPeriodHard.value = String(d.maxPeriodHard ?? 3600);
 			form.maxConsecutiveDays.value = String(d.maxConsecutiveDays ?? 6);
+			refreshMinuteHints();
+			renderOpenPeriodStatus(d.openPeriods);
 		} catch (err) {
 			Msg.handleApiError(err);
 		}
+
 		form.addEventListener('submit', async (event) => {
 			event.preventDefault();
 			try {
-				await Api.post('/apps/dutycheck/api/admin/conflict-policy', {
+				const res = await Api.post('/apps/dutycheck/api/admin/conflict-policy', {
 					minRestMinutes: Number(form.minRestMinutes.value),
 					maxDailyHard: Number(form.maxDailyHard.value),
 					maxPeriodSoft: Number(form.maxPeriodSoft.value),
@@ -965,10 +1029,48 @@
 					status.textContent = msg;
 				}
 				Msg.announce(msg, 'success');
+				refreshMinuteHints();
+				renderOpenPeriodStatus(res?.data?.openPeriods);
+				if (Number(res?.data?.openPeriods?.outdatedCount || 0) > 0 && applyBtn) {
+					applyBtn.focus();
+				}
 			} catch (err) {
 				Msg.handleApiError(err);
 			}
 		});
+
+		if (applyBtn) {
+			applyBtn.addEventListener('click', async () => {
+				const ok = window.confirm(
+					t('dutycheck', 'Apply the saved conflict thresholds to all open periods? Published and closed periods stay unchanged.'),
+				);
+				if (!ok) return;
+				applyBtn.disabled = true;
+				applyBtn.setAttribute('aria-busy', 'true');
+				try {
+					const res = await Api.post('/apps/dutycheck/api/admin/conflict-policy/apply-open', {});
+					const updated = Number(res?.data?.updated || 0);
+					const msg = updated === 0
+						? t('dutycheck', 'Open periods already matched the saved limits.')
+						: t('dutycheck', 'Applied saved limits to {count} open period(s).').replace('{count}', String(updated));
+					if (status) {
+						status.hidden = false;
+						status.textContent = msg;
+					}
+					Msg.announce(msg, 'success');
+					renderOpenPeriodStatus({
+						schemaReady: true,
+						openCount: Number(res?.data?.openCount || 0),
+						outdatedCount: Number(res?.data?.outdatedCount || 0),
+					});
+				} catch (err) {
+					Msg.handleApiError(err);
+					applyBtn.disabled = false;
+				} finally {
+					applyBtn.removeAttribute('aria-busy');
+				}
+			});
+		}
 	}
 
 	async function wireShiftTemplates() {

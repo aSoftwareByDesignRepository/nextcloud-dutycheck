@@ -555,8 +555,11 @@ class RosterApiController extends Controller
 	public function conflictPolicy(): DataResponse
 	{
 		try {
-			$this->access->requireAppAdmin($this->access->currentUserId());
-			return new DataResponse(['ok' => true, 'data' => $this->conflictPolicyService()->get()]);
+			$userId = $this->access->currentUserId();
+			$this->access->requireAppAdmin($userId);
+			$data = $this->conflictPolicyService()->get();
+			$data['openPeriods'] = $this->roster->conflictThresholdOpenPeriodStatus($userId);
+			return new DataResponse(['ok' => true, 'data' => $data]);
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);
 		}
@@ -570,6 +573,20 @@ class RosterApiController extends Controller
 			$this->access->requireAppAdmin($userId);
 			$params = ApiMutationParams::all($this->request);
 			$data = $this->conflictPolicyService()->save($params, $userId);
+			$data['openPeriods'] = $this->roster->conflictThresholdOpenPeriodStatus($userId);
+			return new DataResponse(['ok' => true, 'data' => $data]);
+		} catch (Throwable $e) {
+			return ApiJsonErrorResponse::fromThrowable($e);
+		}
+	}
+
+	#[NoAdminRequired]
+	public function applyConflictPolicyToOpenPeriods(): DataResponse
+	{
+		try {
+			$userId = $this->access->currentUserId();
+			$this->access->requireAppAdmin($userId);
+			$data = $this->roster->applyLiveConflictThresholdsToOpenPeriods($userId);
 			return new DataResponse(['ok' => true, 'data' => $data]);
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);

@@ -2662,6 +2662,137 @@ class RosterService
 	}
 
 	/**
+	 * How many open periods still use frozen caps that differ from the live policy.
+	 *
+	 * Used by Settings → Conflicts so admins see why raising thresholds did nothing.
+	 *
+	 * @return array{
+	 *   schemaReady:bool,
+	 *   openCount:int,
+	 *   outdatedCount:int,
+	 *   live:array{maxDailyHard:int,maxPeriodSoft:int,maxPeriodHard:int,maxConsecutiveDays:int,minRestMinutes:int}
+	 * }
+	 */
+	public function conflictThresholdOpenPeriodStatus(string $actor): array
+	{
+		$live = $this->policyThresholds();
+		if (!$this->periodHasFrozenThresholdsColumn()) {
+			return [
+				'schemaReady' => false,
+				'openCount' => 0,
+				'outdatedCount' => 0,
+				'live' => $live,
+			];
+		}
+		$rows = $this->fetchOpenPeriodsWithFrozenThresholds($actor);
+		$outdated = 0;
+		foreach ($rows as $row) {
+			if (!$this->frozenMatchesLive($row['conflict_thresholds_json'] ?? null, $live)) {
+				$outdated++;
+			}
+		}
+		return [
+			'schemaReady' => true,
+			'openCount' => count($rows),
+			'outdatedCount' => $outdated,
+			'live' => $live,
+		];
+	}
+
+	/**
+	 * Re-freeze the current live conflict policy onto every open period the actor can see.
+	 * Published and closed periods stay untouched (audit integrity of past planning).
+	 *
+	 * @return array{
+	 *   updated:int,
+	 *   alreadyCurrent:int,
+	 *   openCount:int,
+	 *   outdatedCount:int,
+	 *   periodIds:list<int>,
+	 *   thresholds:array{maxDailyHard:int,maxPeriodSoft:int,maxPeriodHard:int,maxConsecutiveDays:int,minRestMinutes:int}
+	 * }
+	 */
+	public function applyLiveConflictThresholdsToOpenPeriods(string $actor): array
+	{
+		if (!$this->periodHasFrozenThresholdsColumn()) {
+			throw new \InvalidArgumentException('SCHEMA_NOT_READY');
+		}
+		$live = $this->policyThresholds();
+		$json = json_encode($live, JSON_THROW_ON_ERROR);
+		$rows = $this->fetchOpenPeriodsWithFrozenThresholds($actor);
+		$updatedIds = [];
+		$alreadyCurrent = 0;
+		foreach ($rows as $row) {
+			$periodId = (int) ($row['id'] ?? 0);
+			if ($periodId <= 0) {
+				continue;
+			}
+			if ($this->frozenMatchesLive($row['conflict_thresholds_json'] ?? null, $live)) {
+				$alreadyCurrent++;
+				continue;
+			}
+			$this->assertPeriodCompanyAccess($actor, $periodId);
+			$qb = $this->db->getQueryBuilder();
+			$qb->update('dc_periods')
+				->set('conflict_thresholds_json', $qb->createNamedParameter($json))
+				->where($qb->expr()->eq('id', $qb->createNamedParameter($periodId, IQueryBuilder::PARAM_INT)))
+				->andWhere($qb->expr()->eq('status', $qb->createNamedParameter('open')))
+				->executeStatement();
+			$this->writeAuditEvent(
+				$periodId,
+				$actor,
+				'CONFLICT_THRESHOLDS_REAPPLIED',
+				'period',
+				$periodId,
+				['thresholds' => $live],
+			);
+			$updatedIds[] = $periodId;
+		}
+		return [
+			'updated' => count($updatedIds),
+			'alreadyCurrent' => $alreadyCurrent,
+			'openCount' => count($rows),
+			'outdatedCount' => 0,
+			'periodIds' => $updatedIds,
+			'thresholds' => $live,
+		];
+	}
+
+	/**
+	 * @return list<array{id:int|string,conflict_thresholds_json:?string}>
+	 */
+	private function fetchOpenPeriodsWithFrozenThresholds(string $actor): array
+	{
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('id', 'conflict_thresholds_json')
+			->from('dc_periods')
+			->where($qb->expr()->eq('status', $qb->createNamedParameter('open')))
+			->orderBy('id', 'ASC');
+		if ($this->companies !== null) {
+			$this->companies->restrictQuery($qb, 'company_id', $actor);
+		}
+		/** @var list<array{id:int|string,conflict_thresholds_json:?string}> $rows */
+		$rows = $qb->executeQuery()->fetchAll();
+		return $rows;
+	}
+
+	/**
+	 * @param array{maxDailyHard:int,maxPeriodSoft:int,maxPeriodHard:int,maxConsecutiveDays:int,minRestMinutes:int} $live
+	 */
+	private function frozenMatchesLive(mixed $raw, array $live): bool
+	{
+		$decoded = $this->decodeFrozenThresholds($raw);
+		if ($decoded === null) {
+			return false;
+		}
+		return $decoded['maxDailyHard'] === $live['maxDailyHard']
+			&& $decoded['maxPeriodSoft'] === $live['maxPeriodSoft']
+			&& $decoded['maxPeriodHard'] === $live['maxPeriodHard']
+			&& $decoded['maxConsecutiveDays'] === $live['maxConsecutiveDays']
+			&& $decoded['minRestMinutes'] === $live['minRestMinutes'];
+	}
+
+	/**
 	 * Prefer frozen per-period thresholds; fall back to live policy for legacy periods.
 	 *
 	 * @return array{maxDailyHard:int,maxPeriodSoft:int,maxPeriodHard:int,maxConsecutiveDays:int,minRestMinutes:int}

@@ -1277,7 +1277,27 @@
 		"{title}: {have} of {need} staff ({time})": "{title}: {have} von {need} Personen ({time})",
 		"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page.": "{unlinked} von {total} aktiven Beschäftigten haben kein verknüpftes Nextcloud-Konto — Abwesenheiten für sie bleiben in DutyCheck, bis die Konten auf der Seite „Beschäftigte“ verknüpft sind.",
 		"{used} of {total} seats used": "{used} von {total} Sitzen genutzt",
-		"“Must fix” issues block publishing.": "„Muss behoben werden“-Punkte blockieren die Veröffentlichung."
+		"“Must fix” issues block publishing.": "„Muss behoben werden“-Punkte blockieren die Veröffentlichung.",
+		"Menu": "Menü",
+		"Open navigation menu": "Navigationsmenü öffnen",
+		"Close navigation menu": "Navigationsmenü schließen",
+		"These limits decide when the roster shows “Must fix” or “Confirm to continue”. Values are minutes. Hard limits always block publishing.": "Diese Grenzen entscheiden, wann der Dienstplan „Muss behoben werden“ oder „Bestätigen zum Fortfahren“ zeigt. Werte sind Minuten. Harte Grenzen blockieren die Veröffentlichung immer.",
+		"Open periods keep the caps from when they were created.": "Offene Zeiträume behalten die Obergrenzen vom Anlegezeitpunkt.",
+		"Saving here updates the default for new periods. To refresh caps on periods that are still Open, use the button below. Published and closed periods stay unchanged.": "Speichern aktualisiert den Standard für neue Zeiträume. Um Obergrenzen auf noch offenen Zeiträumen zu aktualisieren, nutzen Sie die Schaltfläche unten. Veröffentlichte und geschlossene Zeiträume bleiben unverändert.",
+		"Apply to open periods": "Auf offene Zeiträume anwenden",
+		"Also used as the soft calendar-week total (Mon–Sun). Soft = confirm with a short reason.": "Gilt auch als weiche Kalenderwochen-Summe (Mo–So). Weich = mit kurzer Begründung bestätigen.",
+		"Also used as the hard calendar-week total. Hard = must fix before publishing. Defaults (~60 h) fit a week; raise them for a full month.": "Gilt auch als harte Kalenderwochen-Summe. Hart = vor dem Veröffentlichen beheben. Standard (~60 Std.) passt zu einer Woche; für einen ganzen Monat erhöhen.",
+		"About {hours} hours": "Etwa {hours} Stunden",
+		"Conflict caps cannot be refreshed until the server upgrade finishes.": "Konflikt-Obergrenzen können erst nach dem Server-Upgrade aktualisiert werden.",
+		"No open periods right now. New periods will use the saved limits.": "Derzeit keine offenen Zeiträume. Neue Zeiträume nutzen die gespeicherten Grenzen.",
+		"All {count} open period(s) already use the saved limits.": "Alle {count} offenen Zeiträume nutzen bereits die gespeicherten Grenzen.",
+		"{outdated} of {open} open period(s) still use older caps. Apply to refresh them.": "{outdated} von {open} offenen Zeiträumen nutzen noch ältere Obergrenzen. Anwenden, um sie zu aktualisieren.",
+		"Apply the saved conflict thresholds to all open periods? Published and closed periods stay unchanged.": "Gespeicherte Konflikt-Schwellenwerte auf alle offenen Zeiträume anwenden? Veröffentlichte und geschlossene Zeiträume bleiben unverändert.",
+		"Open periods already matched the saved limits.": "Offene Zeiträume entsprachen bereits den gespeicherten Grenzen.",
+		"Applied saved limits to {count} open period(s).": "Gespeicherte Grenzen auf {count} offene Zeiträume angewendet.",
+		"Hour caps may be locked on this period.": "Stunden-Obergrenzen können für diesen Zeitraum eingefroren sein.",
+		"Period and week totals freeze when the period is created. Raising thresholds in settings alone does not change an open period.": "Perioden- und Wochensummen werden beim Anlegen des Zeitraums eingefroren. Schwellenwerte nur in den Einstellungen zu erhöhen ändert einen offenen Zeitraum nicht.",
+		"Open Conflict thresholds": "Konflikt-Schwellenwerte öffnen"
 	},
 	"pluralForm": "nplurals=2; plural=(n != 1);"
 }

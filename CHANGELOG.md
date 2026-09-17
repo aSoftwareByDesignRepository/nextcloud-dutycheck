@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.3.2 - 2026-09-17
+
+### Added
+
+- **Conflict thresholds → Apply to open periods:** saving live caps no longer leaves planners stuck; app admins can re-freeze the current policy onto every **open** period in one click (published/closed stay unchanged; audit `CONFLICT_THRESHOLDS_REAPPLIED`).
+- Settings callout explains the create-time freeze; live **≈ hours** hints next to minute fields; period/week dual-use of soft/hard caps is labelled plainly.
+- Dashboard planning status shows a freeze hint with a deep link when hard period/week hour caps are blocking publish.
+
+### Tests
+
+- Unit apply/status + settings/dashboard template contracts; integrity mutation asserts; Playwright axe on `/settings/conflicts`.
+
 ## 0.3.1 - 2026-09-13
 
 ### Fixed

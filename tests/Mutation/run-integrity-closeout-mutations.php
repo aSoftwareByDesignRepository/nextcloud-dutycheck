@@ -30,6 +30,7 @@ $slotKey = (string) file_get_contents($root . '/lib/Service/AssignmentSlotKey.ph
 $repair = (string) file_get_contents($root . '/lib/Repair/EnsureDutyCheckSchema.php');
 $print = (string) file_get_contents($root . '/templates/roster-print.php');
 $rosterTpl = (string) file_get_contents($root . '/templates/roster.php');
+$rosterJs = (string) file_get_contents($root . '/js/roster.js');
 $navPath = $root . '/../../../mobile/dutycheck/src/app/RootNavigator.tsx';
 $nav = is_file($navPath) ? (string) file_get_contents($navPath) : '';
 // Host bind-mount companion may be invisible inside the container; assert from inlined contract.
@@ -84,7 +85,18 @@ $assert(
 );
 $assert(str_contains($roster, 'conflict_thresholds_json'), 'period_threshold_freeze_column');
 $assert(str_contains($roster, 'policyThresholdsForPeriod'), 'period_threshold_freeze_reader');
+$assert(str_contains($roster, 'applyLiveConflictThresholdsToOpenPeriods'), 'period_threshold_apply_open');
+$assert(str_contains($roster, 'conflictThresholdOpenPeriodStatus'), 'period_threshold_open_status');
 $assert(str_contains($roster, 'weekly_hours_hard_cap'), 'calendar_week_hard_cap');
+$settingsJs = (string) file_get_contents($root . '/js/settings.js');
+$assert(str_contains($settingsJs, 'conflict-policy/apply-open'), 'settings_apply_open_endpoint');
+$assert(str_contains($settingsJs, 'minHeadcount'), 'template_min_headcount_ui');
+$conflictsTpl = (string) file_get_contents($root . '/templates/parts/settings/conflicts.php');
+$assert(str_contains($conflictsTpl, 'data-dc-minutes-hint'), 'settings_minutes_hours_hint');
+$assert(str_contains($conflictsTpl, 'dc-conflict-apply-open'), 'settings_apply_open_button');
+$assert(str_contains($conflictsTpl, 'Open periods keep the caps'), 'settings_freeze_callout');
+$dashboardJs = (string) file_get_contents($root . '/js/dashboard.js');
+$assert(str_contains($dashboardJs, 'dc-dashboard-cap-hint'), 'dashboard_cap_hint_wiring');
 $assert(str_contains($roster, 'break_too_short'), 'break_too_short_rule');
 $assert(str_contains($api, "'STALE_VERSION'"), 'stale_version_http_map');
 $assert(str_contains($api, "'EXPECTED_VERSION_REQUIRED'"), 'expected_version_http_map');
@@ -106,11 +118,8 @@ $assert(str_contains($print, 'dc-print-integrity') && str_contains($print, 'snap
 $assert(str_contains($rosterJs, "setAttribute('role', 'grid')") && str_contains($rosterTpl, 'dc-roster-bulk-apply'), 'roster_grid_markup');
 $assert($companionOk, 'companion_license_required_gate');
 $assert(str_contains($roster, 'understaffed_shift'), 'understaffed_shift_rule');
-$settingsJs = (string) file_get_contents($root . '/js/settings.js');
-$assert(str_contains($settingsJs, 'minHeadcount'), 'template_min_headcount_ui');
 $periodsJs = (string) file_get_contents($root . '/js/periods.js');
 $assert(str_contains($periodsJs, 'INTEGRATION_PUBLISH_STALE'), 'publish_stale_ux');
-$rosterJs = (string) file_get_contents($root . '/js/roster.js');
 $assert(str_contains($rosterJs, 'This template has no location'), 'bulk_fill_requires_template_location');
 $assert(!str_contains($rosterJs, 'locations?.[0]?.id'), 'bulk_fill_no_location_fallback');
 

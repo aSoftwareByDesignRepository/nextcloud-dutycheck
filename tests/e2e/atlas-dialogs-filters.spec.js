@@ -142,15 +142,36 @@ async function fillAssignmentCreateForm(page, fields) {
 
 const QUICK_RANGES = ['upcoming', 'today', 'week', 'next-week', '14d', 'month']
 
+/**
+ * Desktop shell for chip/dialog clicks: closed drawer + ≥1024 viewport so
+ * sticky #app-navigation sits beside content (not over it).
+ * @param {import('@playwright/test').Page} page
+ */
+async function ensureDesktopShell(page) {
+	await page.setViewportSize({ width: 1280, height: 720 })
+	await page.evaluate(() => {
+		if (window.DutyCheckMobileNav && typeof window.DutyCheckMobileNav.close === 'function') {
+			window.DutyCheckMobileNav.close()
+		}
+		document.body.classList.remove('dc-nav-open')
+		document.getElementById('app-navigation')?.classList.remove('dc-nav--open')
+	}).catch(() => {})
+}
+
 test.describe('atlas employee filters + swap dismiss', () => {
 	// Planner storageState must not leak into employee self-service routes.
 	test.use({ storageState: { cookies: [], origins: [] } })
+
+	test.beforeEach(async ({ page }) => {
+		await ensureDesktopShell(page)
+	})
 
 	test('my-roster quick-range chips toggle each value + empty-range honest copy', async ({ page }) => {
 		test.skip(!process.env.NC_EMPLOYEE_USER, 'Requires NC_EMPLOYEE_* credentials')
 		await login(page, credsFromEnv('EMPLOYEE'))
 		await page.goto('/apps/dutycheck/my-roster', { waitUntil: 'domcontentloaded' })
 		await assertNotServerUpdater(page)
+		await ensureDesktopShell(page)
 		await page.waitForSelector('#dc-my-roster-quickfilters', { timeout: 30_000 })
 
 		const chips = page.locator('#dc-my-roster-quickfilters .dc-quickfilters__btn')
@@ -174,17 +195,27 @@ test.describe('atlas employee filters + swap dismiss', () => {
 		}
 
 		// Force empty result for an honest empty-range copy (independent of seed roster).
-		await page.route('**/apps/dutycheck/api/my/roster**', async (route) => {
+		await page.route(/\/apps\/dutycheck\/api\/my\/roster(\?|$)/, async (route) => {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
 				body: JSON.stringify({ ok: true, data: [] }),
 			})
 		})
-		await page.locator('#dc-my-roster-quickfilters .dc-quickfilters__btn[data-range="today"]').click()
+		await Promise.all([
+			page.waitForResponse((r) => /\/apps\/dutycheck\/api\/my\/roster/.test(r.url()) && r.ok(), {
+				timeout: 20_000,
+			}),
+			page.locator('#dc-my-roster-quickfilters .dc-quickfilters__btn[data-range="today"]').click(),
+		])
 		await expect(page.locator('#dc-my-roster-table-body .dc-table__empty-row')).toBeVisible({ timeout: 15_000 })
-		await expect(page.locator('#dc-my-roster-table-body')).toContainText(/No published shifts in this range/i)
-		await expect(page.locator('#dc-my-roster-table-body')).toContainText(/Try a wider range/i)
+		// EN + DE (employee may be de on shared NC)
+		await expect(page.locator('#dc-my-roster-table-body')).toContainText(
+			/No published shifts in this range|Keine veröffentlichten Schichten in diesem Zeitraum/i,
+		)
+		await expect(page.locator('#dc-my-roster-table-body')).toContainText(
+			/Try a wider range|Wählen Sie einen größeren Zeitraum/i,
+		)
 	})
 
 	test('swap dialog open → cancel dismisses without POST', async ({ page }) => {
@@ -201,14 +232,14 @@ test.describe('atlas employee filters + swap dismiss', () => {
 			acknowledgedAt: null,
 			note: '',
 		}
-		await page.route('**/apps/dutycheck/api/my/roster**', async (route) => {
+		await page.route(/\/apps\/dutycheck\/api\/my\/roster(\?|$)/, async (route) => {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
 				body: JSON.stringify({ ok: true, data: [fakeRow] }),
 			})
 		})
-		await page.route('**/apps/dutycheck/api/my/swap-candidates**', async (route) => {
+		await page.route(/\/apps\/dutycheck\/api\/my\/swap-candidates(\?|$)/, async (route) => {
 			await route.fulfill({
 				status: 200,
 				contentType: 'application/json',
@@ -225,14 +256,15 @@ test.describe('atlas employee filters + swap dismiss', () => {
 
 		await page.goto('/apps/dutycheck/my-roster', { waitUntil: 'domcontentloaded' })
 		await assertNotServerUpdater(page)
+		await ensureDesktopShell(page)
 		await page.waitForSelector('#dc-my-roster-table-body', { timeout: 30_000 })
-		const swapBtn = page.getByRole('button', { name: /Request swap/i }).first()
+		const swapBtn = page.getByRole('button', { name: /Request swap|Tausch anfragen/i }).first()
 		await expect(swapBtn).toBeVisible({ timeout: 15_000 })
 		await swapBtn.click()
 
 		const dialog = page.locator('#dc-swap-dialog')
 		await expect(dialog).toBeVisible()
-		await expect(dialog.locator('#dc-swap-dialog-title')).toContainText(/Request a swap/i)
+		await expect(dialog.locator('#dc-swap-dialog-title')).toContainText(/Request a swap|Einen Tausch anfragen/i)
 		await craftShot(page, 'swap-request-open')
 		await dialog.locator('button[type="submit"][value="cancel"]').click()
 		await expect(dialog).toBeHidden()
@@ -241,6 +273,10 @@ test.describe('atlas employee filters + swap dismiss', () => {
 })
 
 test.describe('atlas planner dialog dismiss', () => {
+	test.beforeEach(async ({ page }) => {
+		await ensureDesktopShell(page)
+	})
+
 	test('soll-from-duty confirm open → cancel leaves setting unchecked', async ({ page }) => {
 		test.skip(plannerCredsCandidates().length === 0, 'Requires planner credentials')
 		await page.goto('/apps/dutycheck/settings/dienst-team', { waitUntil: 'domcontentloaded' })
@@ -539,6 +575,10 @@ test.describe('atlas planner dialog dismiss', () => {
  * Closes dlg-inventory-incomplete-shipping-modals + feeds dc-vis-destructive-dialogs-open-craft-missing.
  */
 test.describe('atlas shipping dialog inventory 3.5.10', () => {
+	test.beforeEach(async ({ page }) => {
+		await ensureDesktopShell(page)
+	})
+
 	test('license remove modal open → cancel dismisses without DELETE', async ({ page }) => {
 		test.skip(plannerCredsCandidates().length === 0, 'Requires planner credentials')
 		let deletes = 0
