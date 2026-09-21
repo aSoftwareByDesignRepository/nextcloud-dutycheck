@@ -28,7 +28,6 @@ final class RosterServiceMutationEmployeeCatalogTest extends TestCase
 		SchemaProbe::resetCache();
 		$ref = new ReflectionClass(SchemaProbe::class);
 		$prop = $ref->getProperty('columnCache');
-		$prop->setAccessible(true);
 		$prop->setValue(null, ['dc_employees.company_id' => true]);
 	}
 
@@ -40,7 +39,6 @@ final class RosterServiceMutationEmployeeCatalogTest extends TestCase
 	private function invoke(RosterService $service, string $method, mixed ...$args): mixed
 	{
 		$m = new ReflectionMethod(RosterService::class, $method);
-		$m->setAccessible(true);
 		return $m->invoke($service, ...$args);
 	}
 

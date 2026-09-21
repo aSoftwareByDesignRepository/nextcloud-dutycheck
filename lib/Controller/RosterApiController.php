@@ -80,6 +80,30 @@ class RosterApiController extends Controller
 		return $this->qualifications ?? throw new \RuntimeException('QUALS_UNAVAILABLE');
 	}
 
+	/**
+	 * Roster GET only reads persisted conflicts (unless dirty). Writers that
+	 * change conflict inputs must rematerialize open periods (sync budget + dirty).
+	 *
+	 * @return array{refreshed:int, dirtyMarked:int, dirtyRemaining:int, periodIds:list<int>}
+	 */
+	private function rematerializeOpenConflicts(string $userId): array
+	{
+		return $this->roster->rematerializeOpenPeriodConflicts($userId);
+	}
+
+	/**
+	 * @param array<string,mixed> $data
+	 * @param array{refreshed?:int, dirtyMarked?:int, dirtyRemaining?:int} $result
+	 * @return array<string,mixed>
+	 */
+	private function withRematerializeMeta(array $data, array $result): array
+	{
+		$data['conflictsRefreshed'] = (int) ($result['refreshed'] ?? 0);
+		$data['conflictsDirtyMarked'] = (int) ($result['dirtyMarked'] ?? 0);
+		$data['conflictsDirtyRemaining'] = (int) ($result['dirtyRemaining'] ?? 0);
+		return $data;
+	}
+
 	private function swapsService(): SwapService
 	{
 		return $this->swaps ?? throw new \RuntimeException('SWAPS_UNAVAILABLE');
@@ -518,6 +542,8 @@ class RosterApiController extends Controller
 			$this->access->requirePlannerOrAdmin($userId);
 			$params = ApiMutationParams::all($this->request);
 			$data = $this->templates()->create($params, $userId);
+			// min_headcount drives understaffed_shift soft checks.
+			$data = $this->withRematerializeMeta($data, $this->rematerializeOpenConflicts($userId));
 			return new DataResponse(['ok' => true, 'data' => $data], 201);
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);
@@ -532,6 +558,7 @@ class RosterApiController extends Controller
 			$this->access->requirePlannerOrAdmin($userId);
 			$params = ApiMutationParams::all($this->request);
 			$data = $this->templates()->update($id, $params, $userId);
+			$data = $this->withRematerializeMeta($data, $this->rematerializeOpenConflicts($userId));
 			return new DataResponse(['ok' => true, 'data' => $data]);
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);
@@ -545,7 +572,10 @@ class RosterApiController extends Controller
 			$userId = $this->access->currentUserId();
 			$this->access->requirePlannerOrAdmin($userId);
 			$this->templates()->delete($id, $userId);
-			return new DataResponse(['ok' => true]);
+			return new DataResponse([
+				'ok' => true,
+				'data' => $this->withRematerializeMeta([], $this->rematerializeOpenConflicts($userId)),
+			]);
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);
 		}
@@ -574,6 +604,9 @@ class RosterApiController extends Controller
 			$params = ApiMutationParams::all($this->request);
 			$data = $this->conflictPolicyService()->save($params, $userId);
 			$data['openPeriods'] = $this->roster->conflictThresholdOpenPeriodStatus($userId);
+			// Open periods may already match live (Apply hidden). Still rematerialize so
+			// stale hard hour-cap rows clear after caps were raised earlier.
+			$data = $this->withRematerializeMeta($data, $this->rematerializeOpenConflicts($userId));
 			return new DataResponse(['ok' => true, 'data' => $data]);
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);
@@ -587,6 +620,7 @@ class RosterApiController extends Controller
 			$userId = $this->access->currentUserId();
 			$this->access->requireAppAdmin($userId);
 			$data = $this->roster->applyLiveConflictThresholdsToOpenPeriods($userId);
+			$data = $this->withRematerializeMeta($data, $this->rematerializeOpenConflicts($userId));
 			return new DataResponse(['ok' => true, 'data' => $data]);
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);
@@ -640,6 +674,7 @@ class RosterApiController extends Controller
 			$userId = $this->access->currentUserId();
 			$this->access->requireAppAdmin($userId);
 			$data = $this->qualificationsService()->deactivate($id, $userId);
+			$data = $this->withRematerializeMeta($data, $this->rematerializeOpenConflicts($userId));
 			return new DataResponse(['ok' => true, 'data' => $data]);
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);
@@ -1501,15 +1536,19 @@ class RosterApiController extends Controller
 	public function attachEmployeeQualification(int $id): DataResponse
 	{
 		try {
-			$this->access->requireAppAdmin($this->access->currentUserId());
+			$userId = $this->access->currentUserId();
+			$this->access->requireAppAdmin($userId);
 			$params = ApiMutationParams::all($this->request);
 			$qualId = (int) ($params['qualificationId'] ?? 0);
 			$expires = isset($params['expiresOn']) ? (string) $params['expiresOn'] : null;
 			if ($qualId <= 0) {
 				throw new \InvalidArgumentException('QUALIFICATION_ID_REQUIRED');
 			}
-			$this->qualificationsService()->attachToEmployee($id, $qualId, $expires, $this->access->currentUserId());
-			return new DataResponse(['ok' => true]);
+			$this->qualificationsService()->attachToEmployee($id, $qualId, $expires, $userId);
+			return new DataResponse([
+				'ok' => true,
+				'data' => $this->withRematerializeMeta([], $this->rematerializeOpenConflicts($userId)),
+			]);
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);
 		}
@@ -1519,13 +1558,17 @@ class RosterApiController extends Controller
 	public function detachEmployeeQualification(int $id, int $qualificationId): DataResponse
 	{
 		try {
-			$this->access->requirePlannerOrAdmin($this->access->currentUserId());
+			$userId = $this->access->currentUserId();
+			$this->access->requirePlannerOrAdmin($userId);
 			$this->qualificationsService()->detachFromEmployee(
 				$id,
 				$qualificationId,
-				$this->access->currentUserId(),
+				$userId,
 			);
-			return new DataResponse(['ok' => true]);
+			return new DataResponse([
+				'ok' => true,
+				'data' => $this->withRematerializeMeta([], $this->rematerializeOpenConflicts($userId)),
+			]);
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);
 		}
@@ -1543,7 +1586,10 @@ class RosterApiController extends Controller
 				throw new \InvalidArgumentException('QUALIFICATION_ID_REQUIRED');
 			}
 			$this->qualificationsService()->requireForLocation($id, $qualId, $userId);
-			return new DataResponse(['ok' => true]);
+			return new DataResponse([
+				'ok' => true,
+				'data' => $this->withRematerializeMeta([], $this->rematerializeOpenConflicts($userId)),
+			]);
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);
 		}

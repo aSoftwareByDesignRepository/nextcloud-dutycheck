@@ -21,7 +21,6 @@ final class PublishStaleGateTest extends TestCase
 
 		$svc = new RosterService($this->createMock(IDBConnection::class), null, $at);
 		$m = new ReflectionMethod(RosterService::class, 'computePublishReadinessFromConflicts');
-		$m->setAccessible(true);
 		$out = $m->invoke($svc, 7, [
 			['severity' => 'soft', 'acknowledged' => true],
 		]);

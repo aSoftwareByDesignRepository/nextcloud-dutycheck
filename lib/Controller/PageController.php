@@ -420,6 +420,7 @@ class PageController extends Controller
 		}
 		if ($template === 'settings') {
 			Util::addScript(Application::APP_ID, 'settings-legacy-redirect');
+			Util::addScript(Application::APP_ID, 'common/conflict-open-status');
 		}
 		Util::addScript(Application::APP_ID, $script);
 		if ($template === 'settings' && ($extra['settingsSection'] ?? '') === 'dienst-team') {

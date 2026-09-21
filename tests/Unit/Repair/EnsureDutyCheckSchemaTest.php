@@ -41,7 +41,6 @@ final class EnsureDutyCheckSchemaTest extends TestCase
 		// Seed index probe cache (unit mocks lack SchemaWrapper getInner).
 		$ref = new ReflectionClass(SchemaProbe::class);
 		$prop = $ref->getProperty('indexCache');
-		$prop->setAccessible(true);
 		$prop->setValue(null, ['dc_assignments#dc_asg_skey_uidx' => true]);
 
 		$config = $this->createMock(IConfig::class);

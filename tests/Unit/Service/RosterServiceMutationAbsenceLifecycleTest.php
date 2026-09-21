@@ -28,10 +28,11 @@ final class RosterServiceMutationAbsenceLifecycleTest extends TestCase
 		SchemaProbe::resetCache();
 		$ref = new ReflectionClass(SchemaProbe::class);
 		$prop = $ref->getProperty('columnCache');
-		$prop->setAccessible(true);
 		$prop->setValue(null, [
 			'dc_absences.company_id' => true,
 			'dc_employees.company_id' => true,
+			// Absence lifecycle mocks do not stub rematerialize QBs; disable freeze column.
+			'dc_periods.conflict_thresholds_json' => false,
 		]);
 	}
 
@@ -328,8 +329,6 @@ final class RosterServiceMutationAbsenceLifecycleTest extends TestCase
 		$service = new RosterService($this->rosterDb($qb));
 
 		$m = new ReflectionMethod(RosterService::class, 'absenceById');
-		$m->setAccessible(true);
-
 		self::assertSame([
 			'id' => 42,
 			'employeeId' => 7,
@@ -345,8 +344,6 @@ final class RosterServiceMutationAbsenceLifecycleTest extends TestCase
 		$service = new RosterService($this->rosterDb($qb));
 
 		$m = new ReflectionMethod(RosterService::class, 'absenceById');
-		$m->setAccessible(true);
-
 		$this->expectException(\InvalidArgumentException::class);
 		$this->expectExceptionMessage('ABSENCE_NOT_FOUND');
 		$m->invoke($service, 42);

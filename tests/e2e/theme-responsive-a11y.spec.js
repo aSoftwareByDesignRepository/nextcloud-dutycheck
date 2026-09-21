@@ -111,6 +111,73 @@ async function assertThemeTokensResolved(page) {
 }
 
 /**
+ * Dark / dark-HC: sidebar must use resolved NC surface tokens — no light island.
+ * Compare against body `--color-main-background` (not body.backgroundColor, which
+ * can be the primary chrome tint on some NC shells).
+ * @param {import('@playwright/test').Page} page
+ * @param {string} theme
+ */
+async function assertDarkNavMatchesThemeTokens(page, theme) {
+	if (!theme.includes('dark')) return
+	const nav = await page.evaluate(() => {
+		const navEl = document.querySelector('#app-navigation')
+		if (!navEl) return null
+		const bodyCs = getComputedStyle(document.body)
+		const navCs = getComputedStyle(navEl)
+		const parseRgb = (v) => {
+			const s = String(v).trim()
+			const m = s.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i)
+			if (m) return [Number(m[1]), Number(m[2]), Number(m[3])]
+			const hx = s.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i)
+			if (hx) {
+				let h = hx[1]
+				if (h.length === 3) h = h.split('').map((c) => c + c).join('')
+				return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]
+			}
+			return null
+		}
+		// Resolve token the same way paint does: temp element inheriting body vars.
+		const probe = document.createElement('div')
+		probe.style.backgroundColor = 'var(--color-main-background)'
+		probe.style.color = 'var(--color-main-text)'
+		document.body.appendChild(probe)
+		const probeCs = getComputedStyle(probe)
+		const surfaceRgb = parseRgb(probeCs.backgroundColor)
+		const navRgb = parseRgb(navCs.backgroundColor)
+		const link = navEl.querySelector('.dc-nav__link')
+		const linkColor = link ? getComputedStyle(link).color : ''
+		probe.remove()
+		return {
+			surfaceToken: bodyCs.getPropertyValue('--color-main-background').trim(),
+			surfaceBg: probeCs.backgroundColor,
+			navBg: navCs.backgroundColor,
+			navColor: navCs.color,
+			linkColor,
+			surfaceRgb,
+			navRgb,
+			navLocalToken: navCs.getPropertyValue('--color-main-background').trim(),
+		}
+	})
+	expect(nav, 'dark theme must render #app-navigation').toBeTruthy()
+	expect(nav.surfaceToken, 'body --color-main-background must resolve').not.toEqual('')
+	expect(nav.navRgb, `nav background must parse (got ${nav.navBg})`).toBeTruthy()
+	const lum = (0.2126 * nav.navRgb[0] + 0.7152 * nav.navRgb[1] + 0.0722 * nav.navRgb[2]) / 255
+	expect(lum, `dark nav must stay dark (lum=${lum}, bg=${nav.navBg})`).toBeLessThan(0.45)
+	if (nav.surfaceRgb) {
+		const dist = Math.hypot(
+			nav.surfaceRgb[0] - nav.navRgb[0],
+			nav.surfaceRgb[1] - nav.navRgb[1],
+			nav.surfaceRgb[2] - nav.navRgb[2],
+		)
+		expect(
+			dist,
+			`nav bg must match resolved --color-main-background (dist=${dist}; surface=${nav.surfaceBg} nav=${nav.navBg})`,
+		).toBeLessThan(48)
+	}
+	expect(nav.linkColor, 'nav links must resolve a color').not.toEqual('')
+}
+
+/**
  * @param {import('@playwright/test').Page} page
  */
 async function assertTouchTargets(page) {
@@ -190,6 +257,7 @@ test.describe('DutyCheck theme × viewport a11y matrix', () => {
 				await setUserTheme(page, theme)
 				await expect(page.locator(route.ready)).toBeVisible({ timeout: 30_000 })
 				await assertThemeTokensResolved(page)
+				await assertDarkNavMatchesThemeTokens(page, theme)
 
 				for (const viewport of overflowViewports) {
 					await page.setViewportSize(viewport)

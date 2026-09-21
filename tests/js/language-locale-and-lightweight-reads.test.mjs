@@ -230,8 +230,9 @@ describe('roster GET is a read of persisted conflicts', () => {
 		const fnEnd = src.indexOf('Prefer the newest open period', fnStart);
 		assert.ok(fnEnd > fnStart);
 		const fn = src.slice(fnStart, fnEnd);
-		assert.match(fn, /listPersistedConflicts/);
-		assert.doesNotMatch(fn, /refreshAndListConflicts/);
+		// Default GET stays cheap; dirty open periods rematerialize inside the helper.
+		assert.match(fn, /listConflictsForRosterRead/);
+		assert.doesNotMatch(fn, /\$this->refreshAndListConflicts\(\$selected\)/);
 	});
 
 	it('loads the full assignment list for the grid (never paginated)', () => {
@@ -267,7 +268,11 @@ describe('app-wide load: no extra round trips on first paint', () => {
 
 	it('roster.js loads roster, swaps, and claims in parallel', () => {
 		const src = read('js/roster.js');
-		assert.match(src, /Promise\.all\(\[\s*loadRoster\(selectedPeriodIdFromUrl\(\)\),\s*loadPendingSwaps\(\),\s*loadPendingOpenClaims\(\),\s*\]\)/);
+		// Initial boot: month ensure OR URL period, plus swaps/claims in one Promise.all.
+		assert.match(
+			src,
+			/await Promise\.all\(\[\s*\(async \(\) => \{[\s\S]*?loadPendingSwaps\(\),\s*loadPendingOpenClaims\(\),\s*\]\)/,
+		);
 		assert.match(src, /Promise\.all\(\[\s*loadRoster\(Number\.isInteger\(periodId\) && periodId > 0 \? periodId : null\),\s*loadPendingSwaps\(\),\s*loadPendingOpenClaims\(\),\s*\]\)/);
 	});
 
@@ -284,7 +289,10 @@ describe('app-wide load: no extra round trips on first paint', () => {
 
 	it('my-roster.js loads roster, open shifts, and calendar meta together', () => {
 		const src = read('js/my-roster.js');
-		assert.match(src, /Promise\.all\(\[\s*fetchAndRender\(\),\s*loadOpenShifts\(\),\s*loadIcalMeta\(\),\s*\]\)/);
+		assert.match(
+			src,
+			/await Promise\.all\(\[\s*fetchAndRender\(\),\s*loadOpenShifts\(\),\s*loadIcalMeta\(\),\s*wireAvailability\(\),\s*wireTeamWeek\(\),\s*\]\)/,
+		);
 	});
 
 	it('GET persisted conflicts cap assignment ids and drop details', () => {

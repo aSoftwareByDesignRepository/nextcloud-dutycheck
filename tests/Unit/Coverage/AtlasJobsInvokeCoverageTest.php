@@ -5,20 +5,22 @@ declare(strict_types=1);
 namespace OCA\DutyCheck\Tests\Unit\Coverage;
 
 use OCA\DutyCheck\BackgroundJob\ArbeitszeitCheckMirrorReconcileJob;
+use OCA\DutyCheck\BackgroundJob\ConflictDirtyRematerializeJob;
 use OCA\DutyCheck\BackgroundJob\PushQuietQueueDrainJob;
 use OCA\DutyCheck\Integration\IArbeitszeitCheckIntegration;
 use OCA\DutyCheck\Service\PushQuietHoursService;
+use OCA\DutyCheck\Service\RosterService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use ReflectionMethod;
+use RuntimeException;
 
 final class AtlasJobsInvokeCoverageTest extends TestCase
 {
 	private function invokeRun(object $job, mixed $argument = null): void
 	{
 		$method = new ReflectionMethod($job, 'run');
-		$method->setAccessible(true);
 		$method->invoke($job, $argument);
 	}
 
@@ -45,12 +47,41 @@ final class AtlasJobsInvokeCoverageTest extends TestCase
 		));
 	}
 
+	public function testConflictDirtyRematerializeJobRun(): void
+	{
+		$roster = $this->createMock(RosterService::class);
+		$roster->expects($this->once())
+			->method('drainDirtyOpenPeriodConflicts')
+			->with(ConflictDirtyRematerializeJob::DRAIN_BATCH)
+			->willReturn(3);
+		$this->invokeRun(new ConflictDirtyRematerializeJob(
+			$this->createMock(ITimeFactory::class),
+			$roster,
+			$this->createMock(LoggerInterface::class),
+		));
+	}
+
+	public function testConflictDirtyRematerializeJobLogsFailures(): void
+	{
+		$roster = $this->createMock(RosterService::class);
+		$roster->method('drainDirtyOpenPeriodConflicts')
+			->willThrowException(new RuntimeException('boom'));
+		$logger = $this->createMock(LoggerInterface::class);
+		$logger->expects($this->once())->method('warning');
+		$this->invokeRun(new ConflictDirtyRematerializeJob(
+			$this->createMock(ITimeFactory::class),
+			$roster,
+			$logger,
+		));
+	}
+
 	public function testBothRegisteredJobsConstructAndRun(): void
 	{
 		$ran = [];
 		foreach ([
 			ArbeitszeitCheckMirrorReconcileJob::class,
 			PushQuietQueueDrainJob::class,
+			ConflictDirtyRematerializeJob::class,
 		] as $class) {
 			$ref = new \ReflectionClass($class);
 			$ctor = $ref->getConstructor();
@@ -65,6 +96,9 @@ final class AtlasJobsInvokeCoverageTest extends TestCase
 				if ($type->getName() === PushQuietHoursService::class) {
 					$mock->method('drainDue')->willReturn(0);
 				}
+				if ($type->getName() === RosterService::class) {
+					$mock->method('drainDirtyOpenPeriodConflicts')->willReturn(0);
+				}
 				$args[] = $mock;
 			}
 			$job = $ref->newInstanceArgs($args);
@@ -74,6 +108,7 @@ final class AtlasJobsInvokeCoverageTest extends TestCase
 		self::assertSame([
 			'ArbeitszeitCheckMirrorReconcileJob::run',
 			'PushQuietQueueDrainJob::run',
+			'ConflictDirtyRematerializeJob::run',
 		], $ran);
 	}
 }

@@ -21,7 +21,6 @@ final class OpenShiftListIsolationTest extends TestCase
 		SchemaProbe::resetCache();
 		$ref = new ReflectionClass(SchemaProbe::class);
 		$prop = $ref->getProperty('columnCache');
-		$prop->setAccessible(true);
 		$prop->setValue(null, ['dc_open_shifts.company_id' => true]);
 	}
 

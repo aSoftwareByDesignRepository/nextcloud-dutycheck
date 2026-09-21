@@ -4,15 +4,32 @@ declare(strict_types=1);
 
 namespace OCA\DutyCheck\Tests\Unit\Service;
 
+use OCA\DutyCheck\Db\SchemaProbe;
 use OCA\DutyCheck\Integration\IArbeitszeitCheckIntegration;
 use OCA\DutyCheck\Service\RosterService;
 use OCA\DutyCheck\Tests\Unit\Support\IntegrationQueryBuilderTrait;
 use OCP\IDBConnection;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 class RosterServiceTransitionAbsenceTest extends TestCase
 {
 	use IntegrationQueryBuilderTrait;
+
+	protected function setUp(): void
+	{
+		SchemaProbe::resetCache();
+		$ref = new ReflectionClass(SchemaProbe::class);
+		$prop = $ref->getProperty('columnCache');
+		$prop->setValue(null, [
+			'dc_periods.conflict_thresholds_json' => false,
+		]);
+	}
+
+	protected function tearDown(): void
+	{
+		SchemaProbe::resetCache();
+	}
 
 	public function testTransitionAbsenceThrowsWhenIntegrationLocksLinkedEmployee(): void
 	{

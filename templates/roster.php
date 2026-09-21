@@ -115,10 +115,12 @@ foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as
 				<div class="dc-roster-copy-period__row">
 					<select id="dc-roster-copy-source" class="dc-input" aria-describedby="dc-roster-copy-hint"></select>
 					<button type="button" class="button" id="dc-roster-copy-preview"><?php p($l->t('Preview copy')); ?></button>
-					<button type="button" class="button primary" id="dc-roster-copy-apply" disabled><?php p($l->t('Apply copy')); ?></button>
+					<button type="button" class="button primary" id="dc-roster-copy-apply" hidden disabled aria-disabled="true">
+						<?php p($l->t('Apply copy')); ?>
+					</button>
 				</div>
 				<p id="dc-roster-copy-hint" class="dc-field__hint">
-					<?php p($l->t('Preview never writes. Apply only after you confirm the dry-run counts. Conflicts are recomputed after apply.')); ?>
+					<?php p($l->t('Preview never writes. Apply appears after a preview that has something to copy. Conflicts are recomputed after apply.')); ?>
 				</p>
 				<p id="dc-roster-copy-status" class="dc-roster-flash" role="status" aria-live="polite" aria-atomic="true" hidden></p>
 			</div>

@@ -23,7 +23,6 @@ final class RosterServiceMutationAcknowledgeFlowsTest extends TestCase
 		SchemaProbe::resetCache();
 		$ref = new ReflectionClass(SchemaProbe::class);
 		$prop = $ref->getProperty('columnCache');
-		$prop->setAccessible(true);
 		$prop->setValue(null, [
 			'dc_assignments.status' => true,
 			'dc_assignments.version' => false,

@@ -25,7 +25,6 @@ class RosterServiceDutyTimeTest extends TestCase
 	private function invoke(string $method, mixed ...$args): mixed
 	{
 		$m = new ReflectionMethod(RosterService::class, $method);
-		$m->setAccessible(true);
 		return $m->invoke($this->service(), ...$args);
 	}
 

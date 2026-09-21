@@ -23,7 +23,6 @@ final class CompanyIsolationTest extends TestCase
 		SchemaProbe::resetCache();
 		$ref = new ReflectionClass(SchemaProbe::class);
 		$prop = $ref->getProperty('columnCache');
-		$prop->setAccessible(true);
 		$prop->setValue(null, [
 			'dc_periods.company_id' => true,
 			'dc_employees.company_id' => true,

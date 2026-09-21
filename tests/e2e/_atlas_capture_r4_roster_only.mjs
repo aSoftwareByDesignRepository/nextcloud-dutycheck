@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { setUserTheme } from './helpers/theming.js'
+import { settle } from './_atlas_settle.mjs'
 
 const outAtlas = '/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/docs/atlas/screenshots/web'
 const outQa = '/home/alex/Development/nextcloud-dev/documentation/dutycheck/qa-report/screenshots/web'
@@ -89,7 +90,7 @@ await page.evaluate(()=>{
   const pane=document.querySelector('#app-content')||document.scrollingElement
   if(el&&pane){ const top=el.getBoundingClientRect().top + pane.scrollTop - 64; pane.scrollTop=Math.max(0,top) }
 })
-await page.waitForTimeout(500)
+await settle(page)
 const heads=await page.locator('#dc-roster-grid .dc-roster-grid__colhead').count()
 console.log('heads',heads)
 const rosterPath=join(outAtlas,'atlas-visual-r4-web-roster.png')
@@ -103,7 +104,7 @@ await page.evaluate(()=>{
   const scroller=document.querySelector('.dc-roster-grid-scroller'); if(scroller) scroller.scrollLeft=0
   const grid=document.getElementById('dc-roster-grid'); if(grid) grid.style.setProperty('--dc-roster-day-min','1.7rem')
 })
-await page.waitForTimeout(300)
+await settle(page)
 const grid=page.locator('#dc-roster-grid-wrap, .dc-roster-grid-scroller').first()
 const monthQa=join(outQa,'atlas-visual-r4-web-roster-month-grid.png')
 const monthPath=join(outAtlas,'atlas-visual-r4-web-roster-month-grid.png')
@@ -114,7 +115,7 @@ console.log('month',sha(monthPath),md5(monthPath), 'size note')
 await page.setViewportSize({width:1440,height:1100})
 await page.goto('http://localhost:8081/apps/dutycheck/periods',{waitUntil:'domcontentloaded',timeout:90000})
 await forceDark(page)
-await page.waitForTimeout(800)
+await settle(page)
 await page.evaluate(()=>{
   document.querySelectorAll('.toastify,.toast,[role="alert"]').forEach(el=>el.remove())
   const start=document.getElementById('dc-period-start'); const end=document.getElementById('dc-period-end')

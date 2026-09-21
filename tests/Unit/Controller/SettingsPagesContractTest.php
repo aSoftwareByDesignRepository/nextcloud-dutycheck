@@ -189,9 +189,9 @@ final class SettingsPagesContractTest extends TestCase
 	{
 		$controller = self::read('lib/Controller/PageController.php');
 		self::assertMatchesRegularExpression(
-			"/if \(\\\$template === 'settings'\) \{\s*Util::addScript\(Application::APP_ID, 'settings-legacy-redirect'\);/s",
+			"/if \(\\\$template === 'settings'\) \{\s*Util::addScript\(Application::APP_ID, 'settings-legacy-redirect'\);\s*Util::addScript\(Application::APP_ID, 'common\/conflict-open-status'\);/s",
 			$controller,
-			'PageController must load settings-legacy-redirect.js on settings pages',
+			'PageController must load settings-legacy-redirect + conflict-open-status on settings pages',
 		);
 	}
 

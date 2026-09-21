@@ -460,7 +460,27 @@ final class AtlasApiEndpointHappyAuthzTest extends TestCase
 			$mock->method('createAbsence')->willReturn(['id' => 1]);
 			$mock->method('transitionAbsence')->willReturn(['id' => 1]);
 			$mock->method('rosterData')->willReturn(['assignments' => []]);
-			$mock->method('acknowledgeConflict')->willReturn(['id' => 1]);
+			$mock->method('acknowledgeConflict')->willReturn(['assignments' => [], 'conflicts' => []]);
+			$mock->method('rematerializeOpenPeriodConflicts')->willReturn([
+				'refreshed' => 0,
+				'dirtyMarked' => 0,
+				'dirtyRemaining' => 0,
+				'periodIds' => [],
+			]);
+			$mock->method('conflictThresholdOpenPeriodStatus')->willReturn([
+				'schemaReady' => true,
+				'openCount' => 0,
+				'outdatedCount' => 0,
+				'live' => [],
+			]);
+			$mock->method('applyLiveConflictThresholdsToOpenPeriods')->willReturn([
+				'updated' => 0,
+				'alreadyCurrent' => 0,
+				'openCount' => 0,
+				'outdatedCount' => 0,
+				'periodIds' => [],
+				'thresholds' => [],
+			]);
 			$mock->method('isSchemaReady')->willReturn(true);
 			// assertPeriodCompanyAccess / logRosterDataExport are void — default mock no-op is fine.
 			$this->byType[$key] = $mock;

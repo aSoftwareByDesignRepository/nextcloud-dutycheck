@@ -213,7 +213,9 @@ final class SettingsTemplateRenderTest extends TestCase
 			'dc-settings-conflict-policy',
 			'dc-conflict-policy-form',
 			'dc-conflict-freeze-callout',
+			'dc-conflict-freeze-title',
 			'dc-conflict-apply-open',
+			'dc-conflict-apply-actions',
 			'dc-conflict-open-status',
 			'dc-policy-max-hard',
 		] as $id) {
@@ -224,7 +226,19 @@ final class SettingsTemplateRenderTest extends TestCase
 			);
 		}
 		self::assertStringContainsString('data-dc-minutes-hint', $html);
-		self::assertStringContainsString('Open periods keep the caps from when they were created.', $html);
+		self::assertStringContainsString('Checking open periods', $html);
 		self::assertStringContainsString('Apply to open periods', $html);
+		self::assertMatchesRegularExpression(
+			'/id="dc-conflict-apply-actions"\s+hidden/',
+			$html,
+			'Apply actions must start hidden (no dead primary CTA)',
+		);
+		self::assertMatchesRegularExpression(
+			'/id="dc-conflict-apply-open"[^>]*\bhidden\b/',
+			$html,
+			'Apply button must start hidden',
+		);
+		self::assertStringContainsString('max="20160"', $html);
+		self::assertStringContainsString('max="30240"', $html);
 	}
 }

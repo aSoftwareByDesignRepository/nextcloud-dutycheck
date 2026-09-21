@@ -939,8 +939,11 @@
 		if (!form) return;
 		const status = document.getElementById('dc-conflict-policy-status');
 		const openStatus = document.getElementById('dc-conflict-open-status');
+		const freezeTitle = document.getElementById('dc-conflict-freeze-title');
 		const applyBtn = document.getElementById('dc-conflict-apply-open');
+		const applyActions = document.getElementById('dc-conflict-apply-actions');
 		const freezeCallout = document.getElementById('dc-conflict-freeze-callout');
+		const resolveOpen = window.DutyCheckConflictOpenStatus?.resolveConflictOpenCallout;
 
 		function hoursHint(minutes) {
 			const n = Number(minutes);
@@ -961,37 +964,40 @@
 		}
 
 		function renderOpenPeriodStatus(openPeriods) {
-			const info = openPeriods && typeof openPeriods === 'object' ? openPeriods : {};
-			const schemaReady = info.schemaReady !== false;
-			const openCount = Number(info.openCount || 0);
-			const outdated = Number(info.outdatedCount || 0);
+			const view = typeof resolveOpen === 'function'
+				? resolveOpen(openPeriods, t)
+				: {
+					tone: 'info',
+					title: t('dutycheck', 'Open periods keep the caps from when they were created.'),
+					body: t('dutycheck', 'Saving here updates the default for new periods. To refresh caps on periods that are still Open, use the button below. Published and closed periods stay unchanged.'),
+					showApply: Number(openPeriods?.outdatedCount || 0) > 0,
+					applyEnabled: Number(openPeriods?.outdatedCount || 0) > 0,
+					outdatedCount: Number(openPeriods?.outdatedCount || 0),
+					openCount: Number(openPeriods?.openCount || 0),
+				};
+			if (freezeTitle) {
+				freezeTitle.textContent = view.title;
+			}
 			if (openStatus) {
-				if (!schemaReady) {
-					openStatus.textContent = t('dutycheck', 'Conflict caps cannot be refreshed until the server upgrade finishes.');
-				} else if (openCount === 0) {
-					openStatus.textContent = t('dutycheck', 'No open periods right now. New periods will use the saved limits.');
-				} else if (outdated === 0) {
-					openStatus.textContent = t('dutycheck', 'All {count} open period(s) already use the saved limits.')
-						.replace('{count}', String(openCount));
-				} else {
-					openStatus.textContent = t('dutycheck', '{outdated} of {open} open period(s) still use older caps. Apply to refresh them.')
-						.replace('{outdated}', String(outdated))
-						.replace('{open}', String(openCount));
-				}
+				openStatus.textContent = view.body;
+			}
+			if (freezeCallout) {
+				freezeCallout.classList.remove('dc-callout--info', 'dc-callout--success', 'dc-callout--warning');
+				freezeCallout.classList.add('dc-callout--' + view.tone);
+			}
+			if (applyActions) {
+				applyActions.hidden = !view.showApply;
 			}
 			if (applyBtn) {
-				const canApply = schemaReady && outdated > 0;
-				applyBtn.disabled = !canApply;
-				if (canApply) {
+				applyBtn.hidden = !view.showApply;
+				applyBtn.disabled = !view.applyEnabled;
+				if (view.applyEnabled) {
 					applyBtn.removeAttribute('aria-disabled');
 				} else {
 					applyBtn.setAttribute('aria-disabled', 'true');
 				}
 			}
-			if (freezeCallout) {
-				freezeCallout.classList.toggle('dc-callout--warning', schemaReady && outdated > 0);
-				freezeCallout.classList.toggle('dc-callout--info', !(schemaReady && outdated > 0));
-			}
+			return view;
 		}
 
 		form.querySelectorAll('input[type="number"]').forEach((input) => {
@@ -1015,23 +1021,54 @@
 
 		form.addEventListener('submit', async (event) => {
 			event.preventDefault();
+			const soft = Number(form.maxPeriodSoft.value);
+			const hard = Number(form.maxPeriodHard.value);
+			if (Number.isFinite(soft) && Number.isFinite(hard) && hard < soft) {
+				const errMsg = t('dutycheck', 'Hard period cap must be at least the soft period cap.');
+				if (status) {
+					status.hidden = false;
+					status.textContent = errMsg;
+				}
+				Msg.announce(errMsg, 'error');
+				form.maxPeriodHard.focus();
+				return;
+			}
 			try {
 				const res = await Api.post('/apps/dutycheck/api/admin/conflict-policy', {
 					minRestMinutes: Number(form.minRestMinutes.value),
 					maxDailyHard: Number(form.maxDailyHard.value),
-					maxPeriodSoft: Number(form.maxPeriodSoft.value),
-					maxPeriodHard: Number(form.maxPeriodHard.value),
+					maxPeriodSoft: soft,
+					maxPeriodHard: hard,
 					maxConsecutiveDays: Number(form.maxConsecutiveDays.value),
 				});
-				const msg = t('dutycheck', 'Conflict thresholds saved.');
+				const d = res?.data || {};
+				// Server clamps minutes — keep the form honest after Save.
+				if (d.minRestMinutes !== undefined) form.minRestMinutes.value = String(d.minRestMinutes);
+				if (d.maxDailyHard !== undefined) form.maxDailyHard.value = String(d.maxDailyHard);
+				if (d.maxPeriodSoft !== undefined) form.maxPeriodSoft.value = String(d.maxPeriodSoft);
+				if (d.maxPeriodHard !== undefined) form.maxPeriodHard.value = String(d.maxPeriodHard);
+				if (d.maxConsecutiveDays !== undefined) form.maxConsecutiveDays.value = String(d.maxConsecutiveDays);
+				const view = renderOpenPeriodStatus(d.openPeriods);
+				const refreshed = Number(d.conflictsRefreshed || 0);
+				const dirtyLeft = Number(d.conflictsDirtyRemaining || 0);
+				let msg = view.showApply
+					? t('dutycheck', 'Conflict thresholds saved. Apply them to open periods below.')
+					: t('dutycheck', 'Conflict thresholds saved.');
+				if (!view.showApply && refreshed > 0 && dirtyLeft <= 0) {
+					msg = t('dutycheck', 'Conflict thresholds saved. Planning checks for open periods were recalculated.');
+				} else if (!view.showApply && dirtyLeft > 0) {
+					msg = t('dutycheck', 'Conflict thresholds saved. Planning checks recalculated for {done} period(s); {left} will finish in the background.')
+						.replace('{done}', String(refreshed))
+						.replace('{left}', String(dirtyLeft));
+				}
 				if (status) {
 					status.hidden = false;
 					status.textContent = msg;
 				}
-				Msg.announce(msg, 'success');
+				Msg.announce(msg, view.showApply ? 'warning' : 'success');
 				refreshMinuteHints();
-				renderOpenPeriodStatus(res?.data?.openPeriods);
-				if (Number(res?.data?.openPeriods?.outdatedCount || 0) > 0 && applyBtn) {
+				if (view.showApply && applyBtn && !applyBtn.hidden) {
+					freezeCallout?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 					applyBtn.focus();
 				}
 			} catch (err) {
@@ -1050,9 +1087,22 @@
 				try {
 					const res = await Api.post('/apps/dutycheck/api/admin/conflict-policy/apply-open', {});
 					const updated = Number(res?.data?.updated || 0);
-					const msg = updated === 0
+					const refreshed = Number(res?.data?.conflictsRefreshed || 0);
+					const dirtyLeft = Number(res?.data?.conflictsDirtyRemaining || 0);
+					let msg = updated === 0
 						? t('dutycheck', 'Open periods already matched the saved limits.')
 						: t('dutycheck', 'Applied saved limits to {count} open period(s).').replace('{count}', String(updated));
+					if (dirtyLeft > 0) {
+						msg = t('dutycheck', 'Applied saved limits to {count} open period(s). Planning checks recalculated for {done}; {left} will finish in the background.')
+							.replace('{count}', String(updated))
+							.replace('{done}', String(refreshed))
+							.replace('{left}', String(dirtyLeft));
+					} else if (refreshed > 0) {
+						msg = updated === 0
+							? t('dutycheck', 'Open periods already matched the saved limits. Planning checks were recalculated.')
+							: t('dutycheck', 'Applied saved limits to {count} open period(s). Planning checks were recalculated.')
+								.replace('{count}', String(updated));
+					}
 					if (status) {
 						status.hidden = false;
 						status.textContent = msg;
@@ -1066,6 +1116,7 @@
 				} catch (err) {
 					Msg.handleApiError(err);
 					applyBtn.disabled = false;
+					applyBtn.removeAttribute('aria-disabled');
 				} finally {
 					applyBtn.removeAttribute('aria-busy');
 				}

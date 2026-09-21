@@ -274,7 +274,6 @@ class ArbeitszeitCheckIntegrationServiceTest extends TestCase
 
 		$svc = $this->service($db, $config, $this->createMock(IAppManager::class), null, $reader);
 		$m = new ReflectionMethod(ArbeitszeitCheckIntegrationService::class, 'reconcileUser');
-		$m->setAccessible(true);
 		$m->invoke($svc, 'user-1', [], '2025-06-01', '2027-06-01', new \OCA\DutyCheck\Integration\AbsenceReadOptions(false));
 	}
 
@@ -308,7 +307,6 @@ class ArbeitszeitCheckIntegrationServiceTest extends TestCase
 
 		$svc = $this->service($db, $config, $this->createMock(IAppManager::class), null, $reader);
 		$m = new ReflectionMethod(ArbeitszeitCheckIntegrationService::class, 'reconcileUser');
-		$m->setAccessible(true);
 		$m->invoke($svc, 'user-1', [$row], '2025-06-01', '2027-06-01', new \OCA\DutyCheck\Integration\AbsenceReadOptions(false));
 	}
 
@@ -391,7 +389,6 @@ class ArbeitszeitCheckIntegrationServiceTest extends TestCase
 		$db = $this->createMock(IDBConnection::class);
 		$svc = $this->service($db, $config, null, $time);
 		$m = new ReflectionMethod(ArbeitszeitCheckIntegrationService::class, 'registerReaderFailure');
-		$m->setAccessible(true);
 		$m->invoke($svc);
 		self::assertTrue($svc->isBreakerActive());
 		self::assertSame(120, $svc->getBreakerRetryAfterSeconds());
@@ -414,7 +411,6 @@ class ArbeitszeitCheckIntegrationServiceTest extends TestCase
 
 		$svc = $this->service($db, $config, $this->createMock(IAppManager::class), null, $reader);
 		$m = new ReflectionMethod(ArbeitszeitCheckIntegrationService::class, 'reconcileUser');
-		$m->setAccessible(true);
 		$m->invoke($svc, 'user-1', [], '2025-06-01', '2027-06-01', new \OCA\DutyCheck\Integration\AbsenceReadOptions(false));
 	}
 
@@ -430,7 +426,6 @@ class ArbeitszeitCheckIntegrationServiceTest extends TestCase
 
 		$svc = $this->service($db, $config, $this->createMock(IAppManager::class), null, $reader);
 		$m = new ReflectionMethod(ArbeitszeitCheckIntegrationService::class, 'reconcileUser');
-		$m->setAccessible(true);
 		$m->invoke($svc, 'user-1', [], '2025-06-01', '2027-06-01', new \OCA\DutyCheck\Integration\AbsenceReadOptions(false));
 	}
 
@@ -464,7 +459,6 @@ class ArbeitszeitCheckIntegrationServiceTest extends TestCase
 
 		$svc = $this->service($db, $config, $this->createMock(IAppManager::class), null, $reader);
 		$m = new ReflectionMethod(ArbeitszeitCheckIntegrationService::class, 'reconcileUser');
-		$m->setAccessible(true);
 		$m->invoke($svc, 'user-1', [$row], '2025-06-01', '2027-06-01', new \OCA\DutyCheck\Integration\AbsenceReadOptions(false));
 	}
 

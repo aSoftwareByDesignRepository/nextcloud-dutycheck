@@ -44,7 +44,6 @@ final class IntegrationOpsConstantsContractTest extends TestCase
 		self::assertNotFalse($parent);
 		if ($parent->hasProperty('interval')) {
 			$prop = $parent->getProperty('interval');
-			$prop->setAccessible(true);
 			self::assertSame(IntegrationOpsConstants::RD_PERIOD_SECONDS, (int) $prop->getValue($job));
 		} else {
 			self::assertTrue(true); // older TimedJob API — constant still asserted above

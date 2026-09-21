@@ -126,15 +126,19 @@ $mutations = [
 	],
 	'weekday_uses_locale' => [
 		'file' => $datesJs,
-		'from' => 'new Intl.DateTimeFormat(currentLanguage(), {',
-		'to' => 'new Intl.DateTimeFormat(currentLocale(), {',
+		'from' => "return new Intl.DateTimeFormat(currentLanguage(), {\n\t\t\t\tweekday: 'long',",
+		'to' => "return new Intl.DateTimeFormat(currentLocale(), {\n\t\t\t\tweekday: 'long',",
 		'php' => false,
 		'js' => true,
 	],
 	'roster_get_refreshes' => [
 		'file' => $roster,
-		'from' => '$conflicts = $selected !== null ? $this->listPersistedConflicts($selected) : [];',
-		'to' => '$conflicts = $selected !== null ? $this->refreshAndListConflicts($selected) : [];',
+		'from' => '$conflicts = $selected !== null' . "\n"
+			. "\t\t\t? \$this->listConflictsForRosterRead(\$selected)\n"
+			. "\t\t\t: [];",
+		'to' => '$conflicts = $selected !== null' . "\n"
+			. "\t\t\t? \$this->refreshAndListConflicts(\$selected)\n"
+			. "\t\t\t: [];",
 		'php' => true,
 		'js' => true,
 	],

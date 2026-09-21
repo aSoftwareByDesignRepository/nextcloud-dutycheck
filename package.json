@@ -15,8 +15,10 @@
         "mutate:first-paint": "php tests/Mutation/run-first-paint-mutations.php",
         "test:js": "node --test tests/js/*.test.mjs",
         "e2e": "playwright test",
+        "e2e:sync-employee": "bash tests/e2e/scripts/sync-employee-fixture.sh",
         "e2e:mobile-nav": "playwright test tests/e2e/atlas-mobile-nav.contract.spec.js",
         "test:a11y": "playwright test tests/e2e/a11y-smoke.spec.js",
+        "test:a11y:employee": "npm run e2e:sync-employee && playwright test tests/e2e/a11y-smoke.spec.js -g 'employee a11y'",
         "test:theme-a11y": "playwright test tests/e2e/theme-responsive-a11y.spec.js",
         "test:ui-gauntlet": "playwright test tests/e2e/a11y-smoke.spec.js tests/e2e/theme-responsive-a11y.spec.js tests/e2e/nav-abort-no-network-toast.spec.js tests/e2e/setup-progress-a11y.spec.js tests/e2e/atlas-mobile-nav.contract.spec.js"
     },

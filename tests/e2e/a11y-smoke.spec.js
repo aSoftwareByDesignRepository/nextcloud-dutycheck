@@ -72,6 +72,15 @@ for (const path of plannerRoutes) {
 test.describe('employee a11y', () => {
   // Planner storageState must not leak into employee self-service routes.
   test.use({ storageState: { cookies: [], origins: [] } })
+  test.beforeAll(async () => {
+    if (!process.env.NC_EMPLOYEE_USER) return
+    // Keep NC password aligned with gitignored .env (policy resets drift often).
+    const { execFileSync } = await import('node:child_process')
+    const { fileURLToPath } = await import('node:url')
+    const { dirname, join } = await import('node:path')
+    const script = join(dirname(fileURLToPath(import.meta.url)), 'scripts/sync-employee-fixture.sh')
+    execFileSync('bash', [script], { stdio: 'inherit' })
+  })
   for (const path of employeeRoutes) {
     test(`a11y smoke (employee): ${path}`, async ({ page }) => {
       test.skip(!process.env.NC_EMPLOYEE_USER, 'Requires NC_EMPLOYEE_* linked employee credentials')

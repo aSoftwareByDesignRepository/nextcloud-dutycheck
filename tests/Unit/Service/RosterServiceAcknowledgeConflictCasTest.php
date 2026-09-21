@@ -58,5 +58,7 @@ final class RosterServiceAcknowledgeConflictCasTest extends TestCase
 		self::assertStringContainsString('CONFLICT_ACK_STALE', $fn);
 		self::assertStringContainsString("isNull('ack_user_id')", $fn);
 		self::assertStringContainsString('executeStatement()', $fn);
+		self::assertStringContainsString('rosterData($periodId, $actorUserId)', $fn);
+		self::assertStringNotContainsString('return $this->refreshAndListConflicts', $fn);
 	}
 }

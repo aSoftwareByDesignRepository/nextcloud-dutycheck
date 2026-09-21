@@ -110,13 +110,12 @@ body,
 	--dc-tint-warning: color-mix(in srgb, var(--color-warning-text, var(--color-warning, #c98600)) 22%, var(--color-main-background, #fff));
 	--dc-tint-critical: color-mix(in srgb, var(--color-error-text, var(--color-error, #cc4646)) 18%, var(--color-main-background, #fff));
 	/*
-	 * Solid danger CTA fill (Check-family #ba1b1b / COMPANION-DESIGN-SYSTEM §3).
-	 * Prefer the family token over NC --color-element-error (#c90000 on this
-	 * server) so Atlas craft pixel proofs and companion parity stay aligned.
-	 * Never use pale --color-error surface tints for on-fill white text.
+	 * Solid danger CTA fill — NC --color-element-error (theme-aware). Brand
+	 * #ba1b1b is fallback only when the platform token is absent. Never use
+	 * pale --color-error surface tints for on-fill text (fails AA on NC 30+).
 	 */
-	--dc-danger-fill: #ba1b1b;
-	--dc-danger-on-fill: #ffffff;
+	--dc-danger-fill: var(--color-element-error, #ba1b1b);
+	--dc-danger-on-fill: var(--color-primary-element-text, #ffffff);
 	--dc-scrim: color-mix(in srgb, var(--color-main-text, #000) 60%, transparent);
 
 	color: var(--color-main-text, #1d1d1d);
@@ -1955,7 +1954,7 @@ label.dc-checkbox {
  * Destructive confirm CTAs. confirmDialog / openModal append to document.body
  * (outside #app-content.dc-app), so .dc-modal must be in the selector list —
  * otherwise class "button danger primary" keeps NC primary blue and crafts
- * show zero #ba1b1b / element-error fill.
+ * show zero element-error / danger fill.
  */
 #app-content.dc-app button.danger,
 .dc-app .button.danger,
@@ -1964,8 +1963,8 @@ label.dc-checkbox {
 .dc-license-modal .dc-license-modal__confirm-danger,
 button.dc-license-modal__confirm-danger {
 	color: var(--dc-danger-on-fill, #fff) !important;
-	background: var(--dc-danger-fill, #ba1b1b) !important;
-	border-color: var(--dc-danger-fill, #ba1b1b) !important;
+	background: var(--dc-danger-fill, var(--color-element-error, #ba1b1b)) !important;
+	border-color: var(--dc-danger-fill, var(--color-element-error, #ba1b1b)) !important;
 }
 #app-content.dc-app button.danger:hover,
 .dc-app .button.danger:hover,
@@ -5291,7 +5290,12 @@ textarea {
 	z-index: 2;
 }
 
-/* === atlas-r5: dark nav must match dark content (no light sidebar islands) === */
+/*
+ * Dark / dark-HC sidebar: paint from Nextcloud theme tokens only.
+ * NC core often sets a *local* light --color-main-background on #app-navigation
+ * (light sidebar islands). Re-inherit document theme tokens — never a second
+ * hex palette (#171717). Then paint with those vars.
+ */
 html.theme--dark #app-navigation,
 html.theme--dark #app-navigation.dc-nav,
 body.theme--dark #app-navigation,
@@ -5299,29 +5303,42 @@ body.theme--dark #app-navigation.dc-nav,
 html[data-theme-global="dark"] #app-navigation,
 html[data-theme-global="dark"] #app-navigation.dc-nav,
 body[data-theme-global="dark"] #app-navigation,
-body[data-theme-global="dark"] #app-navigation.dc-nav {
-	--color-main-background: #171717;
-	--color-main-background-rgb: 23, 23, 23;
-	--color-main-text: #ededed;
-	--color-background-dark: #101010;
-	--color-background-darker: #0a0a0a;
-	--color-border: #3a3a3a;
-	background-color: #171717 !important;
-	color: #ededed !important;
-	border-inline-end-color: #2a2a2a;
+body[data-theme-global="dark"] #app-navigation.dc-nav,
+body[data-theme-dark] #app-navigation,
+body[data-theme-dark] #app-navigation.dc-nav,
+body[data-theme-dark-highcontrast] #app-navigation,
+body[data-theme-dark-highcontrast] #app-navigation.dc-nav {
+	--color-main-background: inherit;
+	--color-main-background-rgb: inherit;
+	--color-main-text: inherit;
+	--color-background-dark: inherit;
+	--color-background-darker: inherit;
+	--color-border: inherit;
+	--color-text-maxcontrast: inherit;
+	background-color: var(--color-main-background) !important;
+	color: var(--color-main-text) !important;
+	border-inline-end-color: var(--color-border, var(--color-border-dark));
 }
 html.theme--dark #app-navigation .dc-nav__link,
 body.theme--dark #app-navigation .dc-nav__link,
-html[data-theme-global="dark"] #app-navigation .dc-nav__link {
-	color: #ededed;
+html[data-theme-global="dark"] #app-navigation .dc-nav__link,
+body[data-theme-dark] #app-navigation .dc-nav__link,
+body[data-theme-dark-highcontrast] #app-navigation .dc-nav__link {
+	color: var(--color-main-text);
 }
 html.theme--dark #app-navigation .dc-nav__hint,
 html.theme--dark #app-navigation .dc-nav__group-title,
 html.theme--dark #app-navigation .dc-nav__subtitle,
 body.theme--dark #app-navigation .dc-nav__hint,
 body.theme--dark #app-navigation .dc-nav__group-title,
-body.theme--dark #app-navigation .dc-nav__subtitle {
-	color: #a0a0a0;
+body.theme--dark #app-navigation .dc-nav__subtitle,
+body[data-theme-dark] #app-navigation .dc-nav__hint,
+body[data-theme-dark] #app-navigation .dc-nav__group-title,
+body[data-theme-dark] #app-navigation .dc-nav__subtitle,
+body[data-theme-dark-highcontrast] #app-navigation .dc-nav__hint,
+body[data-theme-dark-highcontrast] #app-navigation .dc-nav__group-title,
+body[data-theme-dark-highcontrast] #app-navigation .dc-nav__subtitle {
+	color: var(--color-text-maxcontrast, var(--dc-muted));
 }
 
 /* Signature coverage pulse — duty board craft beyond generic NC KPI tiles */

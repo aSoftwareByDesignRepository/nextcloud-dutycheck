@@ -21,16 +21,12 @@ final class SchemaProbeTest extends TestCase
 	{
 		$ref = new ReflectionClass(SchemaProbe::class);
 		$prop = $ref->getProperty('columnCache');
-		$prop->setAccessible(true);
 		$prop->setValue(null, ['dc_assignments.status' => true]);
 		$idx = $ref->getProperty('indexCache');
-		$idx->setAccessible(true);
 		$idx->setValue(null, ['dc_assignments#dc_asg_skey_uidx' => true]);
 		$wrap = $ref->getProperty('schemaWrappers');
-		$wrap->setAccessible(true);
 		$wrap->setValue(null, [1 => null]);
 		$table = $ref->getProperty('tableCache');
-		$table->setAccessible(true);
 		$table->setValue(null, ['dc_assignments' => true]);
 
 		SchemaProbe::resetCache();
@@ -52,7 +48,6 @@ final class SchemaProbeTest extends TestCase
 
 		$ref = new ReflectionClass(SchemaProbe::class);
 		$prop = $ref->getProperty('columnCache');
-		$prop->setAccessible(true);
 		$cache = $prop->getValue(null);
 		self::assertArrayHasKey('dc_assignments.missing_col', $cache);
 		self::assertFalse($cache['dc_assignments.missing_col']);
@@ -67,7 +62,6 @@ final class SchemaProbeTest extends TestCase
 
 		$ref = new ReflectionClass(SchemaProbe::class);
 		$prop = $ref->getProperty('indexCache');
-		$prop->setAccessible(true);
 		$cache = $prop->getValue(null);
 		self::assertArrayHasKey('dc_assignments#dc_asg_skey_uidx', $cache);
 		self::assertFalse($cache['dc_assignments#dc_asg_skey_uidx']);
@@ -98,7 +92,6 @@ final class SchemaProbeTest extends TestCase
 		SchemaProbe::resetCache();
 		$ref = new ReflectionClass(SchemaProbe::class);
 		$prop = $ref->getProperty('indexCache');
-		$prop->setAccessible(true);
 		$prop->setValue(null, ['dc_assignments#dc_asg_skey_uidx' => true]);
 
 		$db = $this->createMock(IDBConnection::class);

@@ -482,4 +482,44 @@ final class DesignSystemCssContractTest extends TestCase
 		);
 		self::assertStringContainsString('.dc-callout--warning { background: var(--dc-tint-warning); }', $this->appCss);
 	}
+
+	public function testDarkAppNavigationUsesThemeTokensNotHexPalette(): void
+	{
+		// VIS-R4-04: dark sidebar must inherit NC --color-* — never a second #171717 system.
+		self::assertDoesNotMatchRegularExpression(
+			'/#app-navigation[\s\S]{0,400}--color-main-background:\s*#171717/s',
+			$this->appCss,
+			'Dark #app-navigation must not redeclare --color-main-background as #171717',
+		);
+		self::assertDoesNotMatchRegularExpression(
+			'/#app-navigation[\s\S]{0,500}background-color:\s*#171717\s*!important/s',
+			$this->appCss,
+			'Dark #app-navigation background must not hardcode #171717',
+		);
+		self::assertDoesNotMatchRegularExpression(
+			'/#app-navigation[\s\S]{0,400}color:\s*#ededed\s*!important/s',
+			$this->appCss,
+			'Dark #app-navigation ink must not hardcode #ededed',
+		);
+		self::assertMatchesRegularExpression(
+			'/body\[data-theme-dark\]\s+#app-navigation[\s\S]{0,800}--color-main-background:\s*inherit/s',
+			$this->appCss,
+			'Dark nav must re-inherit --color-main-background (clear NC local light islands)',
+		);
+		self::assertMatchesRegularExpression(
+			'/body\[data-theme-dark\]\s+#app-navigation[\s\S]{0,800}background-color:\s*var\(\s*--color-main-background/s',
+			$this->appCss,
+			'Dark nav must paint with var(--color-main-background) under body[data-theme-dark]',
+		);
+		self::assertMatchesRegularExpression(
+			'/body\[data-theme-dark(?:-highcontrast)?\]\s+#app-navigation\s+\.dc-nav__link[\s\S]{0,200}color:\s*var\(\s*--color-main-text/s',
+			$this->appCss,
+			'Dark nav links must use var(--color-main-text)',
+		);
+		self::assertMatchesRegularExpression(
+			'/body\[data-theme-dark(?:-highcontrast)?\]\s+#app-navigation\s+\.dc-nav__hint[\s\S]{0,400}color:\s*var\(\s*--color-text-maxcontrast/s',
+			$this->appCss,
+			'Dark nav muted chrome must use --color-text-maxcontrast',
+		);
+	}
 }

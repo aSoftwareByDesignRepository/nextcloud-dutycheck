@@ -29,7 +29,6 @@ final class SelfServiceSettingsServiceTest extends TestCase
 		$svc = new SelfServiceSettingsService($db, $companies);
 		// Force path without schema by mocking SchemaProbe is hard; instead test normalize via update filter:
 		$api = (new \ReflectionClass($svc))->getMethod('normalize');
-		$api->setAccessible(true);
 		$out = $api->invoke($svc, []);
 		self::assertFalse($out['push_quiet_hours_enabled']);
 		self::assertFalse($out['peer_roster_visibility']);
@@ -42,7 +41,6 @@ final class SelfServiceSettingsServiceTest extends TestCase
 		$companies = $this->createMock(CompanyService::class);
 		$svc = new SelfServiceSettingsService($db, $companies);
 		$filter = (new \ReflectionClass($svc))->getMethod('filterPatch');
-		$filter->setAccessible(true);
 		$out = $filter->invoke($svc, [
 			'rotationPatternsEnabled' => true,
 			'peerRosterVisibility' => true,

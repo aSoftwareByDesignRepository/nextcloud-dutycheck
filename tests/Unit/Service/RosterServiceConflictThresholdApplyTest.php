@@ -23,7 +23,6 @@ final class RosterServiceConflictThresholdApplyTest extends TestCase
 		SchemaProbe::resetCache();
 		$ref = new ReflectionClass(SchemaProbe::class);
 		$prop = $ref->getProperty('columnCache');
-		$prop->setAccessible(true);
 		$prop->setValue(null, [
 			'dc_periods.conflict_thresholds_json' => true,
 		]);
@@ -109,7 +108,6 @@ final class RosterServiceConflictThresholdApplyTest extends TestCase
 		SchemaProbe::resetCache();
 		$ref = new ReflectionClass(SchemaProbe::class);
 		$prop = $ref->getProperty('columnCache');
-		$prop->setAccessible(true);
 		$prop->setValue(null, [
 			'dc_periods.conflict_thresholds_json' => false,
 		]);

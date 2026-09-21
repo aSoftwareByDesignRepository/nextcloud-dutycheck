@@ -1,4 +1,5 @@
 /**
+import { settle } from './_atlas_settle.mjs'
  * Atlas r8 continuation — roster + month-grid + access only.
  * Keeps existing r8 dashboard/today/periods shots (periods already FULL DE).
  */
@@ -80,7 +81,7 @@ async function gotoDe(page, url) {
 			return
 		} catch (err) {
 			console.warn('gotoDe retry', attempt, err?.message || err)
-			await page.waitForTimeout(1200 * attempt)
+			await settle(page)
 		}
 	}
 	throw new Error('gotoDe failed ' + url)
@@ -89,7 +90,7 @@ async function gotoDe(page, url) {
 async function shot(page, name) {
 	await forceDarkDom(page)
 	await dismissTips(page)
-	await page.waitForTimeout(250)
+	await settle(page)
 	const qaPath = join(outQa, `atlas-visual-r8-${name}.png`)
 	const atlasPath = join(outAtlas, `atlas-visual-r8-${name}.png`)
 	await page.screenshot({ path: qaPath, fullPage: false })
@@ -126,7 +127,7 @@ for (let i = 0; i < 6; i++) {
 	const label = (await page.locator('#dc-roster-month-current').textContent().catch(() => '')) || ''
 	if (/november|2026-11|nov\.?\s*2026/i.test(label)) break
 	await page.locator('#dc-roster-month-next').click({ timeout: 3000 }).catch(() => {})
-	await page.waitForTimeout(500)
+	await settle(page)
 }
 await page.waitForSelector('#dc-roster-grid', { timeout: 45000 })
 try {
@@ -253,7 +254,7 @@ if (rosterShot.m === R2_ROSTER) {
 }
 
 await page.setViewportSize({ width: 1900, height: 1100 })
-await page.waitForTimeout(300)
+await settle(page)
 await page.evaluate(() => {
 	const grid = document.getElementById('dc-roster-grid')
 	if (grid) grid.style.setProperty('--dc-roster-day-min', '2.05rem')

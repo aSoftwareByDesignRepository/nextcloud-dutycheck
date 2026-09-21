@@ -1,4 +1,5 @@
 /**
+import { settle } from './_atlas_settle.mjs'
  * Atlas visual-fix r3 — critic-ready DE web evidence (atlas-visual-r3-*.png).
  * Fixes vs r2: real Übersicht URL, seeded Today board, distinct month-grid crop,
  * no duplicate roster hash, settings without chip cavern (CSS).
@@ -43,14 +44,14 @@ async function shot(page, name) {
 		console.warn('re-pin: page lang was', lang, 'for', name)
 		pinGermanUi()
 		await page.reload({ waitUntil: 'domcontentloaded' })
-		await page.waitForTimeout(600)
+		await settle(page)
 	}
 	const lang2 = await page.evaluate(() => document.documentElement.lang || '')
 	if (!/^de/i.test(lang2)) {
 		console.error('FAIL non-DE lang after pin:', lang2, name)
 		process.exit(5)
 	}
-	await page.waitForTimeout(280)
+	await settle(page)
 	const qaPath = join(outQa, `atlas-visual-r3-${name}.png`)
 	const atlasPath = join(outAtlas, `atlas-visual-r3-${name}.png`)
 	await page.screenshot({ path: qaPath, fullPage: false })
@@ -159,7 +160,7 @@ await gotoDe(page, 'http://localhost:8081/apps/dutycheck/dashboard')
 await page.locator('#dc-main-content').waitFor({ state: 'visible', timeout: 30000 })
 await page.waitForSelector('#dc-metric-open-periods, .dc-metric, .dc-dashboard', { timeout: 20000 }).catch(() => {})
 await dismissTips(page)
-await page.waitForTimeout(700)
+await settle(page)
 const dashUrl = page.url()
 if (!/dashboard/i.test(dashUrl)) {
 	console.error('FAIL: expected /dashboard, got', dashUrl)
@@ -208,7 +209,7 @@ await page.waitForFunction(() => {
 	const hints = [...document.querySelectorAll('.dc-date-locale-hint')]
 	return hints.every((h) => getComputedStyle(h).display === 'none' || !h.textContent)
 }, { timeout: 5000 }).catch(() => {})
-await page.waitForTimeout(500)
+await settle(page)
 await shot(page, 'web-today')
 
 // 3) Periods — prefer current-year rows; hide loading chrome
@@ -231,7 +232,7 @@ await page.evaluate(() => {
 		if (/20(8|9|1\d)\d|2101/.test(t)) tr.setAttribute('hidden', '')
 	})
 })
-await page.waitForTimeout(400)
+await settle(page)
 await shot(page, 'web-periods')
 
 // 4) Roster week/list surface (full page — shows swaps with names)
@@ -242,7 +243,7 @@ for (let i = 0; i < 4; i++) {
 	const label = await page.locator('#dc-roster-month-current').textContent().catch(() => '')
 	if (/november|2026-11|nov\.?\s*2026/i.test(label || '')) break
 	await page.locator('#dc-roster-month-next').click({ timeout: 5000 }).catch(() => {})
-	await page.waitForTimeout(900)
+	await settle(page)
 }
 await page.waitForSelector('#dc-roster-grid[role="grid"]', { timeout: 60000 })
 await reveal(page, '#dc-roster-grid')
@@ -254,7 +255,7 @@ await page.evaluate(() => {
 		scroller.scrollLeft = Math.min(scroller.scrollLeft, 120)
 	}
 })
-await page.waitForTimeout(600)
+await settle(page)
 const rosterPath = await shot(page, 'web-roster')
 
 // 5) Distinct month-grid crop (must NOT match full-page roster hash)
@@ -278,7 +279,7 @@ if (hRoster === hGrid) {
 await gotoDe(page, 'http://localhost:8081/apps/dutycheck/settings/access')
 await page.locator('#dc-main-content').waitFor({ state: 'visible', timeout: 30000 })
 await dismissTips(page)
-await page.waitForTimeout(400)
+await settle(page)
 await shot(page, 'web-settings-access')
 
 await browser.close()

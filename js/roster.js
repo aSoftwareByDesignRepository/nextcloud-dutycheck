@@ -2610,10 +2610,28 @@
 			.replace('{pct}', String(pct));
 	}
 
+	/**
+	 * Prefer omit over disable (CORE §7.1) — a grey primary “Apply copy” looks like
+	 * a broken next step before Preview has something to copy.
+	 */
+	function setCopyApplyVisible(visible) {
+		const applyBtn = document.getElementById('dc-roster-copy-apply');
+		if (!applyBtn) {
+			return;
+		}
+		const show = !!visible;
+		applyBtn.hidden = !show;
+		applyBtn.disabled = !show;
+		if (show) {
+			applyBtn.removeAttribute('aria-disabled');
+		} else {
+			applyBtn.setAttribute('aria-disabled', 'true');
+		}
+	}
+
 	function fillCopySourceSelect(selectedPeriodId) {
 		const select = document.getElementById('dc-roster-copy-source');
 		const wrap = document.getElementById('dc-roster-copy-period');
-		const applyBtn = document.getElementById('dc-roster-copy-apply');
 		if (!select || !wrap) {
 			return;
 		}
@@ -2621,7 +2639,7 @@
 		const open = period && String(period.status || '').toLowerCase() === 'open';
 		wrap.hidden = !open;
 		state.copyPreviewReady = false;
-		if (applyBtn) applyBtn.disabled = true;
+		setCopyApplyVisible(false);
 		select.replaceChildren();
 		select.appendChild(create('option', { value: '', text: t('dutycheck', 'Choose a source period…') }));
 		for (const p of state.periods) {
@@ -2637,7 +2655,6 @@
 		const targetId = Number(document.getElementById('dc-roster-period-switcher')?.value || 0);
 		const sourceId = Number(document.getElementById('dc-roster-copy-source')?.value || 0);
 		const status = document.getElementById('dc-roster-copy-status');
-		const applyBtn = document.getElementById('dc-roster-copy-apply');
 		if (!targetId || !sourceId) {
 			Msg.announce(t('dutycheck', 'Choose a source period first.'), 'warning');
 			return;
@@ -2650,23 +2667,35 @@
 			const data = response?.data || {};
 			const created = Number(data.created ?? data.wouldCreate ?? data.count ?? 0);
 			const skipped = Number(data.skipped ?? 0);
-			const msg = dryRun
-				? t('dutycheck', 'Preview: {created} would be copied, {skipped} skipped. Review, then Apply copy.')
-					.replace('{created}', String(data.wouldCreate ?? data.previewCreated ?? created))
-					.replace('{skipped}', String(data.wouldSkip ?? skipped))
-				: t('dutycheck', 'Copied {created} assignment(s). Conflicts were recomputed.')
+			const wouldCreate = Number(data.wouldCreate ?? data.previewCreated ?? created);
+			let msg;
+			if (dryRun) {
+				if (wouldCreate > 0) {
+					msg = t('dutycheck', 'Preview: {created} would be copied, {skipped} skipped. Review, then Apply copy.')
+						.replace('{created}', String(wouldCreate))
+						.replace('{skipped}', String(data.wouldSkip ?? skipped));
+				} else {
+					msg = t('dutycheck', 'Nothing to copy from that period.');
+				}
+			} else {
+				msg = t('dutycheck', 'Copied {created} assignment(s). Conflicts were recomputed.')
 					.replace('{created}', String(created));
+			}
 			if (status) {
 				status.hidden = false;
 				status.textContent = msg;
 			}
-			Msg.announce(msg, dryRun ? 'info' : 'success');
+			Msg.announce(msg, dryRun ? (wouldCreate > 0 ? 'info' : 'success') : 'success');
 			if (dryRun) {
-				state.copyPreviewReady = true;
-				if (applyBtn) applyBtn.disabled = false;
+				const canApply = wouldCreate > 0;
+				state.copyPreviewReady = canApply;
+				setCopyApplyVisible(canApply);
+				if (canApply) {
+					document.getElementById('dc-roster-copy-apply')?.focus();
+				}
 			} else {
 				state.copyPreviewReady = false;
-				if (applyBtn) applyBtn.disabled = true;
+				setCopyApplyVisible(false);
 				render(data.roster || data || {});
 				if (!data.roster && data.assignments) {
 					render(data);
@@ -3537,9 +3566,9 @@
 		});
 		document.getElementById('dc-roster-copy-source')?.addEventListener('change', () => {
 			state.copyPreviewReady = false;
-			const applyBtn = document.getElementById('dc-roster-copy-apply');
-			if (applyBtn) applyBtn.disabled = true;
+			setCopyApplyVisible(false);
 		});
+		document.getElementById('dc-roster-copy-period')?.setAttribute('data-dc-copy-ready', '1');
 
 		const form = document.getElementById('dc-assignment-form');
 		const scheduleEligibilityRefresh = () => {

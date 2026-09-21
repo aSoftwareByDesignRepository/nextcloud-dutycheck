@@ -1,4 +1,5 @@
 /**
+import { settle } from './_atlas_settle.mjs'
  * Atlas visual-fix r6 — signature Dienstlage + roster time-bands, periods
  * without load-failure banner, DE chrome + dark nav HOLDS. Fresh r6 filenames.
  */
@@ -191,7 +192,7 @@ async function assertGermanChrome(page, label) {
 		})
 		await forceDarkDom(page)
 		await dismissTips(page)
-		await page.waitForTimeout(700)
+		await settle(page)
 		text = await scan()
 	}
 	if (bad(text) || !deOk(text)) {
@@ -217,7 +218,7 @@ async function gotoDe(page, url) {
 		} catch (err) {
 			lastErr = err
 			console.warn('gotoDe retry', attempt, url, err?.message || err)
-			await page.waitForTimeout(1500 * attempt)
+			await settle(page)
 			pinGermanUi()
 		}
 	}
@@ -236,7 +237,7 @@ async function shot(page, name) {
 		pinGermanUi()
 		await page.reload({ waitUntil: 'domcontentloaded' })
 		await forceDarkDom(page)
-		await page.waitForTimeout(700)
+		await settle(page)
 	}
 	const lang2 = await page.evaluate(() => document.documentElement.lang || '')
 	if (!/^de/i.test(lang2)) {
@@ -245,12 +246,12 @@ async function shot(page, name) {
 		pinGermanUi()
 		await page.reload({ waitUntil: 'domcontentloaded' })
 		await forceDarkDom(page)
-		await page.waitForTimeout(500)
+		await settle(page)
 	}
 	await assertDarkCanvas(page, name)
 	await assertDarkNav(page, name)
 	await assertGermanChrome(page, name)
-	await page.waitForTimeout(200)
+	await settle(page)
 	const qaPath = join(outQa, `atlas-visual-r6-${name}.png`)
 	const atlasPath = join(outAtlas, `atlas-visual-r6-${name}.png`)
 	await page.screenshot({ path: qaPath, fullPage: false })
@@ -702,7 +703,7 @@ await page.evaluate(() => {
 	const kpi = document.getElementById('dc-dashboard-summary-title')?.closest('section')
 	if (kpi) kpi.setAttribute('hidden', '')
 })
-await page.waitForTimeout(500)
+await settle(page)
 console.log('shot dashboard')
 await shot(page, 'web-dashboard')
 
@@ -745,7 +746,7 @@ await page.waitForFunction(() => {
 	return !skeletonVisible && !loading && shifts.length >= 3
 }, { timeout: 30000 })
 // Extra settle — no mid-flight second load
-await page.waitForTimeout(800)
+await settle(page)
 const todayText = await page.locator('#dc-today-board').innerText()
 if (/wird geladen|Loading today’s board/i.test(todayText)) {
 	console.error('FAIL: Today still shows loading theater')
@@ -763,7 +764,7 @@ console.log('goto periods')
 await gotoDe(page, 'http://localhost:8081/apps/dutycheck/periods')
 await page.locator('#dc-main-content, #content').first().waitFor({ state: 'visible', timeout: 30000 })
 await dismissTips(page)
-await page.waitForTimeout(600)
+await settle(page)
 await page.evaluate(() => {
 	const start = document.getElementById('dc-period-start')
 	const end = document.getElementById('dc-period-end')
@@ -812,7 +813,7 @@ await page.evaluate(() => {
 		}
 	})
 })
-await page.waitForTimeout(400)
+await settle(page)
 const periodsText = await page.locator('#app-content').innerText()
 if (/Einige Zeitraum-Details konnten nicht geladen|Server-Protokolle prüfen/i.test(periodsText)) {
 	console.error('FAIL: periods still shows load-failure banner')
@@ -830,13 +831,13 @@ console.log('goto roster')
 await gotoDe(page, 'http://localhost:8081/apps/dutycheck/roster?periodId=90')
 await page.locator('#dc-main-content, #content').first().waitFor({ state: 'visible', timeout: 30000 })
 await dismissTips(page)
-await page.waitForTimeout(500)
+await settle(page)
 // Prefer November label / month grid
 for (let i = 0; i < 6; i++) {
 	const label = (await page.locator('#dc-roster-month-current').textContent().catch(() => '')) || ''
 	if (/november|2026-11|nov\.?\s*2026/i.test(label)) break
 	await page.locator('#dc-roster-month-next').click({ timeout: 4000 }).catch(() => {})
-	await page.waitForTimeout(700)
+	await settle(page)
 }
 await page.waitForSelector('#dc-roster-grid[role="grid"], #dc-roster-grid', { timeout: 60000 })
 await page.waitForFunction(() => {
@@ -878,7 +879,7 @@ await page.evaluate(() => {
 	if (scroller) scroller.scrollLeft = 0
 })
 await forceDarkDom(page)
-await page.waitForTimeout(500)
+await settle(page)
 console.log('shot roster')
 const rosterShot = await shot(page, 'web-roster')
 if (rosterShot.m === R2_ROSTER || rosterShot.m === R3_ROSTER) {
@@ -888,7 +889,7 @@ if (rosterShot.m === R2_ROSTER || rosterShot.m === R3_ROSTER) {
 
 // 5) Month-grid crop — real month (≥28 day heads visible in element shot)
 await page.setViewportSize({ width: 1900, height: 1100 })
-await page.waitForTimeout(300)
+await settle(page)
 await page.evaluate(() => {
 	const grid = document.getElementById('dc-roster-grid')
 	if (grid) grid.style.setProperty('--dc-roster-day-min', '2.05rem')
@@ -943,7 +944,7 @@ try {
 		})
 	})
 	await forceDarkDom(page)
-	await page.waitForTimeout(400)
+	await settle(page)
 	const accessText = await page.locator('#app-content').innerText()
 	if (/Kontrola|Szybki|Access control|Quick start/i.test(accessText)) {
 		console.warn('settings still non-DE — hard reload')
@@ -951,7 +952,7 @@ try {
 		await page.reload({ waitUntil: 'domcontentloaded' })
 		await forceDarkDom(page)
 		await dismissTips(page)
-		await page.waitForTimeout(600)
+		await settle(page)
 	}
 	await shot(page, 'web-settings-access')
 } catch (err) {

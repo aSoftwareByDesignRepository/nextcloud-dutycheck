@@ -25,7 +25,6 @@ final class RosterServicePeriodsPageReadTest extends TestCase
 		SchemaProbe::resetCache();
 		$ref = new ReflectionClass(SchemaProbe::class);
 		$prop = $ref->getProperty('columnCache');
-		$prop->setAccessible(true);
 		$prop->setValue(null, [
 			'dc_periods.conflict_thresholds_json' => true,
 			'dc_assignments.status' => true,
@@ -255,7 +254,6 @@ final class RosterServicePeriodsPageReadTest extends TestCase
 		]]]);
 		$svc = new RosterService($this->rosterDb($qb));
 		$method = new \ReflectionMethod(RosterService::class, 'listPersistedConflicts');
-		$method->setAccessible(true);
 		$out = $method->invoke($svc, 2);
 		self::assertCount(1, $out);
 		self::assertSame([1, 2], $out[0]['assignmentIds']);

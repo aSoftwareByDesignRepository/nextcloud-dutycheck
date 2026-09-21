@@ -3,7 +3,8 @@
  * Settings sub-page: Conflict thresholds (ArbZG-oriented planning checks).
  *
  * Caps freeze on each open period at create time. Saving the live policy alone
- * does not rewrite open periods — admins must apply explicitly (see Apply CTA).
+ * does not rewrite open periods — admins must apply explicitly when the callout
+ * shows the Apply CTA (hidden when already in sync — no dead primary button).
  *
  * @var array $_
  * @var \OCP\IL10N $l
@@ -19,14 +20,13 @@
 		</div>
 	</header>
 
-	<div class="dc-callout dc-callout--info" id="dc-conflict-freeze-callout" role="note" aria-labelledby="dc-conflict-freeze-title">
-		<p id="dc-conflict-freeze-title"><strong><?php p($l->t('Open periods keep the caps from when they were created.')); ?></strong></p>
-		<p class="dc-field__hint">
-			<?php p($l->t('Saving here updates the default for new periods. To refresh caps on periods that are still Open, use the button below. Published and closed periods stay unchanged.')); ?>
+	<div class="dc-callout dc-callout--info" id="dc-conflict-freeze-callout" role="status" aria-live="polite" aria-atomic="true" aria-labelledby="dc-conflict-freeze-title">
+		<p class="dc-callout__title" id="dc-conflict-freeze-title"><?php p($l->t('Checking open periods…')); ?></p>
+		<p class="dc-callout__hint" id="dc-conflict-open-status">
+			<?php p($l->t('Open periods keep the caps from when they were created. Saving updates the default for new periods.')); ?>
 		</p>
-		<p class="dc-field__hint" id="dc-conflict-open-status" aria-live="polite"></p>
-		<div class="dc-form-actions">
-			<button type="button" class="button primary" id="dc-conflict-apply-open" disabled>
+		<div class="dc-callout__actions" id="dc-conflict-apply-actions" hidden>
+			<button type="button" class="button primary" id="dc-conflict-apply-open" hidden disabled aria-disabled="true">
 				<?php p($l->t('Apply to open periods')); ?>
 			</button>
 		</div>
@@ -45,7 +45,7 @@
 		</div>
 		<div class="dc-field">
 			<label class="dc-field__label" for="dc-policy-max-soft"><?php p($l->t('Period soft cap (minutes)')); ?></label>
-			<input id="dc-policy-max-soft" type="number" class="dc-input dc-input--num" name="maxPeriodSoft" min="1" max="20000" step="1" required aria-describedby="dc-policy-max-soft-hint dc-policy-max-soft-note">
+			<input id="dc-policy-max-soft" type="number" class="dc-input dc-input--num" name="maxPeriodSoft" min="1" max="20160" step="1" required aria-describedby="dc-policy-max-soft-hint dc-policy-max-soft-note">
 			<p class="dc-field__hint" id="dc-policy-max-soft-hint"><span data-dc-minutes-hint></span></p>
 			<p class="dc-field__hint" id="dc-policy-max-soft-note">
 				<?php p($l->t('Also used as the soft calendar-week total (Mon–Sun). Soft = confirm with a short reason.')); ?>
@@ -53,7 +53,7 @@
 		</div>
 		<div class="dc-field">
 			<label class="dc-field__label" for="dc-policy-max-hard"><?php p($l->t('Period hard cap (minutes)')); ?></label>
-			<input id="dc-policy-max-hard" type="number" class="dc-input dc-input--num" name="maxPeriodHard" min="1" max="20000" step="1" required aria-describedby="dc-policy-max-hard-hint dc-policy-max-hard-note">
+			<input id="dc-policy-max-hard" type="number" class="dc-input dc-input--num" name="maxPeriodHard" min="1" max="30240" step="1" required aria-describedby="dc-policy-max-hard-hint dc-policy-max-hard-note">
 			<p class="dc-field__hint" id="dc-policy-max-hard-hint"><span data-dc-minutes-hint></span></p>
 			<p class="dc-field__hint" id="dc-policy-max-hard-note">
 				<?php p($l->t('Also used as the hard calendar-week total. Hard = must fix before publishing. Defaults (~60 h) fit a week; raise them for a full month.')); ?>

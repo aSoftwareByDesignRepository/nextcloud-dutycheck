@@ -1,11 +1,12 @@
 import { chromium } from 'playwright'
+import { settle } from './_atlas_settle.mjs'
 const browser = await chromium.launch({ headless: true })
 const context = await browser.newContext({ storageState: 'tests/e2e/.auth/planner.json' })
 const page = await context.newPage()
 await page.setViewportSize({ width: 320, height: 640 })
 await page.goto('http://localhost:8081/apps/dutycheck/', { waitUntil: 'domcontentloaded' })
 await page.locator('#dc-main-content').waitFor({ state: 'visible', timeout: 30000 })
-await page.waitForTimeout(1000)
+await settle(page)
 const info = await page.evaluate(() => {
   const main = document.getElementById('dc-main-content')
   const doc = document.documentElement

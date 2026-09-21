@@ -59,8 +59,9 @@ final class RosterReadPathArchitectureContractTest extends TestCase
 	public function testRosterGetReadsPersistedConflictsOnly(): void
 	{
 		$fn = $this->extractFunction('public function rosterData');
-		self::assertStringContainsString('$this->listPersistedConflicts($selected)', $fn);
-		self::assertStringNotContainsString('refreshAndListConflicts', $fn);
+		// Default GET is lazy: dirty periods rematerialize inside listConflictsForRosterRead.
+		self::assertStringContainsString('listConflictsForRosterRead', $fn);
+		self::assertStringNotContainsString('$this->refreshAndListConflicts($selected)', $fn);
 		self::assertStringNotContainsString('conflictsForPeriod', $fn);
 	}
 
@@ -116,10 +117,47 @@ final class RosterReadPathArchitectureContractTest extends TestCase
 		$update = $this->extractFunction('public function updateAssignment');
 		self::assertStringContainsString('$this->refreshAndListConflicts($periodId)', $update);
 
-		$refresh = $this->extractFunction('private function refreshAndListConflicts');
+		$refresh = $this->extractFunction('protected function refreshAndListConflicts');
 		self::assertStringContainsString('$this->conflictsForPeriod($periodId)', $refresh);
 		self::assertStringContainsString('$this->materializeConflicts($periodId, $computed)', $refresh);
 		self::assertStringContainsString('$this->listPersistedConflicts($periodId)', $refresh);
+		self::assertStringContainsString('setPeriodConflictsDirty($periodId, false)', $refresh);
+
+		$rematerialize = $this->extractFunction('public function rematerializeOpenPeriodConflicts');
+		self::assertStringContainsString('fetchOpenPeriodsWithFrozenThresholds', $rematerialize);
+		self::assertStringContainsString('$this->refreshAndListConflicts($periodId)', $rematerialize);
+		self::assertStringContainsString('REMATERIALIZE_SYNC_BUDGET', $rematerialize);
+		self::assertStringContainsString('setPeriodConflictsDirty', $rematerialize);
+		self::assertStringContainsString('dirtyRemaining', $rematerialize);
+
+		$ack = $this->extractFunction('public function acknowledgeConflict');
+		self::assertStringContainsString('$this->refreshAndListConflicts($periodId)', $ack);
+		self::assertStringContainsString('$this->rosterData($periodId, $actorUserId)', $ack);
+		self::assertStringNotContainsString('return $this->refreshAndListConflicts', $ack);
+
+		$absence = $this->extractFunction('public function transitionAbsence');
+		self::assertStringContainsString('rematerializeOpenPeriodConflicts', $absence);
+		self::assertStringContainsString("\$targetStatus === 'approved'", $absence);
+
+		$rosterRead = $this->extractFunction('public function rosterData');
+		self::assertStringContainsString('listConflictsForRosterRead', $rosterRead);
+		self::assertStringContainsString('listConflictsForRosterRead', $this->extractFunction('private function listConflictsForRosterRead'));
+		$lazy = $this->extractFunction('private function listConflictsForRosterRead');
+		self::assertStringContainsString('periodConflictsAreDirty', $lazy);
+		self::assertStringContainsString('refreshAndListConflicts', $lazy);
+		self::assertStringContainsString('listPersistedConflicts', $lazy);
+
+		$drain = $this->extractFunction('public function drainDirtyOpenPeriodConflicts');
+		self::assertStringContainsString('fetchDirtyOpenPeriods', $drain);
+		self::assertStringContainsString('refreshAndListConflicts', $drain);
+	}
+
+	public function testRosterGetDoesNotRematerializeUnlessDirty(): void
+	{
+		$fn = $this->extractFunction('public function rosterData');
+		// Default path stays persisted-only; dirty is gated inside listConflictsForRosterRead.
+		self::assertStringNotContainsString('$this->refreshAndListConflicts($selected)', $fn);
+		self::assertStringContainsString('listConflictsForRosterRead', $fn);
 	}
 
 	public function testDashboardPulseUsesSqlCountsAndSinglePeriodPick(): void

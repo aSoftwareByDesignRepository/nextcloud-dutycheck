@@ -54,6 +54,11 @@ final class IntegrityCloseoutContractTest extends TestCase
 		self::assertStringContainsString('conflict_thresholds_json', $src);
 		self::assertStringContainsString('policyThresholdsForPeriod', $src);
 		self::assertStringContainsString('applyLiveConflictThresholdsToOpenPeriods', $src);
+		self::assertStringContainsString('rematerializeOpenPeriodConflicts', $src);
+		self::assertStringContainsString('REMATERIALIZE_SYNC_BUDGET', $src);
+		self::assertStringContainsString('conflicts_dirty', $src);
+		self::assertStringContainsString('drainDirtyOpenPeriodConflicts', $src);
+		self::assertStringContainsString('listConflictsForRosterRead', $src);
 		self::assertStringContainsString('conflictThresholdOpenPeriodStatus', $src);
 		self::assertStringContainsString('weekly_hours_hard_cap', $src);
 		self::assertStringContainsString('break_too_short', $src);
@@ -69,6 +74,7 @@ final class IntegrityCloseoutContractTest extends TestCase
 		self::assertStringContainsString('dc_asg_skey_uidx', $src);
 		self::assertStringContainsString('missingCriticalIndexes', $src);
 		self::assertStringContainsString('CRITICAL_INDEXES', $src);
+		self::assertStringContainsString('conflicts_dirty', $src);
 	}
 
 	public function testRetentionProtectsLatestCloseAcrossReopen(): void
@@ -194,6 +200,13 @@ final class IntegrityCloseoutContractTest extends TestCase
 		self::assertStringContainsString("setAttribute('role', 'grid')", $js);
 		self::assertStringContainsString("setAttribute('role', 'status')", $js);
 		self::assertStringContainsString('id="dc-roster-bulk-apply"', $html);
+		self::assertMatchesRegularExpression(
+			'/id="dc-roster-copy-apply"[^>]*\bhidden\b/',
+			$html,
+			'Apply copy must start hidden (no dead primary before Preview)',
+		);
+		self::assertStringContainsString('setCopyApplyVisible', $js);
+		self::assertStringContainsString('Nothing to copy from that period', $js);
 	}
 
 	public function testMigration1014AddsVersionAndFrozenThresholds(): void

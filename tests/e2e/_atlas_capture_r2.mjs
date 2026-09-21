@@ -1,4 +1,5 @@
 /**
+import { settle } from './_atlas_settle.mjs'
  * Atlas visual-fix r2 — fresh DE-locale web evidence (atlas-visual-r2-*.png).
  */
 import { chromium } from 'playwright'
@@ -79,7 +80,7 @@ await page.addInitScript((keys) => {
 await page.goto('http://localhost:8081/apps/dutycheck/', { waitUntil: 'domcontentloaded', timeout: 90000 })
 await page.locator('#dc-main-content').waitFor({ state: 'visible', timeout: 30000 })
 await dismissTips(page)
-await page.waitForTimeout(800)
+await settle(page)
 await shot(page, 'web-dashboard')
 
 await page.goto('http://localhost:8081/apps/dutycheck/today', { waitUntil: 'domcontentloaded', timeout: 90000 })
@@ -111,7 +112,7 @@ await page.evaluate(() => {
 	}
 	document.getElementById('dc-today-filters')?.requestSubmit?.()
 })
-await page.waitForTimeout(1200)
+await settle(page)
 await shot(page, 'web-today')
 
 await page.goto('http://localhost:8081/apps/dutycheck/periods', { waitUntil: 'domcontentloaded', timeout: 90000 })
@@ -134,7 +135,7 @@ await page.evaluate(() => {
 		ack.setAttribute('hidden', '')
 	}
 })
-await page.waitForTimeout(500)
+await settle(page)
 await shot(page, 'web-periods')
 
 // Dense November roster (period 46)
@@ -149,11 +150,11 @@ for (let i = 0; i < 4; i++) {
 	const label = await page.locator('#dc-roster-month-current').textContent().catch(() => '')
 	if (/november|2026-11|nov\.?\s*2026/i.test(label || '')) break
 	await page.locator('#dc-roster-month-next').click({ timeout: 5000 }).catch(() => {})
-	await page.waitForTimeout(1200)
+	await settle(page)
 }
 await page.waitForSelector('#dc-roster-grid[role="grid"]', { timeout: 60000 })
 await reveal(page, '#dc-roster-grid')
-await page.waitForTimeout(700)
+await settle(page)
 await shot(page, 'web-roster')
 await shot(page, 'web-roster-month-grid')
 
@@ -163,7 +164,7 @@ await page.goto('http://localhost:8081/apps/dutycheck/settings/access', {
 })
 await page.locator('#dc-main-content').waitFor({ state: 'visible', timeout: 30000 })
 await dismissTips(page)
-await page.waitForTimeout(500)
+await settle(page)
 await shot(page, 'web-settings-access')
 
 await browser.close()

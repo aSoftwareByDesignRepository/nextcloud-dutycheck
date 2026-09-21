@@ -30,7 +30,7 @@ final class EnsureDutyCheckSchema implements IRepairStep
 	 */
 	private const CRITICAL_COLUMNS = [
 		'dc_assignments' => ['status', 'version', 'slot_key'],
-		'dc_periods' => ['conflict_thresholds_json'],
+		'dc_periods' => ['conflict_thresholds_json', 'conflicts_dirty'],
 		'dc_shift_templates' => ['min_headcount'],
 	];
 

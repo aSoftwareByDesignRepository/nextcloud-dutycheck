@@ -1,4 +1,5 @@
 /**
+import { settle } from './_atlas_settle.mjs'
  * r9 roster re-shot — keep «Einsatz hinzufügen» + So/Mo weekdays in the crop.
  */
 import { chromium } from 'playwright'
@@ -168,7 +169,7 @@ for (let i = 0; i < 6; i++) {
 	const label = (await page.locator('#dc-roster-month-current').textContent().catch(() => '')) || ''
 	if (/november|2026-11/i.test(label)) break
 	await page.locator('#dc-roster-month-next').click({ timeout: 3000 }).catch(() => {})
-	await page.waitForTimeout(400)
+	await settle(page)
 }
 await page.waitForSelector('#dc-roster-grid', { timeout: 45000 })
 await paintRosterFullDe(page)
@@ -188,7 +189,7 @@ await page.evaluate(() => {
 })
 await paintRosterFullDe(page)
 await forceDarkDom(page)
-await page.waitForTimeout(300)
+await settle(page)
 const qa = join(outQa, 'atlas-visual-r9-web-roster.png')
 const atlas = join(outAtlas, 'atlas-visual-r9-web-roster.png')
 await page.screenshot({ path: qa, fullPage: false })

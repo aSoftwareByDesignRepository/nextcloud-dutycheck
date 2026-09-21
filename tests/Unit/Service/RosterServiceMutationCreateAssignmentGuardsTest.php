@@ -30,7 +30,6 @@ final class RosterServiceMutationCreateAssignmentGuardsTest extends TestCase
 		// checks status/version/slot_key).
 		$ref = new ReflectionClass(SchemaProbe::class);
 		$prop = $ref->getProperty('columnCache');
-		$prop->setAccessible(true);
 		$prop->setValue(null, [
 			'dc_periods.company_id' => false,
 			'dc_employees.company_id' => false,

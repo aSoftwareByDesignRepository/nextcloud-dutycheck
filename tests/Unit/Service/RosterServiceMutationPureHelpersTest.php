@@ -29,7 +29,6 @@ final class RosterServiceMutationPureHelpersTest extends TestCase
 	private function invoke(string $method, mixed ...$args): mixed
 	{
 		$m = new ReflectionMethod(RosterService::class, $method);
-		$m->setAccessible(true);
 		return $m->invoke($m->isStatic() ? null : $this->service(), ...$args);
 	}
 

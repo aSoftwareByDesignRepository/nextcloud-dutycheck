@@ -1,4 +1,5 @@
 /**
+import { settle } from './_atlas_settle.mjs'
  * Fresh Atlas visual screenshots for DutyCheck web (planner auth, DE UI).
  */
 import { chromium } from 'playwright'
@@ -48,7 +49,7 @@ async function dismissTips() {
 
 async function shot(name) {
 	await dismissTips()
-	await page.waitForTimeout(350)
+	await settle(page)
 	const qaPath = join(outQa, `${name}.png`)
 	const atlasPath = join(outAtlas, `${name}.png`)
 	await page.screenshot({ path: qaPath, fullPage: false })
@@ -250,17 +251,17 @@ await page.route('**/apps/dutycheck/api/periods/*/audit**', async (route) => {
 
 await page.goto('http://localhost:8081/apps/dutycheck/', { waitUntil: 'domcontentloaded' })
 await page.locator('#dc-main-content').waitFor({ state: 'visible', timeout: 30000 })
-await page.waitForTimeout(800)
+await settle(page)
 console.log('lang', await page.locator('#app-content').getAttribute('lang'))
 await shot('dashboard')
 
 await page.goto('http://localhost:8081/apps/dutycheck/today', { waitUntil: 'domcontentloaded' })
 await page.locator('#dc-today-board').waitFor({ state: 'visible', timeout: 30000 })
-await page.waitForTimeout(600)
+await settle(page)
 await page.locator('#dc-today-location').selectOption({ index: 0 }).catch(() => {})
 await page.locator('#dc-today-filters button[type="submit"]').click().catch(() => {})
 await page.waitForSelector('#dc-today-skeleton[hidden], #dc-today-timeline li, #dc-today-empty:not([hidden])', { timeout: 15000 }).catch(() => {})
-await page.waitForTimeout(500)
+await settle(page)
 await shot('today')
 
 await page.goto('http://localhost:8081/apps/dutycheck/periods', { waitUntil: 'domcontentloaded' })
@@ -279,17 +280,17 @@ await page.evaluate(() => {
 	if (end) end.value = '2026-10-31'
 	window.DutyCheckDates?.applyLocaleToTemporalInputs?.(document)
 })
-await page.waitForTimeout(400)
+await settle(page)
 await shot('periods')
 
 await page.goto('http://localhost:8081/apps/dutycheck/roster', { waitUntil: 'domcontentloaded' })
 await page.locator('#dc-main-content').waitFor({ state: 'visible', timeout: 30000 })
 await page.waitForSelector('#dc-roster-grid[role="grid"], .dc-roster-grid__rowhead-name', { timeout: 30000 }).catch(() => {})
-await page.waitForTimeout(1200)
+await settle(page)
 const gridWrap = page.locator('#dc-roster-grid-wrap')
 if (await gridWrap.count()) {
 	await gridWrap.scrollIntoViewIfNeeded()
-	await page.waitForTimeout(300)
+	await settle(page)
 }
 await shot('roster')
 
@@ -304,7 +305,7 @@ if (await grid.count()) {
 
 await page.goto('http://localhost:8081/apps/dutycheck/settings/access', { waitUntil: 'domcontentloaded' })
 await page.locator('#dc-main-content').waitFor({ state: 'visible', timeout: 30000 })
-await page.waitForTimeout(600)
+await settle(page)
 await shot('settings-access')
 
 await browser.close()

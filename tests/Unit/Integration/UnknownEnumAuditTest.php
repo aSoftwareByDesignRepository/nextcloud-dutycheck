@@ -52,7 +52,6 @@ final class UnknownEnumAuditTest extends TestCase
 		);
 
 		$m = new ReflectionMethod(ArbeitszeitCheckIntegrationService::class, 'noteUnknownEnum');
-		$m->setAccessible(true);
 		$m->invoke($svc, 'type', 'totally_new_type', 42);
 		$m->invoke($svc, 'type', 'totally_new_type', 99); // debounced
 	}
@@ -91,7 +90,6 @@ final class UnknownEnumAuditTest extends TestCase
 		);
 
 		$m = new ReflectionMethod(ArbeitszeitCheckIntegrationService::class, 'upsertMirrorRow');
-		$m->setAccessible(true);
 		$m->invoke($svc, 'u1', [
 			'atAbsenceId' => 7,
 			'userId' => 'u1',

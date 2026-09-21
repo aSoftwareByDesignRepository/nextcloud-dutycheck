@@ -27,9 +27,13 @@ body {
 	--dc-color-success: var(--color-success, #46ba61);
 	--dc-color-warning: var(--color-warning, #c98600);
 	--dc-color-error: var(--color-error, #cc4646);
-	/* Solid CTA fill — Check-family #ba1b1b (Atlas destructive clarity) */
-	--dc-danger-fill: #ba1b1b;
-	--dc-danger-on-fill: #ffffff;
+	/*
+	 * Solid danger CTA fill — prefer NC --color-element-error so Light/Dark/HC
+	 * and custom accents resolve; brand #ba1b1b only as last-resort fallback
+	 * (never pale --color-error tint under on-fill text).
+	 */
+	--dc-danger-fill: var(--color-element-error, #ba1b1b);
+	--dc-danger-on-fill: var(--color-primary-element-text, #ffffff);
 	--dc-color-overlay: color-mix(in srgb, var(--color-main-text, #000) 60%, transparent);
 	--dc-color-shadow-soft: color-mix(in srgb, var(--color-main-text, #000) 4%, transparent);
 	--dc-color-shadow-strong: color-mix(in srgb, var(--color-main-text, #000) 22%, transparent);

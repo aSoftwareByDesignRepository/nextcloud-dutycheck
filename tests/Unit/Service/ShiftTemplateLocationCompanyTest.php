@@ -20,7 +20,6 @@ final class ShiftTemplateLocationCompanyTest extends TestCase
 		SchemaProbe::resetCache();
 		$ref = new ReflectionClass(SchemaProbe::class);
 		$prop = $ref->getProperty('columnCache');
-		$prop->setAccessible(true);
 		$prop->setValue(null, [
 			'dc_shift_templates.company_id' => true,
 			'dc_locations.company_id' => true,

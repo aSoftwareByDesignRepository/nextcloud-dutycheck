@@ -86,15 +86,102 @@ $assert(
 $assert(str_contains($roster, 'conflict_thresholds_json'), 'period_threshold_freeze_column');
 $assert(str_contains($roster, 'policyThresholdsForPeriod'), 'period_threshold_freeze_reader');
 $assert(str_contains($roster, 'applyLiveConflictThresholdsToOpenPeriods'), 'period_threshold_apply_open');
+$assert(str_contains($roster, 'rematerializeOpenPeriodConflicts'), 'period_threshold_rematerialize_open');
+$assert(str_contains($roster, 'REMATERIALIZE_SYNC_BUDGET'), 'rematerialize_sync_budget');
+$assert(str_contains($roster, 'conflicts_dirty'), 'rematerialize_conflicts_dirty_column');
+$assert(str_contains($roster, 'drainDirtyOpenPeriodConflicts'), 'rematerialize_dirty_drain');
+$assert(str_contains($roster, 'listConflictsForRosterRead'), 'roster_lazy_dirty_read');
 $assert(str_contains($roster, 'conflictThresholdOpenPeriodStatus'), 'period_threshold_open_status');
+$apiCtrl = (string) file_get_contents($root . '/lib/Controller/RosterApiController.php');
+$assert(str_contains($apiCtrl, 'rematerializeOpenConflicts'), 'api_rematerialize_helper');
+$assert(str_contains($apiCtrl, 'rematerializeOpenPeriodConflicts'), 'api_rematerialize_after_threshold_write');
+$assert(str_contains($apiCtrl, 'conflictsDirtyRemaining'), 'api_rematerialize_dirty_meta');
+$job = (string) file_get_contents($root . '/lib/BackgroundJob/ConflictDirtyRematerializeJob.php');
+$assert(str_contains($job, 'drainDirtyOpenPeriodConflicts'), 'dirty_job_drains');
+$infoXml = (string) file_get_contents($root . '/appinfo/info.xml');
+$assert(str_contains($infoXml, 'ConflictDirtyRematerializeJob'), 'info_registers_dirty_job');
+$migrationDirty = (string) file_get_contents($root . '/lib/Migration/Version1019Date20260921160000.php');
+$assert(str_contains($migrationDirty, 'conflicts_dirty') && str_contains($migrationDirty, 'dc_per_cdirty_idx'), 'migration_1019_conflicts_dirty');
+$assert(str_contains($repair, 'conflicts_dirty'), 'repair_ensures_conflicts_dirty');
+$assert(
+	(bool) preg_match(
+		'/function saveConflictPolicy[\s\S]{0,800}?rematerializeOpenConflicts/',
+		$apiCtrl,
+	),
+	'save_conflict_policy_rematerializes',
+);
+$assert(
+	(bool) preg_match(
+		'/function applyConflictPolicyToOpenPeriods[\s\S]{0,500}?rematerializeOpenConflicts/',
+		$apiCtrl,
+	),
+	'apply_conflict_policy_rematerializes',
+);
+$assert(
+	(bool) preg_match(
+		'/function createTemplate[\s\S]{0,500}?rematerializeOpenConflicts/',
+		$apiCtrl,
+	),
+	'template_create_rematerializes',
+);
+$assert(
+	(bool) preg_match(
+		'/function updateTemplate[\s\S]{0,500}?rematerializeOpenConflicts/',
+		$apiCtrl,
+	),
+	'template_update_rematerializes',
+);
+$assert(
+	(bool) preg_match(
+		'/function deleteTemplate[\s\S]{0,500}?rematerializeOpenConflicts/',
+		$apiCtrl,
+	),
+	'template_delete_rematerializes',
+);
+$assert(
+	(bool) preg_match(
+		'/function requireLocationQualification[\s\S]{0,600}?rematerializeOpenConflicts/',
+		$apiCtrl,
+	),
+	'location_qual_require_rematerializes',
+);
+$assert(
+	(bool) preg_match(
+		'/function attachEmployeeQualification[\s\S]{0,700}?rematerializeOpenConflicts/',
+		$apiCtrl,
+	),
+	'employee_qual_attach_rematerializes',
+);
+$assert(
+	(bool) preg_match(
+		'/function transitionAbsence[\s\S]{0,5000}?rematerializeOpenPeriodConflicts/',
+		$roster,
+	),
+	'absence_transition_rematerializes',
+);
+$assert(
+	(bool) preg_match(
+		'/function acknowledgeConflict[\s\S]{0,4500}?rosterData\(\$periodId, \$actorUserId\)/',
+		$roster,
+	),
+	'ack_conflict_returns_roster_payload',
+);
 $assert(str_contains($roster, 'weekly_hours_hard_cap'), 'calendar_week_hard_cap');
 $settingsJs = (string) file_get_contents($root . '/js/settings.js');
 $assert(str_contains($settingsJs, 'conflict-policy/apply-open'), 'settings_apply_open_endpoint');
+$assert(str_contains($settingsJs, 'DutyCheckConflictOpenStatus'), 'settings_open_status_module');
+$assert(str_contains($settingsJs, 'applyBtn.hidden = !view.showApply'), 'settings_hide_apply_when_synced');
 $assert(str_contains($settingsJs, 'minHeadcount'), 'template_min_headcount_ui');
 $conflictsTpl = (string) file_get_contents($root . '/templates/parts/settings/conflicts.php');
 $assert(str_contains($conflictsTpl, 'data-dc-minutes-hint'), 'settings_minutes_hours_hint');
 $assert(str_contains($conflictsTpl, 'dc-conflict-apply-open'), 'settings_apply_open_button');
-$assert(str_contains($conflictsTpl, 'Open periods keep the caps'), 'settings_freeze_callout');
+$assert(str_contains($conflictsTpl, 'dc-conflict-apply-actions'), 'settings_apply_actions_wrapper');
+$assert(str_contains($conflictsTpl, 'Checking open periods'), 'settings_freeze_callout_loading');
+$assert((bool) preg_match('/id="dc-conflict-apply-actions"\s+hidden/', $conflictsTpl), 'settings_apply_starts_hidden');
+$openStatusJs = (string) file_get_contents($root . '/js/common/conflict-open-status.js');
+$assert(str_contains($openStatusJs, 'resolveConflictOpenCallout'), 'open_status_resolver');
+$pageCtrl = (string) file_get_contents($root . '/lib/Controller/PageController.php');
+$assert(str_contains($pageCtrl, 'common/conflict-open-status'), 'settings_loads_open_status_js');
 $dashboardJs = (string) file_get_contents($root . '/js/dashboard.js');
 $assert(str_contains($dashboardJs, 'dc-dashboard-cap-hint'), 'dashboard_cap_hint_wiring');
 $assert(str_contains($roster, 'break_too_short'), 'break_too_short_rule');
@@ -116,6 +203,7 @@ $assert(str_contains($swapSvc, 'SWAP_ALREADY_PENDING'), 'swap_rejects_duplicate_
 $assert(str_contains($migration, 'conflict_thresholds_json') && str_contains($migration, 'min_headcount'), 'migration_1014_columns');
 $assert(str_contains($print, 'dc-print-integrity') && str_contains($print, 'snapshotHash'), 'print_integrity_footer');
 $assert(str_contains($rosterJs, "setAttribute('role', 'grid')") && str_contains($rosterTpl, 'dc-roster-bulk-apply'), 'roster_grid_markup');
+$assert(str_contains($rosterJs, 'setCopyApplyVisible') && (bool) preg_match('/id="dc-roster-copy-apply"[^>]*\bhidden\b/', $rosterTpl), 'roster_copy_apply_hidden_until_preview');
 $assert($companionOk, 'companion_license_required_gate');
 $assert(str_contains($roster, 'understaffed_shift'), 'understaffed_shift_rule');
 $periodsJs = (string) file_get_contents($root . '/js/periods.js');

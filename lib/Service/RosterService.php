@@ -788,9 +788,13 @@ class RosterService
 		$employees = $this->listEmployees($actorUserId);
 		$locations = $this->listLocations($actorUserId);
 		$assignments = $selected !== null ? $this->listAssignments($selected) : [];
-		// GET must not recompute/materialize conflicts — that is the slow path
-		// the evaluation hit. Writes (assign/publish/close) still refresh.
-		$conflicts = $selected !== null ? $this->listPersistedConflicts($selected) : [];
+		// GET must not recompute/materialize conflicts by default — that is the
+		// slow path. Exception: a dirty selected open period (leftover from a
+		// budgeted Save/Apply) rematerializes once so poor-man's cron cannot
+		// leave stale hard caps on screen.
+		$conflicts = $selected !== null
+			? $this->listConflictsForRosterRead($selected)
+			: [];
 		$absenceBlocks = $selectedPeriod !== null
 			? $this->listBlockingAbsenceSpansForPeriod($selected, $selectedPeriod)
 			: [];
@@ -1704,12 +1708,17 @@ class RosterService
 				throw new \InvalidArgumentException('CONFLICT_RESOLVED');
 			}
 			if ((string) ($again['ack_user_id'] ?? '') === $actorUserId) {
-				return $this->refreshAndListConflicts((int) $row['period_id']);
+				$periodId = (int) $row['period_id'];
+				$this->refreshAndListConflicts($periodId);
+				return $this->rosterData($periodId, $actorUserId);
 			}
 			throw new \InvalidArgumentException('CONFLICT_ACK_STALE');
 		}
 
-		return $this->refreshAndListConflicts((int) $row['period_id']);
+		$periodId = (int) $row['period_id'];
+		$this->refreshAndListConflicts($periodId);
+		// Roster UI calls render() with the full roster payload (same as assign/update).
+		return $this->rosterData($periodId, $actorUserId);
 	}
 
 	/**
@@ -1911,7 +1920,15 @@ class RosterService
 			throw new \InvalidArgumentException('ABSENCE_STATUS_CONFLICT');
 		}
 
-		return $this->listAbsences($actorUserId !== '' ? $actorUserId : null);
+		$actor = $actorUserId !== '' ? $actorUserId : null;
+		// Approved absences feed absence_collision checks; roster GET only reads persisted rows.
+		$touchesBlocking = $targetStatus === 'approved'
+			|| ((string) $current['status'] === 'approved' && $targetStatus === 'cancelled');
+		if ($touchesBlocking && is_string($actor) && $actor !== '') {
+			$this->rematerializeOpenPeriodConflicts($actor);
+		}
+
+		return $this->listAbsences($actor);
 	}
 
 	public function listAbsences(?string $actorUserId = null): array
@@ -2661,6 +2678,17 @@ class RosterService
 		return SchemaProbe::hasColumn($this->db, 'dc_periods', 'conflict_thresholds_json');
 	}
 
+	private function periodHasConflictsDirtyColumn(): bool
+	{
+		return SchemaProbe::hasColumn($this->db, 'dc_periods', 'conflicts_dirty');
+	}
+
+	/**
+	 * Sync rematerialize budget per mutating request (Save/Apply/absence/…).
+	 * Remainder is marked conflicts_dirty for BackgroundJob + lazy roster GET.
+	 */
+	public const REMATERIALIZE_SYNC_BUDGET = 8;
+
 	/**
 	 * How many open periods still use frozen caps that differ from the live policy.
 	 *
@@ -2759,6 +2787,86 @@ class RosterService
 	}
 
 	/**
+	 * Recompute + materialize planning checks for open periods the actor can see.
+	 *
+	 * Sync budget: rematerialize up to REMATERIALIZE_SYNC_BUDGET immediately so
+	 * Save/Apply stays correct without waiting on cron. Remaining open periods
+	 * are marked conflicts_dirty for ConflictDirtyRematerializeJob / lazy GET.
+	 *
+	 * @return array{refreshed:int, dirtyMarked:int, dirtyRemaining:int, periodIds:list<int>}
+	 */
+	public function rematerializeOpenPeriodConflicts(string $actor, ?int $syncBudget = null): array
+	{
+		$budget = $syncBudget ?? self::REMATERIALIZE_SYNC_BUDGET;
+		if ($budget < 1) {
+			$budget = 1;
+		}
+		if (!$this->periodHasFrozenThresholdsColumn()) {
+			return [
+				'refreshed' => 0,
+				'dirtyMarked' => 0,
+				'dirtyRemaining' => 0,
+				'periodIds' => [],
+			];
+		}
+		$rows = $this->fetchOpenPeriodsWithFrozenThresholds($actor);
+		$refreshedIds = [];
+		$dirtyMarked = 0;
+		$i = 0;
+		foreach ($rows as $row) {
+			$periodId = (int) ($row['id'] ?? 0);
+			if ($periodId <= 0) {
+				continue;
+			}
+			$this->assertPeriodCompanyAccess($actor, $periodId);
+			if ($i < $budget) {
+				$this->refreshAndListConflicts($periodId);
+				$refreshedIds[] = $periodId;
+			} elseif ($this->periodHasConflictsDirtyColumn()) {
+				$this->setPeriodConflictsDirty($periodId, true);
+				$dirtyMarked++;
+			} else {
+				// Pre-migration: no dirty column — finish sync (correctness > budget).
+				$this->refreshAndListConflicts($periodId);
+				$refreshedIds[] = $periodId;
+			}
+			$i++;
+		}
+		$dirtyRemaining = $this->periodHasConflictsDirtyColumn()
+			? $this->countDirtyOpenPeriodsForActor($actor)
+			: 0;
+		return [
+			'refreshed' => count($refreshedIds),
+			'dirtyMarked' => $dirtyMarked,
+			'dirtyRemaining' => $dirtyRemaining,
+			'periodIds' => $refreshedIds,
+		];
+	}
+
+	/**
+	 * System catch-up: rematerialize dirty open periods (no actor / company scope).
+	 *
+	 * @return int number of periods refreshed
+	 */
+	public function drainDirtyOpenPeriodConflicts(int $limit = 20): int
+	{
+		if ($limit < 1 || !$this->periodHasConflictsDirtyColumn() || !$this->periodHasFrozenThresholdsColumn()) {
+			return 0;
+		}
+		$rows = $this->fetchDirtyOpenPeriods($limit);
+		$refreshed = 0;
+		foreach ($rows as $row) {
+			$periodId = (int) ($row['id'] ?? 0);
+			if ($periodId <= 0) {
+				continue;
+			}
+			$this->refreshAndListConflicts($periodId);
+			$refreshed++;
+		}
+		return $refreshed;
+	}
+
+	/**
 	 * @return list<array{id:int|string,conflict_thresholds_json:?string}>
 	 */
 	private function fetchOpenPeriodsWithFrozenThresholds(string $actor): array
@@ -2774,6 +2882,78 @@ class RosterService
 		/** @var list<array{id:int|string,conflict_thresholds_json:?string}> $rows */
 		$rows = $qb->executeQuery()->fetchAll();
 		return $rows;
+	}
+
+	/**
+	 * @return list<array{id:int|string}>
+	 */
+	private function fetchDirtyOpenPeriods(int $limit): array
+	{
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('id')
+			->from('dc_periods')
+			->where($qb->expr()->eq('status', $qb->createNamedParameter('open')))
+			->andWhere($qb->expr()->eq('conflicts_dirty', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)))
+			->orderBy('id', 'ASC')
+			->setMaxResults($limit);
+		/** @var list<array{id:int|string}> $rows */
+		$rows = $qb->executeQuery()->fetchAll();
+		return $rows;
+	}
+
+	private function countDirtyOpenPeriodsForActor(string $actor): int
+	{
+		if (!$this->periodHasConflictsDirtyColumn()) {
+			return 0;
+		}
+		$qb = $this->db->getQueryBuilder();
+		$qb->select($qb->func()->count('*', 'c'))
+			->from('dc_periods')
+			->where($qb->expr()->eq('status', $qb->createNamedParameter('open')))
+			->andWhere($qb->expr()->eq('conflicts_dirty', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)));
+		if ($this->companies !== null) {
+			$this->companies->restrictQuery($qb, 'company_id', $actor);
+		}
+		return (int) $qb->executeQuery()->fetchOne();
+	}
+
+	protected function setPeriodConflictsDirty(int $periodId, bool $dirty): void
+	{
+		if (!$this->periodHasConflictsDirtyColumn() || $periodId <= 0) {
+			return;
+		}
+		$qb = $this->db->getQueryBuilder();
+		$qb->update('dc_periods')
+			->set('conflicts_dirty', $qb->createNamedParameter($dirty ? 1 : 0, IQueryBuilder::PARAM_INT))
+			->where($qb->expr()->eq('id', $qb->createNamedParameter($periodId, IQueryBuilder::PARAM_INT)))
+			->executeStatement();
+	}
+
+	private function periodConflictsAreDirty(int $periodId): bool
+	{
+		if (!$this->periodHasConflictsDirtyColumn() || $periodId <= 0) {
+			return false;
+		}
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('conflicts_dirty')
+			->from('dc_periods')
+			->where($qb->expr()->eq('id', $qb->createNamedParameter($periodId, IQueryBuilder::PARAM_INT)))
+			->setMaxResults(1);
+		$raw = $qb->executeQuery()->fetchOne();
+		return (int) $raw === 1;
+	}
+
+	/**
+	 * Roster GET: persisted conflicts, unless this open period is dirty.
+	 *
+	 * @return list<array<string,mixed>>
+	 */
+	private function listConflictsForRosterRead(int $periodId): array
+	{
+		if ($this->periodConflictsAreDirty($periodId)) {
+			return $this->refreshAndListConflicts($periodId);
+		}
+		return $this->listPersistedConflicts($periodId);
 	}
 
 	/**
@@ -3202,10 +3382,11 @@ class RosterService
 		}
 	}
 
-	private function refreshAndListConflicts(int $periodId): array
+	protected function refreshAndListConflicts(int $periodId): array
 	{
 		$computed = $this->conflictsForPeriod($periodId);
 		$this->materializeConflicts($periodId, $computed);
+		$this->setPeriodConflictsDirty($periodId, false);
 		return $this->listPersistedConflicts($periodId);
 	}
 

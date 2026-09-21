@@ -42,7 +42,6 @@ final class AbsenceCollisionAtRecoveryTest extends TestCase
 
 		$svc = new RosterService($db, null, $at);
 		$m = new ReflectionMethod(RosterService::class, 'absenceCollisionSource');
-		$m->setAccessible(true);
 		self::assertSame('arbeitszeitcheck', $m->invoke($svc, 7, '2026-07-27'));
 	}
 
@@ -71,7 +70,6 @@ final class AbsenceCollisionAtRecoveryTest extends TestCase
 
 		$svc = new RosterService($db, null, $at);
 		$m = new ReflectionMethod(RosterService::class, 'absenceCollisionSource');
-		$m->setAccessible(true);
 		self::assertSame('dutycheck', $m->invoke($svc, 7, '2026-07-27'));
 	}
 
