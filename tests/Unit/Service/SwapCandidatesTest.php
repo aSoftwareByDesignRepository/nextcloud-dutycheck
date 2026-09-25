@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\DutyCheck\Tests\Unit\Service;
 
+use OCA\DutyCheck\Db\SchemaProbe;
 use OCA\DutyCheck\Service\RosterService;
 use OCA\DutyCheck\Service\SwapService;
 use OCP\DB\IResult;
@@ -13,6 +14,18 @@ use PHPUnit\Framework\TestCase;
 
 final class SwapCandidatesTest extends TestCase
 {
+	protected function setUp(): void
+	{
+		parent::setUp();
+		SchemaProbe::resetCache();
+	}
+
+	protected function tearDown(): void
+	{
+		SchemaProbe::resetCache();
+		parent::tearDown();
+	}
+
 	public function testListSwapCandidatesEmptyWithoutSharedLocations(): void
 	{
 		$empResult = $this->createMock(IResult::class);
@@ -63,15 +76,19 @@ final class SwapCandidatesTest extends TestCase
 			$qb->method('orderBy')->willReturnSelf();
 			$qb->method('expr')->willReturn($expr);
 			$qb->method('createNamedParameter')->willReturn('p');
+			$qb->method('setMaxResults')->willReturnSelf();
 			$qb->method('executeQuery')->willReturn($result);
 			return $qb;
 		};
+
+		$probeResult = $this->createMock(IResult::class);
 
 		$db = $this->createMock(IDBConnection::class);
 		$db->method('tableExists')->willReturnCallback(static fn (string $t): bool => in_array($t, ['dc_employees', 'dc_assignments'], true));
 		$db->method('getQueryBuilder')->willReturnOnConsecutiveCalls(
 			$mk($empResult),
 			$mk($locsResult),
+			$mk($probeResult), // SchemaProbe::hasColumn probe query (cold static cache)
 		);
 
 		$svc = new SwapService($db, $this->createMock(RosterService::class));
@@ -137,15 +154,19 @@ final class SwapCandidatesTest extends TestCase
 			$qb->method('orderBy')->willReturnSelf();
 			$qb->method('expr')->willReturn($expr);
 			$qb->method('createNamedParameter')->willReturn('p');
+			$qb->method('setMaxResults')->willReturnSelf();
 			$qb->method('executeQuery')->willReturn($result);
 			return $qb;
 		};
+
+		$probeResult = $this->createMock(IResult::class);
 
 		$db = $this->createMock(IDBConnection::class);
 		$db->method('tableExists')->willReturnCallback(static fn (string $t): bool => in_array($t, ['dc_employees', 'dc_assignments'], true));
 		$db->method('getQueryBuilder')->willReturnOnConsecutiveCalls(
 			$mk($empResult),
 			$mk($locsResult),
+			$mk($probeResult), // SchemaProbe::hasColumn probe query (cold static cache)
 			$mk($listResult),
 		);
 

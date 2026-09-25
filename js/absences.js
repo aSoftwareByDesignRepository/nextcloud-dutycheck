@@ -460,7 +460,7 @@
 		} catch (err) {
 			renderPlannerIntegrationBanner(integ, []);
 			Msg.handleApiError(err);
-			C.renderTableFetchError(tbody, TABLE_COLS, t('dutycheck', 'Could not load absences. Reload the page or contact an administrator if this keeps happening.'));
+			C.renderTableFetchError(tbody, TABLE_COLS, t('dutycheck', 'Could not load absences. Retry, or contact an administrator if this keeps happening.'), { retry: () => loadContext() });
 		} finally {
 			C.clearLoadingRow(tbody);
 		}

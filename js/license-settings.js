@@ -562,10 +562,19 @@
 		}
 		modalEl.hidden = true;
 		document.removeEventListener('keydown', onModalKeydown, true);
-		if (modalReturnFocusEl && typeof modalReturnFocusEl.focus === 'function') {
+		// Same contract as DutyCheckComponents.openModal: never strand focus on
+		// <body> when the trigger was detached/disabled mid-flight.
+		if (modalReturnFocusEl && modalReturnFocusEl.isConnected && typeof modalReturnFocusEl.focus === 'function') {
 			modalReturnFocusEl.focus();
 		}
 		modalReturnFocusEl = null;
+		var active = document.activeElement;
+		if (!active || active === document.body || active === document.documentElement) {
+			var main = document.getElementById('dc-main-content');
+			if (main && typeof main.focus === 'function') {
+				try { main.focus({ preventScroll: true }); } catch (e) { /* ignore */ }
+			}
+		}
 	}
 
 	if (removeBtn) {

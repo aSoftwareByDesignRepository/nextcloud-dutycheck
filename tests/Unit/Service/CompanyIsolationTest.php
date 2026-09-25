@@ -44,10 +44,12 @@ final class CompanyIsolationTest extends TestCase
 		$companies = $this->createMock(CompanyService::class);
 		$companies->method('isMultiCompanyActive')->willReturn(true);
 		$companies->method('schemaReady')->willReturn(true);
+		// Uniform-404: the period gate passes the entity code so a foreign-company
+		// row is indistinguishable from a missing one.
 		$companies->expects(self::once())
 			->method('assertRowCompany')
-			->with('alice', 'dc_periods', 99)
-			->willThrowException(new \InvalidArgumentException('FORBIDDEN'));
+			->with('alice', 'dc_periods', 99, 'PERIOD_NOT_FOUND')
+			->willThrowException(new \InvalidArgumentException('PERIOD_NOT_FOUND'));
 
 		$svc = new RosterService(
 			$this->createMock(IDBConnection::class),
@@ -64,7 +66,7 @@ final class CompanyIsolationTest extends TestCase
 		);
 
 		$this->expectException(\InvalidArgumentException::class);
-		$this->expectExceptionMessage('FORBIDDEN');
+		$this->expectExceptionMessage('PERIOD_NOT_FOUND');
 		$svc->assertPeriodCompanyAccess('alice', 99);
 	}
 
@@ -148,8 +150,9 @@ final class CompanyIsolationTest extends TestCase
 
 		$svc = new RosterService($db, null, null, null, null, null, null, null, null, null, $companies);
 
+		// Existence-blind: cross-company employee collapses to EMPLOYEE_NOT_FOUND.
 		$this->expectException(\InvalidArgumentException::class);
-		$this->expectExceptionMessage('COMPANY_MISMATCH');
+		$this->expectExceptionMessage('EMPLOYEE_NOT_FOUND');
 		$svc->createAssignment([
 			'periodId' => 1,
 			'employeeId' => 10,

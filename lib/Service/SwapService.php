@@ -68,8 +68,10 @@ class SwapService
 	{
 		$employeeId = $this->linkedEmployeeId($actorUserId);
 		$row = $this->assignment($assignmentId);
+		// Existence-blind: someone else's assignment is reported exactly like a
+		// missing one — employees must not be able to enumerate assignment ids.
 		if ((int) $row['employee_id'] !== $employeeId) {
-			throw new \InvalidArgumentException('FORBIDDEN');
+			throw new \InvalidArgumentException('ASSIGNMENT_NOT_FOUND');
 		}
 		if ((string) ($row['status'] ?? 'active') === 'cancelled') {
 			throw new \InvalidArgumentException('ASSIGNMENT_CANCELLED');
@@ -134,16 +136,19 @@ class SwapService
 	 */
 	public function acceptByCounterparty(int $swapId, string $actorUserId): array
 	{
+		// Capability-before-lookup: resolve the actor's link BEFORE the row read.
+		// A non-linked user must get EMPLOYEE_LINK_NOT_FOUND for existing and
+		// missing ids alike — running getById first leaked existence
+		// (missing → SWAP_NOT_FOUND vs existing → EMPLOYEE_LINK_NOT_FOUND).
+		$actorEmployeeId = $this->linkedEmployeeId($actorUserId);
 		$swap = $this->getById($swapId);
+		// Existence-blind: a swap not addressed to this employee is reported
+		// exactly like a missing one — swap ids must not be enumerable.
+		if ((int) ($swap['toEmployeeId'] ?? 0) !== $actorEmployeeId) {
+			throw new \InvalidArgumentException('SWAP_NOT_FOUND');
+		}
 		if ($swap['status'] !== 'pending') {
 			throw new \InvalidArgumentException('SWAP_NOT_PENDING');
-		}
-		if ($swap['toEmployeeId'] === null) {
-			throw new \InvalidArgumentException('SWAP_NO_COUNTERPARTY');
-		}
-		$actorEmployeeId = $this->linkedEmployeeId($actorUserId);
-		if ($actorEmployeeId !== (int) $swap['toEmployeeId']) {
-			throw new \InvalidArgumentException('FORBIDDEN');
 		}
 
 		$now = (new \DateTimeImmutable('now'))->format('Y-m-d H:i:s');
@@ -199,13 +204,31 @@ class SwapService
 	public function review(int $swapId, string $actor, string $decision, string $reviewReason = ''): array
 	{
 		$swap = $this->getById($swapId);
+		// Company/scope gates BEFORE the status check — a hidden swap must not
+		// leak existence via SWAP_NOT_PENDING vs SWAP_NOT_FOUND.
+		try {
+			$row = $this->assignment((int) $swap['assignmentId']);
+		} catch (\InvalidArgumentException $e) {
+			if ($e->getMessage() === 'ASSIGNMENT_NOT_FOUND') {
+				throw new \InvalidArgumentException('SWAP_NOT_FOUND');
+			}
+			throw $e;
+		}
+		$this->roster->assertPeriodCompanyAccess($actor, (int) $row['period_id'], 'SWAP_NOT_FOUND');
+		if ($this->plannerScope !== null) {
+			// Scoped planners cannot see out-of-scope swaps in listPending, so a
+			// scope miss must collapse to the same code as a missing swap.
+			try {
+				$this->plannerScope->assertCanPlanLocation($actor, (int) $row['location_id']);
+			} catch (\InvalidArgumentException $e) {
+				if ($e->getMessage() === 'LOCATION_OUT_OF_SCOPE') {
+					throw new \InvalidArgumentException('SWAP_NOT_FOUND');
+				}
+				throw $e;
+			}
+		}
 		if (!in_array($swap['status'], self::REVIEWABLE, true)) {
 			throw new \InvalidArgumentException('SWAP_NOT_PENDING');
-		}
-		$row = $this->assignment((int) $swap['assignmentId']);
-		$this->roster->assertPeriodCompanyAccess($actor, (int) $row['period_id']);
-		if ($this->plannerScope !== null) {
-			$this->plannerScope->assertCanPlanLocation($actor, (int) $row['location_id']);
 		}
 		$decision = trim($decision);
 		if (!in_array($decision, ['approved', 'rejected'], true)) {
@@ -850,8 +873,10 @@ class SwapService
 		foreach ($rows as $row) {
 			$byId[(int) $row['id']] = (int) ($row['company_id'] ?? 0);
 		}
+		// Existence-blind: a counterparty outside the actor's company is not in
+		// their swap-candidate list — report it like a missing employee.
 		if (!isset($byId[$fromEmployeeId], $byId[$toEmployeeId]) || $byId[$fromEmployeeId] !== $byId[$toEmployeeId]) {
-			throw new \InvalidArgumentException('COMPANY_MISMATCH');
+			throw new \InvalidArgumentException('EMPLOYEE_NOT_FOUND');
 		}
 	}
 

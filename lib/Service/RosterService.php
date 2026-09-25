@@ -176,10 +176,10 @@ class RosterService
 	/**
 	 * Fail closed when multi-company is active and the actor cannot access the period's company.
 	 */
-	public function assertPeriodCompanyAccess(string $actorUserId, int $periodId): void
+	public function assertPeriodCompanyAccess(string $actorUserId, int $periodId, string $notFoundCode = 'PERIOD_NOT_FOUND'): void
 	{
 		if ($this->companies !== null) {
-			$this->companies->assertRowCompany($actorUserId, 'dc_periods', $periodId);
+			$this->companies->assertRowCompany($actorUserId, 'dc_periods', $periodId, $notFoundCode);
 		}
 	}
 
@@ -343,7 +343,7 @@ class RosterService
 	public function transitionPeriod(int $periodId, string $targetStatus, string $actorUserId, string $reason = ''): array
 	{
 		if ($this->companies !== null) {
-			$this->companies->assertRowCompany($actorUserId, 'dc_periods', $periodId);
+			$this->companies->assertRowCompany($actorUserId, 'dc_periods', $periodId, 'PERIOD_NOT_FOUND');
 		}
 		$this->db->beginTransaction();
 		try {
@@ -763,7 +763,7 @@ class RosterService
 		$selected = $periodId;
 		if ($selected !== null) {
 			if ($actorUserId !== null && $this->companies !== null) {
-				$this->companies->assertRowCompany($actorUserId, 'dc_periods', $selected);
+				$this->companies->assertRowCompany($actorUserId, 'dc_periods', $selected, 'PERIOD_NOT_FOUND');
 			}
 			$knownPeriodIds = array_map(static fn (array $period): int => (int) $period['id'], $periods);
 			if (!in_array($selected, $knownPeriodIds, true)) {
@@ -968,7 +968,7 @@ class RosterService
 
 		$period = $this->periodById($periodId);
 		if (!$trustedMarketplaceApply && $this->companies !== null) {
-			$this->companies->assertRowCompany($actor, 'dc_periods', $periodId);
+			$this->companies->assertRowCompany($actor, 'dc_periods', $periodId, 'PERIOD_NOT_FOUND');
 		}
 		$allowedStatuses = $allowPublishedMarketplace ? ['open', 'published'] : ['open'];
 		if (!in_array($period['status'], $allowedStatuses, true)) {
@@ -981,7 +981,7 @@ class RosterService
 		$this->assertLocationExists($locationId);
 		$this->assertEntitiesSharePeriodCompany($periodId, $employeeId, $locationId);
 		if (!$trustedMarketplaceApply && $this->plannerScope !== null) {
-			$this->plannerScope->assertCanPlanLocation($actor, $locationId);
+			$this->plannerScope->assertCanPlanLocationOr($actor, $locationId, 'LOCATION_NOT_FOUND');
 		}
 		$this->assertNoAbsenceConflict($employeeId, $dutyDate);
 		$pendingBlackoutOverride = $this->assertNoBlackoutConflict($employeeId, $dutyDate, $startTime, $endTime, $locationId, $payload, $actor);
@@ -1096,12 +1096,18 @@ class RosterService
 		if ($row === null) {
 			throw new \InvalidArgumentException('ASSIGNMENT_NOT_FOUND');
 		}
+		$periodId = (int) $row['period_id'];
+		// Company gate BEFORE any state check — otherwise a foreign-company
+		// cancelled/active row leaks existence via ASSIGNMENT_CANCELLED vs 404.
+		if ($this->companies !== null) {
+			$this->companies->assertRowCompany($actor, 'dc_periods', $periodId, 'ASSIGNMENT_NOT_FOUND');
+		}
+		if ($this->plannerScope !== null) {
+			// Scope gate BEFORE state checks — an out-of-scope row reports like a missing one.
+			$this->plannerScope->assertCanPlanLocationOr($actor, (int) $row['location_id'], 'ASSIGNMENT_NOT_FOUND');
+		}
 		if ((string) ($row['status'] ?? 'active') === 'cancelled') {
 			throw new \InvalidArgumentException('ASSIGNMENT_CANCELLED');
-		}
-		$periodId = (int) $row['period_id'];
-		if ($this->companies !== null) {
-			$this->companies->assertRowCompany($actor, 'dc_periods', $periodId);
 		}
 		$period = $this->periodById($periodId);
 		if ($period['status'] !== 'open') {
@@ -1148,7 +1154,8 @@ class RosterService
 		$this->assertLocationExists($locationId);
 		$this->assertEntitiesSharePeriodCompany($periodId, $employeeId, $locationId);
 		if ($this->plannerScope !== null) {
-			$this->plannerScope->assertCanPlanLocation($actor, $locationId);
+			// Target-location gate: out-of-scope reports like a missing location.
+			$this->plannerScope->assertCanPlanLocationOr($actor, $locationId, 'LOCATION_NOT_FOUND');
 		}
 		$this->assertNoAbsenceConflict($employeeId, $dutyDate);
 		$pendingBlackoutOverride = $this->assertNoBlackoutConflict($employeeId, $dutyDate, $startTime, $endTime, $locationId, $payload, $actor);
@@ -1266,7 +1273,7 @@ class RosterService
 			return;
 		}
 		if ($this->readRowCompanyId('dc_periods', $periodId) !== $this->readRowCompanyId('dc_locations', $locationId)) {
-			throw new \InvalidArgumentException('COMPANY_MISMATCH');
+			throw new \InvalidArgumentException('LOCATION_NOT_FOUND');
 		}
 	}
 
@@ -1296,19 +1303,23 @@ class RosterService
 		if ($row === null) {
 			throw new \InvalidArgumentException('ASSIGNMENT_NOT_FOUND');
 		}
-		if ((string) ($row['status'] ?? 'active') === 'cancelled') {
-			return $this->rosterData((int) $row['period_id'], $actor);
-		}
 		$periodId = (int) $row['period_id'];
+		// Company gate BEFORE the cancelled early-return — a foreign-company row
+		// must not be distinguishable via PERIOD_NOT_FOUND from rosterData.
 		if (!$trustedSwapApply && $this->companies !== null) {
-			$this->companies->assertRowCompany($actor, 'dc_periods', $periodId);
+			$this->companies->assertRowCompany($actor, 'dc_periods', $periodId, 'ASSIGNMENT_NOT_FOUND');
+		}
+		if (!$trustedSwapApply && $this->plannerScope !== null) {
+			// Scope gate BEFORE the cancelled early-return — an out-of-scope
+			// row must report exactly like a missing one.
+			$this->plannerScope->assertCanPlanLocationOr($actor, (int) $row['location_id'], 'ASSIGNMENT_NOT_FOUND');
+		}
+		if ((string) ($row['status'] ?? 'active') === 'cancelled') {
+			return $this->rosterData($periodId, $actor);
 		}
 		$period = $this->periodById($periodId);
 		if (!in_array($period['status'], ['open', 'published'], true)) {
 			throw new \InvalidArgumentException('PERIOD_NOT_OPEN');
-		}
-		if (!$trustedSwapApply && $this->plannerScope !== null) {
-			$this->plannerScope->assertCanPlanLocation($actor, (int) $row['location_id']);
 		}
 		$casVersion = (int) ($row['version'] ?? 0);
 
@@ -1382,12 +1393,14 @@ class RosterService
 		if ($row === null) {
 			throw new \InvalidArgumentException('ASSIGNMENT_NOT_FOUND');
 		}
+		$employeeId = $this->linkedEmployeeIdByUserId($actorUserId);
+		// Existence-blind: an assignment owned by another employee is reported
+		// exactly like a missing one (no id enumeration).
+		if ($employeeId !== (int) $row['employee_id']) {
+			throw new \InvalidArgumentException('ASSIGNMENT_NOT_FOUND');
+		}
 		if ((string) ($row['status'] ?? 'active') === 'cancelled') {
 			throw new \InvalidArgumentException('ASSIGNMENT_CANCELLED');
-		}
-		$employeeId = $this->linkedEmployeeIdByUserId($actorUserId);
-		if ($employeeId !== (int) $row['employee_id']) {
-			throw new \InvalidArgumentException('FORBIDDEN');
 		}
 		$period = $this->periodById((int) $row['period_id']);
 		if (!in_array($period['status'], ['published', 'closed'], true)) {
@@ -1448,8 +1461,8 @@ class RosterService
 	public function copyPeriodAssignments(int $sourcePeriodId, int $targetPeriodId, string $actor, bool $dryRun = true): array
 	{
 		if ($this->companies !== null) {
-			$this->companies->assertRowCompany($actor, 'dc_periods', $sourcePeriodId);
-			$this->companies->assertRowCompany($actor, 'dc_periods', $targetPeriodId);
+			$this->companies->assertRowCompany($actor, 'dc_periods', $sourcePeriodId, 'PERIOD_NOT_FOUND');
+			$this->companies->assertRowCompany($actor, 'dc_periods', $targetPeriodId, 'PERIOD_NOT_FOUND');
 		}
 		$source = $this->periodById($sourcePeriodId);
 		$target = $this->periodById($targetPeriodId);
@@ -1562,15 +1575,21 @@ class RosterService
 		if ($row === null) {
 			throw new \InvalidArgumentException('ASSIGNMENT_NOT_FOUND');
 		}
+		$periodId = (int) $row['period_id'];
+		// Company gate BEFORE state checks — a foreign-company row must not leak
+		// existence via ASSIGNMENT_CANCELLED / ASSIGNMENT_TRANSFER_STALE vs 404.
+		if (!$trustedSwapApply && $this->companies !== null) {
+			$this->companies->assertRowCompany($actor, 'dc_periods', $periodId, 'ASSIGNMENT_NOT_FOUND');
+		}
+		if (!$trustedSwapApply && $this->plannerScope !== null) {
+			// Scope gate BEFORE state checks — an out-of-scope row reports like a missing one.
+			$this->plannerScope->assertCanPlanLocationOr($actor, (int) $row['location_id'], 'ASSIGNMENT_NOT_FOUND');
+		}
 		if ((string) ($row['status'] ?? 'active') === 'cancelled') {
 			throw new \InvalidArgumentException('ASSIGNMENT_CANCELLED');
 		}
 		if ((int) $row['employee_id'] !== $fromEmployeeId) {
 			throw new \InvalidArgumentException('ASSIGNMENT_TRANSFER_STALE');
-		}
-		$periodId = (int) $row['period_id'];
-		if (!$trustedSwapApply && $this->companies !== null) {
-			$this->companies->assertRowCompany($actor, 'dc_periods', $periodId);
 		}
 		$period = $this->periodById($periodId);
 		if (!in_array($period['status'], ['open', 'published'], true)) {
@@ -1578,9 +1597,6 @@ class RosterService
 		}
 		$this->assertEmployeeExists($toEmployeeId);
 		$this->assertEntitiesSharePeriodCompany($periodId, $toEmployeeId, (int) $row['location_id']);
-		if (!$trustedSwapApply && $this->plannerScope !== null) {
-			$this->plannerScope->assertCanPlanLocation($actor, (int) $row['location_id']);
-		}
 		$dutyDate = (string) $row['duty_date'];
 		$startTime = (string) $row['start_time'];
 		$endTime = (string) $row['end_time'];
@@ -1676,7 +1692,7 @@ class RosterService
 		if ($row === false) {
 			throw new \InvalidArgumentException('CONFLICT_NOT_FOUND');
 		}
-		$this->assertPeriodCompanyAccess($actorUserId, (int) $row['period_id']);
+		$this->assertPeriodCompanyAccess($actorUserId, (int) $row['period_id'], 'CONFLICT_NOT_FOUND');
 		if ((int) $row['is_resolved'] === 1) {
 			throw new \InvalidArgumentException('CONFLICT_RESOLVED');
 		}
@@ -1828,7 +1844,7 @@ class RosterService
 		$endDate = (string) ($payload['endDate'] ?? '');
 		$this->assertEmployeeExists($employeeId);
 		if ($this->companies !== null) {
-			$this->companies->assertRowCompany($actor, 'dc_employees', $employeeId);
+			$this->companies->assertRowCompany($actor, 'dc_employees', $employeeId, 'EMPLOYEE_NOT_FOUND');
 		}
 		$this->assertIntegrationAllowsDcAbsenceForEmployee($employeeId);
 		$this->assertDate($startDate);
@@ -1880,7 +1896,7 @@ class RosterService
 
 		$current = $this->absenceById($absenceId);
 		if ($actorUserId !== '' && $this->companies !== null) {
-			$this->companies->assertRowCompany($actorUserId, 'dc_employees', (int) $current['employeeId']);
+			$this->companies->assertRowCompany($actorUserId, 'dc_employees', (int) $current['employeeId'], 'ABSENCE_NOT_FOUND');
 		}
 		$this->assertIntegrationAllowsDcAbsenceForEmployee($current['employeeId'], $targetStatus);
 		$allowedTransitions = [
@@ -2051,7 +2067,7 @@ class RosterService
 	public function updateEmployee(int $id, array $payload, ?string $actorUserId = null): array
 	{
 		if ($actorUserId !== null && $this->companies !== null) {
-			$this->companies->assertRowCompany($actorUserId, 'dc_employees', $id);
+			$this->companies->assertRowCompany($actorUserId, 'dc_employees', $id, 'EMPLOYEE_NOT_FOUND');
 		}
 		$this->assertEmployeeRowExists($id);
 		$currentLinkedUserId = $this->fetchEmployeeLinkedUserId($id);
@@ -2126,7 +2142,7 @@ class RosterService
 	public function updateLocation(int $id, array $payload, ?string $actorUserId = null): array
 	{
 		if ($actorUserId !== null && $this->companies !== null) {
-			$this->companies->assertRowCompany($actorUserId, 'dc_locations', $id);
+			$this->companies->assertRowCompany($actorUserId, 'dc_locations', $id, 'LOCATION_NOT_FOUND');
 		}
 		$this->assertLocationRowExists($id);
 		$name = $this->validateSimpleLabel((string) ($payload['name'] ?? ''), 'INVALID_LOCATION_NAME');
@@ -3705,7 +3721,7 @@ class RosterService
 		}
 		$periodId = (int) $row['period_id'];
 		if ($actorUserId !== null) {
-			$this->assertPeriodCompanyAccess($actorUserId, $periodId);
+			$this->assertPeriodCompanyAccess($actorUserId, $periodId, 'ASSIGNMENT_NOT_FOUND');
 		}
 		return [
 			'id' => (int) $row['id'],
@@ -4245,8 +4261,14 @@ class RosterService
 		$periodCompany = $this->readRowCompanyId('dc_periods', $periodId);
 		$employeeCompany = $this->readRowCompanyId('dc_employees', $employeeId);
 		$locationCompany = $this->readRowCompanyId('dc_locations', $locationId);
-		if ($periodCompany !== $employeeCompany || $periodCompany !== $locationCompany) {
-			throw new \InvalidArgumentException('COMPANY_MISMATCH');
+		// Existence-blind: an employee/location outside the period's company is
+		// invisible to the actor — report it like a missing row (no COMPANY_MISMATCH
+		// oracle confirming the id exists elsewhere).
+		if ($periodCompany !== $employeeCompany) {
+			throw new \InvalidArgumentException('EMPLOYEE_NOT_FOUND');
+		}
+		if ($periodCompany !== $locationCompany) {
+			throw new \InvalidArgumentException('LOCATION_NOT_FOUND');
 		}
 	}
 

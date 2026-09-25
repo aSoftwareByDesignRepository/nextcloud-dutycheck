@@ -139,8 +139,9 @@ final class RosterServiceMutationPeriodCompanyMappingTest extends TestCase
 			companies: $companies,
 		);
 
+		// Existence-blind: a foreign-company location reports like a missing one.
 		$this->expectException(\InvalidArgumentException::class);
-		$this->expectExceptionMessage('COMPANY_MISMATCH');
+		$this->expectExceptionMessage('LOCATION_NOT_FOUND');
 		$this->invoke($service, 'assertEntitiesSharePeriodCompany', 10, 4, 6);
 	}
 
@@ -158,8 +159,9 @@ final class RosterServiceMutationPeriodCompanyMappingTest extends TestCase
 			companies: $companies,
 		);
 
+		// Existence-blind: a foreign-company employee reports like a missing one.
 		$this->expectException(\InvalidArgumentException::class);
-		$this->expectExceptionMessage('COMPANY_MISMATCH');
+		$this->expectExceptionMessage('EMPLOYEE_NOT_FOUND');
 		$this->invoke($service, 'assertEntitiesSharePeriodCompany', 10, 4, 6);
 	}
 

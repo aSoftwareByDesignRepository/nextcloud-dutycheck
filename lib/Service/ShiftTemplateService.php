@@ -102,7 +102,7 @@ class ShiftTemplateService
 	public function update(int $id, array $payload, ?string $actorUserId = null): array
 	{
 		if ($actorUserId !== null && $this->companies !== null) {
-			$this->companies->assertRowCompany($actorUserId, 'dc_shift_templates', $id);
+			$this->companies->assertRowCompany($actorUserId, 'dc_shift_templates', $id, 'TEMPLATE_NOT_FOUND');
 		}
 		$existing = $this->getById($id);
 		$name = array_key_exists('name', $payload) ? trim((string) $payload['name']) : (string) $existing['name'];
@@ -148,7 +148,7 @@ class ShiftTemplateService
 	public function delete(int $id, ?string $actorUserId = null): void
 	{
 		if ($actorUserId !== null && $this->companies !== null) {
-			$this->companies->assertRowCompany($actorUserId, 'dc_shift_templates', $id);
+			$this->companies->assertRowCompany($actorUserId, 'dc_shift_templates', $id, 'TEMPLATE_NOT_FOUND');
 		}
 		$this->getById($id);
 		$qb = $this->db->getQueryBuilder();
@@ -227,6 +227,8 @@ class ShiftTemplateService
 		if ($row === false) {
 			throw new \InvalidArgumentException('LOCATION_NOT_FOUND');
 		}
+		// Existence-blind: a location outside the writer's company is invisible
+		// to them — report it like a missing location (no COMPANY_MISMATCH oracle).
 		if (
 			$companyId !== null
 			&& $this->companies !== null
@@ -234,7 +236,7 @@ class ShiftTemplateService
 			&& SchemaProbe::hasColumn($this->db, 'dc_locations', 'company_id')
 			&& (int) ($row['company_id'] ?? 0) !== $companyId
 		) {
-			throw new \InvalidArgumentException('COMPANY_MISMATCH');
+			throw new \InvalidArgumentException('LOCATION_NOT_FOUND');
 		}
 	}
 

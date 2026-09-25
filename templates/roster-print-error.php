@@ -11,6 +11,9 @@ use OCA\DutyCheck\Service\IconCatalog;
 $message = (string) ($_['message'] ?? $l->t('Something went wrong.'));
 $backUrl = (string) ($_['backUrl'] ?? '/');
 $htmlLang = (string) ($_['htmlLang'] ?? 'en-US');
+/* Blank-rendered template: emit stylesheet links here — controller-side
+   Util::addStyle() never reaches a layout-less response. */
+$dcPrintUrlGen = \OC::$server->get(\OCP\IURLGenerator::class);
 ?>
 <!DOCTYPE html>
 <html lang="<?php p($htmlLang); ?>" class="dc-html-print">
@@ -18,6 +21,8 @@ $htmlLang = (string) ($_['htmlLang'] ?? 'en-US');
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title><?php p($l->t('Roster print')); ?> — <?php p($l->t('DutyCheck')); ?></title>
+	<link rel="stylesheet" href="<?php p($dcPrintUrlGen->linkTo('dutycheck', 'css/common/tokens.css')); ?>">
+	<link rel="stylesheet" href="<?php p($dcPrintUrlGen->linkTo('dutycheck', 'css/app.css')); ?>">
 </head>
 <body class="dc-body-print dc-body-print--error">
 	<div id="app-content" class="dc-app dc-app--roster-print dc-app--roster-print-error">

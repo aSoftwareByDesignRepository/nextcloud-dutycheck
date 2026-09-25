@@ -85,7 +85,7 @@ class OpenShiftService
 	{
 		$open = $this->getById($openShiftId);
 		if (!$trustedSwapApply) {
-			$this->roster->assertPeriodCompanyAccess($actor, (int) $open['periodId']);
+			$this->roster->assertPeriodCompanyAccess($actor, (int) $open['periodId'], 'OPEN_SHIFT_NOT_FOUND');
 		}
 		if ($open['status'] !== 'open') {
 			throw new \InvalidArgumentException('OPEN_SHIFT_NOT_OPEN');
@@ -228,7 +228,7 @@ class OpenShiftService
 	public function approveClaim(int $openShiftId, string $actor, array $acknowledgements = []): array
 	{
 		$open = $this->getById($openShiftId);
-		$this->roster->assertPeriodCompanyAccess($actor, (int) $open['periodId']);
+		$this->roster->assertPeriodCompanyAccess($actor, (int) $open['periodId'], 'OPEN_SHIFT_NOT_FOUND');
 		if ($open['status'] !== 'pending') {
 			throw new \InvalidArgumentException('OPEN_SHIFT_NOT_PENDING');
 		}
@@ -305,7 +305,7 @@ class OpenShiftService
 	public function rejectClaim(int $openShiftId, string $actor): array
 	{
 		$open = $this->getById($openShiftId);
-		$this->roster->assertPeriodCompanyAccess($actor, (int) $open['periodId']);
+		$this->roster->assertPeriodCompanyAccess($actor, (int) $open['periodId'], 'OPEN_SHIFT_NOT_FOUND');
 		if ($open['status'] !== 'pending') {
 			throw new \InvalidArgumentException('OPEN_SHIFT_NOT_PENDING');
 		}
@@ -390,8 +390,10 @@ class OpenShiftService
 		if ($row === false) {
 			throw new \InvalidArgumentException('EMPLOYEE_NOT_FOUND');
 		}
+		// Existence-blind: an open shift in a company the claimant cannot see is
+		// reported exactly like a missing one (no id enumeration).
 		if ((int) ($row['company_id'] ?? 0) !== $periodCompany) {
-			throw new \InvalidArgumentException('COMPANY_MISMATCH');
+			throw new \InvalidArgumentException('OPEN_SHIFT_NOT_FOUND');
 		}
 	}
 

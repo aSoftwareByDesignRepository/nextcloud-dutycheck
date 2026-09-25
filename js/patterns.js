@@ -214,6 +214,10 @@
 						type: 'button', class: 'button', text: t('dutycheck', 'Assign'),
 						on: { click: () => openAssign(pat) },
 					}),
+					create('button', {
+						type: 'button', class: 'button danger', text: t('dutycheck', 'Delete'),
+						on: { click: () => { void deletePattern(pat); } },
+					}),
 				]),
 			]));
 		});
@@ -474,6 +478,24 @@
 				}
 			},
 		});
+	}
+
+	async function deletePattern(pat) {
+		const ok = await C.confirmDialog({
+			title: t('dutycheck', 'Delete pattern'),
+			body: t('dutycheck', 'Delete pattern “{name}”? Assigned employees keep their existing shifts, but the pattern will not fill new ones.')
+				.replace('{name}', String(pat.name || '')),
+			confirmLabel: t('dutycheck', 'Delete'),
+			danger: true,
+		});
+		if (!ok) return;
+		try {
+			await Api.post(API + '/' + pat.id + '/deactivate', {});
+			Msg.announce(t('dutycheck', 'Pattern deleted.'), 'success');
+			await load();
+		} catch (err) {
+			Msg.handleApiError(err);
+		}
 	}
 
 	async function load() {

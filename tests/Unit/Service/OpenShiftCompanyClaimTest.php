@@ -94,8 +94,9 @@ final class OpenShiftCompanyClaimTest extends TestCase
 		$roster = $this->createMock(RosterService::class);
 		$svc = new OpenShiftService($db, $roster, $companies);
 
+		// Existence-blind: a cross-company open shift reports like a missing one.
 		$this->expectException(\InvalidArgumentException::class);
-		$this->expectExceptionMessage('COMPANY_MISMATCH');
+		$this->expectExceptionMessage('OPEN_SHIFT_NOT_FOUND');
 		$svc->claim(5, 'alice');
 	}
 }

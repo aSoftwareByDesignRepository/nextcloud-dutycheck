@@ -62,8 +62,9 @@ final class SwapServiceGuardTest extends TestCase
 		);
 
 		$svc = new SwapService($db, $this->createMock(RosterService::class));
+		// Existence-blind: someone else's assignment reports like a missing one.
 		$this->expectException(\InvalidArgumentException::class);
-		$this->expectExceptionMessage('FORBIDDEN');
+		$this->expectExceptionMessage('ASSIGNMENT_NOT_FOUND');
 		$svc->requestSwap(5, 'alice', 11);
 	}
 
@@ -133,9 +134,21 @@ final class SwapServiceGuardTest extends TestCase
 			'reviewed_at' => '2099-01-01 00:00:00',
 			'created_at' => '2099-01-01 00:00:00',
 		]);
+		$asgResult = $this->createMock(IResult::class);
+		$asgResult->method('fetch')->willReturn([
+			'id' => 5,
+			'employee_id' => 10,
+			'period_id' => 1,
+			'location_id' => 2,
+			'status' => 'active',
+		]);
 
+		// review() authorizes the linked assignment BEFORE reading swap state.
 		$db = $this->createMock(IDBConnection::class);
-		$db->method('getQueryBuilder')->willReturn($this->qbReturning($swapResult));
+		$db->method('getQueryBuilder')->willReturnOnConsecutiveCalls(
+			$this->qbReturning($swapResult),
+			$this->qbReturning($asgResult),
+		);
 
 		$svc = new SwapService($db, $this->createMock(RosterService::class));
 		$this->expectException(\InvalidArgumentException::class);
@@ -249,5 +262,62 @@ final class SwapServiceGuardTest extends TestCase
 		$this->expectException(\InvalidArgumentException::class);
 		$this->expectExceptionMessage('SWAP_ALREADY_PENDING');
 		$svc->requestSwap(5, 'alice', null);
+	}
+
+	/**
+	 * Existence-oracle regression (atlas 3.5.11): for a non-linked actor the
+	 * actor-capability check must run BEFORE the row lookup, so a missing swap
+	 * id and an existing foreign swap id produce the identical error code.
+	 * Pre-fix order returned SWAP_NOT_FOUND for missing but
+	 * EMPLOYEE_LINK_NOT_FOUND for existing → swap ids were enumerable.
+	 */
+	public function testAcceptByCounterpartyUnlinkedActorIsExistenceBlind(): void
+	{
+		// Actor has no linked employee: the FIRST query consumed is the
+		// linked-employee lookup; a missing swap id must surface the same
+		// EMPLOYEE_LINK_NOT_FOUND as an existing-but-foreign id.
+		$noLink = $this->createMock(IResult::class);
+		$noLink->method('fetch')->willReturn(false);
+
+		$db = $this->createMock(IDBConnection::class);
+		$db->method('getQueryBuilder')->willReturnOnConsecutiveCalls(
+			$this->qbReturning($noLink),
+		);
+
+		$svc = new SwapService($db, $this->createMock(RosterService::class));
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('EMPLOYEE_LINK_NOT_FOUND');
+		// Missing id — must NOT reach the swap row lookup first.
+		$svc->acceptByCounterparty(88800123, 'nonlinked_user');
+	}
+
+	public function testAcceptByCounterpartyLinkedActorForeignSwapIsNotFound(): void
+	{
+		$empResult = $this->createMock(IResult::class);
+		$empResult->method('fetch')->willReturn(['id' => 10]);
+		$swapResult = $this->createMock(IResult::class);
+		$swapResult->method('fetch')->willReturn([
+			'id' => 3,
+			'assignment_id' => 5,
+			'from_employee_id' => 7,
+			'to_employee_id' => 11, // addressed to someone else
+			'status' => 'pending',
+			'reason' => '',
+			'review_reason' => '',
+			'reviewed_by' => null,
+			'reviewed_at' => null,
+			'created_at' => '2099-01-01 00:00:00',
+		]);
+
+		$db = $this->createMock(IDBConnection::class);
+		$db->method('getQueryBuilder')->willReturnOnConsecutiveCalls(
+			$this->qbReturning($empResult),
+			$this->qbReturning($swapResult),
+		);
+
+		$svc = new SwapService($db, $this->createMock(RosterService::class));
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('SWAP_NOT_FOUND');
+		$svc->acceptByCounterparty(3, 'bob');
 	}
 }

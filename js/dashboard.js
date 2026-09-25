@@ -349,9 +349,17 @@
 		}
 		root.classList.remove('dc-loading');
 		root.removeAttribute('aria-busy');
-		root.replaceChildren(create('div', { class: 'dc-callout dc-callout--warning' }, [
-			create('p', { text: t('dutycheck', 'Could not load planning checks. Reload the page to retry.') }),
-		]));
+		const callout = create('div', { class: 'dc-callout dc-callout--warning' }, [
+			create('p', { text: t('dutycheck', 'Could not load this section. Retry or contact an administrator if it continues.') }),
+		]);
+		const retryBtn = create('button', {
+			type: 'button',
+			class: 'button',
+			text: t('dutycheck', 'Retry'),
+		});
+		retryBtn.addEventListener('click', () => loadSummary());
+		callout.appendChild(retryBtn);
+		root.replaceChildren(callout);
 	}
 
 	function loadDashboard() {

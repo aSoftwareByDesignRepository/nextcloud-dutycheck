@@ -672,6 +672,14 @@
 				setMonthStatus(t('dutycheck', 'Please wait a moment and try that month again.'), true);
 			} else {
 				setMonthStatus(t('dutycheck', 'Could not open that month. Check your connection and try again.'), true);
+				// loadRoster() never ran — the assignments table is still the empty
+				// SSR shell. Paint a real error row with a working retry.
+				C.renderTableFetchError(
+					document.getElementById('dc-assignments-table-body'),
+					8,
+					t('dutycheck', 'Could not load the roster. Retry, or contact an administrator if this keeps happening.'),
+					{ retry: () => goToCalendarMonth(ym) },
+				);
 			}
 			Msg?.showError?.(err);
 		} finally {
@@ -2135,17 +2143,25 @@
 		}
 	}
 
-	function restoreAssignmentFormPanel() {
+	/**
+	 * @param {HTMLElement|null} [panelOverride] the live panel node captured at
+	 *   open time. REQUIRED on modal close: openModal removes the overlay (and
+	 *   the reparented panel with it) BEFORE onClose runs, so a fresh
+	 *   getElementById lookup can no longer reach it — the detached node must
+	 *   be re-appended via the held reference or the assignment modal can never
+	 *   open a second time.
+	 */
+	function restoreAssignmentFormPanel(panelOverride) {
 		const host = document.getElementById('dc-assignment-form-host');
-		const panel = document.getElementById('dc-assignment-form-panel');
+		const panel = panelOverride || document.getElementById('dc-assignment-form-panel');
 		if (host && panel && panel.parentElement !== host) {
 			host.appendChild(panel);
 		}
 	}
 
 	/** Alias used by assignment modal onClose — keep panel host-restored after dismiss. */
-	function restoreAssignmentFormHost() {
-		restoreAssignmentFormPanel();
+	function restoreAssignmentFormHost(panelOverride) {
+		restoreAssignmentFormPanel(panelOverride);
 	}
 
 	function selectedPeriodFromState() {
@@ -2378,7 +2394,7 @@
 			onClose: (result) => {
 				assignmentModalInstance = null;
 				state.editingAssignmentId = null;
-				restoreAssignmentFormHost();
+				restoreAssignmentFormHost(panel);
 				if (!result) {
 					clearAssignmentFormSuccess();
 					return;
@@ -2463,7 +2479,7 @@
 			onClose: () => {
 				assignmentModalInstance = null;
 				state.editingAssignmentId = null;
-				restoreAssignmentFormHost();
+				restoreAssignmentFormHost(panel);
 				clearAssignmentFormSuccess();
 				if (triggerEl && typeof triggerEl.focus === 'function') {
 					triggerEl.focus();
@@ -2889,12 +2905,12 @@
 					return fallback?.data || {};
 				} catch (retryErr) {
 					Msg.handleApiError(retryErr);
-					C.renderTableFetchError(tbody, 8, t('dutycheck', 'Could not load the roster. Reload the page or contact an administrator if this keeps happening.'));
+					C.renderTableFetchError(tbody, 8, t('dutycheck', 'Could not load the roster. Retry, or contact an administrator if this keeps happening.'), { retry: () => loadRoster(periodId) });
 					return null;
 				}
 			}
 			Msg.handleApiError(err);
-			C.renderTableFetchError(tbody, 8, t('dutycheck', 'Could not load the roster. Reload the page or contact an administrator if this keeps happening.'));
+			C.renderTableFetchError(tbody, 8, t('dutycheck', 'Could not load the roster. Retry, or contact an administrator if this keeps happening.'), { retry: () => loadRoster(periodId) });
 			return null;
 		} finally {
 			C.clearLoadingRow(tbody);
@@ -2999,18 +3015,12 @@
 	}
 
 	function currentSuggestLocationId() {
+		// Only an explicit ?locationId= scopes the suggest fill. Reading the
+		// "Add assignment" form's location select here silently filtered every
+		// candidate out whenever it held a different location (0.3.4 regression).
 		const params = new URLSearchParams(window.location.search || '');
 		const fromUrl = Number(params.get('locationId') || 0);
-		if (Number.isInteger(fromUrl) && fromUrl > 0) {
-			return fromUrl;
-		}
-		const filterEl = document.getElementById('dc-roster-location')
-			|| document.getElementById('dc-assignment-location');
-		const fromUi = Number(filterEl?.value || 0);
-		if (Number.isInteger(fromUi) && fromUi > 0) {
-			return fromUi;
-		}
-		return null;
+		return Number.isInteger(fromUrl) && fromUrl > 0 ? fromUrl : null;
 	}
 
 	async function runSuggestFill() {
@@ -3029,27 +3039,19 @@
 		try {
 			const preview = await Api.post(`/apps/dutycheck/api/periods/${periodId}/suggest-preview`, suggestBody);
 			const d = preview?.data || {};
-			if ((d.created ?? 0) === 0 && (d.skippedNoPattern ?? 0) === 0) {
-				const noLoc = Number(d.skippedNoLocation ?? 0);
-				Msg.announce(
-					noLoc > 0
-						? t('dutycheck', 'No shifts to fill. Patterns need a default location on working days (or pick a location filter).')
-						: t('dutycheck', 'No shifts to fill. Check that patterns have a default location and working days with times.'),
-					'warning',
-				);
-				return;
-			}
+			const created = Number(d.created ?? 0);
 			const body = create('div', { class: 'dc-suggest-preview' }, [
 				create('p', {
 					text: t('dutycheck', 'Would create {n} shifts from patterns.')
-						.replace('{n}', String(d.created ?? 0)),
+						.replace('{n}', String(created)),
 				}),
 				create('ul', { class: 'dc-suggest-preview__counts' }, [
 					create('li', { text: t('dutycheck', 'Skipped (already filled): {n}').replace('{n}', String(d.skippedExisting ?? 0)) }),
 					create('li', { text: t('dutycheck', 'Skipped (absence): {n}').replace('{n}', String(d.skippedAbsence ?? 0)) }),
-					create('li', { text: t('dutycheck', 'Skipped (kann nicht): {n}').replace('{n}', String(d.skippedBlackout ?? 0)) }),
+					create('li', { text: t('dutycheck', 'Skipped (cannot work): {n}').replace('{n}', String(d.skippedBlackout ?? 0)) }),
 					create('li', { text: t('dutycheck', 'Skipped (no pattern): {n}').replace('{n}', String(d.skippedNoPattern ?? 0)) }),
 					create('li', { text: t('dutycheck', 'Skipped (no location): {n}').replace('{n}', String(d.skippedNoLocation ?? 0)) }),
+					create('li', { text: t('dutycheck', 'Skipped (location filter): {n}').replace('{n}', String(d.skippedLocationMismatch ?? 0)) }),
 				]),
 			]);
 			const confirmed = await new Promise((resolve) => {
@@ -3061,8 +3063,11 @@
 				};
 				C.openModal({
 					title: t('dutycheck', 'Suggest fill preview'),
-					primaryLabel: t('dutycheck', 'Apply suggest fill'),
+					primaryLabel: created > 0
+						? t('dutycheck', 'Apply suggest fill')
+						: t('dutycheck', 'Close'),
 					cancelLabel: t('dutycheck', 'Cancel'),
+					showCancel: created > 0,
 					render: () => body,
 					onSubmit: async () => {
 						finish(true);
@@ -3072,11 +3077,7 @@
 					onClose: () => finish(false),
 				});
 			});
-			if (!confirmed) return;
-			if ((d.created ?? 0) < 1) {
-				Msg.announce(t('dutycheck', 'Nothing to fill.'), 'info');
-				return;
-			}
+			if (!confirmed || created < 1) return;
 			await Api.post(`/apps/dutycheck/api/periods/${periodId}/suggest-confirm`, suggestBody);
 			Msg.announce(t('dutycheck', 'Suggest fill applied.'), 'success');
 			await loadRoster(periodId);
@@ -3347,10 +3348,7 @@
 				list.appendChild(li);
 			}
 		} catch (_) {
-			if (empty) {
-				empty.hidden = false;
-				empty.textContent = t('dutycheck', 'Could not load swap requests.');
-			}
+			C.renderInlineFetchError?.(empty, t('dutycheck', 'Could not load swap requests.'), () => loadPendingSwaps());
 		}
 	}
 
@@ -3437,10 +3435,7 @@
 				list.appendChild(li);
 			}
 		} catch (_) {
-			if (empty) {
-				empty.hidden = false;
-				empty.textContent = t('dutycheck', 'Could not load pending claims.');
-			}
+			C.renderInlineFetchError?.(empty, t('dutycheck', 'Could not load pending claims.'), () => loadPendingOpenClaims());
 		}
 	}
 

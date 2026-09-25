@@ -72,7 +72,9 @@ final class RosterServiceMutationAcknowledgeFlowsTest extends TestCase
 	public function testCancelledAssignmentCannotBeAcknowledged(): void
 	{
 		$qbAssignment = $this->rosterQb(['fetch' => $this->assignmentRow(['status' => 'cancelled'])]);
-		$service = new RosterService($this->rosterDb($qbAssignment));
+		// Ownership is proven before state is revealed (existence-blind doctrine).
+		$qbEmployee = $this->rosterQb(['fetchOne' => '7']);
+		$service = new RosterService($this->rosterDb($qbAssignment, $qbEmployee));
 
 		$this->expectException(\InvalidArgumentException::class);
 		$this->expectExceptionMessage('ASSIGNMENT_CANCELLED');
@@ -88,7 +90,8 @@ final class RosterServiceMutationAcknowledgeFlowsTest extends TestCase
 			}
 		};
 		$qbAssignment = $this->rosterQb(['fetch' => $this->assignmentRow(['status' => $status])]);
-		$service = new RosterService($this->rosterDb($qbAssignment));
+		$qbEmployee = $this->rosterQb(['fetchOne' => '7']);
+		$service = new RosterService($this->rosterDb($qbAssignment, $qbEmployee));
 
 		$this->expectException(\InvalidArgumentException::class);
 		$this->expectExceptionMessage('ASSIGNMENT_CANCELLED');

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\DutyCheck\Service;
 
 use OCA\DutyCheck\Db\SchemaProbe;
+use OCA\DutyCheck\Http\ApiMutationParams;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 use Throwable;
@@ -38,6 +39,7 @@ final class RotationPatternService
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('*')->from('dc_rotation_patterns')
 			->where($qb->expr()->eq('company_id', $qb->createNamedParameter($companyId, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)))
 			->orderBy('name', 'ASC');
 		$rows = $qb->executeQuery()->fetchAll();
 		$out = [];
@@ -54,7 +56,7 @@ final class RotationPatternService
 	{
 		$this->assertSchemaReady();
 		$row = $this->patternRow($id);
-		$this->companies->assertCanAccessCompany($actor, (int) $row['company_id']);
+		$this->companies->assertCanAccessCompany($actor, (int) $row['company_id'], 'PATTERN_NOT_FOUND');
 		return $this->normalizePattern($row, $this->loadWeekDays($id));
 	}
 
@@ -130,8 +132,18 @@ final class RotationPatternService
 		$this->assertSchemaReady();
 		$existing = $this->patternRow($id);
 		$companyId = (int) $existing['company_id'];
-		$this->companies->assertCanAccessCompany($actor, $companyId);
-		$this->assertRotationEnabled($companyId);
+		$this->companies->assertCanAccessCompany($actor, $companyId, 'PATTERN_NOT_FOUND');
+
+		$isActive = array_key_exists('isActive', $payload) || array_key_exists('is_active', $payload)
+			? (ApiMutationParams::boolValue($payload['isActive'] ?? $payload['is_active']) ? 1 : 0)
+			: (int) $existing['is_active'];
+
+		// Deactivation is a safety valve: it must never be blocked by the
+		// feature flag or by a stored value that fails today's validation —
+		// otherwise a pattern becomes undeletable after a settings change.
+		if ($isActive === 1) {
+			$this->assertRotationEnabled($companyId);
+		}
 
 		$name = array_key_exists('name', $payload)
 			? $this->normalizeName((string) $payload['name'])
@@ -139,7 +151,9 @@ final class RotationPatternService
 		$cycleWeeks = array_key_exists('cycleWeeks', $payload) || array_key_exists('cycle_weeks', $payload)
 			? (int) ($payload['cycleWeeks'] ?? $payload['cycle_weeks'])
 			: (int) $existing['cycle_weeks'];
-		$this->anchors->assertCycleWeeksAllowed($cycleWeeks, $this->settings->allowedCycleWeeks($companyId));
+		if ($cycleWeeks !== (int) $existing['cycle_weeks']) {
+			$this->anchors->assertCycleWeeksAllowed($cycleWeeks, $this->settings->allowedCycleWeeks($companyId));
+		}
 
 		$anchor = $this->normalizeAnchorFields($payload, $existing);
 		$anchorChanged = $this->anchorFieldsChanged($existing, $anchor);
@@ -165,10 +179,6 @@ final class RotationPatternService
 		$contractAvg = array_key_exists('contractAvgMinutes', $payload) || array_key_exists('contract_avg_minutes', $payload)
 			? $this->optionalInt($payload['contractAvgMinutes'] ?? $payload['contract_avg_minutes'] ?? null)
 			: ($existing['contract_avg_minutes'] !== null ? (int) $existing['contract_avg_minutes'] : null);
-
-		$isActive = array_key_exists('isActive', $payload) || array_key_exists('is_active', $payload)
-			? (((int) ($payload['isActive'] ?? $payload['is_active'])) ? 1 : 0)
-			: (int) $existing['is_active'];
 
 		$weekDaysPayload = $payload['weekDays'] ?? $payload['week_days'] ?? null;
 		$replaceDays = $weekDaysPayload !== null;
@@ -256,7 +266,7 @@ final class RotationPatternService
 
 		$pattern = $this->patternRow($patternId);
 		$companyId = (int) $pattern['company_id'];
-		$this->companies->assertCanAccessCompany($actor, $companyId);
+		$this->companies->assertCanAccessCompany($actor, $companyId, 'PATTERN_NOT_FOUND');
 		$this->assertRotationEnabled($companyId);
 		if ((int) $pattern['is_active'] !== 1) {
 			throw new \InvalidArgumentException('PATTERN_INACTIVE');
@@ -345,7 +355,7 @@ final class RotationPatternService
 	public function listEmployeeAssignments(int $employeeId, string $actor): array
 	{
 		$this->assertSchemaReady();
-		$this->companies->assertRowCompany($actor, 'dc_employees', $employeeId);
+		$this->companies->assertRowCompany($actor, 'dc_employees', $employeeId, 'EMPLOYEE_NOT_FOUND');
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('*')->from('dc_emp_rot_assign')
 			->where($qb->expr()->eq('employee_id', $qb->createNamedParameter($employeeId, IQueryBuilder::PARAM_INT)))
@@ -365,7 +375,7 @@ final class RotationPatternService
 		$this->assertSchemaReady();
 		$this->assertDate($validTo);
 		$row = $this->empAssignmentRow($id);
-		$this->companies->assertCanAccessCompany($actor, (int) $row['company_id']);
+		$this->companies->assertCanAccessCompany($actor, (int) $row['company_id'], 'ROTATION_ASSIGNMENT_NOT_FOUND');
 		$this->assertRotationEnabled((int) $row['company_id']);
 		if ($validTo < (string) $row['valid_from']) {
 			throw new \InvalidArgumentException('INVALID_DATE_RANGE');
@@ -552,7 +562,10 @@ final class RotationPatternService
 			if ($weekIndex < 0 || $weekIndex >= $cycleWeeks || $dow < 1 || $dow > 7) {
 				throw new \InvalidArgumentException('WEEK_DAY_OUT_OF_RANGE');
 			}
-			$isWorking = (bool) ($item['isWorking'] ?? $item['is_working'] ?? false);
+			$isWorking = ApiMutationParams::boolValueOr(
+				$item['isWorking'] ?? $item['is_working'] ?? null,
+				false,
+			);
 			$start = $this->optionalTime($item['startLocal'] ?? $item['start_local'] ?? null);
 			$end = $this->optionalTime($item['endLocal'] ?? $item['end_local'] ?? null);
 			$break = max(0, (int) ($item['breakMinutes'] ?? $item['break_minutes'] ?? 0));
@@ -772,7 +785,7 @@ final class RotationPatternService
 
 	private function assertEmployeeInCompany(int $employeeId, int $companyId, string $actor): void
 	{
-		$this->companies->assertRowCompany($actor, 'dc_employees', $employeeId);
+		$this->companies->assertRowCompany($actor, 'dc_employees', $employeeId, 'EMPLOYEE_NOT_FOUND');
 		if (!$this->companies->isMultiCompanyActive() || !SchemaProbe::hasColumn($this->db, 'dc_employees', 'company_id')) {
 			return;
 		}
@@ -783,8 +796,10 @@ final class RotationPatternService
 		if ($row === false) {
 			throw new \InvalidArgumentException('EMPLOYEE_NOT_FOUND');
 		}
+		// Existence-blind: an employee in another company is invisible to the
+		// actor — report it like a missing row (no COMPANY_MISMATCH oracle).
 		if ((int) ($row['company_id'] ?? 0) !== $companyId) {
-			throw new \InvalidArgumentException('COMPANY_MISMATCH');
+			throw new \InvalidArgumentException('EMPLOYEE_NOT_FOUND');
 		}
 	}
 

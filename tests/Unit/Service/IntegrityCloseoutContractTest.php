@@ -101,7 +101,7 @@ final class IntegrityCloseoutContractTest extends TestCase
 	{
 		$src = (string) file_get_contents(dirname(__DIR__, 3) . '/lib/Service/RosterService.php');
 		self::assertMatchesRegularExpression(
-			'/function transferAssignmentEmployee[\s\S]{0,2500}?AssignmentSlotKey::forActive/',
+			'/function transferAssignmentEmployee[\s\S]{0,3500}?AssignmentSlotKey::forActive/',
 			$src,
 		);
 		self::assertMatchesRegularExpression(

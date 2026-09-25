@@ -58,8 +58,9 @@ final class ShiftTemplateLocationCompanyTest extends TestCase
 		$db->method('getQueryBuilder')->willReturn($qb);
 
 		$svc = new ShiftTemplateService($db, $companies);
+		// Existence-blind: a foreign-company location reports like a missing one.
 		$this->expectException(\InvalidArgumentException::class);
-		$this->expectExceptionMessage('COMPANY_MISMATCH');
+		$this->expectExceptionMessage('LOCATION_NOT_FOUND');
 		$svc->create([
 			'name' => 'Morning',
 			'startTime' => '08:00',

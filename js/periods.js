@@ -494,14 +494,15 @@
 			return;
 		}
 
+		const detailRetry = { retry: () => loadPeriodDetails(periodId) };
 		if (snapR.status === 'rejected') {
 			if (!(Api.isAborted && Api.isAborted(snapR.reason))) {
-				C.renderTableFetchError(document.getElementById('dc-snapshots-table-body'), 4, tableErr);
+				C.renderTableFetchError(document.getElementById('dc-snapshots-table-body'), 4, tableErr, detailRetry);
 			}
 		}
 		if (audR.status === 'rejected') {
 			if (!(Api.isAborted && Api.isAborted(audR.reason))) {
-				C.renderTableFetchError(document.getElementById('dc-period-audit-table-body'), 4, tableErr);
+				C.renderTableFetchError(document.getElementById('dc-period-audit-table-body'), 4, tableErr, detailRetry);
 			}
 		}
 		if (pubR.status === 'rejected' && !(Api.isAborted && Api.isAborted(pubR.reason))) {
@@ -605,8 +606,19 @@
 			if (Api.isAborted && Api.isAborted(err)) {
 				return;
 			}
+			const retry = { retry: () => loadPeriods(preferredPeriodId) };
 			C.clearLoadingRow?.(periodsBody);
-			C.renderTableFetchError(periodsBody, 3, tableErr);
+			C.renderTableFetchError(periodsBody, 3, tableErr, retry);
+			/* Snapshots/audit ship SSR skeleton rows + aria-busy and are only
+			   cleared by loadPeriodDetails() — which never runs when the list
+			   request itself fails. Clear them here so no fake loading chrome
+			   survives the failure. */
+			for (const id of ['dc-snapshots-table-body', 'dc-period-audit-table-body']) {
+				const tb = document.getElementById(id);
+				if (!tb) continue;
+				C.clearLoadingRow?.(tb);
+				C.renderTableFetchError(tb, 4, tableErr, retry);
+			}
 			Msg.handleApiError(err);
 		}
 	}

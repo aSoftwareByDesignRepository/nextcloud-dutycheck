@@ -78,7 +78,7 @@ class QualificationService
 	{
 		if ($actorUserId !== null && $this->companies !== null
 			&& \OCA\DutyCheck\Db\SchemaProbe::hasColumn($this->db, 'dc_qualifications', 'company_id')) {
-			$this->companies->assertRowCompany($actorUserId, 'dc_qualifications', $id);
+			$this->companies->assertRowCompany($actorUserId, 'dc_qualifications', $id, 'QUALIFICATION_NOT_FOUND');
 		}
 		$name = trim((string) ($payload['name'] ?? ''));
 		if ($name === '' || mb_strlen($name) > 120) {
@@ -108,7 +108,7 @@ class QualificationService
 	{
 		if ($actorUserId !== null && $this->companies !== null
 			&& \OCA\DutyCheck\Db\SchemaProbe::hasColumn($this->db, 'dc_qualifications', 'company_id')) {
-			$this->companies->assertRowCompany($actorUserId, 'dc_qualifications', $id);
+			$this->companies->assertRowCompany($actorUserId, 'dc_qualifications', $id, 'QUALIFICATION_NOT_FOUND');
 		}
 		$qb = $this->db->getQueryBuilder();
 		$affected = $qb->update('dc_qualifications')
@@ -142,9 +142,9 @@ class QualificationService
 	public function attachToEmployee(int $employeeId, int $qualificationId, ?string $expiresOn, ?string $actorUserId = null): void
 	{
 		if ($actorUserId !== null && $this->companies !== null) {
-			$this->companies->assertRowCompany($actorUserId, 'dc_employees', $employeeId);
+			$this->companies->assertRowCompany($actorUserId, 'dc_employees', $employeeId, 'EMPLOYEE_NOT_FOUND');
 			if (\OCA\DutyCheck\Db\SchemaProbe::hasColumn($this->db, 'dc_qualifications', 'company_id')) {
-				$this->companies->assertRowCompany($actorUserId, 'dc_qualifications', $qualificationId);
+				$this->companies->assertRowCompany($actorUserId, 'dc_qualifications', $qualificationId, 'QUALIFICATION_NOT_FOUND');
 			}
 		}
 		if ($expiresOn !== null && $expiresOn !== '') {
@@ -180,9 +180,9 @@ class QualificationService
 	public function detachFromEmployee(int $employeeId, int $qualificationId, ?string $actorUserId = null): void
 	{
 		if ($actorUserId !== null && $this->companies !== null) {
-			$this->companies->assertRowCompany($actorUserId, 'dc_employees', $employeeId);
+			$this->companies->assertRowCompany($actorUserId, 'dc_employees', $employeeId, 'EMPLOYEE_NOT_FOUND');
 			if (\OCA\DutyCheck\Db\SchemaProbe::hasColumn($this->db, 'dc_qualifications', 'company_id')) {
-				$this->companies->assertRowCompany($actorUserId, 'dc_qualifications', $qualificationId);
+				$this->companies->assertRowCompany($actorUserId, 'dc_qualifications', $qualificationId, 'QUALIFICATION_NOT_FOUND');
 			}
 		}
 		$qb = $this->db->getQueryBuilder();
@@ -198,9 +198,9 @@ class QualificationService
 	public function requireForLocation(int $locationId, int $qualificationId, ?string $actorUserId = null): void
 	{
 		if ($actorUserId !== null && $this->companies !== null) {
-			$this->companies->assertRowCompany($actorUserId, 'dc_locations', $locationId);
+			$this->companies->assertRowCompany($actorUserId, 'dc_locations', $locationId, 'LOCATION_NOT_FOUND');
 			if (\OCA\DutyCheck\Db\SchemaProbe::hasColumn($this->db, 'dc_qualifications', 'company_id')) {
-				$this->companies->assertRowCompany($actorUserId, 'dc_qualifications', $qualificationId);
+				$this->companies->assertRowCompany($actorUserId, 'dc_qualifications', $qualificationId, 'QUALIFICATION_NOT_FOUND');
 			}
 		}
 		$qb = $this->db->getQueryBuilder();

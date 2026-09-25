@@ -36,12 +36,24 @@ foreach ($assignments as $row) {
 	}
 }
 ?>
+<?php
+/*
+ * RENDER_AS_BLANK templates render without a Nextcloud layout, so
+ * Util::addStyle()/Util::addScript() in the controller never reach the page.
+ * Emit the asset tags here (same pattern as inventorycheck label-print).
+ */
+$dcPrintUrlGen = \OC::$server->get(\OCP\IURLGenerator::class);
+$dcPrintNonce = \OC::$server->get(\OC\Security\CSP\ContentSecurityPolicyNonceManager::class)->getNonce();
+?>
 <!DOCTYPE html>
 <html lang="<?php p($htmlLang); ?>" class="dc-html-print">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title><?php p($pageTitle); ?> — <?php p($l->t('DutyCheck')); ?></title>
+	<link rel="stylesheet" href="<?php p($dcPrintUrlGen->linkTo('dutycheck', 'css/common/tokens.css')); ?>">
+	<link rel="stylesheet" href="<?php p($dcPrintUrlGen->linkTo('dutycheck', 'css/app.css')); ?>">
+	<script nonce="<?php p($dcPrintNonce); ?>" src="<?php p($dcPrintUrlGen->linkTo('dutycheck', 'js/roster-print.js')); ?>" defer></script>
 </head>
 <body class="dc-body-print">
 	<div id="app-content" class="dc-app dc-app--roster-print">

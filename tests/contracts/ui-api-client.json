@@ -2,5 +2,109 @@
   "schemaVersion": 1,
   "appId": "dutycheck",
   "companionDir": "mobile/dutycheck",
-  "contracts": []
+  "contracts": [
+    {
+      "id": "conflict-acknowledge-reason",
+      "param": "reason",
+      "description": "Planner conflict acknowledgement requires a >=10 character reason (REASON_TOO_SHORT).",
+      "errorCodes": ["REASON_TOO_SHORT"],
+      "server": [
+        {
+          "file": "lib/Service/RosterService.php",
+          "needles": ["acknowledgeConflict", "REASON_TOO_SHORT"]
+        }
+      ],
+      "web": [
+        {
+          "file": "js/roster.js",
+          "needles": [
+            "/apps/dutycheck/api/conflicts/${conflictId}/acknowledge",
+            "promptReason",
+            "minLength: 10"
+          ]
+        }
+      ],
+      "mobile": null
+    },
+    {
+      "id": "absence-review-reason",
+      "param": "reviewReason",
+      "description": "Rejecting or cancelling an absence requires a >=10 character reviewReason (REASON_TOO_SHORT).",
+      "errorCodes": ["REASON_TOO_SHORT"],
+      "server": [
+        {
+          "file": "lib/Service/RosterService.php",
+          "needles": ["reviewReason", "REASON_TOO_SHORT"]
+        }
+      ],
+      "web": [
+        {
+          "file": "js/absences.js",
+          "needles": [
+            "/apps/dutycheck/api/absences/${id}/transition",
+            "reviewReason",
+            "minLength: 10"
+          ]
+        }
+      ],
+      "mobile": null
+    },
+    {
+      "id": "pattern-anchor-change-reason",
+      "param": "anchorChangeReason",
+      "description": "Changing a rotation pattern anchor requires a >=10 character reason (REASON_TOO_SHORT).",
+      "errorCodes": ["REASON_TOO_SHORT"],
+      "server": [
+        {
+          "file": "lib/Service/RotationPatternService.php",
+          "needles": ["anchorChangeReason", "REASON_TOO_SHORT"]
+        }
+      ],
+      "web": [
+        {
+          "file": "js/patterns.js",
+          "needles": ["dc-pat-reason", "anchorChangeReason", "changeReason"]
+        }
+      ],
+      "mobile": null
+    },
+    {
+      "id": "blackout-override-reason",
+      "param": "blackoutOverrideReason",
+      "description": "Scheduling onto an employee blackout requires a 10-200 character planning reason (REASON_TOO_SHORT/REASON_TOO_LONG).",
+      "errorCodes": ["REASON_TOO_SHORT", "REASON_TOO_LONG"],
+      "server": [
+        {
+          "file": "lib/Service/AvailabilityBlackoutService.php",
+          "needles": ["recordOverride", "REASON_TOO_SHORT", "REASON_TOO_LONG"]
+        }
+      ],
+      "web": [
+        {
+          "file": "js/roster.js",
+          "needles": ["blackoutOverrideReason", "minLength: 10", "maxLength: 200"]
+        }
+      ],
+      "mobile": null
+    },
+    {
+      "id": "assignment-soft-conflict-acknowledgements",
+      "param": "acknowledgements",
+      "description": "Creating/updating an assignment over soft conflicts requires acknowledgements[].reason >=10 chars per conflictType.",
+      "errorCodes": ["REASON_TOO_SHORT"],
+      "server": [
+        {
+          "file": "lib/Service/RosterService.php",
+          "needles": ["acknowledgements", "conflictType", "REASON_TOO_SHORT"]
+        }
+      ],
+      "web": [
+        {
+          "file": "js/roster.js",
+          "needles": ["acknowledgements", "conflictType", "promptReason", "minLength: 10"]
+        }
+      ],
+      "mobile": null
+    }
+  ]
 }

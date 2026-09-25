@@ -252,7 +252,7 @@ $myAbsencesUrl = (string) ($urls['myAbsences'] ?? '#');
 	</div>
 </section>
 
-<dialog id="dc-swap-dialog" class="dc-dialog" aria-labelledby="dc-swap-dialog-title">
+<dialog id="dc-swap-dialog" class="dc-dialog" aria-modal="true" aria-labelledby="dc-swap-dialog-title">
 	<form method="dialog" id="dc-swap-form" class="dc-dialog__panel" novalidate>
 		<h2 id="dc-swap-dialog-title" class="dc-dialog__title"><?php p($l->t('Request a swap')); ?></h2>
 		<p class="dc-dialog__intro" id="dc-swap-dialog-intro">

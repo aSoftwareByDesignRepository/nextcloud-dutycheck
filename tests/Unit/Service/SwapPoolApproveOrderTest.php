@@ -20,7 +20,7 @@ final class SwapPoolApproveOrderTest extends TestCase
 		$roster->method('assertPeriodCompanyAccess');
 		$roster->expects($this->never())->method('cancelAssignment');
 		$roster->method('assertLocationMatchesPeriodCompany')
-			->willThrowException(new \InvalidArgumentException('COMPANY_MISMATCH'));
+			->willThrowException(new \InvalidArgumentException('LOCATION_NOT_FOUND'));
 
 		$swapRow = [
 			'id' => 3,
@@ -100,7 +100,7 @@ final class SwapPoolApproveOrderTest extends TestCase
 
 		$svc = new SwapService($db, $roster);
 		$this->expectException(\InvalidArgumentException::class);
-		$this->expectExceptionMessage('COMPANY_MISMATCH');
+		$this->expectExceptionMessage('LOCATION_NOT_FOUND');
 		$svc->review(3, 'planner', 'approved', 'pool');
 	}
 }

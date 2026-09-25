@@ -58,8 +58,10 @@ final class TodayBoardService
 
 		$location = $this->loadLocation($locationId);
 		$companyId = (int) ($location['company_id'] ?? CompanyService::DEFAULT_COMPANY_ID);
-		$this->companies->assertCanAccessCompany($actorUserId, $companyId);
-		$this->plannerScope->assertCanPlanLocation($actorUserId, $locationId);
+		// Existence-blind: a location in another company reports like a missing one.
+		$this->companies->assertCanAccessCompany($actorUserId, $companyId, 'LOCATION_NOT_FOUND');
+		// Scope-hidden location reports like a missing one.
+		$this->plannerScope->assertCanPlanLocationOr($actorUserId, $locationId, 'LOCATION_NOT_FOUND');
 
 		$cfg = $this->settings->getForCompany($companyId);
 		if (!(bool) ($cfg['today_board_enabled'] ?? false)) {

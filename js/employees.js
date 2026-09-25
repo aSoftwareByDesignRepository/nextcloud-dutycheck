@@ -334,7 +334,7 @@
 			renderRows(response?.data || []);
 		} catch (err) {
 			Msg.handleApiError(err);
-			C.renderTableFetchError(tbody, 4, t('dutycheck', 'Could not load employees. Reload the page or contact an administrator if this keeps happening.'));
+			C.renderTableFetchError(tbody, 4, t('dutycheck', 'Could not load employees. Retry, or contact an administrator if this keeps happening.'), { retry: () => load() });
 		} finally {
 			C.clearLoadingRow(tbody);
 		}

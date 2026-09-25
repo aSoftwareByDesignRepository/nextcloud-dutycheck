@@ -110,15 +110,12 @@ final class PeerRosterService
 		$location = $this->loadLocation($locationId);
 		$companyId = (int) ($location['company_id'] ?? CompanyService::DEFAULT_COMPANY_ID);
 
-		// IDOR: other company → FORBIDDEN (or empty for unlinked employees after visibility check).
-		try {
-			$this->companies->assertCanAccessCompany($actorUserId, $companyId);
-		} catch (\InvalidArgumentException $e) {
-			if ($e->getMessage() === 'FORBIDDEN') {
-				throw $e;
-			}
-			throw new \InvalidArgumentException('FORBIDDEN');
-		}
+		// Existence-blind (uniform-404): employees cannot enumerate company
+		// locations, so a foreign-company location, a location in a different
+		// company than the caller's employee record, and a location the caller
+		// does not belong to must ALL report exactly like a missing location —
+		// otherwise every gate becomes an id/enumeration oracle.
+		$this->companies->assertCanAccessCompany($actorUserId, $companyId, 'LOCATION_NOT_FOUND');
 
 		if (!$this->settings->isPeerVisibilityEnabled($companyId)) {
 			throw new \InvalidArgumentException('PEER_VISIBILITY_DISABLED');
@@ -127,12 +124,12 @@ final class PeerRosterService
 		$callerEmployeeId = $this->linkedEmployeeId($actorUserId);
 		$callerCompany = $this->employeeCompanyId($callerEmployeeId);
 		if ($callerCompany !== $companyId) {
-			throw new \InvalidArgumentException('FORBIDDEN');
+			throw new \InvalidArgumentException('LOCATION_NOT_FOUND');
 		}
 
 		// Employee must belong to this location (has worked / been assigned here).
 		if (!$this->employeeBelongsToLocation($callerEmployeeId, $locationId)) {
-			throw new \InvalidArgumentException('FORBIDDEN');
+			throw new \InvalidArgumentException('LOCATION_NOT_FOUND');
 		}
 
 		if (!SchemaProbe::tableExists($this->db, 'dc_assignments')

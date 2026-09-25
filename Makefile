@@ -77,7 +77,12 @@ mutation-image:
 # Default target is the security-critical subset (infection-security.json5, MSI ≥ 70).
 # Pass CONFIG=infection.json5 for the broader informational suite (MSI floor 50).
 mutation:
+	@extra=""; \
+	if [ -d "$$(pwd)/../../scripts" ]; then \
+		extra="-v $$(realpath $$(pwd)/../../scripts):/scripts:ro"; \
+	fi; \
 	docker run --rm -u "$$(id -u):$$(id -g)" -v "$$(pwd)":/app -w /app \
+		$$extra \
 		$(INFECTION_DOCKER_IMAGE) infection run \
 		--configuration=$(or $(CONFIG),infection-security.json5) \
 		--threads=max --only-covered --no-progress

@@ -175,7 +175,7 @@ class RosterApiController extends Controller
 			);
 			return new DataResponse(['ok' => true, 'data' => $created]);
 		} catch (\InvalidArgumentException $e) {
-			return new DataResponse(['ok' => false, 'error' => ['code' => $e->getMessage()]], 400);
+			return new DataResponse(['ok' => false, 'error' => ['code' => $e->getMessage()]], ApiJsonErrorResponse::statusForInvalidArgument($e->getMessage()));
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);
 		}
@@ -199,7 +199,7 @@ class RosterApiController extends Controller
 			return new DataResponse(['ok' => true, 'data' => $data]);
 		} catch (\InvalidArgumentException $e) {
 			$code = $e->getMessage();
-			$status = ($code === 'ENSURE_MONTH_IN_PROGRESS' || $code === 'RATE_LIMITED') ? 429 : 400;
+			$status = $code === 'ENSURE_MONTH_IN_PROGRESS' ? 429 : ApiJsonErrorResponse::statusForInvalidArgument($code);
 			return new DataResponse(['ok' => false, 'error' => ['code' => $code]], $status);
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);
@@ -386,7 +386,7 @@ class RosterApiController extends Controller
 			$params = ApiMutationParams::all($this->request);
 			$locationId = (int) ($params['locationId'] ?? 0);
 			if ($this->plannerScope !== null && $locationId > 0) {
-				$this->plannerScope->assertCanPlanLocation($userId, $locationId);
+				$this->plannerScope->assertCanPlanLocationOr($userId, $locationId, 'LOCATION_NOT_FOUND');
 			}
 			$data = $this->roster->createAssignment([
 				'periodId' => $params['periodId'] ?? null,
@@ -427,8 +427,10 @@ class RosterApiController extends Controller
 				? (int) $params['locationId']
 				: (int) $existing['locationId'];
 			if ($this->plannerScope !== null) {
-				$this->plannerScope->assertCanPlanLocation($userId, (int) $existing['locationId']);
-				$this->plannerScope->assertCanPlanLocation($userId, $targetLocationId);
+				// Existence-blind: an out-of-scope row reports like a missing one;
+				// an out-of-scope target location like a missing location.
+				$this->plannerScope->assertCanPlanLocationOr($userId, (int) $existing['locationId'], 'ASSIGNMENT_NOT_FOUND');
+				$this->plannerScope->assertCanPlanLocationOr($userId, $targetLocationId, 'LOCATION_NOT_FOUND');
 			}
 			$data = $this->roster->updateAssignment($id, [
 				'employeeId' => $params['employeeId'] ?? null,
@@ -465,7 +467,7 @@ class RosterApiController extends Controller
 			$this->access->requirePlannerOrAdmin($userId);
 			$row = $this->roster->peekAssignment($id, $userId);
 			if ($this->plannerScope !== null) {
-				$this->plannerScope->assertCanPlanLocation($userId, (int) $row['locationId']);
+				$this->plannerScope->assertCanPlanLocationOr($userId, (int) $row['locationId'], 'ASSIGNMENT_NOT_FOUND');
 			}
 			$data = $this->roster->cancelAssignment($id, $userId);
 			return new DataResponse(['ok' => true, 'data' => $data]);
@@ -742,7 +744,7 @@ class RosterApiController extends Controller
 			$params = ApiMutationParams::all($this->request);
 			$locationId = (int) ($params['locationId'] ?? 0);
 			if ($this->plannerScope !== null && $locationId > 0) {
-				$this->plannerScope->assertCanPlanLocation($userId, $locationId);
+				$this->plannerScope->assertCanPlanLocationOr($userId, $locationId, 'LOCATION_NOT_FOUND');
 			}
 			$data = $this->openShiftsService()->create($params, $userId);
 			return new DataResponse(['ok' => true, 'data' => $data], 201);
@@ -772,7 +774,7 @@ class RosterApiController extends Controller
 			$this->access->requirePlannerOrAdmin($userId);
 			$open = $this->openShiftsService()->getById($id);
 			if ($this->plannerScope !== null) {
-				$this->plannerScope->assertCanPlanLocation($userId, (int) $open['locationId']);
+				$this->plannerScope->assertCanPlanLocationOr($userId, (int) $open['locationId'], 'OPEN_SHIFT_NOT_FOUND');
 			}
 			$data = $this->openShiftsService()->approveClaim(
 				$id,
@@ -793,7 +795,7 @@ class RosterApiController extends Controller
 			$this->access->requirePlannerOrAdmin($userId);
 			$open = $this->openShiftsService()->getById($id);
 			if ($this->plannerScope !== null) {
-				$this->plannerScope->assertCanPlanLocation($userId, (int) $open['locationId']);
+				$this->plannerScope->assertCanPlanLocationOr($userId, (int) $open['locationId'], 'OPEN_SHIFT_NOT_FOUND');
 			}
 			$data = $this->openShiftsService()->rejectClaim($id, $userId);
 			return new DataResponse(['ok' => true, 'data' => $data]);
@@ -1087,7 +1089,7 @@ class RosterApiController extends Controller
 			);
 			return new DataResponse(['ok' => true, 'assignments' => $assignments]);
 		} catch (\InvalidArgumentException $e) {
-			return new DataResponse(['ok' => false, 'error' => ['code' => $e->getMessage()]], 400);
+			return new DataResponse(['ok' => false, 'error' => ['code' => $e->getMessage()]], ApiJsonErrorResponse::statusForInvalidArgument($e->getMessage()));
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);
 		}
@@ -1101,7 +1103,7 @@ class RosterApiController extends Controller
 			$assignments = $this->access->removeDutyRole($userId);
 			return new DataResponse(['ok' => true, 'assignments' => $assignments]);
 		} catch (\InvalidArgumentException $e) {
-			return new DataResponse(['ok' => false, 'error' => ['code' => $e->getMessage()]], 400);
+			return new DataResponse(['ok' => false, 'error' => ['code' => $e->getMessage()]], ApiJsonErrorResponse::statusForInvalidArgument($e->getMessage()));
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);
 		}
@@ -1121,7 +1123,7 @@ class RosterApiController extends Controller
 			]);
 			return new DataResponse(['ok' => true, 'policy' => $policy]);
 		} catch (\InvalidArgumentException $e) {
-			return new DataResponse(['ok' => false, 'error' => ['code' => $e->getMessage()]], 400);
+			return new DataResponse(['ok' => false, 'error' => ['code' => $e->getMessage()]], ApiJsonErrorResponse::statusForInvalidArgument($e->getMessage()));
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);
 		}
@@ -1181,7 +1183,7 @@ class RosterApiController extends Controller
 			], $userId);
 			return new DataResponse(['ok' => true, 'data' => $data]);
 		} catch (\InvalidArgumentException $e) {
-			return new DataResponse(['ok' => false, 'error' => ['code' => $e->getMessage()]], 400);
+			return new DataResponse(['ok' => false, 'error' => ['code' => $e->getMessage()]], ApiJsonErrorResponse::statusForInvalidArgument($e->getMessage()));
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);
 		}
@@ -1200,7 +1202,7 @@ class RosterApiController extends Controller
 			], $userId);
 			return new DataResponse(['ok' => true, 'data' => $data]);
 		} catch (\InvalidArgumentException $e) {
-			return new DataResponse(['ok' => false, 'error' => ['code' => $e->getMessage()]], 400);
+			return new DataResponse(['ok' => false, 'error' => ['code' => $e->getMessage()]], ApiJsonErrorResponse::statusForInvalidArgument($e->getMessage()));
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);
 		}
@@ -1221,7 +1223,7 @@ class RosterApiController extends Controller
 				'data' => $this->roster->myRoster($userId, $fromString, $toString),
 			]);
 		} catch (\InvalidArgumentException $e) {
-			return new DataResponse(['ok' => false, 'error' => ['code' => $e->getMessage()]], 404);
+			return new DataResponse(['ok' => false, 'error' => ['code' => $e->getMessage()]], ApiJsonErrorResponse::statusForInvalidArgument($e->getMessage()));
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);
 		}
@@ -1235,7 +1237,7 @@ class RosterApiController extends Controller
 			$this->access->requireEmployee($userId);
 			return new DataResponse(['ok' => true, 'data' => $this->roster->myAbsences($userId)]);
 		} catch (\InvalidArgumentException $e) {
-			return new DataResponse(['ok' => false, 'error' => ['code' => $e->getMessage()]], 404);
+			return new DataResponse(['ok' => false, 'error' => ['code' => $e->getMessage()]], ApiJsonErrorResponse::statusForInvalidArgument($e->getMessage()));
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);
 		}

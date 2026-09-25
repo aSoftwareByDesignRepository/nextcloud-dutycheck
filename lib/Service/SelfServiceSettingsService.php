@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace OCA\DutyCheck\Service;
 
+use OCA\DutyCheck\Http\ApiMutationParams;
+
 use OCA\DutyCheck\Db\SchemaProbe;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
@@ -42,6 +44,21 @@ final class SelfServiceSettingsService
 		'push_quiet_hours_end' => '06:00',
 		'push_allow_urgent_during_quiet' => false,
 		'user_may_disable_quiet' => false,
+	];
+
+	/**
+	 * Settings keys that hold booleans — single source of truth used by both
+	 * {@see filterPatch()} (strict request validation) and {@see normalize()}
+	 * (lenient stored-value coercion).
+	 *
+	 * @var list<string>
+	 */
+	private const BOOL_KEYS = [
+		'rotation_patterns_enabled', 'soll_from_duty', 'peer_roster_visibility',
+		'allow_cross_location_swaps', 'claim_requires_planner', 'preferences_enabled',
+		'preference_ranking_on_suggest', 'shift_terminal_plan_strip', 'today_board_enabled',
+		'blackouts_enabled', 'push_quiet_hours_enabled', 'push_allow_urgent_during_quiet',
+		'user_may_disable_quiet',
 	];
 
 	/** @var array<int, array<string, mixed>> */
@@ -373,7 +390,13 @@ final class SelfServiceSettingsService
 			if ($snake === 'user_may_disable_quiet') {
 				continue;
 			}
-			$out[$snake] = $value;
+			// Request boundary: the web client sends urlencoded bodies, so JS
+			// `false` arrives as the string "false" and `(bool)` would flip it to
+			// true. Parse strictly here so every bool reaching normalize() is a
+			// real boolean; stored values stay lenient in normalize().
+			$out[$snake] = in_array($snake, self::BOOL_KEYS, true)
+				? ApiMutationParams::boolValue($value)
+				: $value;
 		}
 		return $out;
 	}

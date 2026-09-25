@@ -53,6 +53,24 @@ class PlannerLocationScopeService
 	}
 
 	/**
+	 * Existence-blind variant: a scoped planner must not be able to tell an
+	 * existing out-of-scope location/row apart from a missing one, so the
+	 * scope denial is collapsed into the caller's not-found code.
+	 * Unscoped (global) planners pass through unchanged.
+	 */
+	public function assertCanPlanLocationOr(string $userId, int $locationId, string $notFoundCode): void
+	{
+		try {
+			$this->assertCanPlanLocation($userId, $locationId);
+		} catch (\InvalidArgumentException $e) {
+			if ($e->getMessage() === 'LOCATION_OUT_OF_SCOPE') {
+				throw new \InvalidArgumentException($notFoundCode);
+			}
+			throw $e;
+		}
+	}
+
+	/**
 	 * Replace scope for a planner. Empty list clears restrictions (global).
 	 *
 	 * @param list<int> $locationIds

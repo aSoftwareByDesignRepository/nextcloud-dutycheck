@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Fixed
+
+- **Pattern days corrupted on save:** the web client posts urlencoded bodies, so an unchecked day arrived as the string `"false"` and PHP's `(bool)` cast stored every day as working. Strict boolean parsing (`ApiMutationParams::boolValue*`) now honours `true/false/1/0/on/off/yes/no` on every affected endpoint — patterns reopen with exactly the days you marked.
+- **Duty & team settings flipped everything ON:** the same `"false"` → `true` coercion is fixed for all toggles; ambiguous values now fail with `INVALID_BOOLEAN` instead of silently turning features on.
+- **Patterns can now be deleted:** new danger Delete action with confirmation; patterns are soft-deactivated (assignments keep their history) and no longer clutter the list.
+- **Delete could still be refused after settings changes:** deactivation no longer re-validates the stored `cycle_weeks` against the current allowed list and no longer requires the rotation feature flag — a pattern can always be deactivated. Unchanged stored values are only validated when actually changed.
+- **Suggest fill filled nothing:** the preview no longer inherits the “Add assignment” form’s location as a hidden filter, and location-filter drops are counted and shown (“Skipped (location filter): n”) instead of a misleading “nothing to fill”.
+
+### Tests
+
+- Unit: strict-bool parser, urlencoded `filterPatch`/`weekDays` normalisation; Playwright spec covering the pattern round-trip + delete, settings persistence, and the suggest request contract.
+
 ## 0.3.4 - 2026-09-21
 
 ### Fixed

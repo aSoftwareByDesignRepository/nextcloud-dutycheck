@@ -96,6 +96,8 @@
 				return t('dutycheck', 'Default break must be a number between 0 and 720.');
 			case 'INVALID_ACTIVE_FLAG':
 				return t('dutycheck', 'Could not read the active/inactive setting. Reload the page and try again.');
+			case 'INVALID_BOOLEAN':
+				return t('dutycheck', 'Could not read an on/off setting. Reload the page and try again.');
 			case 'PERIOD_ID_REQUIRED':
 				return t('dutycheck', 'Select a period before saving.');
 			case 'EMPLOYEE_ID_REQUIRED':

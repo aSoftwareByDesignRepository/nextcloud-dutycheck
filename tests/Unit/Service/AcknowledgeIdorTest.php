@@ -70,8 +70,9 @@ final class AcknowledgeIdorTest extends TestCase
 		);
 
 		$svc = new RosterService($db);
+		// Existence-blind: another employee's assignment reports like a missing one.
 		$this->expectException(\InvalidArgumentException::class);
-		$this->expectExceptionMessage('FORBIDDEN');
+		$this->expectExceptionMessage('ASSIGNMENT_NOT_FOUND');
 		$svc->acknowledgeAssignment(42, 'eve');
 	}
 }

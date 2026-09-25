@@ -132,6 +132,7 @@ final class RotationSuggestService
 					'skippedBlackout' => $plan['skipped_blackout'],
 					'skippedNoPattern' => $plan['skipped_no_pattern'],
 					'skippedNoLocation' => $plan['skipped_no_location'],
+					'skippedLocationMismatch' => $plan['skipped_location_mismatch'],
 					'skippedWrite' => $plan['skipped_write'],
 				]);
 				$this->db->commit();
@@ -157,6 +158,8 @@ final class RotationSuggestService
 	 *   skipped_absence:int,
 	 *   skipped_blackout:int,
 	 *   skipped_no_pattern:int,
+	 *   skipped_no_location:int,
+	 *   skipped_location_mismatch:int,
 	 *   samples:list<array<string,mixed>>,
 	 *   candidates:list<array<string,mixed>>
 	 * }
@@ -264,6 +267,7 @@ final class RotationSuggestService
 			'skipped_blackout' => 0,
 			'skipped_no_pattern' => 0,
 			'skipped_no_location' => 0,
+			'skipped_location_mismatch' => 0,
 			'skipped_write' => 0,
 			'samples' => [],
 			'candidates' => [],
@@ -340,6 +344,9 @@ final class RotationSuggestService
 					continue;
 				}
 				if ($locationId !== null && $locationId > 0 && $cellLocationId !== $locationId) {
+					// Explicit filter drop — count it; an uncounted continue made
+					// the preview report "nothing to fill" with all-zero skips.
+					$plan['skipped_location_mismatch']++;
 					continue;
 				}
 
@@ -436,6 +443,8 @@ final class RotationSuggestService
 	 *   skipped_absence:int,
 	 *   skipped_blackout:int,
 	 *   skipped_no_pattern:int,
+	 *   skipped_no_location:int,
+	 *   skipped_location_mismatch:int,
 	 *   samples:list<array<string,mixed>>,
 	 *   candidates:list<array<string,mixed>>
 	 * } $plan
@@ -452,6 +461,7 @@ final class RotationSuggestService
 			'skippedBlackout' => $plan['skipped_blackout'],
 			'skippedNoPattern' => $plan['skipped_no_pattern'],
 			'skippedNoLocation' => $plan['skipped_no_location'] ?? 0,
+			'skippedLocationMismatch' => $plan['skipped_location_mismatch'] ?? 0,
 			'skippedWrite' => $plan['skipped_write'] ?? 0,
 			'samples' => $plan['samples'],
 		];

@@ -240,7 +240,7 @@
 				return;
 			}
 			Msg.handleApiError(err);
-			C.renderTableFetchError(tbody, TABLE_COLS, t('dutycheck', 'Could not load your absences. Reload the page or contact an administrator if this keeps happening.'));
+			C.renderTableFetchError(tbody, TABLE_COLS, t('dutycheck', 'Could not load your absences. Retry, or contact an administrator if this keeps happening.'), { retry: () => loadAbsences() });
 		} finally {
 			C.clearLoadingRow(tbody);
 		}

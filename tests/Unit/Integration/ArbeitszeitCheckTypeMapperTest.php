@@ -48,4 +48,26 @@ class ArbeitszeitCheckTypeMapperTest extends TestCase
 		self::assertSame('pending', ArbeitszeitCheckTypeMapper::toDutyStatus('substitute_pending'));
 		self::assertTrue(ArbeitszeitCheckTypeMapper::atStatusOverlapsDutyStatuses('substitute_pending', ['pending']));
 	}
+
+	public function testEveryDutyStatusArmMapsDistinctly(): void
+	{
+		self::assertSame('pending', ArbeitszeitCheckTypeMapper::toDutyStatus('pending'));
+		self::assertSame('approved', ArbeitszeitCheckTypeMapper::toDutyStatus('approved'));
+		self::assertSame('rejected', ArbeitszeitCheckTypeMapper::toDutyStatus('rejected'));
+		self::assertSame('cancelled', ArbeitszeitCheckTypeMapper::toDutyStatus('cancelled'));
+		self::assertSame('cancelled', ArbeitszeitCheckTypeMapper::toDutyStatus('substitute_declined'));
+	}
+
+	public function testEveryDutyTypeArmMapsDistinctly(): void
+	{
+		self::assertSame('vacation', ArbeitszeitCheckTypeMapper::toDutyKind('vacation'));
+		self::assertSame('sick', ArbeitszeitCheckTypeMapper::toDutyKind('sick_leave'));
+		self::assertSame('unpaid', ArbeitszeitCheckTypeMapper::toDutyKind('unpaid_leave'));
+		self::assertSame('other', ArbeitszeitCheckTypeMapper::toDutyKind('personal_leave'));
+		self::assertSame('other', ArbeitszeitCheckTypeMapper::toDutyKind('parental_leave'));
+		self::assertSame('other', ArbeitszeitCheckTypeMapper::toDutyKind('special_leave'));
+		self::assertSame('other', ArbeitszeitCheckTypeMapper::toDutyKind('home_office'));
+		self::assertSame('other', ArbeitszeitCheckTypeMapper::toDutyKind('business_trip'));
+		self::assertSame('other', ArbeitszeitCheckTypeMapper::toDutyKind('totally_unknown'));
+	}
 }

@@ -16,14 +16,15 @@ final class OpenShiftCreateLocationCompanyTest extends TestCase
 		$roster = $this->createMock(RosterService::class);
 		$roster->expects($this->once())->method('assertPeriodCompanyAccess')->with('planner', 1);
 		$roster->expects($this->once())->method('assertLocationMatchesPeriodCompany')->with(1, 99)
-			->willThrowException(new \InvalidArgumentException('COMPANY_MISMATCH'));
+			->willThrowException(new \InvalidArgumentException('LOCATION_NOT_FOUND'));
 
 		$db = $this->createMock(IDBConnection::class);
 		$db->expects($this->never())->method('getQueryBuilder');
 
 		$svc = new OpenShiftService($db, $roster);
+		// Existence-blind: a foreign-company location reports like a missing one.
 		$this->expectException(\InvalidArgumentException::class);
-		$this->expectExceptionMessage('COMPANY_MISMATCH');
+		$this->expectExceptionMessage('LOCATION_NOT_FOUND');
 		$svc->create([
 			'periodId' => 1,
 			'locationId' => 99,

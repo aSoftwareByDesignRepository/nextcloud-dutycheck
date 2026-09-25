@@ -50,25 +50,18 @@ class SollDiagnosticsService
 		}
 		$employee = $this->resolveTarget($ncUserId, $employeeId);
 		if ($employee === null) {
-			return [
-				'employeeId' => 0,
-				'ncUserId' => $ncUserId,
-				'companyId' => 0,
-				'basis' => 'unavailable',
-				'requiredNetMinutes' => null,
-				'weekIndex' => null,
-				'weekLabel' => null,
-				'peerVisibility' => false,
-				'swapApprovalMode' => SelfServiceSettingsService::SWAP_PLANNER_REQUIRED,
-				'rotationPatternsEnabled' => false,
-				'lastFacadeOk' => false,
-				'lastFacadeAt' => null,
-			];
+			return $this->unavailableResult($ncUserId);
 		}
 
 		$companyId = (int) ($employee['company_id'] ?? CompanyService::DEFAULT_COMPANY_ID);
 		if ($this->companies !== null) {
-			$this->companies->assertCanAccessCompany($actorAdmin, $companyId);
+			try {
+				$this->companies->assertCanAccessCompany($actorAdmin, $companyId);
+			} catch (\InvalidArgumentException) {
+				// Existence-blind: a resolvable employee in a company the admin
+				// cannot access must look exactly like an unresolvable target.
+				return $this->unavailableResult($ncUserId);
+			}
 		}
 
 		$settings = $this->settings->getForCompany($companyId);
@@ -147,6 +140,31 @@ class SollDiagnosticsService
 		$qb->setMaxResults(1);
 		$row = $qb->executeQuery()->fetch();
 		return $row === false ? null : $row;
+	}
+
+	/**
+	 * Uniform "cannot see this target" payload — used for both unresolvable
+	 * targets and employees in companies the admin cannot access, so a
+	 * foreign-company employee id is indistinguishable from a missing one.
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function unavailableResult(?string $ncUserId): array
+	{
+		return [
+			'employeeId' => 0,
+			'ncUserId' => $ncUserId,
+			'companyId' => 0,
+			'basis' => 'unavailable',
+			'requiredNetMinutes' => null,
+			'weekIndex' => null,
+			'weekLabel' => null,
+			'peerVisibility' => false,
+			'swapApprovalMode' => SelfServiceSettingsService::SWAP_PLANNER_REQUIRED,
+			'rotationPatternsEnabled' => false,
+			'lastFacadeOk' => false,
+			'lastFacadeAt' => null,
+		];
 	}
 
 	private function normalizeBasis(string $basis): string

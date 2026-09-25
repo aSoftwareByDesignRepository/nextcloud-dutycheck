@@ -132,11 +132,13 @@ final class ShiftPreferenceService
 			$now = (new \DateTimeImmutable('now'))->format('Y-m-d H:i:s');
 			if ($existingId > 0) {
 				$row = $this->getRawById($existingId);
+				// Existence-blind: a preference row that is not the actor's is
+				// reported exactly like a missing one (no id enumeration).
 				if ((int) $row['employee_id'] !== $employeeId) {
-					throw new \InvalidArgumentException('FORBIDDEN');
+					throw new \InvalidArgumentException('PREFERENCE_NOT_FOUND');
 				}
 				if ((int) $row['company_id'] !== $companyId) {
-					throw new \InvalidArgumentException('COMPANY_MISMATCH');
+					throw new \InvalidArgumentException('PREFERENCE_NOT_FOUND');
 				}
 				$qb = $this->db->getQueryBuilder();
 				$qb->update('dc_shift_preferences')
@@ -179,7 +181,8 @@ final class ShiftPreferenceService
 		$this->assertSchemaReady();
 		$row = $this->getRawById($id);
 		$employeeId = (int) $row['employee_id'];
-		$this->assertCanWriteEmployee($employeeId, $actor);
+		// The preference row is the resource — report foreign rows like missing ones.
+		$this->assertCanWriteEmployee($employeeId, $actor, 'PREFERENCE_NOT_FOUND');
 		$this->assertPreferencesEnabled((int) $row['company_id']);
 
 		$qb = $this->db->getQueryBuilder();
@@ -281,26 +284,27 @@ final class ShiftPreferenceService
 		}
 	}
 
-	private function assertCanReadEmployee(int $employeeId, string $actor): void
+	private function assertCanReadEmployee(int $employeeId, string $actor, string $notFoundCode = 'EMPLOYEE_NOT_FOUND'): void
 	{
 		if ($this->access->isPlannerOrAdmin($actor)) {
-			$this->companies->assertCanAccessCompany($actor, $this->employeeCompanyId($employeeId));
+			$this->companies->assertCanAccessCompany($actor, $this->employeeCompanyId($employeeId), $notFoundCode);
 			return;
 		}
+		// Existence-blind: another employee's data is reported like a missing row.
 		if ($this->linkedEmployeeId($actor) !== $employeeId) {
-			throw new \InvalidArgumentException('FORBIDDEN');
+			throw new \InvalidArgumentException($notFoundCode);
 		}
 	}
 
-	private function assertCanWriteEmployee(int $employeeId, string $actor): void
+	private function assertCanWriteEmployee(int $employeeId, string $actor, string $notFoundCode = 'EMPLOYEE_NOT_FOUND'): void
 	{
 		// Employees may mutate own rows only; planners/admins may mutate within company.
 		if ($this->access->isPlannerOrAdmin($actor)) {
-			$this->companies->assertCanAccessCompany($actor, $this->employeeCompanyId($employeeId));
+			$this->companies->assertCanAccessCompany($actor, $this->employeeCompanyId($employeeId), $notFoundCode);
 			return;
 		}
 		if ($this->linkedEmployeeId($actor) !== $employeeId) {
-			throw new \InvalidArgumentException('FORBIDDEN');
+			throw new \InvalidArgumentException($notFoundCode);
 		}
 	}
 
@@ -396,12 +400,14 @@ final class ShiftPreferenceService
 		if ($row === false) {
 			throw new \InvalidArgumentException('LOCATION_NOT_FOUND');
 		}
+		// Existence-blind: a location outside the actor's company is invisible to
+		// them — report it like a missing location (no COMPANY_MISMATCH oracle).
 		if (
 			$this->companies->isMultiCompanyActive()
 			&& SchemaProbe::hasColumn($this->db, 'dc_locations', 'company_id')
 			&& (int) ($row['company_id'] ?? 0) !== $companyId
 		) {
-			throw new \InvalidArgumentException('COMPANY_MISMATCH');
+			throw new \InvalidArgumentException('LOCATION_NOT_FOUND');
 		}
 	}
 }

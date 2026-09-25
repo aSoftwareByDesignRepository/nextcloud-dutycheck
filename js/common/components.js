@@ -219,6 +219,28 @@
 		};
 		dialog.addEventListener('keydown', onKey);
 
+		/*
+		 * Focus restore contract (farm recurring defect class):
+		 * focus() on a detached, hidden or still-disabled trigger is a silent
+		 * no-op that strands keyboard users on <body>. Only focus the trigger
+		 * when it is still connected; otherwise land on the page's main
+		 * landmark (#dc-main-content, tabindex="-1", labelled by the page h1).
+		 * A macrotask retry runs after the resolve() continuation — trigger
+		 * buttons are commonly re-enabled there (setBusy(false)).
+		 */
+		const restoreFocus = () => {
+			if (previousFocus && previousFocus.isConnected && typeof previousFocus.focus === 'function') {
+				try { previousFocus.focus(); } catch (_) { /* element may be hidden */ }
+			}
+			const active = document.activeElement;
+			if (!active || active === document.body || active === document.documentElement) {
+				const main = document.getElementById('dc-main-content');
+				if (main && typeof main.focus === 'function') {
+					try { main.focus({ preventScroll: true }); } catch (_) { /* ignore */ }
+				}
+			}
+		};
+
 		const instance = {
 			dialog,
 			overlay,
@@ -230,8 +252,35 @@
 				if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
 				document.body.classList.remove('dc-modal-open');
 				openInstance = null;
-				if (previousFocus && typeof previousFocus.focus === 'function') {
-					try { previousFocus.focus(); } catch (_) { /* element may be gone */ }
+				restoreFocus();
+				if (typeof setTimeout === 'function') setTimeout(restoreFocus, 0);
+				/*
+				 * Destructive confirms re-render their list AFTER the awaited
+				 * API call resolves — long past the macrotask retry above. When
+				 * that re-render destroys the restored trigger, focus silently
+				 * strands on <body>. Observe for a bounded window: if the
+				 * trigger is detached while focus sits on <body>, redirect to
+				 * the main landmark.
+				 */
+				if (typeof MutationObserver === 'function' && previousFocus && previousFocus.isConnected) {
+					const trigger = previousFocus;
+					const started = Date.now();
+					const mo = new MutationObserver(() => {
+						if (!trigger.isConnected) {
+							const active = document.activeElement;
+							if (!active || active === document.body || active === document.documentElement) {
+								const main = document.getElementById('dc-main-content');
+								if (main && typeof main.focus === 'function') {
+									try { main.focus({ preventScroll: true }); } catch (_) { /* ignore */ }
+								}
+							}
+							mo.disconnect();
+						} else if (Date.now() - started > 3000) {
+							mo.disconnect();
+						}
+					});
+					mo.observe(document.body, { childList: true, subtree: true });
+					if (typeof setTimeout === 'function') setTimeout(() => mo.disconnect(), 3000);
 				}
 				if (typeof opts.resolve === 'function') opts.resolve(result);
 				if (typeof opts.onClose === 'function') {
@@ -352,15 +401,61 @@
 		tbody.querySelectorAll('tr.dc-table__loading-row').forEach((tr) => tr.remove());
 	}
 
-	/** Replace tbody with one error row (same styling as catalog pages). */
-	function renderTableFetchError(tbody, colspan, message) {
+	/**
+	 * Replace tbody with one error row (same styling as catalog pages).
+	 *
+	 * Always clears the SSR/live `aria-busy` flag on the owning table — a
+	 * failed fetch must not leave assistive tech stuck on "busy" forever.
+	 *
+	 * `options.retry` (function, optional): when provided, a "Retry" button is
+	 * rendered next to the message and invokes it — every error state needs a
+	 * working retry, not just instructions to reload the page.
+	 */
+	function renderTableFetchError(tbody, colspan, message, options) {
 		if (!tbody) return;
+		const opts = options || {};
+		const table = tbody.closest('table');
+		if (table) table.removeAttribute('aria-busy');
 		tbody.replaceChildren();
 		const tr = createElement('tr', { class: 'dc-table__fetch-error-row' });
-		const td = createElement('td', { text: message, class: 'dc-table__fetch-error-cell' });
+		const td = createElement('td', { class: 'dc-table__fetch-error-cell' });
 		td.colSpan = Math.max(1, Number(colspan) || 1);
+		/* td must stay display:table-cell for colSpan — flex goes on a wrapper. */
+		const inner = createElement('div', { class: 'dc-table__fetch-error-inner' });
+		inner.appendChild(createElement('span', { text: message }));
+		if (typeof opts.retry === 'function') {
+			inner.appendChild(createElement('button', {
+				type: 'button',
+				class: 'button dc-table__fetch-error-retry',
+				text: opts.retryLabel || t('dutycheck', 'Retry'),
+				on: { click: () => opts.retry() },
+			}));
+		}
+		td.appendChild(inner);
 		tr.appendChild(td);
 		tbody.appendChild(tr);
+	}
+
+	/**
+	 * Show an inline error inside a status/empty-state element, with a working
+	 * Retry button — bare "Could not load …" text without a next step is not an
+	 * acceptable error surface.
+	 */
+	function renderInlineFetchError(el, message, onRetry) {
+		if (!el) return;
+		el.hidden = false;
+		el.removeAttribute('aria-busy');
+		el.replaceChildren();
+		el.appendChild(createElement('span', { text: message }));
+		if (typeof onRetry === 'function') {
+			el.appendChild(document.createTextNode(' '));
+			el.appendChild(createElement('button', {
+				type: 'button',
+				class: 'button dc-inline-retry',
+				text: t('dutycheck', 'Retry'),
+				on: { click: () => onRetry() },
+			}));
+		}
 	}
 
 	function getAppUrls() {
@@ -451,6 +546,7 @@
 		setLoadingRow,
 		clearLoadingRow,
 		renderTableFetchError,
+		renderInlineFetchError,
 		wireDismissibleHint,
 		wireAllDismissibleHints,
 		getAppUrls,

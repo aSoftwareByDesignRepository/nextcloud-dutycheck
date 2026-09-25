@@ -34,6 +34,7 @@ const SECTION_URLS = Object.freeze({
 	qualifications: '/apps/dutycheck/settings/qualifications',
 	'planner-scope': '/apps/dutycheck/settings/planner-scope',
 	operations: '/apps/dutycheck/settings/operations',
+	'dienst-team': '/apps/dutycheck/settings/dienst-team',
 	integration: '/apps/dutycheck/settings/integration',
 	privacy: '/apps/dutycheck/settings/privacy',
 	license: '/apps/dutycheck/settings/license',

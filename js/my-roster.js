@@ -340,6 +340,54 @@
 		return swapCandidates;
 	}
 
+	/**
+	 * Focus trap + Escape for the native <dialog id="dc-swap-dialog">.
+	 *
+	 * Farm defect classes handled here:
+	 * - Chrome lets Shift+Tab leave a modal <dialog> backwards onto <body>;
+	 *   once focus is outside, Escape never reaches the dialog and the
+	 *   notifications app's global Escape handling can suppress the cancel
+	 *   default. Trap Tab at both boundaries and close Escape explicitly.
+	 * - On close, if the trigger was destroyed by a re-render, focus lands on
+	 *   <body> — fall back to the main landmark instead.
+	 */
+	function wireSwapDialogA11y() {
+		const dialog = document.getElementById('dc-swap-dialog');
+		if (!dialog || dialog.dataset.dcA11yWired === '1') return;
+		dialog.dataset.dcA11yWired = '1';
+		const FOCUSABLE = 'a[href],input:not([disabled]):not([type="hidden"]),select:not([disabled]),textarea:not([disabled]),button:not([disabled]),[tabindex]:not([tabindex="-1"])';
+		dialog.addEventListener('keydown', (event) => {
+			if (event.key === 'Escape') {
+				event.preventDefault();
+				event.stopPropagation();
+				dialog.close();
+				return;
+			}
+			if (event.key !== 'Tab') return;
+			const list = Array.from(dialog.querySelectorAll(FOCUSABLE))
+				.filter((node) => node.offsetParent !== null || node === document.activeElement);
+			if (list.length === 0) {
+				event.preventDefault();
+				return;
+			}
+			const first = list[0];
+			const last = list[list.length - 1];
+			if (event.shiftKey && document.activeElement === first) {
+				event.preventDefault();
+				last.focus();
+			} else if (!event.shiftKey && document.activeElement === last) {
+				event.preventDefault();
+				first.focus();
+			}
+		});
+		dialog.addEventListener('close', () => {
+			const active = document.activeElement;
+			if (!active || active === document.body || active === document.documentElement || !active.isConnected) {
+				document.getElementById('dc-main-content')?.focus({ preventScroll: true });
+			}
+		});
+	}
+
 	async function openSwapDialog(assignmentId, triggerBtn) {
 		const dialog = document.getElementById('dc-swap-dialog');
 		const form = document.getElementById('dc-swap-form');
@@ -555,7 +603,7 @@
 				return;
 			}
 			Msg.handleApiError(err);
-			C.renderTableFetchError(tbody, TABLE_COLSPAN, t('dutycheck', 'Could not load your roster. Reload the page or contact an administrator if this keeps happening.'));
+			C.renderTableFetchError(tbody, TABLE_COLSPAN, t('dutycheck', 'Could not load your roster. Retry, or contact an administrator if this keeps happening.'), { retry: () => fetchAndRender() });
 			setStatus(t('dutycheck', 'Could not load roster.'));
 		} finally {
 			C.clearLoadingRow(tbody);
@@ -635,10 +683,7 @@
 				list.appendChild(li);
 			}
 		} catch (err) {
-			if (empty) {
-				empty.hidden = false;
-				empty.textContent = t('dutycheck', 'Could not load open shifts.');
-			}
+			C.renderInlineFetchError?.(empty, t('dutycheck', 'Could not load open shifts.'), () => loadOpenShifts());
 		}
 	}
 
@@ -973,6 +1018,7 @@
 			wireTeamWeek(),
 		]);
 		applyIcalAtDisclosure();
+		wireSwapDialogA11y();
 		document.getElementById('dc-ical-rotate-button')?.addEventListener('click', rotateIcalToken);
 		document.getElementById('dc-ical-copy-button')?.addEventListener('click', copyIcalUrl);
 	});

@@ -17,9 +17,11 @@ final class AcknowledgeConflictCompanyTest extends TestCase
 	public function testAcknowledgeConflictAssertsPeriodCompanyBeforeUpdate(): void
 	{
 		$companies = $this->createMock(CompanyService::class);
+		// Uniform-404: the conflict gate passes CONFLICT_NOT_FOUND so a
+		// foreign-company period/conflict is indistinguishable from a missing one.
 		$companies->expects($this->once())->method('assertRowCompany')
-			->with('planner', 'dc_periods', 5)
-			->willThrowException(new \InvalidArgumentException('FORBIDDEN'));
+			->with('planner', 'dc_periods', 5, 'CONFLICT_NOT_FOUND')
+			->willThrowException(new \InvalidArgumentException('CONFLICT_NOT_FOUND'));
 
 		$conflictResult = $this->createMock(IResult::class);
 		$conflictResult->method('fetch')->willReturn([
@@ -58,7 +60,7 @@ final class AcknowledgeConflictCompanyTest extends TestCase
 		);
 
 		$this->expectException(\InvalidArgumentException::class);
-		$this->expectExceptionMessage('FORBIDDEN');
+		$this->expectExceptionMessage('CONFLICT_NOT_FOUND');
 		$svc->acknowledgeConflict(9, 'planner', 'long enough reason for ack');
 	}
 }

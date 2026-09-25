@@ -100,7 +100,8 @@ final class AvailabilityBlackoutService
 			$locationId = null;
 		}
 		$this->assertLocationAllowedForCompany($locationId, $companyId);
-		$this->assertPlannerLocationWrite($actor, $locationId);
+		// Scope-hidden location param reports like a missing one.
+		$this->assertPlannerLocationWrite($actor, $locationId, 'LOCATION_NOT_FOUND');
 
 		$startSql = $start->format('Y-m-d H:i:s');
 		$endSql = $end->format('Y-m-d H:i:s');
@@ -134,10 +135,12 @@ final class AvailabilityBlackoutService
 		$this->assertSchemaReady();
 		$row = $this->getRawById($id);
 		$employeeId = (int) $row['employee_id'];
-		$this->assertCanWriteEmployee($employeeId, $actor);
+		// The blackout row is the resource — report foreign rows like missing ones.
+		$this->assertCanWriteEmployee($employeeId, $actor, 'BLACKOUT_NOT_FOUND');
 		$this->assertBlackoutsAllowed((int) $row['company_id']);
 		$rowLoc = $row['location_id'] !== null ? (int) $row['location_id'] : null;
-		$this->assertPlannerLocationWrite($actor, $rowLoc > 0 ? $rowLoc : null);
+		// Scope-hidden row reports like a missing one.
+		$this->assertPlannerLocationWrite($actor, $rowLoc > 0 ? $rowLoc : null, 'BLACKOUT_NOT_FOUND');
 
 		// Past blackouts are read-only for employees; planners may still remove.
 		if (!$this->access->isPlannerOrAdmin($actor)) {
@@ -318,7 +321,7 @@ final class AvailabilityBlackoutService
 			throw new \InvalidArgumentException('FORBIDDEN');
 		}
 		$companyId = $this->employeeCompanyId($employeeId);
-		$this->companies->assertCanAccessCompany($actor, $companyId);
+		$this->companies->assertCanAccessCompany($actor, $companyId, 'EMPLOYEE_NOT_FOUND');
 		$this->assertBlackoutsAllowed($companyId);
 
 		$reason = trim($reason);
@@ -331,22 +334,25 @@ final class AvailabilityBlackoutService
 		}
 
 		// Bind assignment → employee + company + location scope (IDOR / audit integrity).
+		// Existence-blind: an assignment/blackout the actor cannot see reports the
+		// same code as a missing row — no id enumeration.
 		$assignment = $this->loadAssignmentForOverride($assignmentId);
 		if ((int) $assignment['employee_id'] !== $employeeId) {
-			throw new \InvalidArgumentException('FORBIDDEN');
+			throw new \InvalidArgumentException('ASSIGNMENT_NOT_FOUND');
 		}
 		if ((int) ($assignment['company_id'] ?? $companyId) !== $companyId) {
-			throw new \InvalidArgumentException('FORBIDDEN');
+			throw new \InvalidArgumentException('ASSIGNMENT_NOT_FOUND');
 		}
-		$this->companies->assertCanAccessCompany($actor, (int) ($assignment['company_id'] ?? $companyId));
+		$this->companies->assertCanAccessCompany($actor, (int) ($assignment['company_id'] ?? $companyId), 'ASSIGNMENT_NOT_FOUND');
 		if ($this->plannerScope !== null && (int) ($assignment['location_id'] ?? 0) > 0) {
-			$this->plannerScope->assertCanPlanLocation($actor, (int) $assignment['location_id']);
+			// Scope-hidden assignment reports like a missing one.
+			$this->plannerScope->assertCanPlanLocationOr($actor, (int) $assignment['location_id'], 'ASSIGNMENT_NOT_FOUND');
 		}
 
 		if ($blackoutId !== null && $blackoutId > 0) {
 			$blk = $this->getRawById($blackoutId);
 			if ((int) $blk['employee_id'] !== $employeeId) {
-				throw new \InvalidArgumentException('FORBIDDEN');
+				throw new \InvalidArgumentException('BLACKOUT_NOT_FOUND');
 			}
 		} else {
 			$blackoutId = null;
@@ -608,25 +614,27 @@ final class AvailabilityBlackoutService
 		];
 	}
 
-	private function assertCanReadEmployee(int $employeeId, string $actor): void
+	private function assertCanReadEmployee(int $employeeId, string $actor, string $notFoundCode = 'EMPLOYEE_NOT_FOUND'): void
 	{
 		if ($this->access->isPlannerOrAdmin($actor)) {
-			$this->companies->assertCanAccessCompany($actor, $this->employeeCompanyId($employeeId));
+			$this->companies->assertCanAccessCompany($actor, $this->employeeCompanyId($employeeId), $notFoundCode);
 			return;
 		}
+		// Existence-blind: another employee's data is reported like a missing row.
 		if ($this->linkedEmployeeId($actor) !== $employeeId) {
-			throw new \InvalidArgumentException('FORBIDDEN');
+			throw new \InvalidArgumentException($notFoundCode);
 		}
 	}
 
-	private function assertCanWriteEmployee(int $employeeId, string $actor): void
+	private function assertCanWriteEmployee(int $employeeId, string $actor, string $notFoundCode = 'EMPLOYEE_NOT_FOUND'): void
 	{
+		// Employees may mutate own rows only; planners/admins may mutate within company.
 		if ($this->access->isPlannerOrAdmin($actor)) {
-			$this->companies->assertCanAccessCompany($actor, $this->employeeCompanyId($employeeId));
+			$this->companies->assertCanAccessCompany($actor, $this->employeeCompanyId($employeeId), $notFoundCode);
 			return;
 		}
 		if ($this->linkedEmployeeId($actor) !== $employeeId) {
-			throw new \InvalidArgumentException('FORBIDDEN');
+			throw new \InvalidArgumentException($notFoundCode);
 		}
 	}
 
@@ -634,7 +642,7 @@ final class AvailabilityBlackoutService
 	 * Scoped planners may only write location-bound blackouts inside their Filiale set.
 	 * Company-wide blackouts (null location) require an unrestricted planner / admin.
 	 */
-	private function assertPlannerLocationWrite(string $actor, ?int $locationId): void
+	private function assertPlannerLocationWrite(string $actor, ?int $locationId, string $notFoundCode): void
 	{
 		if (!$this->access->isPlannerOrAdmin($actor) || $this->access->isAppAdmin($actor)) {
 			return;
@@ -647,9 +655,9 @@ final class AvailabilityBlackoutService
 			return;
 		}
 		if ($locationId === null || $locationId < 1) {
-			throw new \InvalidArgumentException('LOCATION_OUT_OF_SCOPE');
+			throw new \InvalidArgumentException($notFoundCode);
 		}
-		$this->plannerScope->assertCanPlanLocation($actor, $locationId);
+		$this->plannerScope->assertCanPlanLocationOr($actor, $locationId, $notFoundCode);
 	}
 
 	/**
@@ -710,12 +718,14 @@ final class AvailabilityBlackoutService
 		if ($row === false) {
 			throw new \InvalidArgumentException('LOCATION_NOT_FOUND');
 		}
+		// Existence-blind: a location outside the actor's company is invisible to
+		// them — report it like a missing location (no COMPANY_MISMATCH oracle).
 		if (
 			$this->companies->isMultiCompanyActive()
 			&& SchemaProbe::hasColumn($this->db, 'dc_locations', 'company_id')
 			&& (int) ($row['company_id'] ?? 0) !== $companyId
 		) {
-			throw new \InvalidArgumentException('COMPANY_MISMATCH');
+			throw new \InvalidArgumentException('LOCATION_NOT_FOUND');
 		}
 	}
 }

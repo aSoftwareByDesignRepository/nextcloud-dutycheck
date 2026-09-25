@@ -176,14 +176,19 @@ class CompanyService
 		return $allowed[0];
 	}
 
-	public function assertCanAccessCompany(string $userId, int $companyId): void
+	/**
+	 * Company-capability check. When used as an object-level gate the caller
+	 * must pass the resource's not-found code so a foreign-company row is
+	 * indistinguishable from a missing row (uniform-404 / no existence oracle).
+	 */
+	public function assertCanAccessCompany(string $userId, int $companyId, string $denyCode = 'FORBIDDEN'): void
 	{
 		if (!$this->isMultiCompanyActive()) {
 			return;
 		}
 		$allowed = $this->companyIdsForUser($userId);
 		if ($allowed === [] || !in_array($companyId, $allowed, true)) {
-			throw new \InvalidArgumentException('FORBIDDEN');
+			throw new \InvalidArgumentException($denyCode);
 		}
 	}
 
@@ -212,7 +217,14 @@ class CompanyService
 		));
 	}
 
-	public function assertRowCompany(string $userId, string $table, int $rowId): void
+	/**
+	 * Existence-blind row gate: a row in a company the actor cannot access is
+	 * reported with the SAME error code as a missing row ($notFoundCode), so
+	 * ID enumeration cannot distinguish "exists in another company" from
+	 * "does not exist". Callers must pass the entity-specific code
+	 * (e.g. PERIOD_NOT_FOUND, ASSIGNMENT_NOT_FOUND).
+	 */
+	public function assertRowCompany(string $userId, string $table, int $rowId, string $notFoundCode = 'NOT_FOUND'): void
 	{
 		if (!$this->isMultiCompanyActive() || !$this->schemaReady()) {
 			return;
@@ -222,9 +234,9 @@ class CompanyService
 			->where($qb->expr()->eq('id', $qb->createNamedParameter($rowId, IQueryBuilder::PARAM_INT)));
 		$row = $qb->executeQuery()->fetch();
 		if ($row === false) {
-			throw new \InvalidArgumentException('NOT_FOUND');
+			throw new \InvalidArgumentException($notFoundCode);
 		}
-		$this->assertCanAccessCompany($userId, (int) $row['company_id']);
+		$this->assertCanAccessCompany($userId, (int) $row['company_id'], $notFoundCode);
 	}
 
 	/**

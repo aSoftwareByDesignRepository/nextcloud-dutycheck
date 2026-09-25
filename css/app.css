@@ -126,7 +126,11 @@ body,
 	position: absolute;
 	left: -9999px;
 	top: var(--dc-space-2);
-	padding: var(--dc-space-2) var(--dc-space-4);
+	/* ≥44px touch target (farm floor) — centred via inline-flex, not padding */
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
+	padding: 0 var(--dc-space-4);
 	background: var(--color-primary-element, #0082c9);
 	color: var(--color-primary-element-text, #fff);
 	border-radius: var(--dc-radius-sm);
@@ -301,13 +305,21 @@ body,
 	margin: 0;
 	list-style: none;
 }
+/* Interactive breadcrumb items are touch targets: ≥44px tall hit area.
+   inline-flex grows the anchor box without shifting the visual text row. */
 .dc-breadcrumb__brand {
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
 	color: inherit;
 	font-weight: 600;
 	text-decoration: none;
 }
 .dc-breadcrumb__brand:hover { text-decoration: underline; }
 .dc-breadcrumb__parent {
+	display: inline-flex;
+	align-items: center;
+	min-height: 44px;
 	color: inherit;
 	text-decoration: none;
 	overflow-wrap: anywhere;
@@ -1951,6 +1963,38 @@ label.dc-checkbox {
 }
 
 /*
+ * Body-mounted overlays (touch-target cascade guard).
+ *
+ * openModal/confirmDialog (.dc-modal) and toasts (.dc-toasts) append to
+ * document.body — OUTSIDE #app-content.dc-app — so the app-level 44px button
+ * contract never reaches them. NC35 core then re-sizes every
+ * `button:not(.button-vue,[class^=vs__])` (0,1,1) to
+ * `min-height: var(--default-clickable-area)` = 34px, and bare-class rules
+ * like `.dc-modal__close` (0,1,0) lose outright.
+ *
+ * Re-state the 44px contract here at (0,2,1)+ so dialog Cancel/primary/danger
+ * actions, the modal close button, chip remove buttons and toast dismiss
+ * controls keep a ≥44px touch target live (WCAG 2.5.8 / farm recurring bug).
+ */
+.dc-modal button,
+.dc-modal .button,
+.dc-modal a.button,
+.dc-modal input[type='submit'].button,
+.dc-modal input[type='button'].button,
+.dc-toasts button,
+.dc-toasts .button,
+.dc-app button.dc-chip__remove,
+#app-content.dc-app button.dc-chip__remove,
+.dc-nav button.dc-nav-footer__trigger,
+#app-navigation button.dc-nav-footer__trigger,
+.dc-nav .dc-nav-footer button,
+#app-navigation .dc-nav-footer button {
+	min-height: 44px;
+	min-width: 44px;
+	box-sizing: border-box;
+}
+
+/*
  * Destructive confirm CTAs. confirmDialog / openModal append to document.body
  * (outside #app-content.dc-app), so .dc-modal must be in the selector list —
  * otherwise class "button danger primary" keeps NC primary blue and crafts
@@ -2634,6 +2678,18 @@ button.dc-license-modal__confirm-danger:hover {
 	background: var(--dc-tint-critical);
 	font-size: var(--dc-fs-sm);
 	line-height: var(--dc-line-base);
+}
+/* Error rows carry a working Retry control — keep it beside the message.
+   The td stays display:table-cell (colSpan!); flex lives on an inner div. */
+.dc-table__fetch-error-inner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: var(--dc-space-2);
+}
+.dc-table__fetch-error-retry {
+	flex-shrink: 0;
 }
 
 /* ── Common icon sizing ──────────────────────────────────────── */

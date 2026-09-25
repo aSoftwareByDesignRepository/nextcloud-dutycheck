@@ -54,3 +54,11 @@ $ocpStubs = dirname(__DIR__, 3) . '/scripts/phpunit-ocp-doctrine-stubs.php';
 if ($base === null && is_file($ocpStubs)) {
 	require_once $ocpStubs;
 }
+
+// App-local copy of the server-internal stubs (OC / OC_Util / OC\AppScriptDependency)
+// so standalone runs — e.g. the Infection container mounting only /app — still
+// work when the workspace-level scripts dir is not reachable.
+$appStubs = __DIR__ . '/Unit/Support/standalone_stubs.php';
+if ($base === null && is_file($appStubs)) {
+	require_once $appStubs;
+}
