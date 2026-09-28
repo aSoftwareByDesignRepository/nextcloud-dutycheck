@@ -1,4 +1,14 @@
 {
+	"translations": {
+		"Employee assignment collides with an ArbeitszeitCheck absence": "Employee assignment collides with an ArbeitszeitCheck absence",
+		"Finish the highlighted step — then your team can plan duties.": "Erledige den hervorgehobenen Schritt — danach kann dein Team Dienste planen.",
+		"Done": "Erledigt",
+		"Next step": "Nächster Schritt",
+		"To do": "Offen",
+		"Menu": "Menü",
+		"Open navigation menu": "Navigationsmenü öffnen",
+		"Close navigation menu": "Navigationsmenü schließen"
+	},
 	"1 published shift": "1 veröffentlichte Schicht",
 	"1. Add a person": "1. Eine Person anlegen",
 	"1. Build the catalog": "1. Den Katalog aufbauen",
@@ -684,15 +694,5 @@
 	"Cancel shift": "Dienst stornieren",
 	"Edit shift": "Dienst bearbeiten",
 	"Shift templates": "Schichtvorlagen",
-	"Copy from previous period": "Aus vorheriger Periode kopieren",
-	"translations": {
-		"Employee assignment collides with an ArbeitszeitCheck absence": "Employee assignment collides with an ArbeitszeitCheck absence",
-		"Finish the highlighted step — then your team can plan duties.": "Erledige den hervorgehobenen Schritt — danach kann dein Team Dienste planen.",
-		"Done": "Erledigt",
-		"Next step": "Nächster Schritt",
-		"To do": "Offen",
-		"Menu": "Menü",
-		"Open navigation menu": "Navigationsmenü öffnen",
-		"Close navigation menu": "Navigationsmenü schließen"
-	}
+	"Copy from previous period": "Aus vorheriger Periode kopieren"
 }

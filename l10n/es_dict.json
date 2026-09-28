@@ -1,4 +1,14 @@
 {
+	"translations": {
+		"Employee assignment collides with an ArbeitszeitCheck absence": "La asignación del empleado choca con una ausencia de ArbeitszeitCheck",
+		"Finish the highlighted step — then your team can plan duties.": "Completa el paso resaltado — después tu equipo puede planificar turnos.",
+		"Done": "Hecho",
+		"Next step": "Siguiente paso",
+		"To do": "Pendiente",
+		"Menu": "Menú",
+		"Open navigation menu": "Abrir menú de navegación",
+		"Close navigation menu": "Cerrar menú de navegación"
+	},
 	" page first.": " primero.",
 	"1 published shift": "1 turno publicado",
 	"1. Build the catalog": "1. Construye el catálogo",
@@ -690,15 +700,5 @@
 	"{n} min": "{n} min",
 	"{n} published shifts": "{n} turnos publicados",
 	"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page.": "{unlinked} de {total} empleados activos no tienen una cuenta Nextcloud vinculada; sus ausencias permanecen en DutyCheck hasta que las cuentas se vinculen en la página Empleados.",
-	"“Must fix” issues block publishing.": "Los problemas « Debe corregirse » bloquean la publicación.",
-	"translations": {
-		"Employee assignment collides with an ArbeitszeitCheck absence": "La asignación del empleado choca con una ausencia de ArbeitszeitCheck",
-		"Finish the highlighted step — then your team can plan duties.": "Completa el paso resaltado — después tu equipo puede planificar turnos.",
-		"Done": "Hecho",
-		"Next step": "Siguiente paso",
-		"To do": "Pendiente",
-		"Menu": "Menú",
-		"Open navigation menu": "Abrir menú de navegación",
-		"Close navigation menu": "Cerrar menú de navegación"
-	}
+	"“Must fix” issues block publishing.": "Los problemas « Debe corregirse » bloquean la publicación."
 }
