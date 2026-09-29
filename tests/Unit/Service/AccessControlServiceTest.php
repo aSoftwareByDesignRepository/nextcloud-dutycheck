@@ -458,6 +458,127 @@ class AccessControlServiceTest extends TestCase
 		self::assertTrue($access->isAppAdmin('admin1'));
 	}
 
+	/**
+	 * @param array<string,string> $store
+	 * @param array<string,IUser|null> $users uid => user mock or null (deleted)
+	 * @param array<string,bool> $groups gid => exists
+	 */
+	private function policyService(array &$store, array $users, array $groups): AccessControlService
+	{
+		$config = $this->createMock(IConfig::class);
+		$config->method('getAppValue')->willReturnCallback(
+			static function (string $appId, string $key, string $default) use (&$store): string {
+				return $store[$key] ?? $default;
+			}
+		);
+		$config->method('setAppValue')->willReturnCallback(
+			static function (string $appId, string $key, string $value) use (&$store): void {
+				$store[$key] = $value;
+			}
+		);
+		$userManager = $this->createMock(IUserManager::class);
+		$userManager->method('get')->willReturnCallback(
+			static fn (string $uid) => $users[$uid] ?? null
+		);
+		$groupManager = $this->createMock(IGroupManager::class);
+		$groupManager->method('groupExists')->willReturnCallback(
+			static fn (string $gid) => $groups[$gid] ?? false
+		);
+		return new AccessControlService(
+			$this->createMock(IDBConnection::class),
+			$config,
+			$groupManager,
+			$userManager,
+			$this->createMock(IUserSession::class),
+		);
+	}
+
+	/**
+	 * @return array<string,string>
+	 */
+	private function policyStore(): array
+	{
+		return [
+			'access_restriction_enabled' => '1',
+			'app_admin_user_ids' => '[]',
+			'access_allowed_user_ids' => '[]',
+			'access_allowed_group_ids' => '[]',
+		];
+	}
+
+	public function testSaveAppPolicyPrunesStaleStoredEntriesInsteadOfBlocking(): void
+	{
+		// Customer trap (0.3.4): a stored allowlist entry whose Nextcloud user was
+		// deleted made EVERY save throw INVALID_ALLOWED_USER — including the very
+		// removal the admin was attempting — leaving the page permanently dirty.
+		$store = $this->policyStore();
+		$store['access_allowed_user_ids'] = '["alice","ghost-user","disabled-user"]';
+		$store['access_allowed_group_ids'] = '["old-team","new-team"]';
+
+		$disabled = $this->createMock(IUser::class);
+		$disabled->method('isEnabled')->willReturn(false);
+
+		$access = $this->policyService(
+			$store,
+			['alice' => $this->enabledUserMock(), 'bob' => $this->enabledUserMock(), 'disabled-user' => $disabled],
+			['new-team' => true],
+		);
+
+		$policy = $access->saveAppPolicy([
+			'appAdminUserIds' => [],
+			'accessRestrictionEnabled' => true,
+			// ghost-user + disabled-user stay selected (stale rows) — must be pruned,
+			// not rejected; bob is a new grant and resolves.
+			'allowedUserIds' => ['alice', 'ghost-user', 'disabled-user', 'bob'],
+			'allowedGroupIds' => ['new-team', 'old-team'],
+		]);
+
+		self::assertSame(['alice', 'bob'], $policy['allowedUserIds']);
+		self::assertSame(['new-team'], $policy['allowedGroupIds']);
+		self::assertSame(['ghost-user', 'disabled-user'], $policy['pruned']['allowedUserIds']);
+		self::assertSame(['old-team'], $policy['pruned']['allowedGroupIds']);
+		// Stored state really persists the pruned lists (not just the response).
+		self::assertSame('["alice","bob"]', $store['access_allowed_user_ids']);
+		self::assertSame('["new-team"]', $store['access_allowed_group_ids']);
+	}
+
+	public function testSaveAppPolicyStillRejectsUnknownNewUsers(): void
+	{
+		$store = $this->policyStore();
+		$store['access_allowed_user_ids'] = '["alice"]';
+		$access = $this->policyService($store, ['alice' => $this->enabledUserMock()], []);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('INVALID_ALLOWED_USER');
+		// 'nobody' is a NEW grant and does not resolve — strict check stays.
+		$access->saveAppPolicy([
+			'appAdminUserIds' => [],
+			'accessRestrictionEnabled' => false,
+			'allowedUserIds' => ['alice', 'nobody'],
+			'allowedGroupIds' => [],
+		]);
+	}
+
+	public function testSaveAppPolicyStaleStoredAdminIsPrunedOnUnchangedSave(): void
+	{
+		// The exact lock-out: an app admin whose account was deleted sits in the
+		// stored list; re-saving the unchanged policy must succeed and drop it.
+		$store = $this->policyStore();
+		$store['app_admin_user_ids'] = '["ghost-admin"]';
+		$access = $this->policyService($store, [], []);
+
+		$policy = $access->saveAppPolicy([
+			'appAdminUserIds' => ['ghost-admin'],
+			'accessRestrictionEnabled' => false,
+			'allowedUserIds' => [],
+			'allowedGroupIds' => [],
+		]);
+
+		self::assertSame([], $policy['appAdminUserIds']);
+		self::assertSame(['ghost-admin'], $policy['pruned']['appAdminUserIds']);
+		self::assertSame('[]', $store['app_admin_user_ids']);
+	}
+
 	private function openConfig(): IConfig
 	{
 		$config = $this->createMock(IConfig::class);

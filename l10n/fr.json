@@ -1326,7 +1326,25 @@
 		"{title}: {have} of {need} staff ({time})": "{title} : {have} sur {need} personnes ({time})",
 		"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page.": "{unlinked} des {total} employés actifs n'ont pas de compte Nextcloud lié — les absences pour eux restent dans DutyCheck jusqu'à ce que les comptes soient liés sur la page Employés.",
 		"{used} of {total} seats used": "{used} sièges utilisés sur {total}",
-		"“Must fix” issues block publishing.": "Les problèmes « À corriger obligatoirement » bloquent la publication."
+		"“Must fix” issues block publishing.": "Les problèmes « À corriger obligatoirement » bloquent la publication.",
+		"Removed — press “Save app policy” to apply.": "Supprimé — cliquez sur « Enregistrer les règles relatives aux applications » pour appliquer.",
+		"App policy saved. {n} stale entries were dropped because those users or groups no longer exist.": "Règles relatives aux applications enregistrées. {n} entrées obsolètes ont été supprimées, car ces utilisateurs ou groupes n’existent plus.",
+		"Delete open shift": "Supprimer le service ouvert",
+		"Delete open shift {when} at {loc}": "Supprimer le service ouvert du {when} à {loc}",
+		"Delete this open shift? Staff can no longer claim it. Pending or claimed shifts cannot be deleted here.": "Supprimer ce service ouvert ? Les collaborateurs ne pourront plus le demander. Les services avec une demande en cours ou déjà confirmée ne peuvent pas être supprimés ici.",
+		"Open shift deleted.": "Service ouvert supprimé.",
+		"Posted open shifts": "Services ouverts publiés",
+		"No open shifts posted for this period.": "Aucun service ouvert publié pour cette période.",
+		"required at {loc}": "exigée à {loc}",
+		"Remove requirement at {loc}": "Retirer l'exigence à {loc}",
+		"Location requirement removed.": "Exigence du site supprimée.",
+		"Withdraw swap request": "Retirer la demande d'échange",
+		"Take back this swap request? The shift stays yours.": "Retirer cette demande d'échange ? Le poste reste le vôtre.",
+		"Withdraw request": "Retirer la demande",
+		"Keep request": "Garder la demande",
+		"Swap request withdrawn.": "Demande d'échange retirée.",
+		"Shift swap withdrawn": "Échange de poste retiré",
+		"A swap request was withdrawn by the requester.": "Une demande d'échange a été retirée par le demandeur."
 	},
 	"pluralForm": "nplurals=2; plural=(n > 1);"
 }

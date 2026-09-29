@@ -107,6 +107,28 @@ class SelfServiceApiController extends Controller
 	}
 
 	#[NoAdminRequired]
+	public function listMySwaps(): DataResponse
+	{
+		try {
+			$userId = $this->access->currentUserId();
+			return new DataResponse(['ok' => true, 'data' => $this->swaps->listMine($userId)]);
+		} catch (Throwable $e) {
+			return ApiJsonErrorResponse::fromThrowable($e);
+		}
+	}
+
+	#[NoAdminRequired]
+	public function withdrawSwap(int $id): DataResponse
+	{
+		try {
+			$userId = $this->access->currentUserId();
+			return new DataResponse(['ok' => true, 'data' => $this->swaps->withdrawSwap($id, $userId)]);
+		} catch (Throwable $e) {
+			return ApiJsonErrorResponse::fromThrowable($e);
+		}
+	}
+
+	#[NoAdminRequired]
 	public function teamWeek(): DataResponse
 	{
 		try {

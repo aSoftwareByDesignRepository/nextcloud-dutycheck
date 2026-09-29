@@ -20,9 +20,11 @@ use OCA\DutyCheck\Repair\EnsureDutyCheckSchema;
 use OCA\DutyCheck\Repair\UninstallDropTables;
 use OCA\DutyCheck\Middleware\AppAccessMiddleware;
 use OCA\DutyCheck\Middleware\ClientLicenseMiddleware;
+use OCA\DutyCheck\Middleware\SessionCsrfMiddleware;
 use OCA\DutyCheck\Service\AccessControlService;
 use OCA\DutyCheck\Service\ApiRateLimitService;
 use OCA\DutyCheck\Service\ConflictPolicyService;
+use OCA\DutyCheck\Service\CsrfTokenValidator;
 use OCA\DutyCheck\Service\IconCatalog;
 use OCA\DutyCheck\Service\LicenseService;
 use OCA\DutyCheck\Service\LocaleFormatService;
@@ -406,8 +408,21 @@ class Application extends App implements IBootstrap
 				$c->query(\Psr\Log\LoggerInterface::class),
 			);
 		});
+		$context->registerService(CsrfTokenValidator::class, function ($c): CsrfTokenValidator {
+			return new CsrfTokenValidator(
+				$c->query(\OC\Security\CSRF\CsrfTokenManager::class),
+			);
+		});
+		$context->registerService(SessionCsrfMiddleware::class, function ($c): SessionCsrfMiddleware {
+			return new SessionCsrfMiddleware(
+				$c->query(\OCP\IRequest::class),
+				$c->query(\OCP\IUserSession::class),
+				$c->query(CsrfTokenValidator::class),
+			);
+		});
 		$context->registerMiddleware(AppAccessMiddleware::class);
 		$context->registerMiddleware(ClientLicenseMiddleware::class);
+		$context->registerMiddleware(SessionCsrfMiddleware::class);
 		$context->registerEventListener(UserDeletedEvent::class, UserDeletedListener::class);
 		$context->registerNotifierService(\OCA\DutyCheck\Notification\Notifier::class);
 

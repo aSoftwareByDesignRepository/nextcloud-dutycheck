@@ -804,6 +804,27 @@ class RosterApiController extends Controller
 		}
 	}
 
+	/**
+	 * Planner removes an unclaimed open shift (status=open only). Existence-blind:
+	 * out-of-scope or missing rows both collapse to OPEN_SHIFT_NOT_FOUND.
+	 */
+	#[NoAdminRequired]
+	public function deleteOpenShift(int $id): DataResponse
+	{
+		try {
+			$userId = $this->access->currentUserId();
+			$this->access->requirePlannerOrAdmin($userId);
+			$open = $this->openShiftsService()->getById($id);
+			if ($this->plannerScope !== null) {
+				$this->plannerScope->assertCanPlanLocationOr($userId, (int) $open['locationId'], 'OPEN_SHIFT_NOT_FOUND');
+			}
+			$this->openShiftsService()->discardOpen($id, $userId);
+			return new DataResponse(['ok' => true, 'data' => ['id' => $id]]);
+		} catch (Throwable $e) {
+			return ApiJsonErrorResponse::fromThrowable($e);
+		}
+	}
+
 	#[NoAdminRequired]
 	public function listSwapRequests(): DataResponse
 	{
@@ -1588,6 +1609,26 @@ class RosterApiController extends Controller
 				throw new \InvalidArgumentException('QUALIFICATION_ID_REQUIRED');
 			}
 			$this->qualificationsService()->requireForLocation($id, $qualId, $userId);
+			return new DataResponse([
+				'ok' => true,
+				'data' => $this->withRematerializeMeta([], $this->rematerializeOpenConflicts($userId)),
+			]);
+		} catch (Throwable $e) {
+			return ApiJsonErrorResponse::fromThrowable($e);
+		}
+	}
+
+	#[NoAdminRequired]
+	public function unrequireLocationQualification(int $id, int $qualificationId): DataResponse
+	{
+		try {
+			$userId = $this->access->currentUserId();
+			$this->access->requireAppAdmin($userId);
+			$this->qualificationsService()->unrequireFromLocation(
+				$id,
+				$qualificationId,
+				$userId,
+			);
 			return new DataResponse([
 				'ok' => true,
 				'data' => $this->withRematerializeMeta([], $this->rematerializeOpenConflicts($userId)),

@@ -1327,7 +1327,25 @@ OC.L10N.register(
 	"{title}: {have} of {need} staff ({time})" : "{title}: {have} av {need} personal ({time})",
 	"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page." : "{unlinked} av {total} aktiva anställda har inget länkat Nextcloud-konto – frånvaro för dem stannar i DutyCheck tills konton länkas på sidan Anställda.",
 	"{used} of {total} seats used" : "{used} av {total} säten används",
-	"“Must fix” issues block publishing." : "“Måste åtgärdas”-problem blockerar publicering."
+	"“Must fix” issues block publishing." : "“Måste åtgärdas”-problem blockerar publicering.",
+	"Removed — press “Save app policy” to apply." : "Borttagen — tryck på ”Spara apppolicy” för att tillämpa ändringen.",
+	"App policy saved. {n} stale entries were dropped because those users or groups no longer exist." : "Apppolicy sparad. {n} föråldrade poster togs bort eftersom användarna eller grupperna inte längre finns.",
+	"Delete open shift" : "Ta bort öppet skift",
+	"Delete open shift {when} at {loc}" : "Ta bort öppet skift {when} på {loc}",
+	"Delete this open shift? Staff can no longer claim it. Pending or claimed shifts cannot be deleted here." : "Ta bort det här öppna skiftet? Personal kan inte längre anmäla sig. Skift med väntande eller godkända ansökningar kan inte tas bort här.",
+	"Open shift deleted." : "Öppet skift borttaget.",
+	"Posted open shifts" : "Publicerade öppna skift",
+	"No open shifts posted for this period." : "Inga öppna skift har publicerats för den här perioden.",
+	"required at {loc}" : "krävs på {loc}",
+	"Remove requirement at {loc}" : "Ta bort kravet på {loc}",
+	"Location requirement removed." : "Platskravet har tagits bort.",
+	"Withdraw swap request" : "Dra tillbaka bytessbegäran",
+	"Take back this swap request? The shift stays yours." : "Dra tillbaka denna bytessbegäran? Skiftet förblir ditt.",
+	"Withdraw request" : "Dra tillbaka begäran",
+	"Keep request" : "Behåll begäran",
+	"Swap request withdrawn." : "Bytessbegäran återtagen.",
+	"Shift swap withdrawn" : "Skiftbyte återtaget",
+	"A swap request was withdrawn by the requester." : "En bytessbegäran drogs tillbaka av den som skickade den."
 	},
 	"nplurals=2; plural=(n != 1);"
 );

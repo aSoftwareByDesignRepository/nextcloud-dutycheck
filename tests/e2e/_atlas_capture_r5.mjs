@@ -604,24 +604,10 @@ await forceDarkDom(page)
 await page.locator('#dc-main-content, #content').first().waitFor({ state: 'visible', timeout: 30000 })
 await page.waitForSelector('#dc-metric-open-periods, .dc-metric, .dc-dashboard', { timeout: 20000 }).catch(() => {})
 await dismissTips(page)
-// Signature craft: replace loading pulse with coverage chips (DE).
-await page.evaluate(() => {
-	const root = document.getElementById('dc-dashboard-conflict-pulse')
-	if (!root) return
-	root.classList.remove('dc-loading')
-	root.removeAttribute('aria-busy')
-	root.innerHTML = `
-		<div class="dc-dashboard-pulse__band" role="list">
-			<div class="dc-dashboard-pulse__chip dc-dashboard-pulse__chip--ok" role="listitem"><strong>0</strong><span>Muss fixen</span></div>
-			<div class="dc-dashboard-pulse__chip dc-dashboard-pulse__chip--ok" role="listitem"><strong>0</strong><span>Bestätigen</span></div>
-			<div class="dc-dashboard-pulse__chip" role="listitem"><strong>6</strong><span>Personen aktiv</span></div>
-			<div class="dc-dashboard-pulse__chip" role="listitem"><strong>Nov</strong><span>Offen · Zentrale</span></div>
-		</div>
-		<p class="dc-callout__hint" style="margin:0.5rem 0 0;color:#a0a0a0">November 2026 ist veröffentlichtbereit — keine harten Konflikte.</p>`
-	document.getElementById('dc-dashboard-checklist')?.setAttribute('hidden', '')
-	document.getElementById('dc-quickstart')?.setAttribute('hidden', '')
-	document.querySelectorAll('[id*="quickstart"]').forEach((el) => el.setAttribute('hidden', ''))
-})
+// Honest surface: dashboard.js renders a .dc-callout readiness well from the
+// stubbed /api/dashboard pulse — wait for it; no staged markup (the old
+// dc-dashboard-pulse__chip/dienstlage injections used CSS the app never emits).
+await page.waitForSelector('#dc-dashboard-conflict-pulse .dc-callout', { timeout: 15000 }).catch(() => {})
 await settle(page)
 console.log('shot dashboard')
 await shot(page, 'web-dashboard')
@@ -756,8 +742,6 @@ await page.evaluate(() => {
 		el.setAttribute('hidden', '')
 		el.remove()
 	})
-	const label = document.getElementById('dc-roster-month-current')
-	if (label) label.textContent = 'November 2026'
 	// Shrink day columns so a month crop shows many days, not a week slice.
 	const grid = document.getElementById('dc-roster-grid')
 	if (grid) grid.style.setProperty('--dc-roster-day-min', '2.1rem')

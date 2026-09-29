@@ -5,19 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## 0.3.5 - 2026-09-29
 
 ### Fixed
 
+- **Shifts can be deleted from the edit dialog:** opening a filled roster cell showed only “Save changes / Cancel” — the “Cancel shift” action that existed on the assignments table row is now also available inside the edit dialog (danger secondary action), so a manually entered shift can be removed from either surface.
+- **Access page could not remove people:** saving the app policy re-validated *stored* allowlist entries — a user or group deleted in Nextcloud meanwhile made every save fail, so removals never persisted and leaving the page always warned about unsaved changes. Stored entries that no longer resolve are now pruned (and reported back) while newly added entries are still strictly validated. Removing an entry also announces that “Save app policy” is still needed.
+- **Roster error rows get a working Retry** and an empty/failed roster grid no longer leaves a dead keyboard tab stop.
 - **Pattern days corrupted on save:** the web client posts urlencoded bodies, so an unchecked day arrived as the string `"false"` and PHP's `(bool)` cast stored every day as working. Strict boolean parsing (`ApiMutationParams::boolValue*`) now honours `true/false/1/0/on/off/yes/no` on every affected endpoint — patterns reopen with exactly the days you marked.
 - **Duty & team settings flipped everything ON:** the same `"false"` → `true` coercion is fixed for all toggles; ambiguous values now fail with `INVALID_BOOLEAN` instead of silently turning features on.
 - **Patterns can now be deleted:** new danger Delete action with confirmation; patterns are soft-deactivated (assignments keep their history) and no longer clutter the list.
 - **Delete could still be refused after settings changes:** deactivation no longer re-validates the stored `cycle_weeks` against the current allowed list and no longer requires the rotation feature flag — a pattern can always be deactivated. Unchanged stored values are only validated when actually changed.
 - **Suggest fill filled nothing:** the preview no longer inherits the “Add assignment” form’s location as a hidden filter, and location-filter drops are counted and shown (“Skipped (location filter): n”) instead of a misleading “nothing to fill”.
+- **Open shifts could not be deleted:** `OpenShiftService::discardOpen()` existed internally but no route exposed it — a posted open shift stayed forever. The roster now lists posted open shifts with a Delete action (`DELETE /api/open-shifts/{id}`); shifts with a pending or approved claim refuse deletion.
+- **Location qualification requirements were permanent:** `requireForLocation` had no inverse — `DELETE /api/locations/{id}/qualifications/{qualificationId}` (+ POST `detach` alias) removes a requirement, and each qualification chip now lists its required locations with a Remove action.
+- **Swap requests could not be withdrawn:** the requester had no way to take back a pending swap. New `POST /api/my/swaps/{id}/withdraw` (requester-only, race-safe) shows “Withdraw swap request” on My roster, with companion parity via `/api/mobile/my/swaps` + `/api/mobile/swaps/{id}/withdraw`.
+- **Shift template `active` flag silently reset:** `ShiftTemplateService::update` cast the flag via `(int)`, turning `"true"` into `0` — now parsed strictly like every other boolean field.
+- **Session CSRF guard:** the web client no longer sends `OCS-APIRequest` (a header that tells Nextcloud to skip its CSRF check), and a new `SessionCsrfMiddleware` re-validates the request token server-side for every session-authenticated mutation regardless of that header — a forged or malformed request can no longer opt out by claiming to be an API client.
+- **Release tarball shipped dev artifacts:** `make release` packed `vendor/` (all dev-deps — the app has zero runtime composer requirements), `docs/atlas` evidence files, `phpunit.xml`, `playwright.config.js`, and a stray `.auth/` dir — ~27 MB of non-product content. The excludes now drop them and `verify-release` fails if they return; the archive is ~3 MB of product only.
+- **Small-screen accessibility:** the roster scroller is keyboard-focusable exactly while it actually scrolls (axe `scrollable-region-focusable`), and the access-state panel wraps instead of overflowing at 320 px.
 
 ### Tests
 
-- Unit: strict-bool parser, urlencoded `filterPatch`/`weekDays` normalisation; Playwright spec covering the pattern round-trip + delete, settings persistence, and the suggest request contract.
+- Unit: strict-bool parser, urlencoded `filterPatch`/`weekDays` normalisation, stale-allowlist pruning on policy save; JS source contracts for the modal delete parity + removal cue; Playwright spec covering the pattern round-trip + delete, settings persistence, modal delete parity, and the suggest request contract.
 
 ## 0.3.4 - 2026-09-21
 

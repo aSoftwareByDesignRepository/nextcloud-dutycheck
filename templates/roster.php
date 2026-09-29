@@ -277,6 +277,9 @@ foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as
 	<h3 class="dc-subsection-heading"><?php p($l->t('Pending open-shift claims')); ?></h3>
 	<ul id="dc-open-claim-list" class="dc-conflicts" role="list" aria-live="polite"></ul>
 	<p id="dc-open-claim-empty" class="dc-field__hint" hidden><?php p($l->t('No pending claims.')); ?></p>
+	<h3 class="dc-subsection-heading"><?php p($l->t('Posted open shifts')); ?></h3>
+	<ul id="dc-open-shift-list" class="dc-conflicts" role="list" aria-live="polite"></ul>
+	<p id="dc-open-shift-empty" class="dc-field__hint" hidden><?php p($l->t('No open shifts posted for this period.')); ?></p>
 </section>
 
 <?php if (!empty($_['isAppAdmin'])): ?>

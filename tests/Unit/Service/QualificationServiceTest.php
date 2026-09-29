@@ -149,6 +149,112 @@ final class QualificationServiceTest extends TestCase
 		self::assertSame(0, $row['active']);
 	}
 
+	public function testUnrequireFromLocationDeletesRow(): void
+	{
+		$db = $this->createMock(IDBConnection::class);
+		$expr = new class {
+			public function eq(...$a) { return 'eq'; }
+		};
+		$qb = $this->createMock(IQueryBuilder::class);
+		$qb->method('delete')->willReturnSelf();
+		$qb->method('where')->willReturnSelf();
+		$qb->method('andWhere')->willReturnSelf();
+		$qb->method('expr')->willReturn($expr);
+		$qb->method('createNamedParameter')->willReturn('p');
+		$qb->expects($this->once())->method('executeStatement')->willReturn(1);
+		$db->method('getQueryBuilder')->willReturn($qb);
+
+		$svc = new QualificationService($db);
+		$svc->unrequireFromLocation(4, 9);
+		self::assertTrue(true);
+	}
+
+	public function testUnrequireFromLocationMissingRowThrows(): void
+	{
+		$db = $this->createMock(IDBConnection::class);
+		$expr = new class {
+			public function eq(...$a) { return 'eq'; }
+		};
+		$qb = $this->createMock(IQueryBuilder::class);
+		$qb->method('delete')->willReturnSelf();
+		$qb->method('where')->willReturnSelf();
+		$qb->method('andWhere')->willReturnSelf();
+		$qb->method('expr')->willReturn($expr);
+		$qb->method('createNamedParameter')->willReturn('p');
+		$qb->method('executeStatement')->willReturn(0);
+		$db->method('getQueryBuilder')->willReturn($qb);
+
+		$svc = new QualificationService($db);
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('LOCATION_QUALIFICATION_NOT_FOUND');
+		$svc->unrequireFromLocation(4, 9);
+	}
+
+	public function testRequireForLocationIsIdempotent(): void
+	{
+		$db = $this->createMock(IDBConnection::class);
+		$expr = new class {
+			public function eq(...$a) { return 'eq'; }
+		};
+		// Existing requirement row → early return, insert must never run.
+		$existsResult = $this->createMock(IResult::class);
+		$existsResult->method('fetch')->willReturn(['id' => 7]);
+		$qb = $this->createMock(IQueryBuilder::class);
+		$qb->method('select')->willReturnSelf();
+		$qb->method('from')->willReturnSelf();
+		$qb->method('where')->willReturnSelf();
+		$qb->method('andWhere')->willReturnSelf();
+		$qb->method('expr')->willReturn($expr);
+		$qb->method('createNamedParameter')->willReturn('p');
+		$qb->method('executeQuery')->willReturn($existsResult);
+		$qb->expects($this->never())->method('insert');
+		$db->method('getQueryBuilder')->willReturn($qb);
+
+		$svc = new QualificationService($db);
+		$svc->requireForLocation(4, 9); // must not throw a constraint violation
+		self::assertTrue(true);
+	}
+
+	public function testListCatalogIncludesRequiredAt(): void
+	{
+		$db = $this->createMock(IDBConnection::class);
+		$db->method('tableExists')->willReturn(true);
+		$expr = new class {
+			public function eq(...$a) { return 'eq'; }
+		};
+
+		$catResult = $this->createMock(IResult::class);
+		$catResult->method('fetchAll')->willReturn([
+			['id' => 9, 'name' => 'First Aid', 'code' => 'FA', 'active' => 1],
+		]);
+		$qbCat = $this->createMock(IQueryBuilder::class);
+		$qbCat->method('select')->willReturnSelf();
+		$qbCat->method('from')->willReturnSelf();
+		$qbCat->method('where')->willReturnSelf();
+		$qbCat->method('orderBy')->willReturnSelf();
+		$qbCat->method('expr')->willReturn($expr);
+		$qbCat->method('createNamedParameter')->willReturn('p');
+		$qbCat->method('executeQuery')->willReturn($catResult);
+
+		$reqResult = $this->createMock(IResult::class);
+		$reqResult->method('fetchAll')->willReturn([
+			['qualification_id' => 9, 'location_id' => 4, 'name' => 'Depot Nord'],
+		]);
+		$qbReq = $this->createMock(IQueryBuilder::class);
+		$qbReq->method('select')->willReturnSelf();
+		$qbReq->method('from')->willReturnSelf();
+		$qbReq->method('innerJoin')->willReturnSelf();
+		$qbReq->method('expr')->willReturn($expr);
+		$qbReq->method('createNamedParameter')->willReturn('p');
+		$qbReq->method('executeQuery')->willReturn($reqResult);
+
+		$db->method('getQueryBuilder')->willReturnOnConsecutiveCalls($qbCat, $qbReq);
+
+		$svc = new QualificationService($db);
+		$rows = $svc->listCatalog();
+		self::assertSame([['id' => 4, 'name' => 'Depot Nord']], $rows[0]['requiredAt']);
+	}
+
 	public function testDetachRemovesEmployeeQualification(): void
 	{
 		$db = $this->createMock(IDBConnection::class);

@@ -230,6 +230,34 @@ class MobileController extends Controller
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
+	public function listMySwaps(): JSONResponse
+	{
+		try {
+			$uid = $this->requireUid();
+			$this->gate->assertGatePassed($uid);
+			$svc = $this->swaps ?? throw new \RuntimeException('SWAPS_UNAVAILABLE');
+			return new JSONResponse(['ok' => true, 'data' => $svc->listMine($uid)]);
+		} catch (Throwable $e) {
+			return $this->fromThrowable($e);
+		}
+	}
+
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	public function withdrawSwap(int $id): JSONResponse
+	{
+		try {
+			$uid = $this->requireUid();
+			$this->gate->assertGatePassed($uid);
+			$svc = $this->swaps ?? throw new \RuntimeException('SWAPS_UNAVAILABLE');
+			return new JSONResponse(['ok' => true, 'data' => $svc->withdrawSwap($id, $uid)]);
+		} catch (Throwable $e) {
+			return $this->fromThrowable($e);
+		}
+	}
+
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function swapCandidates(): JSONResponse
 	{
 		try {

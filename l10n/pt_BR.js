@@ -1327,7 +1327,25 @@ OC.L10N.register(
 	"{title}: {have} of {need} staff ({time})" : "{title}: {have} de {need} pessoas ({time})",
 	"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page." : "{unlinked} dos {total} funcionários ativos não têm conta Nextcloud vinculada — as ausências deles permanecem em DutyCheck até que as contas sejam vinculadas na página Funcionários.",
 	"{used} of {total} seats used" : "{used} de {total} assentos usados",
-	"“Must fix” issues block publishing." : "Problemas “devem ser corrigidos” bloqueiam a publicação."
+	"“Must fix” issues block publishing." : "Problemas “devem ser corrigidos” bloqueiam a publicação.",
+	"Removed — press “Save app policy” to apply." : "Removido — clique em «Salvar política de aplicativos» para aplicar a alteração.",
+	"App policy saved. {n} stale entries were dropped because those users or groups no longer exist." : "Política de aplicativos salva. {n} entradas obsoletas foram descartadas porque esses usuários ou grupos não existem mais.",
+	"Delete open shift" : "Excluir turno aberto",
+	"Delete open shift {when} at {loc}" : "Excluir turno aberto de {when} em {loc}",
+	"Delete this open shift? Staff can no longer claim it. Pending or claimed shifts cannot be deleted here." : "Excluir este turno aberto? A equipe não poderá mais reivindicá-lo. Turnos com solicitações pendentes ou já confirmadas não podem ser excluídos aqui.",
+	"Open shift deleted." : "Turno aberto excluído.",
+	"Posted open shifts" : "Turnos abertos publicados",
+	"No open shifts posted for this period." : "Nenhum turno aberto publicado para este período.",
+	"required at {loc}" : "obrigatória em {loc}",
+	"Remove requirement at {loc}" : "Remover requisito em {loc}",
+	"Location requirement removed." : "Requisito do local removido.",
+	"Withdraw swap request" : "Retirar pedido de troca",
+	"Take back this swap request? The shift stays yours." : "Retirar este pedido de troca? O turno continua seu.",
+	"Withdraw request" : "Retirar pedido",
+	"Keep request" : "Manter pedido",
+	"Swap request withdrawn." : "Pedido de troca retirado.",
+	"Shift swap withdrawn" : "Troca de turno retirada",
+	"A swap request was withdrawn by the requester." : "Um pedido de troca foi retirado pelo solicitante."
 	},
 	"nplurals=2; plural=(n > 1);"
 );

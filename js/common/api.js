@@ -183,7 +183,6 @@
 				headers: {
 					Accept: 'application/json',
 					'X-Requested-With': 'XMLHttpRequest',
-					'OCS-APIRequest': 'true',
 				},
 			});
 			if (!response.ok) {
@@ -233,7 +232,9 @@
 		const headers = new Headers(opts.headers || {});
 		headers.set('Accept', 'application/json');
 		headers.set('X-Requested-With', 'XMLHttpRequest');
-		headers.set('OCS-APIRequest', 'true');
+		// No OCS-APIRequest: that header tells Nextcloud to skip CSRF AND the
+		// strict-cookie check — correct for Basic-auth API clients, wrong for an
+		// ambient browser session. Session mutations must ride the requesttoken.
 		if (token) {
 			// Some Nextcloud deployments enforce requesttoken checks beyond classic
 			// mutation verbs for app routes; providing it consistently avoids 412s.

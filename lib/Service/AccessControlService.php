@@ -233,6 +233,13 @@ class AccessControlService
 
 	/**
 	 * @param array<string,mixed> $payload
+	 * @return array{
+	 *   appAdminUserIds:list<string>,
+	 *   accessRestrictionEnabled:bool,
+	 *   allowedUserIds:list<string>,
+	 *   allowedGroupIds:list<string>,
+	 *   pruned:array{appAdminUserIds:list<string>,allowedUserIds:list<string>,allowedGroupIds:list<string>}
+	 * }
 	 */
 	public function saveAppPolicy(array $payload): array
 	{
@@ -241,17 +248,60 @@ class AccessControlService
 		$allowedGroups = $this->normalizeUniqueIdList($payload['allowedGroupIds'] ?? []);
 		$restriction = $this->normalizeBooleanFlag($payload['accessRestrictionEnabled'] ?? false, 'INVALID_ACCESS_RESTRICTION');
 
+		/*
+		 * Whole-document replace must not trap on stale stored rows: an id that
+		 * was previously saved but whose user/group was meanwhile deleted or
+		 * disabled can never be resolved again — rejecting it would block EVERY
+		 * policy save, including the very removal the admin is attempting
+		 * (0.3.4 "cannot remove persons" report). Newly submitted ids must still
+		 * resolve; stale stored ids are pruned and reported back.
+		 */
+		$storedAdmins = array_flip($this->getAppAdminIds());
+		$storedAllowed = array_flip($this->getAllowedUserIds());
+		$storedGroups = array_flip($this->getAllowedGroupIds());
+		$pruned = ['appAdminUserIds' => [], 'allowedUserIds' => [], 'allowedGroupIds' => []];
+
 		foreach ($appAdmins as $uid) {
-			$this->assertKnownUser($uid, 'INVALID_APP_ADMIN_USER');
+			if (!isset($storedAdmins[$uid])) {
+				$this->assertKnownUser($uid, 'INVALID_APP_ADMIN_USER');
+			}
 		}
 		foreach ($allowedUsers as $uid) {
-			$this->assertKnownUser($uid, 'INVALID_ALLOWED_USER');
+			if (!isset($storedAllowed[$uid])) {
+				$this->assertKnownUser($uid, 'INVALID_ALLOWED_USER');
+			}
 		}
 		foreach ($allowedGroups as $gid) {
-			if (!$this->groupManager->groupExists($gid)) {
+			if (!isset($storedGroups[$gid]) && !$this->groupManager->groupExists($gid)) {
 				throw new \InvalidArgumentException('INVALID_ALLOWED_GROUP');
 			}
 		}
+
+		$isLiveUser = function (string $uid): bool {
+			$user = $this->userManager->get($uid);
+			return $user !== null && (!method_exists($user, 'isEnabled') || $user->isEnabled());
+		};
+		$appAdmins = array_values(array_filter($appAdmins, function (string $uid) use ($isLiveUser, $storedAdmins, &$pruned) {
+			if (isset($storedAdmins[$uid]) && !$isLiveUser($uid)) {
+				$pruned['appAdminUserIds'][] = $uid;
+				return false;
+			}
+			return true;
+		}));
+		$allowedUsers = array_values(array_filter($allowedUsers, function (string $uid) use ($isLiveUser, $storedAllowed, &$pruned) {
+			if (isset($storedAllowed[$uid]) && !$isLiveUser($uid)) {
+				$pruned['allowedUserIds'][] = $uid;
+				return false;
+			}
+			return true;
+		}));
+		$allowedGroups = array_values(array_filter($allowedGroups, function (string $gid) use ($storedGroups, &$pruned) {
+			if (isset($storedGroups[$gid]) && !$this->groupManager->groupExists($gid)) {
+				$pruned['allowedGroupIds'][] = $gid;
+				return false;
+			}
+			return true;
+		}));
 
 		if ($restriction && $allowedUsers === [] && $allowedGroups === []) {
 			throw new \InvalidArgumentException('ACCESS_LIST_REQUIRED');
@@ -263,7 +313,7 @@ class AccessControlService
 		$this->config->setAppValue(Application::APP_ID, self::KEY_ACCESS_RESTRICTION, $restriction ? '1' : '0');
 
 		$this->forgetPolicyCaches();
-		return $this->appPolicy();
+		return $this->appPolicy() + ['pruned' => $pruned];
 	}
 
 	/**

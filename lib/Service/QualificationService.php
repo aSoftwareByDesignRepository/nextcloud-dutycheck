@@ -33,12 +33,43 @@ class QualificationService
 			$this->companies->restrictQuery($qb, 'company_id', $actorUserId);
 		}
 		$qb->orderBy('name', 'ASC');
+		$requiredAt = $this->requiredLocationsMap($actorUserId);
 		return array_map(static fn (array $r): array => [
 			'id' => (int) $r['id'],
 			'name' => (string) $r['name'],
 			'code' => $r['code'] !== null ? (string) $r['code'] : null,
 			'active' => (int) $r['active'],
+			'requiredAt' => $requiredAt[(int) $r['id']] ?? [],
 		], $qb->executeQuery()->fetchAll());
+	}
+
+	/**
+	 * Location requirements per qualification — read parity for dc_loc_quals so
+	 * the settings UI can display (and delete) what requireForLocation creates.
+	 *
+	 * @return array<int, list<array{id:int,name:string}>> keyed by qualification id
+	 */
+	private function requiredLocationsMap(?string $actorUserId = null): array
+	{
+		if (!$this->db->tableExists('dc_loc_quals') || !$this->db->tableExists('dc_locations')) {
+			return [];
+		}
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('lq.qualification_id', 'lq.location_id', 'l.name')
+			->from('dc_loc_quals', 'lq')
+			->innerJoin('lq', 'dc_locations', 'l', $qb->expr()->eq('lq.location_id', 'l.id'));
+		if ($actorUserId !== null && $this->companies !== null
+			&& \OCA\DutyCheck\Db\SchemaProbe::hasColumn($this->db, 'dc_locations', 'company_id')) {
+			$this->companies->restrictQuery($qb, 'l.company_id', $actorUserId);
+		}
+		$map = [];
+		foreach ($qb->executeQuery()->fetchAll() as $row) {
+			$map[(int) $row['qualification_id']][] = [
+				'id' => (int) $row['location_id'],
+				'name' => trim((string) $row['name']) !== '' ? (string) $row['name'] : ('#' . (int) $row['location_id']),
+			];
+		}
+		return $map;
 	}
 
 	/** @param array<string,mixed> $payload @return array<string,mixed> */
@@ -203,12 +234,40 @@ class QualificationService
 				$this->companies->assertRowCompany($actorUserId, 'dc_qualifications', $qualificationId, 'QUALIFICATION_NOT_FOUND');
 			}
 		}
+		// Idempotent: dc_lq_uq makes a second POST a constraint violation (raw
+		// 500). An existing requirement is already the desired end state.
+		$exists = $this->db->getQueryBuilder();
+		$exists->select('id')->from('dc_loc_quals')
+			->where($exists->expr()->eq('location_id', $exists->createNamedParameter($locationId, IQueryBuilder::PARAM_INT)))
+			->andWhere($exists->expr()->eq('qualification_id', $exists->createNamedParameter($qualificationId, IQueryBuilder::PARAM_INT)));
+		if ($exists->executeQuery()->fetch() !== false) {
+			return;
+		}
 		$qb = $this->db->getQueryBuilder();
 		$qb->insert('dc_loc_quals')->values([
 			'location_id' => $qb->createNamedParameter($locationId, IQueryBuilder::PARAM_INT),
 			'qualification_id' => $qb->createNamedParameter($qualificationId, IQueryBuilder::PARAM_INT),
 			'required' => $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT),
 		])->executeStatement();
+	}
+
+	/**
+	 * Remove a location qualification requirement — delete parity for
+	 * {@see requireForLocation()} (there was no way to undo it).
+	 */
+	public function unrequireFromLocation(int $locationId, int $qualificationId, ?string $actorUserId = null): void
+	{
+		if ($actorUserId !== null && $this->companies !== null) {
+			$this->companies->assertRowCompany($actorUserId, 'dc_locations', $locationId, 'LOCATION_NOT_FOUND');
+		}
+		$qb = $this->db->getQueryBuilder();
+		$affected = $qb->delete('dc_loc_quals')
+			->where($qb->expr()->eq('location_id', $qb->createNamedParameter($locationId, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->eq('qualification_id', $qb->createNamedParameter($qualificationId, IQueryBuilder::PARAM_INT)))
+			->executeStatement();
+		if ($affected !== 1) {
+			throw new \InvalidArgumentException('LOCATION_QUALIFICATION_NOT_FOUND');
+		}
 	}
 
 	/**

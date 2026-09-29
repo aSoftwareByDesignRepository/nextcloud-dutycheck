@@ -623,8 +623,6 @@ await page.evaluate(() => {
 		el.setAttribute('hidden', '')
 		el.remove()
 	})
-	const label = document.getElementById('dc-roster-month-current')
-	if (label) label.textContent = 'November 2026'
 	// Shrink day columns so a month crop shows many days, not a week slice.
 	const grid = document.getElementById('dc-roster-grid')
 	if (grid) grid.style.setProperty('--dc-roster-day-min', '2.1rem')

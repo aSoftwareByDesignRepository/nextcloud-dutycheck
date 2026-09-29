@@ -228,106 +228,20 @@ async function gotoDe(page, url) {
 	throw lastErr
 }
 
+// Honest dashboard: dashboard.js renders a .dc-callout readiness well from the
+// stubbed /api/dashboard pulse. The old dc-dashboard-pulse__chip /
+// dc-dashboard-bandlage / dc-dashboard-dienstlage injections staged markup +
+// CSS the app never emits — removed (Atlas ds_chrome must_fix).
 async function paintDashboardSignature(page) {
-	await page.evaluate(() => {
-		const root = document.getElementById('dc-dashboard-conflict-pulse')
-		if (!root) return
-		root.classList.remove('dc-loading')
-		root.removeAttribute('aria-busy')
-		root.innerHTML = `
-		<div class="dc-dashboard-pulse__band" role="list">
-			<div class="dc-dashboard-pulse__chip dc-dashboard-pulse__chip--ok" role="listitem"><strong>0</strong><span>Muss fixen</span></div>
-			<div class="dc-dashboard-pulse__chip dc-dashboard-pulse__chip--ok" role="listitem"><strong>0</strong><span>Bestätigen</span></div>
-			<div class="dc-dashboard-pulse__chip" role="listitem"><strong>6</strong><span>Personen aktiv</span></div>
-			<div class="dc-dashboard-pulse__chip" role="listitem"><strong>Nov</strong><span>Offen · Zentrale</span></div>
-		</div>
-		<p class="dc-callout__hint" style="margin:0.5rem 0 0;color:#a0a0a0">November 2026 ist veröffentlichtbereit — keine harten Konflikte.</p>
-		<div class="dc-dashboard-bandlage" aria-label="Schichtband-Lage heute">
-			<p class="dc-dashboard-bandlage__title">Schichtband-Lage · Zentrale · heute</p>
-			<div class="dc-dashboard-bandlage__bands">
-				<div class="dc-dashboard-bandlage__band dc-dashboard-bandlage__band--early"><strong>2</strong><span>Früh</span></div>
-				<div class="dc-dashboard-bandlage__band dc-dashboard-bandlage__band--day"><strong>1</strong><span>Tag</span></div>
-				<div class="dc-dashboard-bandlage__band dc-dashboard-bandlage__band--late"><strong>2</strong><span>Spät</span></div>
-				<div class="dc-dashboard-bandlage__band dc-dashboard-bandlage__band--night"><strong>1</strong><span>Nacht</span></div>
-			</div>
-			<p class="dc-dashboard-bandlage__foot">Leitstand live · 6 Einsätze · Freigabe November bereit</p>
-		</div>
-		<div class="dc-dashboard-dienstlage" aria-label="Dienstlage heute">
-			<p class="dc-dashboard-dienstlage__title">Dienstlage · Zentrale · heute</p>
-			<div class="dc-dashboard-dienstlage__rows">
-				<div class="dc-dashboard-dienstlage__row"><time>06:00–14:00</time><span>Anna Weber · Früh</span><em>besetzt</em></div>
-				<div class="dc-dashboard-dienstlage__row"><time>06:00–14:00</time><span>Ben Richter · Früh</span><em>besetzt</em></div>
-				<div class="dc-dashboard-dienstlage__row"><time>08:00–16:00</time><span>Clara Hofmann · Tag</span><em>besetzt</em></div>
-				<div class="dc-dashboard-dienstlage__row"><time>12:00–20:00</time><span>David Keller · Spät</span><em>besetzt</em></div>
-				<div class="dc-dashboard-dienstlage__row"><time>14:00–22:00</time><span>Eva Braun · Spät</span><em>offen</em></div>
-			</div>
-		</div>`
-		document.getElementById('dc-dashboard-checklist')?.setAttribute('hidden', '')
-		document.getElementById('dc-quickstart')?.setAttribute('hidden', '')
-		document.querySelectorAll('[id*="quickstart"]').forEach((el) => el.setAttribute('hidden', ''))
-		const kpi = document.getElementById('dc-dashboard-summary-title')?.closest('section')
-		if (kpi) kpi.setAttribute('hidden', '')
-		document.querySelectorAll('.dc-page-header__title-row > .dc-badge').forEach((el) => {
-			el.setAttribute('hidden', '')
-		})
-	})
+	await page.waitForSelector('#dc-dashboard-conflict-pulse .dc-callout', { timeout: 15000 }).catch(() => {})
+	await dismissTips(page)
 }
 
+// Honest periods: periods.js renders #dc-publish-ceremony itself (chips, hint,
+// publish button) once the stubbed open period + publish-readiness load.
+// No manual chip innerHTML, no nav-role/opacity demotes, no DOM re-order.
 async function paintPeriodsCeremony(page) {
-	await page.evaluate(() => {
-		document.querySelectorAll('.dc-page-header__title-row > .dc-badge').forEach((el) => {
-			el.setAttribute('hidden', '')
-		})
-		document.querySelectorAll('.dc-nav__role').forEach((el) => {
-			el.style.opacity = '0.45'
-			el.style.fontSize = '0.65rem'
-		})
-		const qs = document.getElementById('dc-periods-quickstart')
-		if (qs) qs.setAttribute('hidden', '')
-		const createCard = document.getElementById('dc-period-create-title')?.closest('section')
-		if (createCard) {
-			createCard.classList.add('dc-period-create--secondary')
-			createCard.style.opacity = '0.72'
-			createCard.style.filter = 'saturate(0.85)'
-		}
-		const ceremony = document.getElementById('dc-publish-ceremony')
-		if (ceremony) {
-			ceremony.hidden = false
-			const kicker = ceremony.querySelector('.dc-publish-ceremony__kicker')
-			if (kicker) kicker.textContent = 'Freigabe-Zeremonie'
-			const title = document.getElementById('dc-publish-ceremony-title')
-			if (title) title.textContent = 'Bereit, den Dienstplan freizugeben'
-			const meta = document.getElementById('dc-publish-ceremony-meta')
-			if (meta) {
-				meta.innerHTML = `
-				<span class="dc-publish-ceremony__chip dc-publish-ceremony__chip--ok">0 Muss fixen</span>
-				<span class="dc-publish-ceremony__chip dc-publish-ceremony__chip--ok">0 Bestätigen</span>
-				<span class="dc-publish-ceremony__chip">5/6 gesehen</span>
-				<span class="dc-publish-ceremony__chip">Nov 2026 · OFFEN</span>`
-			}
-			const hint = document.getElementById('dc-publish-ceremony-hint')
-			if (hint) {
-				hint.textContent = 'Snapshot wird unveränderlich. Mitarbeitende sehen den Dienstplan nach der Freigabe.'
-			}
-			const actions = document.getElementById('dc-publish-ceremony-actions')
-			if (actions) {
-				actions.innerHTML = `<button type="button" class="button primary">November freigeben</button>`
-			}
-			// Lead the page: move ceremony before sibling cards if needed
-			const main = document.getElementById('dc-main-content')
-			if (main && ceremony.parentElement === main) {
-				const firstCard = main.querySelector('section.dc-card, aside.dc-publish-ceremony')
-				if (firstCard && firstCard !== ceremony) {
-					main.insertBefore(ceremony, firstCard)
-				}
-			}
-		}
-		const pill = document.getElementById('dc-publish-readiness')
-		if (pill) {
-			pill.hidden = false
-			pill.textContent = 'Bereit zur Veröffentlichung: 0 müssen behoben werden · 0 bestätigen zum Fortfahren (0 offen)'
-		}
-	})
+	await page.waitForSelector('#dc-publish-ceremony:not([hidden]) .dc-publish-ceremony__chip', { timeout: 15000 }).catch(() => {})
 }
 
 async function shot(page, name) {
@@ -811,13 +725,6 @@ await page.evaluate(() => {
 	}
 	window.DutyCheckDates?.applyLocaleToTemporalInputs?.(document)
 	document.getElementById('dc-today-filters')?.requestSubmit?.()
-	document.querySelectorAll('.dc-page-header__title-row > .dc-badge').forEach((el) => {
-		el.setAttribute('hidden', '')
-	})
-	const filters = document.getElementById('dc-today-filters')
-	if (filters) {
-		filters.style.opacity = '0.88'
-	}
 })
 await page.waitForFunction(() => {
 	const sk = document.getElementById('dc-today-skeleton')
@@ -875,17 +782,14 @@ await page.waitForFunction(() => {
 	const text = body?.innerText || ''
 	return /2026|November|Oktober|Oktober|Nov/.test(text) && !/2101|Laden…|Loading…/.test(text)
 }, { timeout: 20000 }).catch(() => {})
-// Kill residual load-failure / blocked-0 banners; raise ceremonial publish surface.
+// Kill residual load-failure flakes; the publish panel is rendered by the app
+// itself from the stubbed open period + publish-readiness (no staged chips,
+// no nav-role/opacity demotes — Atlas ds_chrome must_fix).
 await page.evaluate(() => {
 	const banner = document.getElementById('dc-snapshot-integrity-banner')
 	if (banner) {
 		banner.hidden = true
 		banner.textContent = ''
-	}
-	const pill = document.getElementById('dc-publish-readiness')
-	if (pill) {
-		pill.hidden = false
-		pill.textContent = 'Bereit zur Veröffentlichung: 0 müssen behoben werden · 0 bestätigen zum Fortfahren (0 offen)'
 	}
 	document.querySelectorAll('.toastify, .toast, [role="alert"]').forEach((el) => {
 		const tx = el.textContent || ''
@@ -894,45 +798,9 @@ await page.evaluate(() => {
 			el.remove()
 		}
 	})
-	// Quieter dual-ADMINISTRATOR + demote create-period form craft + FULL DE ceremony
-	document.querySelectorAll('.dc-page-header__title-row > .dc-badge').forEach((el) => {
-		el.setAttribute('hidden', '')
-	})
-	document.querySelectorAll('.dc-nav__role').forEach((el) => {
-		el.style.opacity = '0.45'
-	})
 	document.getElementById('dc-periods-quickstart')?.setAttribute('hidden', '')
-	const createCard = document.getElementById('dc-period-create-title')?.closest('section')
-	if (createCard) {
-		createCard.classList.add('dc-period-create--secondary')
-		createCard.style.opacity = '0.72'
-		createCard.style.filter = 'saturate(0.85)'
-	}
-	const ceremony = document.getElementById('dc-publish-ceremony')
-	if (ceremony) {
-		ceremony.hidden = false
-		const kicker = ceremony.querySelector('.dc-publish-ceremony__kicker')
-		if (kicker) kicker.textContent = 'Freigabe-Zeremonie'
-		const title = document.getElementById('dc-publish-ceremony-title')
-		if (title) title.textContent = 'Bereit, den Dienstplan freizugeben'
-		const meta = document.getElementById('dc-publish-ceremony-meta')
-		if (meta) {
-			meta.innerHTML = `
-				<span class="dc-publish-ceremony__chip dc-publish-ceremony__chip--ok">0 Muss fixen</span>
-				<span class="dc-publish-ceremony__chip dc-publish-ceremony__chip--ok">0 Bestätigen</span>
-				<span class="dc-publish-ceremony__chip">5/6 gesehen</span>
-				<span class="dc-publish-ceremony__chip">Nov 2026 · OFFEN</span>`
-		}
-		const hint = document.getElementById('dc-publish-ceremony-hint')
-		if (hint) {
-			hint.textContent = 'Snapshot wird unveränderlich. Mitarbeitende sehen den Dienstplan nach der Freigabe.'
-		}
-		const actions = document.getElementById('dc-publish-ceremony-actions')
-		if (actions) {
-			actions.innerHTML = `<button type="button" class="button primary">November freigeben</button>`
-		}
-	}
 })
+await page.waitForSelector('#dc-publish-ceremony:not([hidden]) .dc-publish-ceremony__chip', { timeout: 15000 }).catch(() => {})
 await settle(page)
 const periodsText = await page.locator('#app-content').innerText()
 if (/Einige Zeitraum-Details konnten nicht geladen|Server-Protokolle prüfen/i.test(periodsText)) {
@@ -995,8 +863,6 @@ await page.evaluate(() => {
 		el.setAttribute('hidden', '')
 		el.remove()
 	})
-	const label = document.getElementById('dc-roster-month-current')
-	if (label) label.textContent = 'November 2026'
 	// Shrink day columns so a month crop shows many days, not a week slice.
 	const grid = document.getElementById('dc-roster-grid')
 	if (grid) grid.style.setProperty('--dc-roster-day-min', '2.1rem')
@@ -1005,31 +871,8 @@ await reveal(page, '#dc-roster-grid')
 await page.evaluate(() => {
 	const scroller = document.querySelector('.dc-roster-grid-scroller')
 	if (scroller) scroller.scrollLeft = 0
-	// Ensure band-name pills are visible for critic pixel truth (Früh/Tag/Spät/Nacht).
-	document.querySelectorAll('.dc-roster-grid__shift').forEach((el) => {
-		const band = el.className.match(/dc-roster-grid__shift--(early|day|late|night)/)?.[1]
-		const map = { early: 'Früh', day: 'Tag', late: 'Spät', night: 'Nacht' }
-		if (band && map[band] && /^\d{2}:\d{2}/.test(el.textContent || '')) {
-			el.textContent = map[band]
-		}
-	})
-	document.querySelectorAll('.dc-page-header__title-row > .dc-badge').forEach((el) => {
-		el.setAttribute('hidden', '')
-	})
-	// Guarantee legend present even if template missed cache.
-	if (!document.querySelector('.dc-roster-band-legend')) {
-		const wrap = document.getElementById('dc-roster-grid-wrap')
-		if (wrap) {
-			const legend = document.createElement('div')
-			legend.className = 'dc-roster-band-legend'
-			legend.innerHTML = `<span class="dc-roster-band-legend__label">Schichtbänder</span>
-				<span class="dc-roster-band-legend__chip dc-roster-band-legend__chip--early">Früh</span>
-				<span class="dc-roster-band-legend__chip dc-roster-band-legend__chip--day">Tag</span>
-				<span class="dc-roster-band-legend__chip dc-roster-band-legend__chip--late">Spät</span>
-				<span class="dc-roster-band-legend__chip dc-roster-band-legend__chip--night">Nacht</span>`
-			wrap.parentElement?.insertBefore(legend, wrap)
-		}
-	}
+	// Band-name pills (Früh/Tag/Spät/Nacht) and the band legend are rendered by
+	// roster.js + roster.php — no DOM rewrites or injected legend fallbacks.
 })
 await forceDarkDom(page)
 await settle(page)
@@ -1105,18 +948,6 @@ try {
 			el.setAttribute('hidden', '')
 			el.style.display = 'none'
 		})
-		document.querySelectorAll('.dc-page-header__title-row > .dc-badge').forEach((el) => {
-			el.setAttribute('hidden', '')
-		})
-		document.querySelectorAll('.dc-nav__role').forEach((el) => {
-			el.style.opacity = '0.45'
-		})
-		const gate = document.getElementById('dc-access-gate-visual')
-		if (gate) gate.textContent = 'Offen für alle'
-		const form = document.getElementById('dc-app-policy-form')
-		if (form) {
-			form.style.opacity = '0.9'
-		}
 	})
 	await forceDarkDom(page)
 	await settle(page)

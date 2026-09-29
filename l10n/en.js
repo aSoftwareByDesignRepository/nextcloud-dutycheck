@@ -1327,7 +1327,25 @@ OC.L10N.register(
 	"{title}: {have} of {need} staff ({time})" : "{title}: {have} of {need} staff ({time})",
 	"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page." : "{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page.",
 	"{used} of {total} seats used" : "{used} of {total} seats used",
-	"“Must fix” issues block publishing." : "“Must fix” issues block publishing."
+	"“Must fix” issues block publishing." : "“Must fix” issues block publishing.",
+	"Removed — press “Save app policy” to apply." : "Removed — press “Save app policy” to apply.",
+	"App policy saved. {n} stale entries were dropped because those users or groups no longer exist." : "App policy saved. {n} stale entries were dropped because those users or groups no longer exist.",
+	"Delete open shift" : "Delete open shift",
+	"Delete open shift {when} at {loc}" : "Delete open shift {when} at {loc}",
+	"Delete this open shift? Staff can no longer claim it. Pending or claimed shifts cannot be deleted here." : "Delete this open shift? Staff can no longer claim it. Pending or claimed shifts cannot be deleted here.",
+	"Open shift deleted." : "Open shift deleted.",
+	"Posted open shifts" : "Posted open shifts",
+	"No open shifts posted for this period." : "No open shifts posted for this period.",
+	"required at {loc}" : "required at {loc}",
+	"Remove requirement at {loc}" : "Remove requirement at {loc}",
+	"Location requirement removed." : "Location requirement removed.",
+	"Withdraw swap request" : "Withdraw swap request",
+	"Take back this swap request? The shift stays yours." : "Take back this swap request? The shift stays yours.",
+	"Withdraw request" : "Withdraw request",
+	"Keep request" : "Keep request",
+	"Swap request withdrawn." : "Swap request withdrawn.",
+	"Shift swap withdrawn" : "Shift swap withdrawn",
+	"A swap request was withdrawn by the requester." : "A swap request was withdrawn by the requester."
 	},
 	"nplurals=2; plural=(n != 1);"
 );

@@ -336,7 +336,7 @@ test.describe('atlas planner dialog dismiss', () => {
 		])
 
 		if (outcome === 'modal') {
-			await expect(modal).toContainText(/Soll from Duty/i)
+			await expect(modal).toContainText(/Soll (from|aus|z) Duty/i)
 			await craftShot(page, 'soll-confirm-open')
 			await modal.locator('.dc-modal__actions .button:not(.primary)').click()
 			await expect(modal).toHaveCount(0)

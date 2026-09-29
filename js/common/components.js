@@ -8,7 +8,9 @@
 	 *   handling, never sets innerHTML.
 	 * - openModal({ title, render, primary, onSubmit, onCancel, onClose }): focus-trapped
 	 *   dialog with a labelled title, Escape closes, click-on-backdrop cancels,
-	 *   focus is restored to the trigger.
+	 *   focus is restored to the trigger. Optional secondaryLabel/onSecondary add a
+	 *   third action (e.g. a destructive "Cancel shift" inside an edit dialog) so a
+	 *   list row and its edit modal cannot drift out of delete parity.
 	 * - confirmDialog({ title, body, danger }): boolean Promise convenience.
 	 * - promptReason({ title, hint }): textual prompt that returns the trimmed
 	 *   string or null when cancelled. Used for absence transitions and any
@@ -96,6 +98,9 @@
 			showCancel: true,
 			danger: false,
 			dialogClass: '',
+			secondaryLabel: null,
+			secondaryDanger: false,
+			onSecondary: null,
 			onSubmit: null,
 			onCancel: null,
 			onClose: null,
@@ -146,6 +151,29 @@
 		}
 
 		const actionChildren = [];
+		if (opts.secondaryLabel && typeof opts.onSecondary === 'function') {
+			const secondaryBtn = createElement('button', {
+				type: 'button',
+				class: opts.secondaryDanger ? 'button danger dc-modal__secondary' : 'button dc-modal__secondary',
+				text: opts.secondaryLabel,
+				on: {
+					click: async () => {
+						try {
+							secondaryBtn.disabled = true;
+							const result = await opts.onSecondary(submitContext());
+							if (result === true) instance.close(true);
+						} catch (err) {
+							if (window.DutyCheckMessaging) {
+								window.DutyCheckMessaging.handleApiError(err, { reloadOnConflict: false });
+							}
+						} finally {
+							secondaryBtn.disabled = false;
+						}
+					},
+				},
+			});
+			actionChildren.push(secondaryBtn);
+		}
 		if (opts.showCancel) {
 			const cancelBtn = createElement('button', {
 				type: 'button',

@@ -88,60 +88,14 @@ async function paintRosterFullDe(page) {
 		document.querySelectorAll('#dc-roster-month-nav button').forEach((el) => {
 			if (/this month|dieser monat/i.test(el.textContent || '')) el.textContent = 'Dieser Monat'
 		})
-		const label = document.getElementById('dc-roster-month-current')
-		if (label) label.textContent = 'November 2026'
-		const cov = document.getElementById('dc-coverage-strip')
-		if (cov) {
-			cov.hidden = false
-			const lab = cov.querySelector('.dc-coverage-strip__label')
-			if (lab) lab.textContent = 'Freigabebereitschaft'
-			const tx = document.getElementById('dc-coverage-strip-text')
-			if (tx) tx.textContent = 'Bereit zur Veröffentlichung — keine blockierenden Punkte.'
-		}
-		let legend = document.querySelector('.dc-roster-band-legend')
-		if (!legend) {
-			const wrap = document.getElementById('dc-roster-grid-wrap')
-			if (wrap) {
-				legend = document.createElement('div')
-				legend.className = 'dc-roster-band-legend'
-				wrap.parentElement?.insertBefore(legend, wrap)
-			}
-		}
-		if (legend) {
-			legend.innerHTML = `<span class="dc-roster-band-legend__label">Schichtbänder</span>
-				<span class="dc-roster-band-legend__chip dc-roster-band-legend__chip--early">Früh</span>
-				<span class="dc-roster-band-legend__chip dc-roster-band-legend__chip--day">Tag</span>
-				<span class="dc-roster-band-legend__chip dc-roster-band-legend__chip--late">Spät</span>
-				<span class="dc-roster-band-legend__chip dc-roster-band-legend__chip--night">Nacht</span>`
-		}
 		const wdMap = { Sun: 'So', Mon: 'Mo', Tue: 'Di', Wed: 'Mi', Thu: 'Do', Fri: 'Fr', Sat: 'Sa' }
 		document.querySelectorAll('.dc-roster-grid__colhead-wd').forEach((el) => {
 			const t = (el.textContent || '').trim()
 			if (wdMap[t]) el.textContent = wdMap[t]
 		})
-		document.querySelectorAll('.dc-roster-grid__shift').forEach((el) => {
-			const band = el.className.match(/dc-roster-grid__shift--(early|day|late|night)/)?.[1]
-			const map = { early: 'Früh', day: 'Tag', late: 'Spät', night: 'Nacht' }
-			if (band && map[band]) el.textContent = map[band]
-		})
-		const hint =
-			document.getElementById('dc-roster-scroll-hint') ||
-			document.querySelector('.dc-roster-grid-hint, #dc-roster-grid-wrap + p, .dc-roster-grid-wrap ~ p')
-		document.querySelectorAll('p, .dc-field__hint').forEach((el) => {
-			const t = el.textContent || ''
-			if (/All \d+ people|Scroll sideways|Alle \d+ Personen/i.test(t)) {
-				el.textContent = 'Alle 8 Personen sind sichtbar. Seitlich scrollen, um jeden Tag in diesem Zeitraum zu sehen.'
-			}
-			if (/Rows are people|Arrow keys move/i.test(t)) {
-				el.textContent =
-					'Zeilen sind Personen, Spalten sind Tage. Bei einem vollen Monat seitlich scrollen. Pfeiltasten bewegen zwischen Zellen.'
-			}
-		})
-		document.querySelectorAll('.dc-page-header__title-row > .dc-badge').forEach((el) => el.setAttribute('hidden', ''))
-		document.querySelectorAll('.dc-nav__role').forEach((el) => {
-			el.style.opacity = '0.22'
-			el.style.fontSize = '0.5rem'
-		})
+		// Band-name pills, band legend, coverage strip and month label are
+		// rendered by roster.js + roster.php — no DOM rewrites, injected
+		// legend/pills, or nav-role/opacity demotes (Atlas ds_chrome must_fix).
 		const grid = document.getElementById('dc-roster-grid')
 		if (grid) grid.style.setProperty('--dc-roster-day-min', '2.1rem')
 	})

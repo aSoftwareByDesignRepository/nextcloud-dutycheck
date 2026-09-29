@@ -75,6 +75,11 @@ class Notifier implements INotifier
 				$notification->setParsedMessage($l->t('Your swap request was rejected. Check with your planner.'));
 				$notification->setLink($this->urlGenerator->linkToRouteAbsolute('dutycheck.page.myRoster'));
 				return $notification;
+			case 'swap_withdrawn':
+				$notification->setParsedSubject($l->t('Shift swap withdrawn'));
+				$notification->setParsedMessage($l->t('A swap request was withdrawn by the requester.'));
+				$notification->setLink($this->urlGenerator->linkToRouteAbsolute('dutycheck.page.myRoster'));
+				return $notification;
 			case 'assignment_cancelled_late':
 				$notification->setParsedSubject($l->t('Your shift was cancelled'));
 				$notification->setParsedMessage($l->t('Open DutyCheck to see your updated roster.'));

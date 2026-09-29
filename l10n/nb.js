@@ -1327,7 +1327,25 @@ OC.L10N.register(
 	"{title}: {have} of {need} staff ({time})" : "{title}: {have} av {need} ansatte ({time})",
 	"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page." : "{unlinked} av {total} aktive ansatte har ingen koblet Nextcloud-konto – fravær for dem forblir i DutyCheck til kontoer er koblet til på Ansatte-siden.",
 	"{used} of {total} seats used" : "{used} av {total} seter brukt",
-	"“Must fix” issues block publishing." : "“Må rettes”-problemer blokkerer publisering."
+	"“Must fix” issues block publishing." : "“Må rettes”-problemer blokkerer publisering.",
+	"Removed — press “Save app policy” to apply." : "Fjernet — trykk «Lagre apppolicy» for å bruke endringen.",
+	"App policy saved. {n} stale entries were dropped because those users or groups no longer exist." : "Apppolicy lagret. {n} foreldede oppføringer ble fjernet fordi brukerne eller gruppene ikke lenger finnes.",
+	"Delete open shift" : "Slett åpen vakt",
+	"Delete open shift {when} at {loc}" : "Slett åpen vakt {when} på {loc}",
+	"Delete this open shift? Staff can no longer claim it. Pending or claimed shifts cannot be deleted here." : "Slette denne åpne vakten? Ansatte kan ikke lenger be om den. Vakter med ventende eller godkjente forespørsler kan ikke slettes her.",
+	"Open shift deleted." : "Åpen vakt slettet.",
+	"Posted open shifts" : "Utlyste åpne vakter",
+	"No open shifts posted for this period." : "Ingen åpne vakter er utlyst for denne perioden.",
+	"required at {loc}" : "påkrevd på {loc}",
+	"Remove requirement at {loc}" : "Fjern kravet på {loc}",
+	"Location requirement removed." : "Kravet på stedet er fjernet.",
+	"Withdraw swap request" : "Trekk tilbake bytteforespørsel",
+	"Take back this swap request? The shift stays yours." : "Trekke tilbake denne bytteforespørselen? Vakten forblir din.",
+	"Withdraw request" : "Trekk tilbake forespørsel",
+	"Keep request" : "Behold forespørsel",
+	"Swap request withdrawn." : "Bytteforespørsel trukket tilbake.",
+	"Shift swap withdrawn" : "Vaktbytte trukket tilbake",
+	"A swap request was withdrawn by the requester." : "En bytteforespørsel ble trukket tilbake av den som sendte den."
 	},
 	"nplurals=2; plural=(n != 1);"
 );

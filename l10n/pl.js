@@ -1327,7 +1327,25 @@ OC.L10N.register(
 	"{title}: {have} of {need} staff ({time})" : "{title}: {have} z {need} osób ({time})",
 	"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page." : "{unlinked} z {total} aktywnych pracowników nie ma połączonego konta Nextcloud — ich nieobecności pozostają w DutyCheck do czasu połączenia kont na stronie Pracownicy.",
 	"{used} of {total} seats used" : "Zastosowano gniazda {used} z {total}",
-	"“Must fix” issues block publishing." : "Problemy „Wymaga naprawy” blokują publikację."
+	"“Must fix” issues block publishing." : "Problemy „Wymaga naprawy” blokują publikację.",
+	"Removed — press “Save app policy” to apply." : "Usunięto — kliknij „Zapisz zasady aplikacji”, aby zastosować zmianę.",
+	"App policy saved. {n} stale entries were dropped because those users or groups no longer exist." : "Zasady aplikacji zapisane. Usunięto {n} nieaktualnych wpisów, ponieważ ci użytkownicy lub grupy już nie istnieją.",
+	"Delete open shift" : "Usuń otwartą zmianę",
+	"Delete open shift {when} at {loc}" : "Usuń otwartą zmianę {when} w {loc}",
+	"Delete this open shift? Staff can no longer claim it. Pending or claimed shifts cannot be deleted here." : "Usunąć tę otwartą zmianę? Pracownicy nie będą mogli się na nią już zgłosić. Zmian z oczekującym lub zatwierdzonym zgłoszeniem nie można tu usunąć.",
+	"Open shift deleted." : "Otwarta zmiana usunięta.",
+	"Posted open shifts" : "Opublikowane otwarte zmiany",
+	"No open shifts posted for this period." : "Brak opublikowanych otwartych zmian dla tego okresu.",
+	"required at {loc}" : "wymagana w {loc}",
+	"Remove requirement at {loc}" : "Usuń wymaganie w {loc}",
+	"Location requirement removed." : "Wymaganie dla lokalizacji usunięte.",
+	"Withdraw swap request" : "Wycofaj prośbę o zamianę",
+	"Take back this swap request? The shift stays yours." : "Wycofać tę prośbę o zamianę? Zmiana pozostaje Twoja.",
+	"Withdraw request" : "Wycofaj prośbę",
+	"Keep request" : "Zachowaj prośbę",
+	"Swap request withdrawn." : "Prośba o zamianę wycofana.",
+	"Shift swap withdrawn" : "Zamiana zmiany wycofana",
+	"A swap request was withdrawn by the requester." : "Prośba o zamianę została wycofana przez zgłaszającego."
 	},
 	"nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);"
 );

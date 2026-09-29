@@ -25,6 +25,8 @@ release:
 			--exclude='node_modules' --exclude='tests' --exclude='.phpunit.result.cache' \
 			--exclude='test-results' --exclude='scripts' --exclude='release/*.tar.gz' --exclude='release/*.asc' \
 			--exclude='appinfo/signature.json' --exclude='infection.json5' --exclude='infection-security.json5' \
+			--exclude='vendor' --exclude='docs' \
+			--exclude='phpunit.xml' --exclude='playwright.config.js' --exclude='.auth' \
 			./ "$$staging/$(app_name)/" && \
 		tar -czf $(archive_path) -C "$$staging" $(app_name) && \
 		rm -rf "$$staging"
@@ -32,9 +34,9 @@ release:
 
 verify-release:
 	@test -f $(archive_path) || (echo "Error: Run 'make release' first"; exit 1)
-	@if tar -tzf $(archive_path) | grep -Eq '/(\.git/|node_modules/|build/|tests/|test-results/|scripts/)'; then \
+	@if tar -tzf $(archive_path) | grep -Eq '/(\.git/|node_modules/|vendor/|docs/|build/|tests/|test-results/|scripts/)'; then \
 		echo "Error: release archive contains forbidden development paths"; \
-		tar -tzf $(archive_path) | grep -E '/(\.git/|node_modules/|build/|tests/|test-results/|scripts/)' || true; \
+		tar -tzf $(archive_path) | grep -E '/(\.git/|node_modules/|vendor/|docs/|build/|tests/|test-results/|scripts/)' || true; \
 		exit 1; \
 	fi
 	@echo "Release archive layout looks clean."

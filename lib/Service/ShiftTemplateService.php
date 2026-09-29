@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\DutyCheck\Service;
 
 use OCA\DutyCheck\Db\SchemaProbe;
+use OCA\DutyCheck\Http\ApiMutationParams;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 
@@ -121,7 +122,9 @@ class ShiftTemplateService
 		$locationId = array_key_exists('locationId', $payload)
 			? (($payload['locationId'] === null || $payload['locationId'] === '') ? null : (int) $payload['locationId'])
 			: $existing['locationId'];
-		$active = array_key_exists('active', $payload) ? (((int) $payload['active']) ? 1 : 0) : ((int) $existing['active']);
+		$active = array_key_exists('active', $payload)
+			? (ApiMutationParams::boolValue($payload['active']) ? 1 : 0)
+			: ((int) $existing['active']);
 		$companyId = $existing['companyId'] ?? $this->resolveWriteCompanyId($actorUserId);
 		$this->assertLocationAllowedForCompany($locationId, is_int($companyId) ? $companyId : null);
 		$this->assertNameUnique($name, $locationId, $id, is_int($companyId) ? $companyId : null);

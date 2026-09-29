@@ -261,6 +261,68 @@ class SwapService
 		return $this->applyApprovedSwap($swap, $actor, $fromStatus, 'approved', $reviewReasonStored, $row);
 	}
 
+	/**
+	 * The requester withdraws their own swap while it is still unresolved.
+	 * Once the swap is applied the roster has already changed hands — past
+	 * that point only a planner correction can undo it.
+	 *
+	 * @return array<string,mixed>
+	 */
+	public function withdrawSwap(int $swapId, string $actorUserId): array
+	{
+		// Capability-before-lookup: resolve the actor's employee link first so a
+		// non-linked user cannot distinguish existing from missing swap ids.
+		$employeeId = $this->linkedEmployeeId($actorUserId);
+		$swap = $this->getById($swapId);
+		// Existence-blind: someone else's swap reports exactly like a missing one.
+		if ($swap['fromEmployeeId'] !== $employeeId) {
+			throw new \InvalidArgumentException('SWAP_NOT_FOUND');
+		}
+		$fromStatus = $swap['status'];
+		if (!in_array($fromStatus, self::OPEN_STATUSES, true)) {
+			throw new \InvalidArgumentException('SWAP_NOT_PENDING');
+		}
+
+		// CAS on the current status — a planner approval applying the swap in
+		// the same instant must win; withdrawing an applied swap would strand
+		// the already-transferred assignment.
+		$cas = $this->db->getQueryBuilder();
+		$affected = $cas->update('dc_swap_requests')
+			->set('status', $cas->createNamedParameter('withdrawn'))
+			->where($cas->expr()->eq('id', $cas->createNamedParameter($swapId, IQueryBuilder::PARAM_INT)))
+			->andWhere($cas->expr()->eq('status', $cas->createNamedParameter($fromStatus)))
+			->executeStatement();
+		if ($affected !== 1) {
+			throw new \InvalidArgumentException('SWAP_NOT_PENDING');
+		}
+		$updated = $this->getById($swapId);
+		$this->notifyParties($updated, 'swap_withdrawn');
+		return $updated;
+	}
+
+	/**
+	 * Open swap requests the acting employee raised — feeds the "withdraw"
+	 * affordance next to each of their upcoming assignments.
+	 *
+	 * @return list<array<string,mixed>>
+	 */
+	public function listMine(string $actorUserId): array
+	{
+		if (!$this->db->tableExists('dc_swap_requests')) {
+			return [];
+		}
+		$employeeId = $this->linkedEmployeeId($actorUserId);
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')->from('dc_swap_requests')
+			->where($qb->expr()->eq('from_employee_id', $qb->createNamedParameter($employeeId, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->in(
+				'status',
+				$qb->createNamedParameter(self::OPEN_STATUSES, IQueryBuilder::PARAM_STR_ARRAY),
+			))
+			->orderBy('created_at', 'DESC');
+		return array_map([$this, 'normalize'], $qb->executeQuery()->fetchAll());
+	}
+
 	/** @return list<array<string,mixed>> */
 	public function listPending(?string $actorUserId = null): array
 	{

@@ -68,7 +68,9 @@ test.describe('DutyCheck 0.3.4 customer-report regressions', () => {
 			await expect(item).toHaveCount(1, { timeout: 15_000 })
 
 			// Reopen the editor: only the two marked days may be checked.
-			await item.locator('button', { hasText: /Edit|Bearbeiten/ }).click()
+			// Locale-agnostic: Edit is the first non-danger action, Delete is
+			// the .danger one — do not match on translated labels.
+			await item.locator('.dc-patterns__item-actions button:not(.danger)').first().click()
 			await expect(page.locator('.dc-modal')).toBeVisible({ timeout: 10_000 })
 			for (let dow = 1; dow <= 7; dow++) {
 				const box = page.locator(`[data-week="0"][data-dow="${dow}"] .dc-patterns__is-working`)
@@ -82,7 +84,7 @@ test.describe('DutyCheck 0.3.4 customer-report regressions', () => {
 			await expect(page.locator('.dc-modal')).toHaveCount(0, { timeout: 10_000 })
 
 			// Delete via the new action: confirm dialog → pattern leaves the list.
-			await item.locator('button', { hasText: /Delete|Löschen/ }).click()
+			await item.locator('.dc-patterns__item-actions button.danger').click()
 			await expect(page.locator('.dc-modal')).toBeVisible({ timeout: 10_000 })
 			await page.locator('.dc-modal .dc-modal__actions button.primary').click()
 			await expect(page.locator('.dc-patterns__item', { hasText: name }))
@@ -150,6 +152,117 @@ test.describe('DutyCheck 0.3.4 customer-report regressions', () => {
 			}, before)
 			await page.waitForTimeout(1200)
 		}
+	})
+
+	test('edit-assignment modal offers Cancel shift (delete parity)', async ({ page }) => {
+		await loginWithFallback(page, plannerCredsCandidates())
+		await page.goto('/apps/dutycheck/roster', { waitUntil: 'domcontentloaded' })
+		await assertNotServerUpdater(page)
+		await page.waitForSelector('#dc-roster-period-switcher', { timeout: 30_000 })
+
+		// Self-contained fixture: the modal only opens when the selected period
+		// is `open` (canAddAssignment gate), so the spec creates its own period,
+		// fetches an employee + location, and adds one assignment via the API.
+		const fixture = await page.evaluate(async () => {
+			const api = window.DutyCheckApi
+			const [emps, locs] = await Promise.all([
+				api.get('/apps/dutycheck/api/employees'),
+				api.get('/apps/dutycheck/api/locations'),
+			])
+			const emp = (emps?.data || []).find((r) => r.active !== false)
+			const loc = (locs?.data || []).find((r) => r.active !== false)
+			if (!emp || !loc) return { stage: 'catalog', emp: !!emp, loc: !!loc }
+			const fmt = (d) => d.toISOString().slice(0, 10)
+			let periodId = 0
+			let dutyDate = ''
+			const errs = []
+			// PERIOD_RANGE_EXISTS: periods cannot overlap — walk forward in
+			// 7-day steps until a free week is found.
+			for (let offset = 60; offset <= 60 + 7 * 20 && !periodId; offset += 7) {
+				const start = new Date()
+				start.setDate(start.getDate() + offset - start.getDay())
+				const end = new Date(start)
+				end.setDate(end.getDate() + 6)
+				const p = await api.post('/apps/dutycheck/api/periods', { startDate: fmt(start), endDate: fmt(end) }).catch((e) => { errs.push(`${fmt(start)}:${e?.code || e?.message}`); return null })
+				periodId = Number(p?.data?.id || p?.data?.period?.id || 0)
+				if (periodId) dutyDate = fmt(start)
+			}
+			if (!periodId) return { stage: 'period', errs }
+			const body = {
+				periodId,
+				employeeId: emp.id,
+				locationId: loc.id,
+				dutyDate,
+				startTime: '08:00',
+				endTime: '16:00',
+				breakMinutes: 0,
+			}
+			let a = null
+			try {
+				a = await api.post('/apps/dutycheck/api/assignments', body)
+			} catch (e) {
+				// Soft planning conflicts need an explicit acknowledgement, same
+				// flow the UI takes after the planner confirms a reason.
+				if (e?.code === 'CONFLICT_ACK_REQUIRED') {
+					const conflicts = e?.payload?.error?.conflicts || []
+					const types = [...new Set(conflicts.map((c) => c?.conflictType || c?.type).filter(Boolean))]
+					body.acknowledgements = (types.length ? types : ['rest_time_violation'])
+						.map((t) => ({ conflictType: t, reason: 'E2E regression fixture shift' }))
+					try {
+						a = await api.post('/apps/dutycheck/api/assignments', body)
+					} catch (e2) {
+						return { stage: 'assignment', err: e2?.code || e2?.message }
+					}
+				} else {
+					return { stage: 'assignment', err: e?.code || e?.message }
+				}
+			}
+			if (!a) return { stage: 'assignment', err: 'empty' }
+			return { periodId, employeeId: emp.id, dutyDate }
+		})
+		if (!fixture?.periodId) console.log('FIXTURE FAIL', JSON.stringify(fixture))
+		test.skip(!fixture?.periodId, `could not create fixture: ${JSON.stringify(fixture)}`)
+
+		await page.reload({ waitUntil: 'domcontentloaded' })
+		await page.waitForSelector('#dc-roster-period-switcher', { timeout: 30_000 })
+		await page.waitForFunction((pid) => {
+			const sel = document.getElementById('dc-roster-period-switcher')
+			return !!sel && Array.from(sel.options).some((o) => o.value === String(pid))
+		}, fixture.periodId, { timeout: 30_000 })
+		// The switcher listener is bound during async init — dispatch `change`
+		// and retry until the grid actually re-renders the fixture period (a
+		// cell carrying our dutyDate only exists once loadRoster resolved).
+		const anyCell = page.locator(
+			`.dc-roster-grid__cell[data-duty-date="${fixture.dutyDate}"]`,
+		).first()
+		const cell = page.locator(
+			`.dc-roster-grid__cell--filled[data-employee-id="${fixture.employeeId}"][data-duty-date="${fixture.dutyDate}"]`,
+		)
+		for (let attempt = 0; attempt < 5; attempt++) {
+			await page.evaluate((pid) => {
+				const sel = document.getElementById('dc-roster-period-switcher')
+				sel.value = String(pid)
+				sel.dispatchEvent(new Event('change', { bubbles: true }))
+			}, fixture.periodId)
+			const found = await anyCell.waitFor({ state: 'attached', timeout: 10_000 }).then(() => true).catch(() => false)
+			if (found) break
+		}
+		await expect(cell, 'grid must render the fixture assignment cell after selecting its period')
+			.toBeVisible({ timeout: 10_000 })
+		await cell.click()
+
+		const modal = page.locator('.dc-modal')
+		await expect(modal).toBeVisible({ timeout: 10_000 })
+		const cancelShift = modal.locator('.dc-modal__secondary.danger')
+		await expect(cancelShift, 'edit modal must expose a danger Cancel shift action').toBeVisible()
+
+		// Pressing it must ask first (native confirm) — dismiss and the modal
+		// must stay open so unsaved edits survive an aborted delete.
+		page.once('dialog', (dialog) => void dialog.dismiss())
+		await cancelShift.click()
+		await page.waitForTimeout(400)
+		await expect(modal, 'aborted delete must keep the edit modal open').toBeVisible()
+		await page.keyboard.press('Escape')
 	})
 
 	test('suggest fill sends no implicit location filter', async ({ page }) => {

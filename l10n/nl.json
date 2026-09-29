@@ -1326,7 +1326,25 @@
 		"{title}: {have} of {need} staff ({time})": "{title}: {have} van {need} medewerkers ({time})",
 		"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page.": "{unlinked} van {total} actieve werknemers hebben geen gekoppeld Nextcloud-account. Afwezigheden voor hen blijven in DutyCheck totdat de accounts zijn gekoppeld op de pagina Werknemers.",
 		"{used} of {total} seats used": "{used} van {total} stoelen gebruikt",
-		"“Must fix” issues block publishing.": "“Moet worden opgelost”-problemen blokkeren publicatie."
+		"“Must fix” issues block publishing.": "“Moet worden opgelost”-problemen blokkeren publicatie.",
+		"Removed — press “Save app policy” to apply.": "Verwijderd — klik op „Bewaar app-beleid” om de wijziging toe te passen.",
+		"App policy saved. {n} stale entries were dropped because those users or groups no longer exist.": "App-beleid opgeslagen. {n} verouderde items zijn verwijderd omdat die gebruikers of groepen niet meer bestaan.",
+		"Delete open shift": "Open dienst verwijderen",
+		"Delete open shift {when} at {loc}": "Open dienst van {when} bij {loc} verwijderen",
+		"Delete this open shift? Staff can no longer claim it. Pending or claimed shifts cannot be deleted here.": "Deze open dienst verwijderen? Medewerkers kunnen hem dan niet meer claimen. Diensten met een lopende of al toegekende claim kun je hier niet verwijderen.",
+		"Open shift deleted.": "Open dienst verwijderd.",
+		"Posted open shifts": "Geplaatste open diensten",
+		"No open shifts posted for this period.": "Er zijn geen open diensten geplaatst voor deze periode.",
+		"required at {loc}": "vereist bij {loc}",
+		"Remove requirement at {loc}": "Vereiste bij {loc} verwijderen",
+		"Location requirement removed.": "Locatievereiste verwijderd.",
+		"Withdraw swap request": "Ruilverzoek intrekken",
+		"Take back this swap request? The shift stays yours.": "Dit ruilverzoek intrekken? De dienst blijft van jou.",
+		"Withdraw request": "Verzoek intrekken",
+		"Keep request": "Verzoek behouden",
+		"Swap request withdrawn.": "Ruilverzoek ingetrokken.",
+		"Shift swap withdrawn": "Dienstruil ingetrokken",
+		"A swap request was withdrawn by the requester.": "Een ruilverzoek is ingetrokken door de aanvrager."
 	},
 	"pluralForm": "nplurals=2; plural=(n != 1);"
 }

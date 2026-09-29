@@ -724,6 +724,21 @@ body,
 	color: var(--color-main-text, #1d1d1d);
 	background: color-mix(in srgb, var(--color-main-text, #1d1d1d) 8%, transparent);
 }
+.dc-qual__req {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--dc-space-1);
+	padding: 0 var(--dc-space-2);
+	border-left: 1px solid var(--dc-border);
+	color: var(--dc-muted);
+	font-size: var(--dc-fs-xs);
+}
+.dc-qual__req-remove {
+	padding: var(--dc-space-1);
+	min-width: 44px;
+	min-height: 44px;
+	line-height: 1;
+}
 
 /* ── Empty / hint cards / callouts ───────────────────────────── */
 .dc-empty {
@@ -5397,234 +5412,100 @@ body[data-theme-dark-highcontrast] #app-navigation .dc-nav__subtitle {
 	color: var(--color-text-maxcontrast, var(--dc-muted));
 }
 
-/* Signature coverage pulse — duty board craft beyond generic NC KPI tiles */
+/* Dashboard conflict pulse — plain grid container; content renders as
+   family .dc-callout wells from js/dashboard.js (no staged chip markup). */
 .dc-dashboard-pulse {
 	display: grid;
 	gap: var(--dc-space-3, 0.75rem);
 }
-.dc-dashboard-pulse__band {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-	gap: var(--dc-space-2, 0.5rem);
-}
-.dc-dashboard-pulse__chip {
-	display: flex;
-	flex-direction: column;
-	gap: 0.2rem;
-	padding: 0.85rem 1rem;
-	border-radius: var(--dc-radius-md, 8px);
-	border: 1px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 35%, #2a2a2a);
-	background:
-		linear-gradient(135deg,
-			color-mix(in srgb, var(--color-primary-element, #0082c9) 18%, #1a1a1a) 0%,
-			#1a1a1a 55%);
-	min-height: 72px;
-}
-.dc-dashboard-pulse__chip strong {
-	font-size: 1.35rem;
-	font-weight: 700;
-	letter-spacing: -0.02em;
-	color: var(--color-main-text, #ededed);
-}
-.dc-dashboard-pulse__chip span {
-	font-size: var(--dc-fs-xs, 0.8rem);
-	color: var(--dc-muted, #a0a0a0);
-	text-transform: uppercase;
-	letter-spacing: 0.04em;
-}
-.dc-dashboard-pulse__chip--ok {
-	border-color: color-mix(in srgb, var(--color-success, #46ba61) 45%, #2a2a2a);
-	background: linear-gradient(135deg,
-		color-mix(in srgb, var(--color-success, #46ba61) 16%, #1a1a1a) 0%,
-		#1a1a1a 60%);
-}
-.dc-dashboard-pulse__chip--warn {
-	border-color: color-mix(in srgb, var(--color-warning, #c98600) 45%, #2a2a2a);
-	background: linear-gradient(135deg,
-		color-mix(in srgb, var(--color-warning, #c98600) 16%, #1a1a1a) 0%,
-		#1a1a1a 60%);
-}
-#dc-dashboard-checklist {
-	/* Demote sermon checklist — operational pulse leads */
-	opacity: 0.92;
-}
 
-/* === atlas-r6/r7: signature roster craft (Früh/Tag/Spät/Nacht band pills) === */
+/* Shift-band pills + legend — family status wells. Each band sets only an
+   accent hue; tint + border mix INTO --color-main-background so light, dark
+   and high-contrast themes all adapt. The band label text carries the
+   meaning — colour is a supporting accent, never the only cue. */
 .dc-roster-grid__shift {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	padding: 0.28rem 0.3rem;
-	border-radius: 7px;
+	border-radius: var(--dc-radius-sm, 6px);
 	font-size: 0.78rem;
-	font-weight: 750;
+	font-weight: 700;
 	letter-spacing: 0.02em;
-	text-transform: none;
 	line-height: 1.1;
 	min-width: 100%;
 	box-sizing: border-box;
-	border: 1px solid transparent;
+	border: 1px solid
+		color-mix(in srgb, var(--dc-band-accent, var(--color-primary-element, #0082c9)) 45%, var(--color-border, var(--dc-border)));
+	background: color-mix(
+		in srgb,
+		var(--dc-band-accent, var(--color-primary-element, #0082c9)) 14%,
+		var(--color-main-background, #fff)
+	);
+	color: var(--color-main-text, #1d1d1d);
+}
+.dc-roster-grid__shift--early,
+.dc-roster-band-legend__chip--early {
+	--dc-band-accent: var(--color-primary-element, #0082c9);
+}
+.dc-roster-grid__shift--day,
+.dc-roster-band-legend__chip--day {
+	--dc-band-accent: var(--color-success, #46ba61);
+}
+.dc-roster-grid__shift--late,
+.dc-roster-band-legend__chip--late {
+	--dc-band-accent: var(--color-warning, #c98600);
+}
+.dc-roster-grid__shift--night,
+.dc-roster-band-legend__chip--night {
+	/* No dedicated NC semantic var for "night" — neutral slate accent. */
+	--dc-band-accent: var(--color-main-text, #1d1d1d);
 }
 .dc-roster-grid__cell--filled {
-	background:
-		linear-gradient(160deg, color-mix(in srgb, var(--color-primary-element, #0082c9) 10%, #1c1c1c) 0%, #171717 70%);
-}
-.dc-roster-grid__shift--early {
-	background: linear-gradient(135deg, #2a4a6a 0%, #1a2a3a 100%);
-	border-color: color-mix(in srgb, #5aa0d4 50%, #2a2a2a);
-	color: #d8ecff;
-}
-.dc-roster-grid__shift--day {
-	background: linear-gradient(135deg, #1f4d3a 0%, #163028 100%);
-	border-color: color-mix(in srgb, #46ba61 45%, #2a2a2a);
-	color: #dff5e6;
-}
-.dc-roster-grid__shift--late {
-	background: linear-gradient(135deg, #4a3a1f 0%, #2e2414 100%);
-	border-color: color-mix(in srgb, #c98600 45%, #2a2a2a);
-	color: #ffe8b8;
-}
-.dc-roster-grid__shift--night {
-	background: linear-gradient(135deg, #2a2a55 0%, #16162e 100%);
-	border-color: color-mix(in srgb, #7a7ae0 50%, #2a2a2a);
-	color: #dcdcff;
-}
-.dc-roster-grid__cell--early,
-.dc-roster-grid__cell--day,
-.dc-roster-grid__cell--late,
-.dc-roster-grid__cell--night {
-	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-border, #3a3a3a) 70%, transparent);
+	background: var(--dc-bg-soft);
 }
 
-/* Band legend — store-stopping Dienstplan chrome */
+/* Band legend — flat family strip (sticky inside the grid scroller). */
 .dc-roster-band-legend {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 0.4rem 0.65rem;
+	gap: var(--dc-space-2) var(--dc-space-3);
 	align-items: center;
-	margin: 0 0 0.65rem;
-	padding: 0.45rem 0.65rem;
-	border-radius: 8px;
-	border: 1px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 22%, #2a2a2a);
-	background:
-		linear-gradient(100deg,
-			color-mix(in srgb, var(--color-primary-element, #0082c9) 12%, #141414) 0%,
-			#141414 55%);
+	margin: 0 0 var(--dc-space-3);
+	padding: var(--dc-space-2) var(--dc-space-3);
+	border-radius: var(--dc-radius-md);
+	border: 1px solid var(--dc-border);
+	background: var(--dc-bg-card);
 	position: sticky;
 	top: 0;
 	z-index: 2;
 }
 .dc-roster-band-legend__label {
-	font-size: 0.72rem;
+	font-size: var(--dc-fs-xs, 0.8rem);
 	font-weight: 700;
-	letter-spacing: 0.06em;
+	letter-spacing: 0.04em;
 	text-transform: uppercase;
-	color: #9ec9ea;
-	margin-inline-end: 0.25rem;
+	color: var(--dc-muted);
+	margin-inline-end: var(--dc-space-1);
 }
 .dc-roster-band-legend__chip {
 	display: inline-flex;
 	align-items: center;
-	gap: 0.3rem;
-	padding: 0.15rem 0.45rem;
+	gap: var(--dc-space-1);
+	padding: 2px 10px;
 	border-radius: 999px;
-	font-size: 0.75rem;
+	font-size: var(--dc-fs-xs, 0.8rem);
 	font-weight: 700;
-	border: 1px solid transparent;
-}
-.dc-roster-band-legend__chip--early {
-	background: #1a2a3a;
-	border-color: #5aa0d4;
-	color: #d8ecff;
-}
-.dc-roster-band-legend__chip--day {
-	background: #163028;
-	border-color: #46ba61;
-	color: #dff5e6;
-}
-.dc-roster-band-legend__chip--late {
-	background: #2e2414;
-	border-color: #c98600;
-	color: #ffe8b8;
-}
-.dc-roster-band-legend__chip--night {
-	background: #16162e;
-	border-color: #7a7ae0;
-	color: #dcdcff;
+	border: 1px solid
+		color-mix(in srgb, var(--dc-band-accent, var(--color-primary-element, #0082c9)) 45%, var(--color-border, var(--dc-border)));
+	background: color-mix(
+		in srgb,
+		var(--dc-band-accent, var(--color-primary-element, #0082c9)) 14%,
+		var(--color-main-background, #fff)
+	);
+	color: var(--color-main-text, #1d1d1d);
 }
 
-/* Signature dashboard — Dienstlage theatre above stock KPI strip */
-.dc-dashboard-pulse-card {
-	position: relative;
-	overflow: hidden;
-}
-.dc-dashboard-pulse-card::before {
-	content: '';
-	position: absolute;
-	inset: 0 auto auto 0;
-	width: 100%;
-	height: 3px;
-	background: linear-gradient(90deg,
-		var(--color-primary-element, #0082c9) 0%,
-		color-mix(in srgb, var(--color-success, #46ba61) 80%, #0082c9) 55%,
-		transparent 100%);
-	pointer-events: none;
-}
-.dc-dashboard-dienstlage {
-	display: grid;
-	gap: 0.55rem;
-	margin-top: 0.75rem;
-	padding: 0.85rem 1rem;
-	border-radius: var(--dc-radius-md, 8px);
-	border: 1px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 28%, #2a2a2a);
-	background:
-		radial-gradient(120% 80% at 0% 0%,
-			color-mix(in srgb, var(--color-primary-element, #0082c9) 22%, transparent) 0%,
-			transparent 55%),
-		#141414;
-}
-.dc-dashboard-dienstlage__title {
-	font-size: 0.75rem;
-	font-weight: 700;
-	letter-spacing: 0.08em;
-	text-transform: uppercase;
-	color: #9ec9ea;
-	margin: 0;
-}
-.dc-dashboard-dienstlage__rows {
-	display: grid;
-	gap: 0.35rem;
-}
-.dc-dashboard-dienstlage__row {
-	display: grid;
-	grid-template-columns: 5.5rem 1fr auto;
-	gap: 0.5rem;
-	align-items: center;
-	padding: 0.35rem 0.5rem;
-	border-radius: 6px;
-	background: color-mix(in srgb, #ffffff 4%, #101010);
-	font-size: 0.9rem;
-}
-.dc-dashboard-dienstlage__row time {
-	font-variant-numeric: tabular-nums;
-	font-weight: 650;
-	color: #ededed;
-}
-.dc-dashboard-dienstlage__row span {
-	color: #c8c8c8;
-}
-.dc-dashboard-dienstlage__row em {
-	font-style: normal;
-	font-size: 0.72rem;
-	letter-spacing: 0.04em;
-	text-transform: uppercase;
-	color: #8ab4d4;
-}
-/* Demote generic KPI strip — pulse + Dienstlage own the signature beat */
-.dc-summary-grid {
-	opacity: 0.88;
-	filter: saturate(0.92);
-}
 .dc-summary-tile__value {
 	font-variant-numeric: tabular-nums;
 }
@@ -5644,374 +5525,113 @@ body[data-theme-dark-highcontrast] #app-navigation .dc-nav__subtitle {
 	min-height: 1.25rem;
 }
 
-/* Schichtband coverage strip — suite wow past hygiene pulse */
-.dc-dashboard-bandlage {
-	display: grid;
-	gap: 0.55rem;
-	margin-top: 0.85rem;
-	padding: 0.9rem 1rem;
-	border-radius: 10px;
-	border: 1px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 35%, #2a2a2a);
-	background:
-		radial-gradient(90% 120% at 100% 0%,
-			color-mix(in srgb, #7a7ae0 18%, transparent) 0%,
-			transparent 50%),
-		radial-gradient(110% 90% at 0% 100%,
-			color-mix(in srgb, #5aa0d4 20%, transparent) 0%,
-			transparent 55%),
-		#12151a;
-}
-.dc-dashboard-bandlage__title {
-	margin: 0;
-	font-size: 0.78rem;
-	font-weight: 780;
-	letter-spacing: 0.1em;
-	text-transform: uppercase;
-	color: #b8d9f2;
-}
-.dc-dashboard-bandlage__bands {
-	display: grid;
-	grid-template-columns: repeat(4, minmax(0, 1fr));
-	gap: 0.45rem;
-}
-.dc-dashboard-bandlage__band {
-	display: grid;
-	gap: 0.15rem;
-	padding: 0.55rem 0.5rem;
-	border-radius: 8px;
-	border: 1px solid #3a3a3a;
-	background: #0e1014;
-	text-align: center;
-}
-.dc-dashboard-bandlage__band strong {
-	font-size: 1.35rem;
-	font-variant-numeric: tabular-nums;
-	line-height: 1.1;
-}
-.dc-dashboard-bandlage__band span {
-	font-size: 0.72rem;
-	font-weight: 700;
-	letter-spacing: 0.04em;
-	text-transform: uppercase;
-	color: #a8a8a8;
-}
-.dc-dashboard-bandlage__band--early {
-	border-color: color-mix(in srgb, #5aa0d4 55%, #2a2a2a);
-	color: #d8ecff;
-}
-.dc-dashboard-bandlage__band--day {
-	border-color: color-mix(in srgb, #46ba61 55%, #2a2a2a);
-	color: #dff5e6;
-}
-.dc-dashboard-bandlage__band--late {
-	border-color: color-mix(in srgb, #c98600 55%, #2a2a2a);
-	color: #ffe8b8;
-}
-.dc-dashboard-bandlage__band--night {
-	border-color: color-mix(in srgb, #7a7ae0 55%, #2a2a2a);
-	color: #dcdcff;
-}
-.dc-dashboard-bandlage__foot {
-	margin: 0;
-	font-size: 0.82rem;
-	color: #a0a0a0;
-}
-
-/* Periods — ceremonial publish surface (not form hygiene) */
+/* Publish readiness panel — family tinted success well, not a stage. */
 .dc-publish-ceremony {
 	display: grid;
-	gap: 0.85rem;
-	margin: 0 0 1.25rem;
-	padding: 1.25rem 1.35rem;
-	border-radius: 14px;
-	border: 1px solid color-mix(in srgb, var(--color-success, #46ba61) 48%, #2a2a2a);
-	background:
-		radial-gradient(120% 90% at 0% 0%,
-			color-mix(in srgb, var(--color-success, #46ba61) 22%, transparent) 0%,
-			transparent 55%),
-		linear-gradient(135deg,
-			color-mix(in srgb, var(--color-success, #46ba61) 16%, #101410) 0%,
-			#101410 58%);
-	box-shadow: 0 0 0 1px color-mix(in srgb, #46ba61 18%, transparent);
+	gap: var(--dc-space-3);
+	margin: 0 0 var(--dc-space-5);
+	padding: var(--dc-space-4) var(--dc-space-5);
+	border-radius: var(--dc-radius-md);
+	border: 1px solid var(--dc-tint-success-border);
+	background: var(--dc-tint-success);
+	color: var(--color-main-text, #1d1d1d);
 }
 .dc-publish-ceremony__kicker {
 	margin: 0;
-	font-size: 0.78rem;
-	font-weight: 800;
-	letter-spacing: 0.14em;
+	font-size: var(--dc-fs-xs, 0.8rem);
+	font-weight: 700;
+	letter-spacing: 0.06em;
 	text-transform: uppercase;
-	color: #9fd4ae;
+	color: var(--color-success-text, color-mix(in srgb, var(--color-success, #46ba61) 70%, var(--color-main-text, #1d1d1d) 30%));
 }
 .dc-publish-ceremony__title {
 	margin: 0;
-	font-size: 1.55rem;
-	font-weight: 780;
-	line-height: 1.2;
-	color: #f2f2f2;
-	letter-spacing: -0.01em;
+	font-size: var(--dc-fs-lg, 1.125rem);
+	font-weight: 700;
+	line-height: var(--dc-line-tight, 1.25);
+	color: var(--color-main-text, #1d1d1d);
 }
 .dc-publish-ceremony__meta {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 0.4rem;
+	gap: var(--dc-space-2);
 }
 .dc-publish-ceremony__chip {
 	display: inline-flex;
 	align-items: center;
-	padding: 0.2rem 0.55rem;
+	padding: 2px 10px;
 	border-radius: 999px;
-	font-size: 0.75rem;
+	font-size: var(--dc-fs-xs, 0.8rem);
 	font-weight: 700;
-	border: 1px solid #3a3a3a;
-	background: #1a1a1a;
-	color: #d0d0d0;
+	border: 1px solid var(--dc-border);
+	background: var(--color-main-background, #fff);
+	color: var(--color-main-text, #1d1d1d);
 }
 .dc-publish-ceremony__chip--ok {
-	border-color: color-mix(in srgb, var(--color-success, #46ba61) 50%, #2a2a2a);
-	color: #dff5e6;
+	border-color: var(--dc-tint-success-border);
+	color: var(--color-success-text, color-mix(in srgb, var(--color-success, #46ba61) 70%, var(--color-main-text, #1d1d1d) 30%));
 }
 .dc-publish-ceremony__actions {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 0.5rem;
+	gap: var(--dc-space-2);
 	align-items: center;
 }
 .dc-publish-ceremony__actions .button.primary {
-	min-height: 2.75rem;
-	padding-inline: 1.25rem;
-	font-weight: 750;
+	min-height: 44px;
+	padding-inline: var(--dc-space-4);
 }
 .dc-publish-ceremony__hint {
 	margin: 0;
-	font-size: 0.88rem;
-	color: #b0b0b0;
-}
-.dc-period-create--secondary {
-	opacity: 0.78;
-	filter: saturate(0.88);
+	font-size: var(--dc-fs-sm);
+	color: var(--color-main-text, #1d1d1d);
 }
 
-/* Today board — quieter form chrome, stronger board lead */
+/* Today board lead measure */
 .dc-app--today .dc-page-header__lead {
 	max-width: 36rem;
-}
-.dc-app--today #dc-today-filters {
-	opacity: 0.92;
 }
 .dc-app--access .dc-form-grid,
 .dc-app--settings .dc-form-grid {
 	max-width: 42rem;
 }
-.dc-form-grid--access-quiet {
-	opacity: 0.94;
-}
 .dc-access-gate__kicker {
-	margin: 0 0 0.25rem;
+	margin: 0 0 var(--dc-space-1);
 	font-size: 0.72rem;
 	font-weight: 780;
 	letter-spacing: 0.12em;
 	text-transform: uppercase;
-	/* On light page chrome (not the dark gate panel) — must clear WCAG AA vs white. */
 	color: var(--color-primary-element, #0073ad);
 }
+/* Access gate state — flat family panel. */
 .dc-access-gate {
 	display: grid;
-	margin: 0 0 0.85rem;
+	margin: 0 0 var(--dc-space-3);
 }
 .dc-access-gate__panel {
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
 	justify-content: space-between;
-	gap: 0.75rem;
-	padding: 0.85rem 1rem;
-	border-radius: 10px;
-	border: 1px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 32%, #2a2a2a);
-	background:
-		linear-gradient(105deg,
-			color-mix(in srgb, var(--color-primary-element, #0082c9) 16%, #12151a) 0%,
-			#12151a 60%);
+	gap: var(--dc-space-3);
+	padding: var(--dc-space-3) var(--dc-space-4);
+	border-radius: var(--dc-radius-md);
+	border: 1px solid var(--dc-border);
+	background: var(--dc-bg-card);
 }
 .dc-access-gate__label {
 	font-size: 0.8rem;
 	font-weight: 700;
 	letter-spacing: 0.06em;
 	text-transform: uppercase;
-	color: #b8d9f2;
+	color: var(--dc-muted);
 }
 .dc-access-gate__state {
 	font-size: 0.95rem;
 	font-weight: 750;
-	color: #ededed;
+	color: var(--color-main-text, #1d1d1d);
 }
 
-/* atlas-r8 wow: amplify Schichtband-Lage past hygiene */
-.dc-dashboard-bandlage {
-	display: grid;
-	gap: 0.65rem;
-	margin-top: 0.95rem;
-	padding: 1.05rem 1.15rem;
-	border-radius: 12px;
-	border: 1px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 42%, #2a2a2a);
-	background:
-		radial-gradient(90% 120% at 100% 0%,
-			color-mix(in srgb, #7a7ae0 22%, transparent) 0%,
-			transparent 50%),
-		radial-gradient(110% 90% at 0% 100%,
-			color-mix(in srgb, #5aa0d4 24%, transparent) 0%,
-			transparent 55%),
-		#0e1218;
-	box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 6%, transparent);
-}
-.dc-dashboard-bandlage__title {
-	margin: 0;
-	font-size: 0.82rem;
-	font-weight: 820;
-	letter-spacing: 0.12em;
-	text-transform: uppercase;
-	color: #c5e2f8;
-}
-.dc-dashboard-bandlage__bands {
-	display: grid;
-	grid-template-columns: repeat(4, minmax(0, 1fr));
-	gap: 0.5rem;
-}
-.dc-dashboard-bandlage__band {
-	display: grid;
-	gap: 0.2rem;
-	padding: 0.7rem 0.5rem;
-	border-radius: 9px;
-	border: 1px solid #3a3a3a;
-	background: #0a0c10;
-	text-align: center;
-}
-.dc-dashboard-bandlage__band strong {
-	font-size: 1.55rem;
-	font-variant-numeric: tabular-nums;
-	line-height: 1.05;
-}
-.dc-dashboard-bandlage__band span {
-	font-size: 0.74rem;
-	font-weight: 750;
-	letter-spacing: 0.05em;
-	text-transform: uppercase;
-	color: #a8a8a8;
-}
-.dc-dashboard-bandlage__band--early {
-	border-color: color-mix(in srgb, #5aa0d4 55%, #2a2a2a);
-	color: #d8ecff;
-}
-.dc-dashboard-bandlage__band--day {
-	border-color: color-mix(in srgb, #46ba61 55%, #2a2a2a);
-	color: #dff5e6;
-}
-.dc-dashboard-bandlage__band--late {
-	border-color: color-mix(in srgb, #c98600 55%, #2a2a2a);
-	color: #ffe8b8;
-}
-.dc-dashboard-bandlage__band--night {
-	border-color: color-mix(in srgb, #7a7ae0 55%, #2a2a2a);
-	color: #dcdcff;
-}
-.dc-dashboard-bandlage__foot {
-	margin: 0;
-	font-size: 0.84rem;
-	color: #a8a8a8;
-}
-
-/* atlas-r9 wow: Leitstand stage past hygiene — Freigabe + Schichtband presence */
-.dc-dashboard-bandlage {
-	position: relative;
-	gap: 0.75rem;
-	margin-top: 1.1rem;
-	padding: 1.2rem 1.25rem 1.15rem;
-	border-radius: 14px;
-	border: 1px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 52%, #2a2a2a);
-	background:
-		radial-gradient(95% 130% at 100% 0%,
-			color-mix(in srgb, #7a7ae0 28%, transparent) 0%,
-			transparent 52%),
-		radial-gradient(115% 95% at 0% 100%,
-			color-mix(in srgb, #5aa0d4 30%, transparent) 0%,
-			transparent 58%),
-		linear-gradient(160deg, #121820 0%, #0a0e14 70%);
-	box-shadow:
-		inset 0 1px 0 color-mix(in srgb, #ffffff 8%, transparent),
-		0 0 0 1px color-mix(in srgb, #5aa0d4 12%, transparent);
-}
-.dc-dashboard-bandlage__title {
-	font-size: 0.88rem;
-	font-weight: 850;
-	letter-spacing: 0.14em;
-	color: #d4ebff;
-}
-.dc-dashboard-bandlage__band {
-	padding: 0.85rem 0.55rem;
-	border-radius: 10px;
-	background: #07090d;
-}
-.dc-dashboard-bandlage__band strong {
-	font-size: 1.75rem;
-	font-weight: 780;
-}
-.dc-dashboard-bandlage__foot {
-	font-size: 0.9rem;
-	font-weight: 650;
-	color: #c5e2f8;
-	letter-spacing: 0.01em;
-}
-.dc-publish-ceremony {
-	gap: 1rem;
-	margin: 0 0 1.4rem;
-	padding: 1.45rem 1.5rem 1.35rem;
-	border-radius: 16px;
-	border: 1px solid color-mix(in srgb, var(--color-success, #46ba61) 58%, #2a2a2a);
-	background:
-		radial-gradient(130% 100% at 0% 0%,
-			color-mix(in srgb, var(--color-success, #46ba61) 28%, transparent) 0%,
-			transparent 58%),
-		linear-gradient(145deg,
-			color-mix(in srgb, var(--color-success, #46ba61) 20%, #0c140e) 0%,
-			#0a100c 62%);
-	box-shadow:
-		0 0 0 1px color-mix(in srgb, #46ba61 22%, transparent),
-		0 12px 40px color-mix(in srgb, #46ba61 10%, transparent);
-}
-.dc-publish-ceremony__kicker {
-	font-size: 0.84rem;
-	letter-spacing: 0.16em;
-	color: #b6e4c4;
-}
-.dc-publish-ceremony__title {
-	font-size: 1.85rem;
-	font-weight: 820;
-	letter-spacing: -0.015em;
-}
-.dc-publish-ceremony__actions .button.primary {
-	min-height: 3rem;
-	padding-inline: 1.45rem;
-	font-size: 1.02rem;
-	font-weight: 780;
-}
-.dc-access-gate__kicker {
-	font-size: 0.8rem;
-	letter-spacing: 0.14em;
-	/* Keep AA on white section background; dark panel text uses __label/__state. */
-	color: var(--color-primary-element, #0073ad);
-}
-.dc-access-gate__panel {
-	padding: 1rem 1.15rem;
-	border-radius: 12px;
-	border: 1px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 42%, #2a2a2a);
-	background:
-		linear-gradient(108deg,
-			color-mix(in srgb, var(--color-primary-element, #0082c9) 22%, #10161c) 0%,
-			#0c1016 62%);
-	box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 6%, transparent);
-}
-.dc-access-gate__state {
-	font-size: 1.02rem;
-	font-weight: 780;
-}
 /* Policy badge: keep sentence case so DE/EN stay readable (no ALL-CAPS scream) */
 #dc-policy-state-badge.dc-status-badge {
 	text-transform: none;

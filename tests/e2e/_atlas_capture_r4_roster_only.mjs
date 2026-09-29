@@ -78,7 +78,6 @@ await page.evaluate(()=>{
     if(/Play Review|atlas-os-|dc\.review/i.test(tx)){el.setAttribute('hidden',''); if(el.style) el.style.display='none'}
   })
   document.querySelectorAll('.toastify,.toast,[role="alert"]').forEach(el=>el.remove())
-  const label=document.getElementById('dc-roster-month-current'); if(label) label.textContent='November 2026'
 })
 await forceDark(page)
 await page.evaluate(()=>{

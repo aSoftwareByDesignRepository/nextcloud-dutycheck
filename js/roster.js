@@ -665,7 +665,7 @@
 			} else {
 				await loadRoster(null);
 			}
-			await Promise.all([loadPendingSwaps(), loadPendingOpenClaims()]);
+			await Promise.all([loadPendingSwaps(), loadPendingOpenClaims(), loadOpenShiftList()]);
 		} catch (err) {
 			const code = err?.code || err?.error?.code || '';
 			if (code === 'ENSURE_MONTH_IN_PROGRESS' || code === 'RATE_LIMITED') {
@@ -1198,6 +1198,24 @@
 		return el;
 	}
 
+	// The scroll region is a keyboard tab stop exactly while it actually
+	// scrolls (axe scrollable-region-focusable): role=grid isn't sufficient —
+	// the empty/status state can still overflow at narrow viewports, and a
+	// non-scrolling grid would leave a dead <44px tab target.
+	function syncGridScrollerTabStop() {
+		const scroller = document.getElementById('dc-roster-grid-scroller');
+		if (!scroller) {
+			return;
+		}
+		const scrollable = scroller.scrollWidth > scroller.clientWidth + 1
+			|| scroller.scrollHeight > scroller.clientHeight + 1;
+		if (scrollable) {
+			scroller.setAttribute('tabindex', '0');
+		} else {
+			scroller.removeAttribute('tabindex');
+		}
+	}
+
 	function setGridEmptyState(root, message) {
 		root.removeAttribute('aria-rowcount');
 		root.removeAttribute('aria-colcount');
@@ -1211,10 +1229,12 @@
 			class: 'dc-roster-empty-state__text',
 			text: message,
 		}));
+		syncGridScrollerTabStop();
 	}
 
 	function prepareGridForRows(root, employees, dates) {
 		root.setAttribute('role', 'grid');
+		syncGridScrollerTabStop();
 		root.removeAttribute('tabindex');
 		root.removeAttribute('aria-live');
 		root.setAttribute('aria-rowcount', String(employees.length + 1));
@@ -1824,6 +1844,7 @@
 			} else {
 				paintListWindow({ force: true });
 			}
+			syncGridScrollerTabStop();
 		};
 		if (typeof ResizeObserver === 'function') {
 			const ro = new ResizeObserver(resize);
@@ -2474,6 +2495,12 @@
 			dialogClass: 'dc-modal__dialog--roster-assignment',
 			primaryLabel: t('dutycheck', 'Save changes'),
 			cancelLabel: t('dutycheck', 'Cancel'),
+			// Delete parity: the list row offered "Cancel shift"; the edit dialog
+			// reached from a grid cell must expose the same destructive action
+			// (0.3.4 customer report — a manually entered shift looked undeletable).
+			secondaryLabel: t('dutycheck', 'Cancel shift'),
+			secondaryDanger: true,
+			onSecondary: () => cancelAssignmentRow(assignment, triggerEl),
 			render: () => panel,
 			onSubmit: async () => performAssignmentSave(),
 			onClose: () => {
@@ -2490,25 +2517,32 @@
 		syncAssignmentModalPrimary(instance);
 	}
 
+	/**
+	 * Cancel (delete) an assignment after confirmation. Returns true when the
+	 * shift was cancelled — callers inside the edit modal close on true; false
+	 * means aborted/failed and the modal stays open.
+	 */
 	async function cancelAssignmentRow(assignment, triggerEl) {
 		if (!assignment?.id || !canAddAssignment()) {
-			return;
+			return false;
 		}
 		const ok = window.confirm(
 			t('dutycheck', 'Cancel this shift? It will be removed from the open period and staff will not see it after publish.'),
 		);
 		if (!ok) {
-			return;
+			return false;
 		}
 		try {
 			const response = await Api.post(`/apps/dutycheck/api/assignments/${assignment.id}/cancel`, {});
 			render(response?.data || {});
 			showAssignmentsSectionSuccess(t('dutycheck', 'Shift cancelled.'));
 			Msg.announce(t('dutycheck', 'Shift cancelled.'), 'success');
+			return true;
 		} catch (err) {
 			Msg.handleApiError(err);
+			return false;
 		} finally {
-			if (triggerEl && typeof triggerEl.focus === 'function') {
+			if (triggerEl && typeof triggerEl.focus === 'function' && triggerEl.isConnected) {
 				triggerEl.focus();
 			}
 		}
@@ -2906,11 +2940,13 @@
 				} catch (retryErr) {
 					Msg.handleApiError(retryErr);
 					C.renderTableFetchError(tbody, 8, t('dutycheck', 'Could not load the roster. Retry, or contact an administrator if this keeps happening.'), { retry: () => loadRoster(periodId) });
+					syncGridScrollerTabStop();
 					return null;
 				}
 			}
 			Msg.handleApiError(err);
 			C.renderTableFetchError(tbody, 8, t('dutycheck', 'Could not load the roster. Retry, or contact an administrator if this keeps happening.'), { retry: () => loadRoster(periodId) });
+			syncGridScrollerTabStop();
 			return null;
 		} finally {
 			C.clearLoadingRow(tbody);
@@ -3439,6 +3475,60 @@
 		}
 	}
 
+	/**
+	 * Planner-visible list of posted (unclaimed) open shifts for the selected
+	 * period — delete parity: POSTing an open shift without a way to remove it
+	 * was the same "create without delete" class as pattern delete (0.3.4).
+	 */
+	async function loadOpenShiftList() {
+		const list = document.getElementById('dc-open-shift-list');
+		const empty = document.getElementById('dc-open-shift-empty');
+		if (!list) return;
+		list.replaceChildren();
+		try {
+			const period = selectedPeriodFromState();
+			const qs = period?.id ? `?periodId=${Number(period.id)}` : '';
+			const res = await Api.get('/apps/dutycheck/api/open-shifts' + qs);
+			const rows = Array.isArray(res?.data) ? res.data : [];
+			if (empty) empty.hidden = rows.length > 0;
+			for (const row of rows) {
+				const li = create('li', { class: 'dc-conflicts__item' });
+				const when = D?.formatDisplayDate?.(row.dutyDate) || String(row.dutyDate || '');
+				const loc = row.locationName || `#${row.locationId}`;
+				const clock = `${String(row.startTime || '').slice(0, 5)}–${String(row.endTime || '').slice(0, 5)}`;
+				li.appendChild(create('p', { text: [when, loc, clock].filter(Boolean).join(' · ') }));
+				const del = create('button', {
+					type: 'button',
+					class: 'button danger',
+					text: t('dutycheck', 'Delete'),
+				});
+				del.setAttribute('aria-label', t('dutycheck', 'Delete open shift {when} at {loc}')
+					.replace('{when}', when).replace('{loc}', loc));
+				del.style.minHeight = '44px';
+				del.addEventListener('click', async () => {
+					const ok = await C.confirmDialog({
+						title: t('dutycheck', 'Delete open shift'),
+						body: t('dutycheck', 'Delete this open shift? Staff can no longer claim it. Pending or claimed shifts cannot be deleted here.'),
+						confirmLabel: t('dutycheck', 'Delete'),
+						danger: true,
+					});
+					if (!ok) return;
+					try {
+						await Api.del(`/apps/dutycheck/api/open-shifts/${row.id}`);
+						Msg.announce(t('dutycheck', 'Open shift deleted.'), 'success');
+						await loadOpenShiftList();
+					} catch (err) {
+						Msg.handleApiError(err);
+					}
+				});
+				li.appendChild(del);
+				list.appendChild(li);
+			}
+		} catch (_) {
+			C.renderInlineFetchError?.(empty, t('dutycheck', 'Could not load open shifts.'), () => loadOpenShiftList());
+		}
+	}
+
 	function wireMarketplace() {
 		const toggle = document.getElementById('dc-open-shift-create');
 		const form = document.getElementById('dc-open-shift-form');
@@ -3473,6 +3563,7 @@
 				});
 				Msg.announce(t('dutycheck', 'Open shift posted.'), 'success');
 				if (form) form.hidden = true;
+				await loadOpenShiftList();
 			} catch (err) {
 				Msg.handleApiError(err);
 			}
@@ -3519,7 +3610,7 @@
 			})(),
 			loadPendingSwaps(),
 			loadPendingOpenClaims(),
-		]);
+		]).then(() => loadOpenShiftList());
 
 		const switcher = document.getElementById('dc-roster-period-switcher');
 		switcher?.addEventListener('change', async () => {
@@ -3532,6 +3623,7 @@
 				loadPendingSwaps(),
 				loadPendingOpenClaims(),
 			]);
+			await loadOpenShiftList();
 		});
 
 		document.getElementById('dc-roster-assignments-section')?.addEventListener('click', (event) => {

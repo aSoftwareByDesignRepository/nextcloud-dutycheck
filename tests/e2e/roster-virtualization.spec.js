@@ -148,7 +148,14 @@ test('roster page loads virtual window + scroller chrome', async ({ page }) => {
 	expect(loaded.end).toBe(31)
 	expect(loaded.status).toBeTruthy()
 	expect(loaded.statusHidden).toBeTruthy()
-	expect(loaded.scrollerTabIndex).toBe('0')
+	// The scroller is only a tab stop while it wraps a scrollable grid
+	// (role=grid). An empty/status grid deliberately drops tabindex —
+	// a dead <44px keyboard stop. Assert per rendered role.
+	if (loaded.gridRole === 'grid') {
+		expect(loaded.scrollerTabIndex).toBe('0')
+	} else {
+		expect(loaded.scrollerTabIndex).toBe('')
+	}
 	expect(loaded.stride).toBe(9)
 	expect(loaded.unsizedStart).toBe(94)
 	expect(loaded.unsizedEnd).toBe(130)

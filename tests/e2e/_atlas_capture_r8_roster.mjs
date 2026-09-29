@@ -61,14 +61,6 @@ async function forceDarkDom(page) {
 			el.lang = 'de'
 		}
 		document.getElementById('app-content')?.setAttribute('lang', 'de')
-		document.querySelectorAll('.dc-page-header__title-row > .dc-badge, .dc-nav__role').forEach((el) => {
-			if (el.classList.contains('dc-nav__role')) {
-				el.style.opacity = '0.28'
-				el.style.fontSize = '0.55rem'
-			} else {
-				el.setAttribute('hidden', '')
-			}
-		})
 	})
 }
 
@@ -145,76 +137,15 @@ const dayHeads = await page.locator('#dc-roster-grid .dc-roster-grid__colhead').
 console.log('roster day heads', dayHeads)
 
 await page.evaluate(() => {
-	const label = document.getElementById('dc-roster-month-current')
-	if (label) label.textContent = 'November 2026'
 	const grid = document.getElementById('dc-roster-grid')
 	if (grid) grid.style.setProperty('--dc-roster-day-min', '2.1rem')
-	document.querySelectorAll('.dc-roster-grid__shift').forEach((el) => {
-		const band = el.className.match(/dc-roster-grid__shift--(early|day|late|night)/)?.[1]
-		const map = { early: 'Früh', day: 'Tag', late: 'Spät', night: 'Nacht' }
-		if (band && map[band] && (/^\d{2}:\d{2}/.test(el.textContent || '') || !map[band] || true)) {
-			if (band && map[band]) el.textContent = map[band]
-		}
-	})
-	// Force DE band legend (locale wars may leave EN/FR chrome)
-	let legend = document.querySelector('.dc-roster-band-legend')
-	if (!legend) {
-		const wrap = document.getElementById('dc-roster-grid-wrap')
-		if (wrap) {
-			legend = document.createElement('div')
-			legend.className = 'dc-roster-band-legend'
-			wrap.insertBefore(legend, wrap.firstChild)
-		}
-	}
-	if (legend) {
-		legend.setAttribute('aria-label', 'Schichtbänder')
-		legend.innerHTML = `<span class="dc-roster-band-legend__label">Schichtbänder</span>
-			<span class="dc-roster-band-legend__chip dc-roster-band-legend__chip--early">Früh</span>
-			<span class="dc-roster-band-legend__chip dc-roster-band-legend__chip--day">Tag</span>
-			<span class="dc-roster-band-legend__chip dc-roster-band-legend__chip--late">Spät</span>
-			<span class="dc-roster-band-legend__chip dc-roster-band-legend__chip--night">Nacht</span>`
-	}
-	const cov = document.getElementById('dc-coverage-strip')
-	if (cov) {
-		cov.hidden = false
-		const lab = cov.querySelector('.dc-coverage-strip__label')
-		if (lab) lab.textContent = 'Freigabebereitschaft'
-		const tx = document.getElementById('dc-coverage-strip-text')
-		if (tx) tx.textContent = 'Bereit zur Veröffentlichung — keine blockierenden Punkte.'
-	}
-	// Quiet admin + DE nav brand
-	document.querySelectorAll('.dc-page-header__title-row > .dc-badge').forEach((el) => el.setAttribute('hidden', ''))
-	document.querySelectorAll('.dc-nav__role').forEach((el) => {
-		el.style.opacity = '0.28'
-		el.style.fontSize = '0.55rem'
-		if (/ADMIN/i.test(el.textContent || '')) el.textContent = 'Administrator'
-	})
+	// Band-name pills, band legend, coverage strip and month label are rendered
+	// by roster.js + roster.php — no DOM rewrites, injected pills/legend, or
+	// nav-role/opacity demotes (Atlas ds_chrome must_fix).
 	const sub = document.querySelector('.dc-nav__subtitle')
 	if (sub) sub.textContent = 'Planung und Compliance'
 	const h1 = document.getElementById('dc-page-title')
 	if (h1) h1.textContent = 'Dienstplan'
-	// Inject band-name pills into empty cells for critic pixel truth (HOLD Früh/Spät)
-	const cells = document.querySelectorAll('.dc-roster-grid__cell')
-	const bands = [
-		{ cls: 'early', name: 'Früh' },
-		{ cls: 'late', name: 'Spät' },
-		{ cls: 'day', name: 'Tag' },
-		{ cls: 'night', name: 'Nacht' },
-	]
-	let bi = 0
-	cells.forEach((cell, idx) => {
-		if (idx % 5 !== 0) return
-		if (cell.querySelector('.dc-roster-grid__shift')) return
-		const b = bands[bi % bands.length]
-		bi++
-		const pill = document.createElement('button')
-		pill.type = 'button'
-		pill.className = `dc-roster-grid__shift dc-roster-grid__shift--${b.cls}`
-		pill.textContent = b.name
-		pill.title = b.name
-		cell.appendChild(pill)
-		cell.classList.add(`dc-roster-grid__cell--${b.cls}`)
-	})
 	// DE nav chrome (locale wars)
 	document.querySelectorAll('.dc-nav__link, .dc-nav__group-title, .app-navigation-entry-link').forEach((el) => {
 		const map = {
@@ -278,10 +209,7 @@ await page.evaluate(() => {
 		el.setAttribute('hidden', '')
 		el.style.display = 'none'
 	})
-	document.querySelectorAll('.dc-page-header__title-row > .dc-badge').forEach((el) => el.setAttribute('hidden', ''))
 	document.querySelectorAll('.dc-nav__role').forEach((el) => {
-		el.style.opacity = '0.28'
-		el.style.fontSize = '0.55rem'
 		if (/ADMIN/i.test(el.textContent || '')) el.textContent = 'Administrator'
 	})
 	const sub = document.querySelector('.dc-nav__subtitle')
@@ -294,8 +222,6 @@ await page.evaluate(() => {
 	if (title) title.textContent = 'Wer DutyCheck öffnen darf'
 	const lead = title?.parentElement?.querySelector('.dc-section__sub')
 	if (lead) lead.textContent = 'Verzeichnistür zur Suite — Zulassungsliste vor dem Schloss.'
-	const gate = document.getElementById('dc-access-gate-visual')
-	if (gate) gate.textContent = 'Keine Verzeichniseinschränkung'
 	const gateLab = document.querySelector('.dc-access-gate__label')
 	if (gateLab) gateLab.textContent = 'Zugriffssteuerung'
 })

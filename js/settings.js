@@ -333,21 +333,34 @@
 		};
 	}
 
+	function announceRemovalPendingSave() {
+		// 0.3.4 report: a chip × removed the row visually but the change only
+		// persists via "Save app policy" — without this cue users hit the
+		// unsaved-changes warning on nav and concluded removal was broken.
+		Msg.announce(
+			t('dutycheck', 'Removed — press “Save app policy” to apply.'),
+			'info',
+		);
+	}
+
 	function renderAll() {
 		renderChips('dc-policy-user-chips', state.allowedUsers, (id) => {
 			state.allowedUsers = removeById(state.allowedUsers, id);
 			renderAll();
 			recomputeDirty();
+			announceRemovalPendingSave();
 		});
 		renderChips('dc-policy-group-chips', state.allowedGroups, (id) => {
 			state.allowedGroups = removeById(state.allowedGroups, id);
 			renderAll();
 			recomputeDirty();
+			announceRemovalPendingSave();
 		});
 		renderChips('dc-policy-admin-chips', state.appAdmins, (id) => {
 			state.appAdmins = removeById(state.appAdmins, id);
 			renderAll();
 			recomputeDirty();
+			announceRemovalPendingSave();
 		});
 		renderPolicyStateBadge();
 	}
@@ -1402,6 +1415,34 @@
 					li.appendChild(create('span', {
 						text: `${row.name}${row.code ? ` (${row.code})` : ''}`,
 					}));
+					// Location requirements are user-managed data too — show them
+					// and offer removal (there was no way to un-require).
+					const requiredAt = Array.isArray(row.requiredAt) ? row.requiredAt : [];
+					for (const loc of requiredAt) {
+						const req = create('span', { class: 'dc-qual__req' }, [
+							create('span', { text: t('dutycheck', 'required at {loc}').replace('{loc}', String(loc.name || loc.id)) }),
+							create('button', {
+								type: 'button',
+								class: 'button button--text dc-qual__req-remove',
+								text: '✕',
+								attrs: {
+									'aria-label': t('dutycheck', 'Remove requirement at {loc}').replace('{loc}', String(loc.name || loc.id)),
+								},
+								on: {
+									click: async () => {
+										try {
+											await Api.del(`/apps/dutycheck/api/locations/${loc.id}/qualifications/${row.id}`);
+											Msg.announce(t('dutycheck', 'Location requirement removed.'), 'success');
+											await refreshCatalog();
+										} catch (err) {
+											Msg.handleApiError(err);
+										}
+									},
+								},
+							}),
+						]);
+						li.appendChild(req);
+					}
 					const deactivate = create('button', {
 						type: 'button',
 						class: 'button',
@@ -1800,7 +1841,15 @@
 				baseline = deepCopy(state);
 				renderAll();
 				setDirty(false);
-				Msg.announce(t('dutycheck', 'App policy saved.'));
+				const pruned = policy.pruned || {};
+				const prunedCount = (pruned.appAdminUserIds || []).length
+					+ (pruned.allowedUserIds || []).length
+					+ (pruned.allowedGroupIds || []).length;
+				Msg.announce(
+					prunedCount > 0
+						? t('dutycheck', 'App policy saved. {n} stale entries were dropped because those users or groups no longer exist.').replace('{n}', String(prunedCount))
+						: t('dutycheck', 'App policy saved.'),
+				);
 			} catch (err) {
 				const code = String(err?.payload?.error?.code || '');
 				switch (code) {

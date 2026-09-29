@@ -309,16 +309,47 @@
 
 			const tdSwap = create('td');
 			tdSwap.dataset.cell = t('dutycheck', 'Swap');
-			const swapBtn = create('button', {
-				type: 'button',
-				class: 'button button--text',
-				text: t('dutycheck', 'Request swap'),
-			});
-			swapBtn.style.minHeight = '44px';
-			swapBtn.addEventListener('click', () => {
-				openSwapDialog(row.id, swapBtn);
-			});
-			tdSwap.appendChild(swapBtn);
+			const openSwap = myOpenSwapByAssignment.get(row.id);
+			if (openSwap) {
+				const withdrawBtn = create('button', {
+					type: 'button',
+					class: 'button button--text danger',
+					text: t('dutycheck', 'Withdraw swap request'),
+				});
+				withdrawBtn.style.minHeight = '44px';
+				withdrawBtn.addEventListener('click', async () => {
+					const ok = await C.confirmDialog({
+						title: t('dutycheck', 'Withdraw swap request'),
+						body: t('dutycheck', 'Take back this swap request? The shift stays yours.'),
+						confirmLabel: t('dutycheck', 'Withdraw request'),
+						cancelLabel: t('dutycheck', 'Keep request'),
+						danger: true,
+					});
+					if (!ok) return;
+					withdrawBtn.disabled = true;
+					try {
+						await Api.post(`/apps/dutycheck/api/my/swaps/${openSwap.id}/withdraw`, {});
+						myOpenSwapByAssignment.delete(row.id);
+						Msg.announce(t('dutycheck', 'Swap request withdrawn.'), 'success');
+						fetchAndRender();
+					} catch (err) {
+						withdrawBtn.disabled = false;
+						Msg.handleApiError(err);
+					}
+				});
+				tdSwap.appendChild(withdrawBtn);
+			} else {
+				const swapBtn = create('button', {
+					type: 'button',
+					class: 'button button--text',
+					text: t('dutycheck', 'Request swap'),
+				});
+				swapBtn.style.minHeight = '44px';
+				swapBtn.addEventListener('click', () => {
+					openSwapDialog(row.id, swapBtn);
+				});
+				tdSwap.appendChild(swapBtn);
+			}
 			tr.appendChild(tdSwap);
 			tbody.appendChild(tr);
 		}
@@ -326,6 +357,22 @@
 
 	let swapCandidatesLoaded = false;
 	let swapCandidates = [];
+	// assignmentId → open swap request I raised (drives the Withdraw action).
+	let myOpenSwapByAssignment = new Map();
+
+	async function refreshMyOpenSwaps() {
+		try {
+			const res = await Api.get('/apps/dutycheck/api/my/swaps');
+			const rows = Array.isArray(res?.data) ? res.data : [];
+			myOpenSwapByAssignment = new Map(
+				rows
+					.filter((r) => Number(r?.assignmentId) > 0)
+					.map((r) => [Number(r.assignmentId), r]),
+			);
+		} catch {
+			myOpenSwapByAssignment = new Map();
+		}
+	}
 
 	async function ensureSwapCandidates() {
 		if (swapCandidatesLoaded) return swapCandidates;
@@ -591,10 +638,13 @@
 		C.setLoadingRow(tbody, TABLE_COLSPAN);
 		setStatus(t('dutycheck', 'Loading…'));
 		try {
-			const response = await Api.get('/apps/dutycheck/api/my/roster', {
-				from: state.from,
-				to: state.to,
-			});
+			const [response] = await Promise.all([
+				Api.get('/apps/dutycheck/api/my/roster', {
+					from: state.from,
+					to: state.to,
+				}),
+				refreshMyOpenSwaps(),
+			]);
 			renderRoster(Array.isArray(response?.data) ? response.data : []);
 		} catch (err) {
 			const code = String(err?.payload?.error?.code || err?.code || '');
