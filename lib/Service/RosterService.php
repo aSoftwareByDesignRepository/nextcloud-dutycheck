@@ -1124,10 +1124,9 @@ class RosterService
 			: (int) $row['break_minutes'];
 		$note = array_key_exists('note', $payload) ? trim((string) $payload['note']) : (string) ($row['note'] ?? '');
 		$acknowledgements = is_array($payload['acknowledgements'] ?? null) ? $payload['acknowledgements'] : [];
-		$rawExpected = $payload['expectedVersion'] ?? $payload['version'] ?? null;
-		$expectedVersion = ($rawExpected === null || $rawExpected === '')
-			? null
-			: (int) $rawExpected;
+		$expectedVersion = self::parseExpectedVersionToken(
+			$payload['expectedVersion'] ?? $payload['version'] ?? null,
+		);
 
 		if ($employeeId <= 0) {
 			throw new \InvalidArgumentException('EMPLOYEE_ID_REQUIRED');
@@ -1377,6 +1376,31 @@ class RosterService
 		}
 
 		return $this->rosterData($periodId, $actor);
+	}
+
+	/**
+	 * Strict CAS token parse for updateAssignment. Fail closed on unknown
+	 * token shapes: PHP's (int) cast turns "garbage"/"1.5"/true into a
+	 * plausible integer that could match a low row version and silently pass
+	 * CAS. Only a clean non-negative integer (or digit string) is valid.
+	 *
+	 * @return int|null null when the token is absent (caller maps to EXPECTED_VERSION_REQUIRED)
+	 */
+	private static function parseExpectedVersionToken(mixed $rawExpected): ?int
+	{
+		if ($rawExpected === null || $rawExpected === '') {
+			return null;
+		}
+		// Any real int is a well-formed token — a negative one can never equal a
+		// non-negative row version, so it fails closed as STALE_VERSION.
+		if (is_int($rawExpected)) {
+			return $rawExpected;
+		}
+		if ((is_string($rawExpected) || is_float($rawExpected))
+			&& preg_match('/^\d+$/', (string) $rawExpected)) {
+			return (int) $rawExpected;
+		}
+		throw new \InvalidArgumentException('EXPECTED_VERSION_REQUIRED');
 	}
 
 	/**

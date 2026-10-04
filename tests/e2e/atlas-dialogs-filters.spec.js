@@ -258,7 +258,7 @@ test.describe('atlas employee filters + swap dismiss', () => {
 		await assertNotServerUpdater(page)
 		await ensureDesktopShell(page)
 		await page.waitForSelector('#dc-my-roster-table-body', { timeout: 30_000 })
-		const swapBtn = page.getByRole('button', { name: /Request swap|Tausch anfragen/i }).first()
+		const swapBtn = page.locator('.dc-swap-request-btn').first()
 		await expect(swapBtn).toBeVisible({ timeout: 15_000 })
 		await swapBtn.click()
 
@@ -456,7 +456,9 @@ test.describe('atlas planner dialog dismiss', () => {
 	test('assignment form clear cancels entered fields without persist', async ({ page }) => {
 		test.skip(plannerCredsCandidates().length === 0, 'Requires planner credentials')
 
-		// Overlap live month navigator (Sep 2026) so gridDateList is non-empty.
+		// Overlap the month navigator with the fixture month: bootstrapping calls
+		// ensure-calendar-month for the REAL current month and sets gridMonthClamp
+		// from it, so without this stub the Sep-2026 rows are clamped away.
 		const period = {
 			id: 910011,
 			status: 'open',
@@ -465,6 +467,16 @@ test.describe('atlas planner dialog dismiss', () => {
 			name: 'Atlas assignment clear',
 		}
 
+		await page.route('**/apps/dutycheck/api/periods/ensure-calendar-month**', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					ok: true,
+					data: { period, created: false, writable: true, yearMonth: '2026-09' },
+				}),
+			})
+		})
 		await page.route('**/apps/dutycheck/api/admin/planning-defaults**', async (route) => {
 			await route.fulfill({
 				status: 200,
@@ -678,8 +690,8 @@ test.describe('atlas shipping dialog inventory 3.5.10', () => {
 		await modalCancel(editor).click()
 		await expect(dcModal(page)).toHaveCount(0)
 
-		await expect(page.getByRole('button', { name: /^Assign$|^Zuweisen$/i }).first()).toBeVisible({ timeout: 10_000 })
-		await page.getByRole('button', { name: /^Assign$|^Zuweisen$/i }).first().click()
+		await expect(page.locator('.dc-pattern-assign-btn').first()).toBeVisible({ timeout: 10_000 })
+		await page.locator('.dc-pattern-assign-btn').first().click()
 		const assign = dcModal(page)
 		await expect(assign).toBeVisible({ timeout: 8_000 })
 		await expect(assign).toContainText(/Assign pattern|Muster zuweisen/i)
@@ -740,7 +752,7 @@ test.describe('atlas shipping dialog inventory 3.5.10', () => {
 		await assertNotServerUpdater(page)
 		await page.waitForSelector('#dc-employees-table-body', { timeout: 30_000 })
 		await expect(page.getByText('Atlas Emp Active')).toBeVisible({ timeout: 15_000 })
-		await page.getByRole('button', { name: /Deactivate|Deaktivieren/i }).first().click()
+		await page.locator('.dc-employee-toggle-btn[data-dc-active="1"]').first().click()
 		const empModal = dcModal(page)
 		await expect(empModal).toBeVisible({ timeout: 8_000 })
 		await expect(empModal).toContainText(/Deactivate employee|Beschäftigte|deaktivieren/i)
@@ -752,7 +764,7 @@ test.describe('atlas shipping dialog inventory 3.5.10', () => {
 		await assertNotServerUpdater(page)
 		await page.waitForSelector('#dc-locations-table-body', { timeout: 30_000 })
 		await expect(page.getByText('Atlas Loc Active')).toBeVisible({ timeout: 15_000 })
-		await page.getByRole('button', { name: /Deactivate|Deaktivieren/i }).first().click()
+		await page.locator('.dc-location-toggle-btn[data-dc-active="1"]').first().click()
 		const locModal = dcModal(page)
 		await expect(locModal).toBeVisible({ timeout: 8_000 })
 		await expect(locModal).toContainText(/Deactivate location|Standort deaktivieren/i)
@@ -913,7 +925,7 @@ test.describe('atlas shipping dialog inventory 3.5.10', () => {
 		await page.goto('/apps/dutycheck/periods', { waitUntil: 'domcontentloaded' })
 		await assertNotServerUpdater(page)
 		await page.waitForSelector('#dc-periods-table-body', { timeout: 30_000 })
-		await page.getByRole('button', { name: /Close|Schließen/i }).first().click()
+		await page.locator('.dc-period-transition-btn[data-dc-transition="closed"]').first().click()
 		const modal = dcModal(page)
 		await expect(modal).toBeVisible({ timeout: 8_000 })
 		await expect(modal).toContainText(/Close period|Zeitraum schließen|Reason|Begründung|mindestens 10/i)
@@ -1068,6 +1080,19 @@ test.describe('atlas shipping dialog inventory 3.5.10', () => {
 			status: 'planned',
 			note: '',
 		}
+		// Bootstrapping calls ensure-calendar-month for the REAL current month and
+		// sets gridMonthClamp from it; without this stub the fixture month is clamped
+		// away and the grid paints its empty state instead of the stubbed rows.
+		await page.route('**/apps/dutycheck/api/periods/ensure-calendar-month**', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					ok: true,
+					data: { period, created: false, writable: true, yearMonth: '2026-09' },
+				}),
+			})
+		})
 		await page.route('**/apps/dutycheck/api/admin/planning-defaults**', async (route) => {
 			await route.fulfill({
 				status: 200,
@@ -1154,9 +1179,7 @@ test.describe('atlas shipping dialog inventory 3.5.10', () => {
 		// Cancel shift actions live on the list view (grid cells open edit, not cancel).
 		await page.locator('#dc-roster-view-list').click()
 		await expect(page.locator('#dc-roster-list-panel')).toBeVisible({ timeout: 10_000 })
-		const cancelBtn = page.getByRole('button', {
-			name: /Cancel shift|Dienst stornieren|Cancel this assignment|Diesen Einsatz stornieren/i,
-		}).first()
+		const cancelBtn = page.locator('#dc-roster-list-panel .dc-assignment-cancel-btn').first()
 		await expect(cancelBtn).toBeVisible({ timeout: 15_000 })
 		page.once('dialog', async (dialog) => {
 			expect(dialog.message()).toMatch(/Cancel this shift|Diese Schicht stornieren/i)
@@ -1250,7 +1273,7 @@ test.describe('atlas shipping dialog inventory 3.5.10', () => {
 		await page.goto('/apps/dutycheck/absences', { waitUntil: 'domcontentloaded' })
 		await assertNotServerUpdater(page)
 		await expect(page.getByRole('cell', { name: 'Atlas Abs Emp', exact: true })).toBeVisible({ timeout: 15_000 })
-		await page.getByRole('button', { name: /Reject|Ablehnen/i }).first().click()
+		await page.locator('.dc-absence-transition-btn[data-dc-transition="rejected"]').first().click()
 		const modal = dcModal(page)
 		await expect(modal).toBeVisible({ timeout: 8_000 })
 		await expect(modal).toContainText(/Reject absence|Abwesenheit ablehnen|Reason|mindestens 10|minimum 10|Begründung/i)
@@ -1516,7 +1539,7 @@ test.describe('atlas shipping dialog inventory 3.5.10', () => {
 		await page.goto('/apps/dutycheck/roster', { waitUntil: 'domcontentloaded' })
 		await assertNotServerUpdater(page)
 		await expect(page.locator('#dc-conflict-list')).toContainText(/Rest time|Ruhezeit|Atlas Prompt Emp/i, { timeout: 20_000 })
-		const ackBtn = page.locator('#dc-conflict-list').getByRole('button', { name: /^(Confirm|Bestätigen)$/i })
+		const ackBtn = page.locator('#dc-conflict-list .dc-conflict-ack-btn').first()
 		await expect(ackBtn).toBeVisible()
 		await ackBtn.click()
 
@@ -1860,9 +1883,7 @@ test.describe('atlas shipping dialog inventory 3.5.10', () => {
 		await page.goto('/apps/dutycheck/roster', { waitUntil: 'domcontentloaded' })
 		await assertNotServerUpdater(page)
 		await expect(page.locator('#dc-open-claim-list')).toContainText(/Atlas Claim Emp/i, { timeout: 20_000 })
-		const approveBtn = () => page.locator('#dc-open-claim-list').getByRole('button', {
-			name: /Approve claim|Übernahme genehmigen|Anspruch genehmigen/i,
-		}).first()
+		const approveBtn = () => page.locator('#dc-open-claim-list .dc-open-claim-approve-btn').first()
 		await expect(approveBtn()).toBeVisible()
 		const approveWait = page.waitForRequest(
 			(req) => req.method() === 'POST' && /\/open-shifts\/\d+\/approve/.test(req.url()),
@@ -1876,10 +1897,10 @@ test.describe('atlas shipping dialog inventory 3.5.10', () => {
 		await craftShot(page, 'open-shift-claim-conflict-ack-open')
 		const postsAfterOpen = approvePosts
 		await modal.locator('textarea.dc-input').fill('short')
-		await modal.getByRole('button', { name: /Approve with confirmation|Mit Bestätigung genehmigen/i }).click()
+		await modalPrimary(modal).click()
 		await expect(modal.locator('.dc-field__error')).toContainText(/at least 10|mindestens 10/i)
 		expect(approvePosts).toBe(postsAfterOpen)
-		await modal.getByRole('button', { name: /Cancel|Abbrechen/i }).click()
+		await modalCancel(modal).click()
 		await expect(dcModal(page)).toHaveCount(0)
 		expect(approvePosts).toBe(postsAfterOpen)
 		expect(approveBodies.every((b) => !/acknowledgements\[|conflictType/.test(b))).toBe(true)
@@ -1897,7 +1918,7 @@ test.describe('atlas shipping dialog inventory 3.5.10', () => {
 		await expect(modal).toBeVisible({ timeout: 10_000 })
 		const postsBeforeConfirm = approvePosts
 		await modal.locator('textarea.dc-input').fill('atlas open-shift claim confirm ok')
-		await modal.getByRole('button', { name: /Approve with confirmation|Mit Bestätigung genehmigen/i }).click()
+		await modalPrimary(modal).click()
 		await expect.poll(() => approvePosts).toBeGreaterThan(postsBeforeConfirm)
 		expect(approveBodies.some((b) => /acknowledgements\[|conflictType/.test(b))).toBe(true)
 		await page.unrouteAll({ behavior: 'ignoreErrors' })

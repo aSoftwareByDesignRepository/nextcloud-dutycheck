@@ -24,7 +24,7 @@ test.describe('employee team week a11y', () => {
 			test.skip(true, 'Team week section not shown (peer off or no belonging locations)')
 		}
 
-		await expect(team.getByRole('heading', { name: /team this week|team diese woche/i })).toBeVisible()
+		await expect(team.locator('#dc-my-team-title')).toBeVisible()
 		const results = await new AxeBuilder({ page })
 			.include('#dc-my-team')
 			.withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])

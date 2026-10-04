@@ -211,9 +211,12 @@
 				const danger = target === 'rejected' || target === 'cancelled';
 				const btn = create('button', {
 					type: 'button',
-					class: danger ? 'button danger' : 'button',
+					class: (danger ? 'button danger' : 'button') + ' dc-absence-transition-btn',
 					text: actionLabel(target),
-					attrs: { 'aria-label': t('dutycheck', '{action} absence for {name}').replace('{action}', actionLabel(target)).replace('{name}', String(absence.employeeName || '')) },
+					attrs: {
+						'aria-label': t('dutycheck', '{action} absence for {name}').replace('{action}', actionLabel(target)).replace('{name}', String(absence.employeeName || '')),
+						'data-dc-transition': String(target),
+					},
 				});
 				btn.addEventListener('click', () => transitionAbsence(absence.id, target));
 				wrap.appendChild(btn);
@@ -249,12 +252,13 @@
 				const danger = target === 'rejected' || target === 'cancelled';
 				const btn = create('button', {
 					type: 'button',
-					class: danger ? 'button danger' : 'button',
+					class: (danger ? 'button danger' : 'button') + ' dc-absence-transition-btn',
 					text: actionLabel(target),
 					attrs: {
 						'aria-label': t('dutycheck', '{action} absence for {name}')
 							.replace('{action}', actionLabel(target))
 							.replace('{name}', String(absence.employeeName || '')),
+						'data-dc-transition': String(target),
 					},
 				});
 				btn.addEventListener('click', () => transitionAbsence(absence.id, target));

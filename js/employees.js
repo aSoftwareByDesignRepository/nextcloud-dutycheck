@@ -198,8 +198,9 @@
 
 		const toggleBtn = create('button', {
 			type: 'button',
-			class: 'button',
+			class: 'button dc-employee-toggle-btn',
 			text: row.active ? t('dutycheck', 'Deactivate') : t('dutycheck', 'Activate'),
+			attrs: { 'data-dc-active': row.active ? '1' : '0' },
 		});
 		toggleBtn.addEventListener('click', async () => {
 			const ok = row.active ? await C.confirmDialog({

@@ -10,6 +10,30 @@ const MONTH_DAYS = 31
  * @param {import('@playwright/test').Page} page
  */
 async function stubMonthRoster(page) {
+	// Bootstrapping calls ensure-calendar-month for the REAL current month and
+	// sets gridMonthClamp from it. Without this stub the fixture month (Oct 2026)
+	// is clamped to the live month → periodDateList()=[] → empty-state grid.
+	await page.route('**/apps/dutycheck/api/periods/ensure-calendar-month**', async (route) => {
+		await route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({
+				ok: true,
+				data: {
+					period: {
+						id: 909031,
+						status: 'open',
+						startDate: '2026-10-01',
+						endDate: '2026-10-31',
+						name: 'E2E October month',
+					},
+					created: false,
+					writable: true,
+					yearMonth: '2026-10',
+				},
+			}),
+		})
+	})
 	await page.route('**/apps/dutycheck/api/roster**', async (route) => {
 		const response = await route.fetch()
 		const raw = await response.text()

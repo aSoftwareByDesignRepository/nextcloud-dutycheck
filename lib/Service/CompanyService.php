@@ -35,6 +35,7 @@ class CompanyService
 
 	public function __construct(
 		private readonly IDBConnection $db,
+		private readonly ?\OCP\IUserManager $userManager = null,
 	) {
 	}
 
@@ -300,10 +301,28 @@ class CompanyService
 		], $qb->executeQuery()->fetchAll());
 	}
 
+	/**
+	 * Live-company check — member writes must never create orphan rows under a
+	 * company id that does not exist.
+	 */
+	public function companyExists(int $companyId): bool
+	{
+		if ($companyId <= 0 || !SchemaProbe::tableExists($this->db, 'dc_companies')) {
+			return false;
+		}
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('id')->from('dc_companies')
+			->where($qb->expr()->eq('id', $qb->createNamedParameter($companyId, IQueryBuilder::PARAM_INT)));
+		return $qb->executeQuery()->fetch() !== false;
+	}
+
 	public function removeMember(int $companyId, string $userId): void
 	{
 		if (!SchemaProbe::tableExists($this->db, 'dc_company_members') || $companyId <= 0 || trim($userId) === '') {
 			return;
+		}
+		if (!$this->companyExists($companyId)) {
+			throw new \InvalidArgumentException('COMPANY_NOT_FOUND');
 		}
 		$qb = $this->db->getQueryBuilder();
 		$qb->delete('dc_company_members')
@@ -317,6 +336,18 @@ class CompanyService
 	{
 		if (!SchemaProbe::tableExists($this->db, 'dc_company_members') || $companyId <= 0 || trim($userId) === '') {
 			return;
+		}
+		if (!$this->companyExists($companyId)) {
+			throw new \InvalidArgumentException('COMPANY_NOT_FOUND');
+		}
+		// uid-typed field: the account must exist (and not be disabled). A stale
+		// member row for a deleted account would otherwise let a re-registered
+		// uid inherit company access it never had (ghost-member hole).
+		if ($this->userManager !== null) {
+			$user = $this->userManager->get($userId);
+			if ($user === null || (method_exists($user, 'isEnabled') && !$user->isEnabled())) {
+				throw new \InvalidArgumentException('INVALID_USER');
+			}
 		}
 		$role = in_array($role, ['admin', 'member'], true) ? $role : 'member';
 		$qb = $this->db->getQueryBuilder();

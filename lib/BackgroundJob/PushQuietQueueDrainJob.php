@@ -29,6 +29,7 @@ class PushQuietQueueDrainJob extends TimedJob
 		try {
 			$this->quiet->drainDue(50);
 		} catch (Throwable $e) {
+			// best-effort: cron drain retries next interval; failure is non-fatal.
 			$this->logger->warning('DutyCheck quiet queue drain failed', [
 				'app' => 'dutycheck',
 				'exception' => $e,

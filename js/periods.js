@@ -178,9 +178,12 @@
 				}
 				const btn = create('button', {
 					type: 'button',
-					class: 'button',
+					class: 'button dc-period-transition-btn',
 					text: actionLabel(target),
-					attrs: { 'aria-label': t('dutycheck', 'Set period {start} to {status}').replace('{start}', start).replace('{status}', target) },
+					attrs: {
+						'aria-label': t('dutycheck', 'Set period {start} to {status}').replace('{start}', start).replace('{status}', target),
+						'data-dc-transition': String(target),
+					},
 				});
 				btn.addEventListener('click', (event) => {
 					event.stopPropagation();

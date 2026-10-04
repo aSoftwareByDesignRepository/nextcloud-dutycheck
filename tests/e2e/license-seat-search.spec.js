@@ -42,9 +42,9 @@ test.describe('DutyCheck license seat search', () => {
 		await search.fill('al')
 		const suggest = page.locator('#dc-license-seat-search-suggest')
 		await expect(suggest).toBeVisible({ timeout: 10_000 })
-		await expect(suggest.getByRole('option', { name: /Alice Example/i })).toBeVisible()
+		await expect(suggest.getByRole('option', { name: /Alice Example/i })).toBeVisible() // i18n: fixture account display name (API data), never localized chrome
 		// Already-seated Bob must be filtered out of the listbox.
-		await expect(suggest.getByRole('option', { name: /Bob Example/i })).toHaveCount(0)
+		await expect(suggest.getByRole('option', { name: /Bob Example/i })).toHaveCount(0) // i18n: fixture display name from seeded/mocked API payload
 
 		const results = await new AxeBuilder({ page })
 			.include('#dc-license-panel, #dc-main-content')
@@ -72,7 +72,7 @@ test.describe('DutyCheck license seat search', () => {
 
 		await page.locator('#dc-license-seat-search-input').fill('ca')
 		const suggest = page.locator('#dc-license-seat-search-suggest')
-		await expect(suggest.getByRole('option', { name: /Cara Compat/i })).toBeVisible({ timeout: 10_000 })
+		await expect(suggest.getByRole('option', { name: /Cara Compat/i })).toBeVisible({ timeout: 10_000 }) // i18n: 'Cara Compat' is a mocked API displayName, not localized chrome
 	})
 
 	test('live search against the real directory finds the admin account', async ({ page }) => {

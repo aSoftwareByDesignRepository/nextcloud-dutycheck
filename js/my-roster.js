@@ -313,7 +313,7 @@
 			if (openSwap) {
 				const withdrawBtn = create('button', {
 					type: 'button',
-					class: 'button button--text danger',
+					class: 'button button--text danger dc-swap-withdraw-btn',
 					text: t('dutycheck', 'Withdraw swap request'),
 				});
 				withdrawBtn.style.minHeight = '44px';
@@ -341,7 +341,7 @@
 			} else {
 				const swapBtn = create('button', {
 					type: 'button',
-					class: 'button button--text',
+					class: 'button button--text dc-swap-request-btn',
 					text: t('dutycheck', 'Request swap'),
 				});
 				swapBtn.style.minHeight = '44px';

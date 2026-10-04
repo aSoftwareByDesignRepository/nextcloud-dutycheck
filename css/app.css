@@ -2671,6 +2671,8 @@ button.dc-license-modal__confirm-danger:hover {
 	display: flex;
 	flex-direction: column;
 	gap: var(--dc-space-1);
+	/* Prose bullets — Nextcloud core resets ul list-style to none; restore markers. */
+	list-style: disc;
 }
 .dc-callout__list li {
 	margin: 0;
@@ -3532,14 +3534,6 @@ form.dc-form-grid[aria-busy='true'] .button {
 	overflow-wrap: anywhere;
 }
 
-/*
- * Beat `#app-content.dc-app a.button { white-space: nowrap }` (ID + 2 classes).
- * Long DE CTAs ("Official mobile & terminal licenses") overflow main @320px dark.
- */
-#app-content.dc-app a.button.dc-support-us__cta,
-#app-content.dc-app .dc-support-us__cta.button,
-.dc-app a.button.dc-support-us__cta,
-.dc-app .dc-support-us__cta.button,
 .dc-support-us__cta {
 	/* WCAG 2.5.5: px + !important — NC root is 15px and .azc-btn uses 2.75rem (41.25px). */
 	min-height: 44px !important;
@@ -3673,6 +3667,14 @@ form.dc-form-grid[aria-busy='true'] .button {
 	}
 }
 /* === support-us:dc end === */
+
+/* App-specific override (lives outside the synced support-us block):
+   the DutyCheck shell sets `#app-content.dc-app a.button { white-space: nowrap }`
+   (ID specificity 1-1-1), which would otherwise beat `.dc-support-us__cta`'s
+   `white-space: normal` and overflow long CTA labels on narrow screens (WCAG 1.4.10). */
+#app-content.dc-app a.button.dc-support-us__cta {
+	white-space: normal;
+}
 
 
 /* My roster: accessible swap dialog (replaces window.prompt) */
@@ -4295,6 +4297,8 @@ form.dc-form-grid[aria-busy='true'] .button {
 	margin: 0 0 var(--dc-space-4);
 	padding-inline-start: 1.25rem;
 	line-height: 1.5;
+	/* Prose bullets — Nextcloud core resets ul list-style to none; restore markers. */
+	list-style: disc;
 }
 .dc-settings-privacy__glossary {
 	display: grid;
@@ -4432,7 +4436,10 @@ textarea {
 	gap: var(--dc-space-2, 0.5rem);
 }
 
-.dc-nav-footer__trigger {
+/* Scoped under #content: bare .{p}-nav-footer__trigger loses to NC core
+ * `#app-content button` / `#app-navigation button` min-height rules
+ * (var(--default-clickable-area) → 34px) — Atlas touch-target defect. */
+#content .dc-nav-footer__trigger {
 	display: inline-flex;
 	gap: var(--dc-space-3, 0.75rem);
 	min-height: 44px;
@@ -4494,7 +4501,7 @@ textarea {
 	display: none;
 }
 
-.dc-nav-footer__menu-item {
+#content .dc-nav-footer__menu-item {
 	display: flex;
 	align-items: center;
 	gap: var(--dc-space-3, 0.75rem);
@@ -4559,7 +4566,7 @@ textarea {
 	border: 0;
 }
 
-.dc-nav-footer__toast-link {
+#content .dc-nav-footer__toast-link {
 	display: inline-flex;
 	align-items: center;
 	min-height: 44px;
@@ -5256,6 +5263,8 @@ textarea {
 .dc-suggest-preview__counts {
 	margin: var(--dc-space-3) 0 0;
 	padding-left: 1.25rem;
+	/* Prose count bullets — Nextcloud core resets ul list-style to none; restore markers. */
+	list-style: disc;
 }
 
 .dc-roster-flash--error {

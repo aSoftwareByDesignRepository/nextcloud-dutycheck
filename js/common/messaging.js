@@ -2,6 +2,10 @@
 	'use strict';
 
 	let toastContainer = null;
+	// Dedup identical toasts on kind+text: a repeated announce() resets the
+	// visible toast's dismiss timer instead of stacking a duplicate
+	// (vis-duplicate-toast-stacking). Entries are removed with their toast.
+	const liveToasts = new Map();
 
 	function ensureToastContainer() {
 		if (toastContainer && document.body.contains(toastContainer)) {
@@ -26,6 +30,18 @@
 			window.setTimeout(() => { target.textContent = String(message); }, 10);
 		}
 		const container = ensureToastContainer();
+		const dismissMs = k === 'error' ? 7000 : (k === 'success' ? 8000 : 5000);
+		const dedupKey = k + '|' + String(message);
+		const existing = liveToasts.get(dedupKey);
+		if (existing && existing.toast.isConnected) {
+			window.clearTimeout(existing.timer);
+			existing.timer = window.setTimeout(() => {
+				existing.toast.remove();
+				liveToasts.delete(dedupKey);
+			}, dismissMs);
+			return;
+		}
+		liveToasts.delete(dedupKey);
 		const toast = document.createElement('div');
 		toast.className = 'dc-toast dc-toast--' + k;
 		toast.setAttribute('role', k === 'error' ? 'alert' : 'status');
@@ -36,14 +52,18 @@
 		close.className = 'dc-toast__close';
 		close.setAttribute('aria-label', t('dutycheck', 'Dismiss'));
 		close.textContent = '\u2715';
-		close.addEventListener('click', () => toast.remove());
 		toast.appendChild(text);
 		toast.appendChild(close);
 		container.appendChild(toast);
-		const dismissMs = k === 'error' ? 7000 : (k === 'success' ? 8000 : 5000);
-		window.setTimeout(() => {
-			if (toast.parentNode) toast.remove();
-		}, dismissMs);
+		const entry = { toast, timer: 0 };
+		const dismiss = () => {
+			window.clearTimeout(entry.timer);
+			toast.remove();
+			liveToasts.delete(dedupKey);
+		};
+		close.addEventListener('click', dismiss);
+		entry.timer = window.setTimeout(dismiss, dismissMs);
+		liveToasts.set(dedupKey, entry);
 	}
 
 	// Codes that carry a human-meaningful, already-safe explanation. Anything

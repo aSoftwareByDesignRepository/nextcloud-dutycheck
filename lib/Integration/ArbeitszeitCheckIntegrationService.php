@@ -1327,6 +1327,8 @@ final class ArbeitszeitCheckIntegrationService implements IArbeitszeitCheckInteg
 				->set('approver_comment', $qb->createNamedParameter(null))
 				->executeStatement();
 		} catch (\Throwable $e) {
+			// best-effort: secondary PII scrub; a failure must not abort the
+			// caller (the mirror row keeps its columns and the warn is logged).
 			$this->logger->warning('DutyCheck could not scrub mirror PII columns', [
 				'app' => 'dutycheck',
 				'exception' => $e,

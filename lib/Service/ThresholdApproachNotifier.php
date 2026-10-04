@@ -75,6 +75,7 @@ class ThresholdApproachNotifier
 			$this->notifications->notify($n);
 			$this->markNotified($rateKey);
 		} catch (Throwable $e) {
+			// best-effort: notification failure must not abort the caller.
 			$this->logger->warning('DutyCheck threshold approach notify failed', [
 				'app' => Application::APP_ID,
 				'exception' => $e,

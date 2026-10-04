@@ -776,7 +776,7 @@
 			if (conflict?.severity === 'soft' && conflict?.id && !conflict?.acknowledged) {
 				const ackBtn = create('button', {
 					type: 'button',
-					class: 'button',
+					class: 'button dc-conflict-ack-btn',
 					text: t('dutycheck', 'Confirm'),
 				});
 				ackBtn.addEventListener('click', () => acknowledgeConflict(conflict.id));
@@ -995,7 +995,7 @@
 			editBtn.addEventListener('click', () => openAssignmentEditModal(a, editBtn));
 			const cancelBtn = create('button', {
 				type: 'button',
-				class: 'button button--text',
+				class: 'button button--text dc-assignment-cancel-btn',
 				text: t('dutycheck', 'Cancel shift'),
 			});
 			cancelBtn.setAttribute('aria-label', t('dutycheck', 'Cancel this assignment'));
@@ -3443,8 +3443,8 @@
 				li.appendChild(create('p', {
 					text: [when, emp].filter(Boolean).join(' · '),
 				}));
-				const approve = create('button', { type: 'button', class: 'button primary', text: t('dutycheck', 'Approve claim') });
-				const reject = create('button', { type: 'button', class: 'button', text: t('dutycheck', 'Reject claim') });
+				const approve = create('button', { type: 'button', class: 'button primary dc-open-claim-approve-btn', text: t('dutycheck', 'Approve claim') });
+				const reject = create('button', { type: 'button', class: 'button dc-open-claim-reject-btn', text: t('dutycheck', 'Reject claim') });
 				approve.style.minHeight = '44px';
 				reject.style.minHeight = '44px';
 				approve.addEventListener('click', async () => {

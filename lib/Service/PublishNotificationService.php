@@ -60,6 +60,7 @@ class PublishNotificationService
 				}
 				$this->sendActivity($uid, $actorUserId, $periodId, $period);
 			} catch (Throwable $e) {
+				// best-effort: per-user notify failure must not abort the loop.
 				$this->logger->warning('DutyCheck publish notification failed', [
 					'app' => Application::APP_ID,
 					'userId' => $uid,

@@ -198,7 +198,10 @@ class Application extends App implements IBootstrap
 			);
 		});
 		$context->registerService(\OCA\DutyCheck\Service\CompanyService::class, function ($c): \OCA\DutyCheck\Service\CompanyService {
-			return new \OCA\DutyCheck\Service\CompanyService($c->query(\OCP\IDBConnection::class));
+			return new \OCA\DutyCheck\Service\CompanyService(
+				$c->query(\OCP\IDBConnection::class),
+				$c->query(\OCP\IUserManager::class),
+			);
 		});
 		$context->registerService(ShiftTemplateService::class, function ($c): ShiftTemplateService {
 			return new ShiftTemplateService(
@@ -482,6 +485,7 @@ class Application extends App implements IBootstrap
 				];
 			});
 		} catch (\Throwable $e) {
+			// best-effort: navigation registration must never break app boot.
 			try {
 				$c = $this->getContainer();
 				$c->get(\Psr\Log\LoggerInterface::class)->error(

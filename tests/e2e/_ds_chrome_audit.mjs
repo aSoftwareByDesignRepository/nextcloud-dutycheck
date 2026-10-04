@@ -66,7 +66,8 @@ const EMPLOYEE_ROUTES = [
 	{ id: 'emp-index', path: '/apps/dutycheck/' },
 	{ id: 'emp-my-roster', path: '/apps/dutycheck/my-roster' },
 	{ id: 'emp-my-absences', path: '/apps/dutycheck/my-absences' },
-	{ id: 'emp-today', path: '/apps/dutycheck/today' },
+	// planner console route — linked-employee users get a 403 denied surface
+	{ id: 'emp-today', path: '/apps/dutycheck/today', expectDenied: true },
 ]
 
 const results = { phase: PHASE, startedAt: new Date().toISOString(), cells: [], defects: [], captures: {} }
@@ -260,6 +261,15 @@ async function phaseSweep(browser) {
 			const shot = await snap(page, `sweep__${route.id}__light__${vp.w}`)
 			cell.proof = shot.sha256.slice(0, 16)
 			const failReasons = []
+			// Same status gate as the theme pass: an error page (404/5xx) still
+			// satisfies overflow/touch checks, so it must be asserted explicitly.
+			if (route.expectDenied) {
+				if (cell.checks.http !== 403 && cell.checks.http !== 401) failReasons.push(`expected 403, got http ${cell.checks.http}`)
+			} else if (typeof cell.checks.http === 'number' && cell.checks.http >= 400) {
+				failReasons.push(`http ${cell.checks.http}`)
+			} else if (cell.checks.http === 'nav-fail') {
+				failReasons.push('nav-fail')
+			}
 			if (!cell.checks.overflowOk) failReasons.push(`overflow ${JSON.stringify(ov)}`)
 			if (cell.checks.touchOffenders.length) failReasons.push(`touch<44: ${cell.checks.touchOffenders.length}`)
 			cell.status = failReasons.length ? 'fail' : 'ok'
@@ -289,6 +299,13 @@ async function phaseSweep(browser) {
 			const shot = await snap(ep, `sweep__${route.id}__light__${vp.w}`)
 			cell.proof = shot.sha256.slice(0, 16)
 			const failReasons = []
+			if (route.expectDenied) {
+				if (cell.checks.http !== 403 && cell.checks.http !== 401) failReasons.push(`expected 403, got http ${cell.checks.http}`)
+			} else if (typeof cell.checks.http === 'number' && cell.checks.http >= 400) {
+				failReasons.push(`http ${cell.checks.http}`)
+			} else if (cell.checks.http === 'nav-fail') {
+				failReasons.push('nav-fail')
+			}
 			if (!cell.checks.overflowOk) failReasons.push(`overflow`)
 			if (cell.checks.axeViolations) failReasons.push(`axe ${cell.checks.axeViolations}`)
 			if (cell.checks.touchOffenders.length) failReasons.push(`touch<44: ${cell.checks.touchOffenders.length}`)
@@ -485,6 +502,39 @@ async function probeDialogLifecycle(page, name, openFn, opts = {}) {
 async function phaseDialogs(browser) {
 	const plannerState = await loginState(browser, 'planner')
 	const employeeState = await loginState(browser, 'employee')
+	const adminState = await loginState(browser, 'admin')
+
+	// rotation_patterns_enabled is per-company and other lanes/specs may toggle
+	// it off — the pattern-modal surface is unreachable then. Provision it via
+	// the app-admin settings API (requireAppAdmin → planner 403s) and restore
+	// the prior value at the end of the phase.
+	const settingsApi = async (state, fn) => {
+		const c = await browser.newContext({ baseURL: BASE, storageState: state })
+		const p = await c.newPage()
+		try {
+			await p.goto(`${BASE}/apps/dutycheck/patterns`, { waitUntil: 'domcontentloaded' })
+			await p.waitForSelector('#dc-main-content', { timeout: 20000 }).catch(() => {})
+			return await p.evaluate(fn)
+		} finally {
+			await c.close().catch(() => {})
+		}
+	}
+	const rotGet = (s) => settingsApi(s, async () => {
+		try {
+			const res = await window.DutyCheckApi.get('/apps/dutycheck/api/self-service/settings')
+			return res?.data?.rotationPatternsEnabled === true
+		} catch { return null }
+	})
+	const rotSet = (s, v) => settingsApi(s, async (val) => {
+		try {
+			await window.DutyCheckApi.post('/apps/dutycheck/api/self-service/settings', { rotationPatternsEnabled: val })
+			return true
+		} catch { return false }
+	})
+	const rotWasEnabled = await rotGet(adminState)
+	if (rotWasEnabled === false) {
+		await rotSet(adminState, true)
+	}
 
 	const ctx = await browser.newContext({ baseURL: BASE, storageState: plannerState, viewport: { width: 1440, height: 900 } })
 	const page = await ctx.newPage()
@@ -494,10 +544,10 @@ async function phaseDialogs(browser) {
 	await page.goto(`${BASE}/apps/dutycheck/employees`, { waitUntil: 'domcontentloaded' })
 	await settle(page)
 	await page.waitForSelector('#dc-main-content', { timeout: 20000 }).catch(() => {})
+	await page.waitForSelector('.dc-employee-toggle-btn[data-dc-active="1"]', { timeout: 15000 }).catch(() => {})
 	await probeDialogLifecycle(page, 'employee-deactivate-confirm', async () => {
-		const btn = page.locator('#dc-main-content button', { hasText: /Deactivate|Deaktivieren/ }).first()
+		const btn = page.locator('.dc-employee-toggle-btn[data-dc-active="1"]').first()
 		if (!(await btn.count())) return null
-		const sel = 'button:has-text("Deactivate")'
 		await btn.click()
 		return true
 	}, { triggerSelector: null })
@@ -505,8 +555,9 @@ async function phaseDialogs(browser) {
 	// 2) locations → Deactivate confirmDialog
 	await page.goto(`${BASE}/apps/dutycheck/locations`, { waitUntil: 'domcontentloaded' })
 	await settle(page)
+	await page.waitForSelector('.dc-location-toggle-btn[data-dc-active="1"]', { timeout: 15000 }).catch(() => {})
 	await probeDialogLifecycle(page, 'location-deactivate-confirm', async () => {
-		const btn = page.locator('#dc-main-content button', { hasText: /Deactivate|Deaktivieren/ }).first()
+		const btn = page.locator('.dc-location-toggle-btn[data-dc-active="1"]').first()
 		if (!(await btn.count())) return null
 		await btn.click()
 		return true
@@ -516,8 +567,9 @@ async function phaseDialogs(browser) {
 	await page.goto(`${BASE}/apps/dutycheck/periods`, { waitUntil: 'domcontentloaded' })
 	await settle(page)
 	await page.waitForFunction(() => !document.querySelector('#dc-periods-table-body .dc-loading'), { timeout: 20000 }).catch(() => {})
+	await page.waitForSelector('.dc-period-transition-btn', { timeout: 15000 }).catch(() => {})
 	await probeDialogLifecycle(page, 'period-transition-dialog', async () => {
-		const btn = page.locator('#dc-main-content button').filter({ hasText: /^Publish$|^Close$|^Re-open$|^Veröffentlichen$|^Schließen$|^Öffnen$/ }).first()
+		const btn = page.locator('.dc-period-transition-btn').first()
 		if (!(await btn.count())) return null
 		await btn.click()
 		return true
@@ -526,20 +578,28 @@ async function phaseDialogs(browser) {
 	// 4) absences → review promptReason (reject)
 	await page.goto(`${BASE}/apps/dutycheck/absences`, { waitUntil: 'domcontentloaded' })
 	await settle(page)
+	await page.waitForSelector('.dc-absence-transition-btn', { timeout: 15000 }).catch(() => {})
 	await probeDialogLifecycle(page, 'absence-review-prompt', async () => {
-		const btn = page.locator('#dc-main-content button').filter({ hasText: /^Reject$|^Ablehnen$/ }).first()
+		const btn = page.locator('.dc-absence-transition-btn[data-dc-transition="rejected"]').first()
 		if (!(await btn.count())) return null
 		await btn.click()
 		return true
 	})
 
-	// 5) patterns → openModal (new pattern / assign)
+	// 5) patterns → openModal (flag provisioned by the admin context above).
 	await page.goto(`${BASE}/apps/dutycheck/patterns`, { waitUntil: 'domcontentloaded' })
 	await settle(page)
+	await page.waitForSelector('#dc-patterns-create, .dc-pattern-assign-btn', { timeout: 15000 }).catch(() => {})
 	await probeDialogLifecycle(page, 'pattern-modal', async () => {
-		const btn = page.locator('#dc-main-content button').filter({ hasText: /^New pattern$|^Neues Muster$/ }).first()
-		if (!(await btn.count())) return null
-		await btn.click()
+		// Feature disabled → #dc-patterns-create is disabled; use a row Assign modal.
+		const create = page.locator('#dc-patterns-create')
+		if ((await create.count()) && await create.isEnabled().catch(() => false)) {
+			await create.click()
+			return true
+		}
+		const assign = page.locator('.dc-pattern-assign-btn').first()
+		if (!(await assign.count())) return null
+		await assign.click()
 		return true
 	})
 
@@ -581,7 +641,6 @@ async function phaseDialogs(browser) {
 	})
 
 	// 7) license remove modal (settings/license) — app-admin surface
-	const adminState = await loginState(browser, 'admin')
 	const actx = await browser.newContext({ baseURL: BASE, storageState: adminState, viewport: { width: 1440, height: 900 } })
 	const ap = await actx.newPage()
 	await ap.goto(`${BASE}/apps/dutycheck/settings/license`, { waitUntil: 'domcontentloaded' })
@@ -601,13 +660,13 @@ async function phaseDialogs(browser) {
 		await page.goto(`${BASE}/apps/dutycheck/employees`, { waitUntil: 'domcontentloaded' })
 		await settle(page)
 		await page.waitForSelector('#dc-main-content', { timeout: 20000 }).catch(() => {})
-		await page.waitForTimeout(1500)
-		const btn = page.locator('#dc-main-content button').filter({ hasText: /^Deactivate$|^Deaktivieren$/ }).first()
+		await page.waitForSelector('.dc-employee-toggle-btn[data-dc-active="1"]', { timeout: 15000 }).catch(() => {})
+		const btn = page.locator('.dc-employee-toggle-btn[data-dc-active="1"]').first()
 		if (await btn.count()) {
 			await btn.click()
 			await page.waitForSelector('[role="dialog"]', { timeout: 8000 })
 			// Confirm the deactivate (mutates → list re-render → trigger destroyed)
-			await page.locator('.dc-modal [role="dialog"] button').filter({ hasText: /Deactivate|Deaktivieren/ }).first().click()
+			await page.locator('.dc-modal [role="dialog"] .dc-modal__actions .button.primary').first().click()
 			await page.waitForTimeout(1200)
 			await settle(page)
 			const post = await page.evaluate(() => ({
@@ -622,8 +681,8 @@ async function phaseDialogs(browser) {
 				r.fails.push(`focus lost to <${post.active.toLowerCase()}> after destructive confirm + re-render`)
 			}
 			await snap(page, 'dialog__employee-deactivate__after-confirm')
-			// restore: re-activate the same employee (first row toggle now says Activate)
-			const react = page.locator('#dc-main-content button').filter({ hasText: /^Activate$|^Aktivieren$/ }).first()
+			// restore: re-activate the same employee (toggle now flips to Activate)
+			const react = page.locator('.dc-employee-toggle-btn[data-dc-active="0"]').first()
 			if (await react.count()) {
 				await react.click()
 				await page.waitForTimeout(1200)
@@ -641,8 +700,9 @@ async function phaseDialogs(browser) {
 	ep.on('pageerror', (e) => console.log('EMP-PAGEEXC:', String(e).slice(0, 200)))
 	await ep.goto(`${BASE}/apps/dutycheck/my-roster`, { waitUntil: 'domcontentloaded' })
 	await settle(ep)
+	await ep.waitForSelector('.dc-swap-request-btn', { timeout: 15000 }).catch(() => {})
 	await probeDialogLifecycle(ep, 'employee-swap-native-dialog', async () => {
-		const btn = ep.locator('#dc-main-content button').filter({ hasText: /Request swap|Tausch/i }).first()
+		const btn = ep.locator('.dc-swap-request-btn').first()
 		if (!(await btn.count())) return null
 		await btn.click()
 		return true
@@ -655,6 +715,11 @@ async function phaseDialogs(browser) {
 		return true
 	})
 	await ectx.close()
+
+	// Restore the company flag we provisioned for the pattern-modal surface.
+	if (rotWasEnabled === false) {
+		await rotSet(adminState, false)
+	}
 }
 
 /* ───────────────────────────── states ───────────────────────────── */

@@ -61,6 +61,7 @@ class LateChangeNotificationService
 				->setLink($this->urlGenerator->linkToRouteAbsolute('dutycheck.page.myRoster') . '?periodId=' . $periodId);
 			$this->notifications->notify($n);
 		} catch (Throwable $e) {
+			// best-effort: notification failure must not abort the mutation caller.
 			$this->logger->warning('DutyCheck late-change notification failed', [
 				'app' => Application::APP_ID,
 				'userId' => $uid,

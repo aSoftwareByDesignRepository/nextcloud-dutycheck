@@ -211,7 +211,7 @@
 						on: { click: () => { void openEditor(pat); } },
 					}),
 					create('button', {
-						type: 'button', class: 'button', text: t('dutycheck', 'Assign'),
+						type: 'button', class: 'button dc-pattern-assign-btn', text: t('dutycheck', 'Assign'),
 						on: { click: () => openAssign(pat) },
 					}),
 					create('button', {

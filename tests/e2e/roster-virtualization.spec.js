@@ -9,6 +9,30 @@ const EMPLOYEE_COUNT = 80
  * @param {import('@playwright/test').Page} page
  */
 async function stubLargeRoster(page) {
+	// Bootstrapping calls ensure-calendar-month for the REAL current month and
+	// sets gridMonthClamp from it. Without this stub the fixture week (Sep 2026)
+	// is clamped to the live month → periodDateList()=[] → empty-state grid.
+	await page.route('**/apps/dutycheck/api/periods/ensure-calendar-month**', async (route) => {
+		await route.fulfill({
+			status: 200,
+			contentType: 'application/json',
+			body: JSON.stringify({
+				ok: true,
+				data: {
+					period: {
+						id: 909001,
+						status: 'open',
+						startDate: '2026-09-07',
+						endDate: '2026-09-13',
+						name: 'E2E virtualization week',
+					},
+					created: false,
+					writable: true,
+					yearMonth: '2026-09',
+				},
+			}),
+		})
+	})
 	await page.route('**/apps/dutycheck/api/roster**', async (route) => {
 		const response = await route.fetch()
 		const raw = await response.text()
@@ -66,8 +90,11 @@ async function stubLargeRoster(page) {
 				note: '',
 			},
 		]
+		// The requested periodId is a fixture id (909001) — the real API 404s it.
+		// Fulfill 200 regardless of the live response status; only real payload
+		// fields (locations etc.) are borrowed, not its success/failure.
 		await route.fulfill({
-			status: response.status(),
+			status: 200,
 			contentType: 'application/json',
 			body: JSON.stringify({
 				...envelope,

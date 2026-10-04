@@ -35,6 +35,7 @@ class ConflictDirtyRematerializeJob extends TimedJob
 		try {
 			$this->roster->drainDirtyOpenPeriodConflicts(self::DRAIN_BATCH);
 		} catch (Throwable $e) {
+			// best-effort: cron drain retries next interval; failure is non-fatal.
 			$this->logger->warning('DutyCheck conflict dirty rematerialize failed', [
 				'app' => 'dutycheck',
 				'exception' => $e,

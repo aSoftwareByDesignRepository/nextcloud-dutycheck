@@ -355,7 +355,8 @@ final class MobileDemoSeedService
 							'endTime' => (string) ($row['endTime'] ?? '17:00'),
 							'breakMinutes' => (int) ($row['breakMinutes'] ?? 30),
 							'note' => 'Mobile demo shift — acknowledge on Home',
-							'version' => (int) ($row['version'] ?? 1),
+							// myRoster omits version — peek the real CAS token (never fabricate).
+							'version' => $this->roster->peekAssignment($reuseId, $adminUserId)['version'],
 						], $adminUserId);
 					}
 					if ($reuseId !== null) {
@@ -412,7 +413,8 @@ final class MobileDemoSeedService
 							'endTime' => (string) ($row['endTime'] ?? '17:00'),
 							'breakMinutes' => (int) ($row['breakMinutes'] ?? 30),
 							'note' => 'Mobile demo shift — acknowledge on Home',
-							'version' => (int) ($row['version'] ?? 1),
+							// myRoster omits version — peek the real CAS token (never fabricate).
+							'version' => $this->roster->peekAssignment($reuseId, $adminUserId)['version'],
 						], $adminUserId);
 					}
 					return $reuseId;
@@ -445,6 +447,10 @@ final class MobileDemoSeedService
 				$id = (int) ($existing[0]['id'] ?? 0);
 				return $id > 0 ? $id : null;
 			}
+
+			// Reused-assignment early returns can leave the demo period closed;
+			// openShifts->create rejects non-open/published periods (PERIOD_NOT_OPEN).
+			$this->ensurePeriodOpenForAssignment($periodId, $adminUserId);
 
 			$open = $this->openShifts->create([
 				'periodId' => $periodId,

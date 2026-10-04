@@ -834,6 +834,7 @@ class SwapService
 					->setLink($link);
 				$this->notifications->notify($n);
 			} catch (Throwable $e) {
+				// best-effort: notification is secondary to the swap state change.
 				$this->logger?->warning('DutyCheck swap notification failed', [
 					'app' => Application::APP_ID,
 					'userId' => $uid,
