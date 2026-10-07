@@ -1345,7 +1345,12 @@ OC.L10N.register(
 	"Keep request" : "Verzoek behouden",
 	"Swap request withdrawn." : "Ruilverzoek ingetrokken.",
 	"Shift swap withdrawn" : "Dienstruil ingetrokken",
-	"A swap request was withdrawn by the requester." : "Een ruilverzoek is ingetrokken door de aanvrager."
+	"A swap request was withdrawn by the requester." : "Een ruilverzoek is ingetrokken door de aanvrager.",
+	"Pattern #{id}" : "Patroon nr. {id}",
+	"open-ended" : "zonder einddatum",
+	"Existing assignments" : "Bestaande toewijzingen",
+	"The overlapping assignment above ends the day before the new start date." : "De overlappende toewijzing hierboven eindigt op de dag voor de nieuwe startdatum.",
+	"This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it." : "Deze medewerker heeft al een patroontoewijzing in die periode. Vink „Vorige overlappende toewijzing beëindigen” aan om die te vervangen."
 	},
 	"nplurals=2; plural=(n != 1);"
 );

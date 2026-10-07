@@ -14,7 +14,7 @@
 	const DOW = [1, 2, 3, 4, 5, 6, 7];
 	const state = {
 		patterns: [],
-		allowedCycleWeeks: [1, 2, 3, 4],
+		allowedCycleWeeks: [1, 2, 3, 4, 5, 6, 7, 8],
 		enabled: true,
 		employees: [],
 		locations: [],
@@ -412,6 +412,14 @@
 
 	async function openAssign(pat) {
 		await ensureEmployees();
+
+		function patternLabelFor(id) {
+			const p = state.patterns.find((x) => Number(x.id) === Number(id));
+			return p
+				? String(p.name || p.id)
+				: t('dutycheck', 'Pattern #{id}').replace('{id}', String(id));
+		}
+
 		C.openModal({
 			title: t('dutycheck', 'Assign pattern'),
 			primaryLabel: t('dutycheck', 'Assign'),
@@ -428,6 +436,82 @@
 				const today = new Date();
 				const p = (n) => String(n).padStart(2, '0');
 				const todayIso = today.getFullYear() + '-' + p(today.getMonth() + 1) + '-' + p(today.getDate());
+				const fromInput = create('input', {
+					type: 'date', id: 'dc-pat-assign-from', class: 'dc-input dc-input--date',
+					attrs: { required: '', value: todayIso },
+				});
+				const superBox = create('input', {
+					type: 'checkbox', id: 'dc-pat-assign-super',
+					attrs: { 'aria-describedby': 'dc-pat-assign-super-hint' },
+				});
+				const superHint = create('p', { class: 'dc-field__hint', id: 'dc-pat-assign-super-hint' });
+				superHint.hidden = true;
+				const existingBox = create('div', { class: 'dc-field dc-field--full' });
+				let loadSeq = 0;
+				let autoChecked = false;
+
+				const refreshExisting = async () => {
+					const seq = ++loadSeq;
+					const empId = Number(select.value || 0);
+					const from = String(fromInput.value || '');
+					existingBox.replaceChildren();
+					superHint.hidden = true;
+					if (!empId) {
+						if (autoChecked) {
+							superBox.checked = false;
+							autoChecked = false;
+						}
+						return;
+					}
+					let rows = [];
+					try {
+						const res = await Api.get('/apps/dutycheck/api/employees/' + empId + '/rotation-assignments');
+						rows = res?.data?.assignments || [];
+					} catch (_) {
+						rows = [];
+					}
+					if (seq !== loadSeq) return;
+					const fmt = (iso) => (D?.formatDisplayDate?.(String(iso)) || String(iso));
+					const ul = create('ul', { class: 'dc-patterns__assign-list' });
+					let overlap = false;
+					rows.forEach((row) => {
+						const active = state.patterns.some((x) => Number(x.id) === Number(row.patternId));
+						const range = fmt(row.validFrom) + ' – '
+							+ (row.validTo ? fmt(row.validTo) : t('dutycheck', 'open-ended'));
+						ul.appendChild(create('li', {
+							text: patternLabelFor(row.patternId) + ': ' + range
+								+ (active ? '' : ' (' + t('dutycheck', 'inactive') + ')'),
+						}));
+						// Mirrors RotationPatternService: only active-pattern
+						// assignments block a new one.
+						if (active && from && (!row.validTo || String(row.validTo) >= from)) {
+							overlap = true;
+						}
+					});
+					if (rows.length) {
+						existingBox.appendChild(create('span', {
+							class: 'dc-field__label',
+							text: t('dutycheck', 'Existing assignments'),
+						}));
+						existingBox.appendChild(ul);
+					}
+					if (overlap) {
+						superBox.checked = true;
+						autoChecked = true;
+						superHint.textContent = t('dutycheck', 'The overlapping assignment above ends the day before the new start date.');
+						superHint.hidden = false;
+					} else if (autoChecked) {
+						// Overlap is gone (different employee/start date) — undo only
+						// what we auto-set; a manual tick is the user's choice.
+						superBox.checked = false;
+						autoChecked = false;
+					}
+				};
+				superBox.addEventListener('change', () => { autoChecked = false; });
+				select.addEventListener('change', () => { void refreshExisting(); });
+				// 'change' (commit), not 'input' — avoids a request per keystroke.
+				fromInput.addEventListener('change', () => { void refreshExisting(); });
+
 				return create('div', { class: 'dc-form-grid' }, [
 					create('p', {
 						class: 'dc-field__hint',
@@ -441,22 +525,23 @@
 						}),
 						select,
 					]),
+					existingBox,
 					create('div', { class: 'dc-field' }, [
 						create('label', {
 							class: 'dc-field__label', attrs: { for: 'dc-pat-assign-from' },
 							text: t('dutycheck', 'Valid from'),
 						}),
-						create('input', {
-							type: 'date', id: 'dc-pat-assign-from', class: 'dc-input dc-input--date',
-							attrs: { required: '', value: todayIso },
-						}),
+						fromInput,
 					]),
-					create('label', { class: 'dc-checkbox', attrs: { for: 'dc-pat-assign-super' } }, [
-						create('input', { type: 'checkbox', id: 'dc-pat-assign-super' }),
-						create('span', {
-							class: 'dc-checkbox__text',
-							text: t('dutycheck', 'End previous overlapping assignment'),
-						}),
+					create('div', { class: 'dc-field dc-field--full' }, [
+						create('label', { class: 'dc-checkbox', attrs: { for: 'dc-pat-assign-super' } }, [
+							superBox,
+							create('span', {
+								class: 'dc-checkbox__text',
+								text: t('dutycheck', 'End previous overlapping assignment'),
+							}),
+						]),
+						superHint,
 					]),
 				]);
 			},
@@ -473,7 +558,12 @@
 					Msg.announce(msg('msg-assigned'), 'success');
 					return true;
 				} catch (err) {
-					Msg.handleApiError(err);
+					const code = String(err?.code || err?.payload?.error?.code || '');
+					if (code === 'ASSIGNMENT_OVERLAP') {
+						Msg.announce(t('dutycheck', 'This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it.'), 'error');
+					} else {
+						Msg.handleApiError(err);
+					}
 					return false;
 				}
 			},
@@ -504,7 +594,7 @@
 			const res = await Api.get(API);
 			const data = res?.data || {};
 			state.patterns = data.patterns || [];
-			state.allowedCycleWeeks = data.allowedCycleWeeks || [1, 2, 3, 4];
+			state.allowedCycleWeeks = data.allowedCycleWeeks || [1, 2, 3, 4, 5, 6, 7, 8];
 			state.enabled = data.rotationPatternsEnabled !== false;
 			renderList();
 			setStatus('');

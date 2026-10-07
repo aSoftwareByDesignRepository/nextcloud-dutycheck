@@ -694,5 +694,10 @@
 	"Cancel shift": "Dienst stornieren",
 	"Edit shift": "Dienst bearbeiten",
 	"Shift templates": "Schichtvorlagen",
-	"Copy from previous period": "Aus vorheriger Periode kopieren"
+	"Copy from previous period": "Aus vorheriger Periode kopieren",
+	"Pattern #{id}": "Muster Nr. {id}",
+	"open-ended": "offen",
+	"Existing assignments": "Vorhandene Zuweisungen",
+	"The overlapping assignment above ends the day before the new start date.": "Die überlappende Zuweisung oben endet am Tag vor dem neuen Startdatum.",
+	"This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it.": "Für diesen Mitarbeiter gibt es in diesem Zeitraum bereits eine Muster-Zuweisung. Setzen Sie den Haken bei „Vorherige überlappende Zuweisung beenden“, um sie zu ersetzen."
 }

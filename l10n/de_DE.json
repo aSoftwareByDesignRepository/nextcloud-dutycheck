@@ -1344,7 +1344,12 @@
 		"Keep request": "Anfrage behalten",
 		"Swap request withdrawn.": "Tauschanfrage zurückgezogen.",
 		"Shift swap withdrawn": "Diensttausch zurückgezogen",
-		"A swap request was withdrawn by the requester.": "Eine Tauschanfrage wurde vom Antragsteller zurückgezogen."
+		"A swap request was withdrawn by the requester.": "Eine Tauschanfrage wurde vom Antragsteller zurückgezogen.",
+		"Pattern #{id}": "Muster Nr. {id}",
+		"open-ended": "offen",
+		"Existing assignments": "Vorhandene Zuweisungen",
+		"The overlapping assignment above ends the day before the new start date.": "Die überlappende Zuweisung oben endet am Tag vor dem neuen Startdatum.",
+		"This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it.": "Für diesen Mitarbeiter gibt es in diesem Zeitraum bereits eine Muster-Zuweisung. Setzen Sie den Haken bei „Vorherige überlappende Zuweisung beenden“, um sie zu ersetzen."
 	},
 	"pluralForm": "nplurals=2; plural=(n != 1);"
 }

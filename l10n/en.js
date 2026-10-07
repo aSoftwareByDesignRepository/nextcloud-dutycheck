@@ -1345,7 +1345,12 @@ OC.L10N.register(
 	"Keep request" : "Keep request",
 	"Swap request withdrawn." : "Swap request withdrawn.",
 	"Shift swap withdrawn" : "Shift swap withdrawn",
-	"A swap request was withdrawn by the requester." : "A swap request was withdrawn by the requester."
+	"A swap request was withdrawn by the requester." : "A swap request was withdrawn by the requester.",
+	"Pattern #{id}" : "Pattern #{id}",
+	"open-ended" : "open-ended",
+	"Existing assignments" : "Existing assignments",
+	"The overlapping assignment above ends the day before the new start date." : "The overlapping assignment above ends the day before the new start date.",
+	"This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it." : "This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it."
 	},
 	"nplurals=2; plural=(n != 1);"
 );

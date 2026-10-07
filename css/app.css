@@ -5001,6 +5001,14 @@ textarea {
 	color: var(--dc-muted);
 }
 
+.dc-patterns__assign-list {
+	margin: var(--dc-space-1) 0 0;
+	padding-left: 1.25rem;
+	font-size: var(--dc-fs-sm);
+	color: var(--dc-muted);
+	line-height: var(--dc-line-base);
+}
+
 .dc-patterns__preview {
 	display: flex;
 	flex-direction: column;

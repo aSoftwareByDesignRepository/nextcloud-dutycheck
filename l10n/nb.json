@@ -1344,7 +1344,12 @@
 		"Keep request": "Behold forespørsel",
 		"Swap request withdrawn.": "Bytteforespørsel trukket tilbake.",
 		"Shift swap withdrawn": "Vaktbytte trukket tilbake",
-		"A swap request was withdrawn by the requester.": "En bytteforespørsel ble trukket tilbake av den som sendte den."
+		"A swap request was withdrawn by the requester.": "En bytteforespørsel ble trukket tilbake av den som sendte den.",
+		"Pattern #{id}": "Mønster nr. {id}",
+		"open-ended": "uten sluttdato",
+		"Existing assignments": "Eksisterende tildelinger",
+		"The overlapping assignment above ends the day before the new start date.": "Den overlappende tildelingen ovenfor slutter dagen før den nye startdatoen.",
+		"This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it.": "Denne ansatte har allerede en mønstertildeling i denne perioden. Huk av for «Avslutt forrige overlappende tildeling» for å erstatte den."
 	},
 	"pluralForm": "nplurals=2; plural=(n != 1);"
 }

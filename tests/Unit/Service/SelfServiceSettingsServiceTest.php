@@ -32,7 +32,7 @@ final class SelfServiceSettingsServiceTest extends TestCase
 		$out = $api->invoke($svc, []);
 		self::assertFalse($out['push_quiet_hours_enabled']);
 		self::assertFalse($out['peer_roster_visibility']);
-		self::assertSame([1, 2, 3, 4], $out['rotation_allowed_cycle_weeks']);
+		self::assertSame([1, 2, 3, 4, 5, 6, 7, 8], $out['rotation_allowed_cycle_weeks']);
 	}
 
 	public function testCamelCasePatchAccepted(): void
@@ -186,7 +186,7 @@ final class SelfServiceSettingsServiceTest extends TestCase
 			'push_quiet_hours_end' => '99:99',
 		]);
 		self::assertSame('planner_required', $out['swap_approval_mode']);
-		self::assertSame([1, 2, 3, 4], $out['rotation_allowed_cycle_weeks']);
+		self::assertSame([1, 2, 3, 4, 5, 6, 7, 8], $out['rotation_allowed_cycle_weeks']);
 		self::assertSame('12:00', $out['early_end_latest']);
 		self::assertSame('14:00', $out['late_start_earliest']);
 		self::assertSame('22:00', $out['push_quiet_hours_start']);
@@ -233,10 +233,16 @@ final class SelfServiceSettingsServiceTest extends TestCase
 			$this->createMock(CompanyService::class),
 		);
 		$m = (new \ReflectionClass($svc))->getMethod('normalizeCycleWeeks');
-		self::assertSame([1, 2, 3, 4], $m->invoke($svc, 'nope'));
-		self::assertSame([1, 2, 3, 4], $m->invoke($svc, []));
-		self::assertSame([1, 2, 3, 4], $m->invoke($svc, [9, 0]));
+		self::assertSame([1, 2, 3, 4, 5, 6, 7, 8], $m->invoke($svc, 'nope'));
+		self::assertSame([1, 2, 3, 4, 5, 6, 7, 8], $m->invoke($svc, []));
+		self::assertSame([1, 2, 3, 4, 5, 6, 7, 8], $m->invoke($svc, [9, 0]));
 		self::assertSame([2, 3], $m->invoke($svc, [2, 2, 9, '3']));
+		// Legacy default [1,2,3,4] was auto-persisted by settings saves before
+		// the whitelist grew — it means "never customized", so it widens.
+		self::assertSame([1, 2, 3, 4, 5, 6, 7, 8], $m->invoke($svc, [1, 2, 3, 4]));
+		self::assertSame([1, 2, 3, 4, 5, 6, 7, 8], $m->invoke($svc, [4, 2, 3, 1]));
+		// A genuinely narrowed list keeps its restriction.
+		self::assertSame([2, 4], $m->invoke($svc, [4, 2]));
 	}
 
 	public function testGetForCompanyRejectsNonPositiveIdsWithoutDbAccess(): void

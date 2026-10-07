@@ -1344,7 +1344,12 @@
 		"Keep request": "Garder la demande",
 		"Swap request withdrawn.": "Demande d'échange retirée.",
 		"Shift swap withdrawn": "Échange de poste retiré",
-		"A swap request was withdrawn by the requester.": "Une demande d'échange a été retirée par le demandeur."
+		"A swap request was withdrawn by the requester.": "Une demande d'échange a été retirée par le demandeur.",
+		"Pattern #{id}": "Modèle n° {id}",
+		"open-ended": "sans date de fin",
+		"Existing assignments": "Affectations existantes",
+		"The overlapping assignment above ends the day before the new start date.": "L'affectation qui se chevauche ci-dessus se termine la veille de la nouvelle date de début.",
+		"This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it.": "Cet employé a déjà une affectation de modèle sur cette période. Cochez « Terminer l’affectation chevauchante précédente » pour la remplacer."
 	},
 	"pluralForm": "nplurals=2; plural=(n > 1);"
 }

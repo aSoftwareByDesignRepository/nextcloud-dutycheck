@@ -18,7 +18,9 @@ use OCP\IDBConnection;
  */
 final class SelfServiceSettingsService
 {
-	public const ALLOWED_CYCLE_WEEKS = [1, 2, 3, 4];
+	// 1..8 covers non-week-aligned rhythms (e.g. 4-on/2-off needs a 6-week
+	// cycle: lcm(6,7)=42 days). RotationAnchorService hard-caps at 8.
+	public const ALLOWED_CYCLE_WEEKS = [1, 2, 3, 4, 5, 6, 7, 8];
 
 	public const SWAP_PLANNER_REQUIRED = 'planner_required';
 	public const SWAP_BILATERAL_AUTO = 'bilateral_auto';
@@ -451,7 +453,16 @@ final class SelfServiceSettingsService
 				$out[] = $n;
 			}
 		}
-		return $out !== [] ? array_values(array_unique($out)) : self::ALLOWED_CYCLE_WEEKS;
+		$out = array_values(array_unique($out));
+		sort($out);
+		// The whitelist was never user-configurable, so a stored [1,2,3,4] is
+		// the old default that a settings save auto-persisted — not a choice.
+		// Treat it as "never customized" so newly allowed lengths (5–8, needed
+		// for e.g. 4-on/2-off rhythms = 6-week cycles) reach existing companies.
+		if ($out === [1, 2, 3, 4] || $out === []) {
+			return self::ALLOWED_CYCLE_WEEKS;
+		}
+		return $out;
 	}
 
 	private function normalizeTime(string $raw, string $fallback): string

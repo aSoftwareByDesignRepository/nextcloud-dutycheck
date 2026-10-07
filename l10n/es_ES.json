@@ -1344,7 +1344,12 @@
 		"Keep request": "Mantener solicitud",
 		"Swap request withdrawn.": "Solicitud de intercambio retirada.",
 		"Shift swap withdrawn": "Intercambio de turno retirado",
-		"A swap request was withdrawn by the requester.": "El solicitante retiró una solicitud de intercambio."
+		"A swap request was withdrawn by the requester.": "El solicitante retiró una solicitud de intercambio.",
+		"Pattern #{id}": "Patrón n.º {id}",
+		"open-ended": "sin fecha de fin",
+		"Existing assignments": "Asignaciones existentes",
+		"The overlapping assignment above ends the day before the new start date.": "La asignación solapada de arriba termina el día antes de la nueva fecha de inicio.",
+		"This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it.": "Este empleado ya tiene una asignación de patrón en ese periodo. Marque «Finalizar la asignación solapada anterior» para sustituirla."
 	},
 	"pluralForm": "nplurals=2; plural=(n != 1);"
 }

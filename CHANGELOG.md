@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Fixed
+
+- **“Assign pattern” always failed with a misleading overlap error:** assignments left behind by deleted (deactivated) patterns still counted as overlapping — invisible in the UI and impossible to end. Only assignments on active patterns now block; rows on inactive or missing patterns are ignored, matching every other reader. The assign dialog also lists the employee’s existing assignments, auto-ticks “End previous overlapping assignment” when the start date collides, and `ASSIGNMENT_OVERLAP` now names the real cause instead of talking about shifts.
+- **Orphan assignments for nonexistent employees:** the employee check in `POST …/assign` only ran in multi-company installs — single-company setups accepted any employee id and wrote rows that could never resolve. The endpoint now always verifies the employee exists (`EMPLOYEE_NOT_FOUND`).
+
+### Changed
+
+- **Rotation cycles up to 8 weeks:** allowed `cycleWeeks` widened from 1–4 to 1–8 so non-week-aligned rhythms are representable (e.g. 4-on/2-off needs a 6-week cycle). A stored `[1,2,3,4]` — the old default that settings saves auto-persisted — now widens to the full range; explicitly narrowed lists are still honoured.
+
 ## 0.3.6 - 2026-10-04
 
 ### Fixed

@@ -702,6 +702,87 @@ test.describe('atlas shipping dialog inventory 3.5.10', () => {
 		await page.unrouteAll({ behavior: 'ignoreErrors' })
 	})
 
+	test('assign dialog lists existing assignments and auto-checks supersede on active overlap', async ({ page }) => {
+		test.skip(plannerCredsCandidates().length === 0, 'Requires planner credentials')
+		const pattern = {
+			id: 920001,
+			name: 'Atlas Pattern',
+			cycleWeeks: 2,
+			anchorType: 'iso_week_parity',
+			weekDays: [],
+		}
+		await page.route('**/apps/dutycheck/api/rotation-patterns**', async (route) => {
+			if (route.request().method() === 'GET') {
+				await route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify({
+						ok: true,
+						data: {
+							patterns: [pattern],
+							allowedCycleWeeks: [1, 2, 3, 4, 5, 6, 7, 8],
+							rotationPatternsEnabled: true,
+						},
+					}),
+				})
+				return
+			}
+			await route.fallback()
+		})
+		await page.route('**/apps/dutycheck/api/employees', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					ok: true,
+					data: [{ id: 920101, displayName: 'Atlas Pat Emp', active: true }],
+				}),
+			})
+		})
+		await page.route('**/apps/dutycheck/api/employees/920101/rotation-assignments', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					ok: true,
+					data: {
+						assignments: [
+							{ id: 11, patternId: 920001, validFrom: '2020-01-01', validTo: null },
+							{ id: 12, patternId: 999999, validFrom: '2019-01-01', validTo: null },
+						],
+					},
+				}),
+			})
+		})
+
+		await page.goto('/apps/dutycheck/patterns', { waitUntil: 'domcontentloaded' })
+		await assertNotServerUpdater(page)
+		await expect(page.locator('.dc-pattern-assign-btn').first()).toBeVisible({ timeout: 30_000 })
+		await page.locator('.dc-pattern-assign-btn').first().click()
+		const assign = dcModal(page)
+		await expect(assign).toBeVisible({ timeout: 8_000 })
+
+		// No employee selected yet → no existing-assignments block, box unchecked.
+		await expect(assign.locator('.dc-patterns__assign-list')).toHaveCount(0)
+		await expect(assign.locator('#dc-pat-assign-super')).not.toBeChecked()
+
+		await assign.locator('#dc-pat-assign-emp').selectOption('920101')
+		const list = assign.locator('.dc-patterns__assign-list')
+		await expect(list).toBeVisible({ timeout: 8_000 })
+		await expect(assign).toContainText(/Existing assignments|Zuweisungen/i)
+		await expect(list).toContainText('Atlas Pattern')
+		// Row on unknown/inactive pattern renders with the inactive marker.
+		await expect(list).toContainText(/inactive|inaktiv/i)
+
+		// Open-ended active overlap from 2020 covers the prefilled today → auto-check.
+		await expect(assign.locator('#dc-pat-assign-super')).toBeChecked()
+		await expect(assign.locator('#dc-pat-assign-super-hint')).toBeVisible()
+
+		await modalCancel(assign).click()
+		await expect(dcModal(page)).toHaveCount(0)
+		await page.unrouteAll({ behavior: 'ignoreErrors' })
+	})
+
 	test('employee + location deactivate confirms open → cancel without PUT', async ({ page }) => {
 		test.skip(plannerCredsCandidates().length === 0, 'Requires planner credentials')
 		await page.route('**/apps/dutycheck/api/employees**', async (route) => {

@@ -1345,7 +1345,12 @@ OC.L10N.register(
 	"Keep request" : "Behåll begäran",
 	"Swap request withdrawn." : "Bytesbegäran återtagen.",
 	"Shift swap withdrawn" : "Skiftbyte återtaget",
-	"A swap request was withdrawn by the requester." : "En bytesbegäran drogs tillbaka av den som skickade den."
+	"A swap request was withdrawn by the requester." : "En bytesbegäran drogs tillbaka av den som skickade den.",
+	"Pattern #{id}" : "Mönster nr {id}",
+	"open-ended" : "utan slutdatum",
+	"Existing assignments" : "Befintliga tilldelningar",
+	"The overlapping assignment above ends the day before the new start date." : "Den överlappande tilldelningen ovan slutar dagen före det nya startdatumet.",
+	"This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it." : "Den här medarbetaren har redan en mönstertilldelning i den perioden. Markera ”Avsluta föregående överlappande uppdrag“ för att ersätta den."
 	},
 	"nplurals=2; plural=(n != 1);"
 );

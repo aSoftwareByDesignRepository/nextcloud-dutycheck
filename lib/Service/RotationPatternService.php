@@ -284,8 +284,22 @@ final class RotationPatternService
 		try {
 			$overlaps = $this->findOverlappingAssignments($employeeId, $validFrom, $validTo, null);
 			if ($overlaps !== []) {
-				if (!$supersede) {
+				// Only assignments on *active* patterns block. Rows on inactive
+				// or missing patterns are inert — but they still collide with
+				// the (employee_id, valid_from) unique index, so supersede must
+				// clean them up too or an equal-start-date insert still fails.
+				$hasActive = false;
+				foreach ($overlaps as $row) {
+					if ((int) $row['pattern_is_active'] === 1) {
+						$hasActive = true;
+						break;
+					}
+				}
+				if ($hasActive && !$supersede) {
 					throw new \InvalidArgumentException('ASSIGNMENT_OVERLAP');
+				}
+				if (!$supersede) {
+					$overlaps = [];
 				}
 				$endDay = (new \DateTimeImmutable($validFrom . ' 00:00:00'))
 					->modify('-1 day')
@@ -753,11 +767,16 @@ final class RotationPatternService
 	 */
 	private function findOverlappingAssignments(int $employeeId, string $validFrom, ?string $validTo, ?int $excludeId): array
 	{
+		// Rows carry pattern_is_active so the caller can split the blocking
+		// decision (active patterns only) from supersede cleanup (all rows —
+		// stale ones still collide with the unique index on valid_from).
 		$qb = $this->db->getQueryBuilder();
-		$qb->select('*')->from('dc_emp_rot_assign')
-			->where($qb->expr()->eq('employee_id', $qb->createNamedParameter($employeeId, IQueryBuilder::PARAM_INT)));
+		$qb->select('a.*', 'p.is_active AS pattern_is_active')
+			->from('dc_emp_rot_assign', 'a')
+			->leftJoin('a', 'dc_rotation_patterns', 'p', 'a.pattern_id = p.id')
+			->where($qb->expr()->eq('a.employee_id', $qb->createNamedParameter($employeeId, IQueryBuilder::PARAM_INT)));
 		if ($excludeId !== null) {
-			$qb->andWhere($qb->expr()->neq('id', $qb->createNamedParameter($excludeId, IQueryBuilder::PARAM_INT)));
+			$qb->andWhere($qb->expr()->neq('a.id', $qb->createNamedParameter($excludeId, IQueryBuilder::PARAM_INT)));
 		}
 		$rows = $qb->executeQuery()->fetchAll();
 		$out = [];
@@ -765,6 +784,7 @@ final class RotationPatternService
 			$from = (string) $row['valid_from'];
 			$to = $row['valid_to'] !== null ? (string) $row['valid_to'] : null;
 			if ($this->dateRangesOverlap($validFrom, $validTo, $from, $to)) {
+				$row['pattern_is_active'] = (int) ($row['pattern_is_active'] ?? 0);
 				$out[] = $row;
 			}
 		}
@@ -786,11 +806,16 @@ final class RotationPatternService
 	private function assertEmployeeInCompany(int $employeeId, int $companyId, string $actor): void
 	{
 		$this->companies->assertRowCompany($actor, 'dc_employees', $employeeId, 'EMPLOYEE_NOT_FOUND');
-		if (!$this->companies->isMultiCompanyActive() || !SchemaProbe::hasColumn($this->db, 'dc_employees', 'company_id')) {
-			return;
+		// Existence is company-independent: single-company installs short-circuit
+		// assertRowCompany, so without this fetch a planner could write orphan
+		// assignments for employee ids that do not exist at all.
+		if (!SchemaProbe::tableExists($this->db, 'dc_employees')) {
+			throw new \InvalidArgumentException('EMPLOYEE_NOT_FOUND');
 		}
+		$multi = $this->companies->isMultiCompanyActive()
+			&& SchemaProbe::hasColumn($this->db, 'dc_employees', 'company_id');
 		$qb = $this->db->getQueryBuilder();
-		$qb->select('company_id')->from('dc_employees')
+		$qb->select($multi ? 'company_id' : 'id')->from('dc_employees')
 			->where($qb->expr()->eq('id', $qb->createNamedParameter($employeeId, IQueryBuilder::PARAM_INT)));
 		$row = $qb->executeQuery()->fetch();
 		if ($row === false) {
@@ -798,7 +823,7 @@ final class RotationPatternService
 		}
 		// Existence-blind: an employee in another company is invisible to the
 		// actor — report it like a missing row (no COMPANY_MISMATCH oracle).
-		if ((int) ($row['company_id'] ?? 0) !== $companyId) {
+		if ($multi && (int) ($row['company_id'] ?? 0) !== $companyId) {
 			throw new \InvalidArgumentException('EMPLOYEE_NOT_FOUND');
 		}
 	}

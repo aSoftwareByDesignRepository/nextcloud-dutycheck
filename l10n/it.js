@@ -1345,7 +1345,12 @@ OC.L10N.register(
 	"Keep request" : "Mantieni richiesta",
 	"Swap request withdrawn." : "Richiesta di scambio annullata.",
 	"Shift swap withdrawn" : "Scambio di turno annullato",
-	"A swap request was withdrawn by the requester." : "Una richiesta di scambio è stata annullata dal richiedente."
+	"A swap request was withdrawn by the requester." : "Una richiesta di scambio è stata annullata dal richiedente.",
+	"Pattern #{id}" : "Schema n. {id}",
+	"open-ended" : "senza data di fine",
+	"Existing assignments" : "Assegnazioni esistenti",
+	"The overlapping assignment above ends the day before the new start date." : "L'assegnazione sovrapposta qui sopra termina il giorno prima della nuova data di inizio.",
+	"This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it." : "Questo dipendente ha già un'assegnazione di schema in quel periodo. Selezionare «Termina l’assegnazione sovrapposta precedente» per sostituirla."
 	},
 	"nplurals=2; plural=(n != 1);"
 );
