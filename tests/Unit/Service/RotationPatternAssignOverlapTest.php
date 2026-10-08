@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\DutyCheck\Tests\Unit\Service;
 
+use DG\BypassFinals;
 use OCA\DutyCheck\Db\SchemaProbe;
 use OCA\DutyCheck\Service\CompanyService;
 use OCA\DutyCheck\Service\RotationAnchorService;
@@ -13,6 +14,9 @@ use OCP\DB\IResult;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 use PHPUnit\Framework\TestCase;
+
+// SelfServiceSettingsService is final — enable before its typehints load.
+BypassFinals::enable();
 
 /**
  * Regression for the invisible blocker behind the customer report
@@ -253,5 +257,90 @@ final class RotationPatternAssignOverlapTest extends TestCase
 		$this->expectExceptionMessage('ASSIGNMENT_OVERLAP');
 
 		$this->service($db)->assignToEmployee(5, 74, '2026-11-01', null, 'admin');
+	}
+
+	public function testCreateFreesNameHeldByInactivePattern(): void
+	{
+		// Companion regression to the customer's PATTERN_NAME_CONFLICT report:
+		// a soft-deleted pattern keeps its row (and UNIQUE(company_id,name)
+		// slot), so re-creating "Nachtdienst" failed invisibly. Inactive
+		// holders are renamed to "<name> #<id>" inside the transaction.
+		$db = $this->createMock(IDBConnection::class);
+		$db->method('tableExists')->willReturn(true);
+		$retiredNames = [];
+		$retireUpdateQb = $this->qb($this->result(null));
+		$retireUpdateQb->method('createNamedParameter')->willReturnCallback(
+			function ($v) use (&$retiredNames) {
+				if (is_string($v)) {
+					$retiredNames[] = $v;
+				}
+				return 'p';
+			}
+		);
+		$newRow = $this->patternRowFixture();
+		$newRow['id'] = 80;
+		$newRow['name'] = 'Nachtdienst';
+		$newRow['cycle_weeks'] = 1;
+		// QB sequence: assertNameUnique -> retire select -> retire update ->
+		// pattern insert -> weekday delete -> 7 weekday inserts (cycleWeeks=1)
+		// -> audit insert -> patternRow -> loadWeekDays.
+		$db->method('getQueryBuilder')->willReturnOnConsecutiveCalls(
+			$this->qb($this->result(null)),
+			$this->qb($this->result(null, [['id' => 7]])),
+			$retireUpdateQb,
+			$this->qb($this->result(null), 80),
+			$this->qb($this->result(null)),
+			$this->qb($this->result(null)),
+			$this->qb($this->result(null)),
+			$this->qb($this->result(null)),
+			$this->qb($this->result(null)),
+			$this->qb($this->result(null)),
+			$this->qb($this->result(null)),
+			$this->qb($this->result(null)),
+			$this->qb($this->result(null)),
+			$this->qb($this->result($newRow)),
+			$this->qb($this->result(null)),
+		);
+		$db->method('beginTransaction');
+		$db->method('inTransaction')->willReturn(false);
+		$db->method('commit');
+		$db->method('rollBack');
+
+		$out = $this->service($db)->createPattern([
+			'companyId' => 1,
+			'name' => 'Nachtdienst',
+			'cycleWeeks' => 1,
+			'anchorType' => 'iso_week_parity',
+			'anchorIsoWeekIndex' => 0,
+			'weekDays' => [
+				['weekIndex' => 0, 'dow' => 1, 'isWorking' => true, 'startLocal' => '21:00', 'endLocal' => '06:00'],
+			],
+		], 'admin');
+
+		self::assertSame(80, $out['id']);
+		self::assertSame('Nachtdienst', $out['name']);
+		self::assertContains('Nachtdienst #7', $retiredNames);
+	}
+
+	public function testCreateStillRejectsNameHeldByActivePattern(): void
+	{
+		$db = $this->createMock(IDBConnection::class);
+		$db->method('tableExists')->willReturn(true);
+		// assertNameUnique finds an *active* holder — conflict stands.
+		$db->method('getQueryBuilder')->willReturnOnConsecutiveCalls(
+			$this->qb($this->result(['id' => 3])),
+		);
+		$db->method('beginTransaction');
+		$db->method('rollBack');
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('PATTERN_NAME_CONFLICT');
+
+		$this->service($db)->createPattern([
+			'companyId' => 1,
+			'name' => 'Nachtdienst',
+			'cycleWeeks' => 1,
+			'weekDays' => [],
+		], 'admin');
 	}
 }

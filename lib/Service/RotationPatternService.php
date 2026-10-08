@@ -86,6 +86,7 @@ final class RotationPatternService
 		$now = $this->now();
 		$this->db->beginTransaction();
 		try {
+			$this->retireInactiveNameHolders($companyId, $name, null);
 			$qb = $this->db->getQueryBuilder();
 			$qb->insert('dc_rotation_patterns')->values([
 				'company_id' => $qb->createNamedParameter($companyId, IQueryBuilder::PARAM_INT),
@@ -189,6 +190,9 @@ final class RotationPatternService
 		$now = $this->now();
 		$this->db->beginTransaction();
 		try {
+			if ($name !== (string) $existing['name']) {
+				$this->retireInactiveNameHolders($companyId, $name, $id);
+			}
 			$qb = $this->db->getQueryBuilder();
 			$qb->update('dc_rotation_patterns')
 				->set('name', $qb->createNamedParameter($name))
@@ -483,16 +487,49 @@ final class RotationPatternService
 
 	private function assertNameUnique(int $companyId, string $name, ?int $excludeId): void
 	{
+		// Only *active* patterns hold a name. Inactive ("deleted") rows are
+		// renamed away by retireInactiveNameHolders() right before the
+		// insert/update claims the slot — otherwise a soft-deleted pattern
+		// would invisibly block its name forever.
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('id')->from('dc_rotation_patterns')
 			->where($qb->expr()->eq('company_id', $qb->createNamedParameter($companyId, IQueryBuilder::PARAM_INT)))
 			->andWhere($qb->expr()->eq('name', $qb->createNamedParameter($name)))
+			->andWhere($qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)))
 			->setMaxResults(1);
 		if ($excludeId !== null) {
 			$qb->andWhere($qb->expr()->neq('id', $qb->createNamedParameter($excludeId, IQueryBuilder::PARAM_INT)));
 		}
 		if ($qb->executeQuery()->fetchOne() !== false) {
 			throw new \InvalidArgumentException('PATTERN_NAME_CONFLICT');
+		}
+	}
+
+	/**
+	 * Rename inactive patterns still holding $name to "$name #<id>" so the
+	 * unique (company_id, name) index lets a new pattern claim it. Rows stay
+	 * for audit/assignment history; the #id suffix makes collisions
+	 * impossible. Must run inside the caller's transaction.
+	 */
+	private function retireInactiveNameHolders(int $companyId, string $name, ?int $excludeId): void
+	{
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('id')->from('dc_rotation_patterns')
+			->where($qb->expr()->eq('company_id', $qb->createNamedParameter($companyId, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->eq('name', $qb->createNamedParameter($name)))
+			->andWhere($qb->expr()->eq('is_active', $qb->createNamedParameter(0, IQueryBuilder::PARAM_INT)));
+		if ($excludeId !== null) {
+			$qb->andWhere($qb->expr()->neq('id', $qb->createNamedParameter($excludeId, IQueryBuilder::PARAM_INT)));
+		}
+		foreach ($qb->executeQuery()->fetchAll() as $row) {
+			$id = (int) $row['id'];
+			$suffix = ' #' . $id;
+			$retired = mb_substr($name, 0, max(1, 120 - mb_strlen($suffix))) . $suffix;
+			$up = $this->db->getQueryBuilder();
+			$up->update('dc_rotation_patterns')
+				->set('name', $up->createNamedParameter($retired))
+				->where($up->expr()->eq('id', $up->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
+				->executeStatement();
 		}
 	}
 
