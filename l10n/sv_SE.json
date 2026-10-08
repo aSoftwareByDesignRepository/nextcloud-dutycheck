@@ -1349,7 +1349,11 @@
 		"open-ended": "utan slutdatum",
 		"Existing assignments": "Befintliga tilldelningar",
 		"The overlapping assignment above ends the day before the new start date.": "Den överlappande tilldelningen ovan slutar dagen före det nya startdatumet.",
-		"This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it.": "Den här medarbetaren har redan en mönstertilldelning i den perioden. Markera ”Avsluta föregående överlappande uppdrag“ för att ersätta den."
+		"This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it.": "Den här medarbetaren har redan en mönstertilldelning i den perioden. Markera ”Avsluta föregående överlappande uppdrag“ för att ersätta den.",
+		"A pattern with this name already exists. Choose a different name.": "Ett mönster med det här namnet finns redan. Välj ett annat namn.",
+		"Please enter a pattern name (1–120 characters).": "Ange ett mönsternamn (1–120 tecken).",
+		"This cycle length is not allowed. Check the rotation settings.": "Den här cykellängden är inte tillåten. Kontrollera rotationsinställningarna.",
+		"This pattern is deactivated and can no longer be used.": "Det här mönstret är inaktiverat och kan inte längre användas."
 	},
 	"pluralForm": "nplurals=2; plural=(n != 1);"
 }

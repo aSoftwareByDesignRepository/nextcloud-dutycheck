@@ -1350,7 +1350,11 @@ OC.L10N.register(
 	"open-ended" : "senza data di fine",
 	"Existing assignments" : "Assegnazioni esistenti",
 	"The overlapping assignment above ends the day before the new start date." : "L'assegnazione sovrapposta qui sopra termina il giorno prima della nuova data di inizio.",
-	"This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it." : "Questo dipendente ha già un'assegnazione di schema in quel periodo. Selezionare «Termina l’assegnazione sovrapposta precedente» per sostituirla."
+	"This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it." : "Questo dipendente ha già un'assegnazione di schema in quel periodo. Selezionare «Termina l’assegnazione sovrapposta precedente» per sostituirla.",
+	"A pattern with this name already exists. Choose a different name." : "Esiste già uno schema con questo nome. Scegli un nome diverso.",
+	"Please enter a pattern name (1–120 characters)." : "Inserisci un nome per lo schema (1–120 caratteri).",
+	"This cycle length is not allowed. Check the rotation settings." : "Questa durata del ciclo non è consentita. Controlla le impostazioni di rotazione.",
+	"This pattern is deactivated and can no longer be used." : "Questo schema è disattivato e non può più essere utilizzato."
 	},
 	"nplurals=2; plural=(n != 1);"
 );

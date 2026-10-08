@@ -1350,7 +1350,11 @@ OC.L10N.register(
 	"open-ended" : "sem data final",
 	"Existing assignments" : "Atribuições existentes",
 	"The overlapping assignment above ends the day before the new start date." : "A atribuição sobreposta acima termina no dia anterior à nova data de início.",
-	"This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it." : "Este funcionário já tem uma atribuição de padrão nesse período. Marque “Encerrar atribuição sobreposta anterior” para substituí-la."
+	"This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it." : "Este funcionário já tem uma atribuição de padrão nesse período. Marque “Encerrar atribuição sobreposta anterior” para substituí-la.",
+	"A pattern with this name already exists. Choose a different name." : "Já existe um padrão com este nome. Escolha outro nome.",
+	"Please enter a pattern name (1–120 characters)." : "Digite um nome de padrão (1–120 caracteres).",
+	"This cycle length is not allowed. Check the rotation settings." : "Esta duração de ciclo não é permitida. Verifique as configurações de rotação.",
+	"This pattern is deactivated and can no longer be used." : "Este padrão está desativado e não pode mais ser usado."
 	},
 	"nplurals=2; plural=(n > 1);"
 );

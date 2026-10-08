@@ -1350,7 +1350,11 @@ OC.L10N.register(
 	"open-ended" : "zonder einddatum",
 	"Existing assignments" : "Bestaande toewijzingen",
 	"The overlapping assignment above ends the day before the new start date." : "De overlappende toewijzing hierboven eindigt op de dag voor de nieuwe startdatum.",
-	"This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it." : "Deze medewerker heeft al een patroontoewijzing in die periode. Vink „Vorige overlappende toewijzing beëindigen” aan om die te vervangen."
+	"This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it." : "Deze medewerker heeft al een patroontoewijzing in die periode. Vink „Vorige overlappende toewijzing beëindigen” aan om die te vervangen.",
+	"A pattern with this name already exists. Choose a different name." : "Er bestaat al een patroon met deze naam. Kies een andere naam.",
+	"Please enter a pattern name (1–120 characters)." : "Voer een patroonnaam in (1–120 tekens).",
+	"This cycle length is not allowed. Check the rotation settings." : "Deze cycluslengte is niet toegestaan. Controleer de rotatie-instellingen.",
+	"This pattern is deactivated and can no longer be used." : "Dit patroon is gedeactiveerd en kan niet meer worden gebruikt."
 	},
 	"nplurals=2; plural=(n != 1);"
 );

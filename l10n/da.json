@@ -1349,7 +1349,11 @@
 		"open-ended": "uden slutdato",
 		"Existing assignments": "Eksisterende tildelinger",
 		"The overlapping assignment above ends the day before the new start date.": "Den overlappende tildeling ovenfor slutter dagen før den nye startdato.",
-		"This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it.": "Denne medarbejder har allerede en mønstertildeling i denne periode. Sæt flueben ved „Afslut tidligere overlappende tildeling“ for at erstatte den."
+		"This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it.": "Denne medarbejder har allerede en mønstertildeling i denne periode. Sæt flueben ved „Afslut tidligere overlappende tildeling“ for at erstatte den.",
+		"A pattern with this name already exists. Choose a different name.": "Der findes allerede et mønster med dette navn. Vælg et andet navn.",
+		"Please enter a pattern name (1–120 characters).": "Angiv et mønsternavn (1–120 tegn).",
+		"This cycle length is not allowed. Check the rotation settings.": "Denne cykluslængde er ikke tilladt. Kontrollér rotationsindstillingerne.",
+		"This pattern is deactivated and can no longer be used.": "Dette mønster er deaktiveret og kan ikke længere bruges."
 	},
 	"pluralForm": "nplurals=2; plural=(n != 1);"
 }

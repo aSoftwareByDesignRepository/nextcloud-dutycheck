@@ -1350,7 +1350,11 @@ OC.L10N.register(
 	"open-ended" : "sans date de fin",
 	"Existing assignments" : "Affectations existantes",
 	"The overlapping assignment above ends the day before the new start date." : "L'affectation qui se chevauche ci-dessus se termine la veille de la nouvelle date de début.",
-	"This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it." : "Cet employé a déjà une affectation de modèle sur cette période. Cochez « Terminer l’affectation chevauchante précédente » pour la remplacer."
+	"This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it." : "Cet employé a déjà une affectation de modèle sur cette période. Cochez « Terminer l’affectation chevauchante précédente » pour la remplacer.",
+	"A pattern with this name already exists. Choose a different name." : "Un modèle portant ce nom existe déjà. Choisissez un autre nom.",
+	"Please enter a pattern name (1–120 characters)." : "Veuillez saisir un nom de modèle (1 à 120 caractères).",
+	"This cycle length is not allowed. Check the rotation settings." : "Cette durée de cycle n'est pas autorisée. Vérifiez les paramètres de rotation.",
+	"This pattern is deactivated and can no longer be used." : "Ce modèle est désactivé et ne peut plus être utilisé."
 	},
 	"nplurals=2; plural=(n > 1);"
 );

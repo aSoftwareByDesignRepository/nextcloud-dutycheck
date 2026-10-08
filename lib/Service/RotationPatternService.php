@@ -525,10 +525,14 @@ final class RotationPatternService
 			$id = (int) $row['id'];
 			$suffix = ' #' . $id;
 			$retired = mb_substr($name, 0, max(1, 120 - mb_strlen($suffix))) . $suffix;
+			// Re-check is_active in the UPDATE: a concurrent reactivation
+			// between our SELECT and this write must not rename a live
+			// pattern — the unique index then still protects the claim.
 			$up = $this->db->getQueryBuilder();
 			$up->update('dc_rotation_patterns')
 				->set('name', $up->createNamedParameter($retired))
 				->where($up->expr()->eq('id', $up->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
+				->andWhere($up->expr()->eq('is_active', $up->createNamedParameter(0, IQueryBuilder::PARAM_INT)))
 				->executeStatement();
 		}
 	}

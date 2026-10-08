@@ -79,6 +79,14 @@
 				return t('dutycheck', 'An employee with that display name already exists.');
 			case 'LOCATION_NAME_EXISTS':
 				return t('dutycheck', 'A location with that name already exists.');
+			case 'PATTERN_NAME_CONFLICT':
+				return t('dutycheck', 'A pattern with this name already exists. Choose a different name.');
+			case 'PATTERN_NAME_INVALID':
+				return t('dutycheck', 'Please enter a pattern name (1–120 characters).');
+			case 'PATTERN_INACTIVE':
+				return t('dutycheck', 'This pattern is deactivated and can no longer be used.');
+			case 'CYCLE_WEEKS_UNSUPPORTED':
+				return t('dutycheck', 'This cycle length is not allowed. Check the rotation settings.');
 			case 'INVALID_LINKED_USER':
 				return t('dutycheck', 'The selected user could not be linked. Pick another account.');
 			case 'LINKED_USER_EXISTS':

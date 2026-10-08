@@ -1349,7 +1349,11 @@
 		"open-ended": "bez daty końcowej",
 		"Existing assignments": "Istniejące przypisania",
 		"The overlapping assignment above ends the day before the new start date.": "Nakładające się przypisanie powyżej kończy się dzień przed nową datą rozpoczęcia.",
-		"This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it.": "Ten pracownik ma już przypisanie wzoru w tym okresie. Zaznacz „Zakończ poprzednie nakładające się przypisanie”, aby je zastąpić."
+		"This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it.": "Ten pracownik ma już przypisanie wzoru w tym okresie. Zaznacz „Zakończ poprzednie nakładające się przypisanie”, aby je zastąpić.",
+		"A pattern with this name already exists. Choose a different name.": "Wzorzec o tej nazwie już istnieje. Wybierz inną nazwę.",
+		"Please enter a pattern name (1–120 characters).": "Wpisz nazwę wzorca (1–120 znaków).",
+		"This cycle length is not allowed. Check the rotation settings.": "Ta długość cyklu jest niedozwolona. Sprawdź ustawienia rotacji.",
+		"This pattern is deactivated and can no longer be used.": "Ten wzorzec jest dezaktywowany i nie może być już używany."
 	},
 	"pluralForm": "nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);"
 }

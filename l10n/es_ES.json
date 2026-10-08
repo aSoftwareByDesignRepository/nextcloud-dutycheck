@@ -1349,7 +1349,11 @@
 		"open-ended": "sin fecha de fin",
 		"Existing assignments": "Asignaciones existentes",
 		"The overlapping assignment above ends the day before the new start date.": "La asignación solapada de arriba termina el día antes de la nueva fecha de inicio.",
-		"This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it.": "Este empleado ya tiene una asignación de patrón en ese periodo. Marque «Finalizar la asignación solapada anterior» para sustituirla."
+		"This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it.": "Este empleado ya tiene una asignación de patrón en ese periodo. Marque «Finalizar la asignación solapada anterior» para sustituirla.",
+		"A pattern with this name already exists. Choose a different name.": "Ya existe un patrón con este nombre. Elija otro nombre.",
+		"Please enter a pattern name (1–120 characters).": "Introduzca un nombre de patrón (1–120 caracteres).",
+		"This cycle length is not allowed. Check the rotation settings.": "Esta duración de ciclo no está permitida. Compruebe la configuración de rotación.",
+		"This pattern is deactivated and can no longer be used.": "Este patrón está desactivado y ya no se puede utilizar."
 	},
 	"pluralForm": "nplurals=2; plural=(n != 1);"
 }

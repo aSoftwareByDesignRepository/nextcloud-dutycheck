@@ -1350,7 +1350,11 @@ OC.L10N.register(
 	"open-ended" : "uten sluttdato",
 	"Existing assignments" : "Eksisterende tildelinger",
 	"The overlapping assignment above ends the day before the new start date." : "Den overlappende tildelingen ovenfor slutter dagen før den nye startdatoen.",
-	"This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it." : "Denne ansatte har allerede en mønstertildeling i denne perioden. Huk av for «Avslutt forrige overlappende tildeling» for å erstatte den."
+	"This employee already has a pattern assignment in that period. Tick “End previous overlapping assignment” to replace it." : "Denne ansatte har allerede en mønstertildeling i denne perioden. Huk av for «Avslutt forrige overlappende tildeling» for å erstatte den.",
+	"A pattern with this name already exists. Choose a different name." : "Et mønster med dette navnet finnes allerede. Velg et annet navn.",
+	"Please enter a pattern name (1–120 characters)." : "Skriv inn et mønsternavn (1–120 tegn).",
+	"This cycle length is not allowed. Check the rotation settings." : "Denne sykluslengden er ikke tillatt. Sjekk rotasjonsinnstillingene.",
+	"This pattern is deactivated and can no longer be used." : "Dette mønsteret er deaktivert og kan ikke lenger brukes."
 	},
 	"nplurals=2; plural=(n != 1);"
 );
