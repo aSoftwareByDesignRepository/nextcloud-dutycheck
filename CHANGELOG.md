@@ -5,11 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## 0.3.8 - 2026-10-08
 
 ### Fixed
 
 - **Pattern names stayed blocked after deleting a pattern:** "deleting" only deactivates, and the deactivated row still held the unique `(company_id, name)` slot — re-creating a pattern with the same name failed with `PATTERN_NAME_CONFLICT` and no visible cause. Inactive holders are now renamed to `<name> #<id>` inside the transaction when the name is claimed again; names held by *active* patterns still conflict.
+- **Generic toast instead of a real message for pattern errors:** `PATTERN_NAME_CONFLICT`, `PATTERN_NAME_INVALID`, `PATTERN_INACTIVE`, and `CYCLE_WEEKS_UNSUPPORTED` now show clear, translated messages instead of "some entries could not be saved".
 
 ## 0.3.7 - 2026-10-07
 
