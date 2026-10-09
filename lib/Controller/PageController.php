@@ -376,8 +376,12 @@ class PageController extends Controller
 			$licenseStatus = null;
 			$licenseSeatsList = null;
 		}
-		$licenseApiUrl = $this->urlGenerator->linkToRouteAbsolute('dutycheck.license.show');
-		$licenseSeatsUrl = $this->urlGenerator->linkToRouteAbsolute('dutycheck.license.seats');
+		// Browser fetch targets must be same-origin relative URLs: an absolute
+		// canonical-URL link (linkToRouteAbsolute) breaks fetch under CSP
+		// connect-src 'self' whenever the page is reached via a non-canonical
+		// host (localhost vs 127.0.0.1, port-forward, reverse proxy).
+		$licenseApiUrl = $this->urlGenerator->linkToRoute('dutycheck.license.show');
+		$licenseSeatsUrl = $this->urlGenerator->linkToRoute('dutycheck.license.seats');
 		return [
 			'licenseStatus' => $licenseStatus,
 			'licenseSeatsList' => $licenseSeatsList,
@@ -387,7 +391,7 @@ class PageController extends Controller
 			'licenseSeatsUrl' => $licenseSeatsUrl,
 			'licenseAssignSeatUrl' => $licenseSeatsUrl,
 			'licenseRemoveSeatBase' => rtrim($licenseSeatsUrl, '/') . '/',
-			'licenseSearchUsersUrl' => $this->urlGenerator->linkToRouteAbsolute('dutycheck.license.searchUsers'),
+			'licenseSearchUsersUrl' => $this->urlGenerator->linkToRoute('dutycheck.license.searchUsers'),
 			'requesttoken' => Util::callRegister(),
 		];
 	}

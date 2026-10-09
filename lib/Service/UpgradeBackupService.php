@@ -312,6 +312,16 @@ class UpgradeBackupService
 		return (string)($snapshots[0]['id'] ?? '');
 	}
 
+	/**
+	 * Delete a stored snapshot. Tests and the occ command need a real delete —
+	 * createSnapshot without it leaves appdata residue per call.
+	 */
+	public function deleteSnapshot(string $snapshotId): void
+	{
+		UpgradeBackupIntegrity::assertSnapshotId($snapshotId);
+		$this->deleteSnapshotFolderIfExists($snapshotId);
+	}
+
 	private function newSnapshotId(): string
 	{
 		return gmdate('Ymd\THis\Z') . '-' . bin2hex(random_bytes(4));

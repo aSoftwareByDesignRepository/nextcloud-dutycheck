@@ -53,19 +53,42 @@ final class PeriodsPageReadQueriesIntegrationTest extends TestCase
 			$qb = $this->db->getQueryBuilder();
 			$qb->delete('dc_assignments')->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)))->executeStatement();
 		}
+		if ($this->assignmentIds !== []) {
+			foreach ([['dc_swap_requests', 'assignment_id'], ['dc_swap_requests', 'counter_assignment_id'], ['dc_blackout_overrides', 'assignment_id']] as [$table, $col]) {
+				if (!$this->db->tableExists($table)) {
+					continue;
+				}
+				$qb = $this->db->getQueryBuilder();
+				$qb->delete($table)->where($qb->expr()->in($col, $qb->createNamedParameter($this->assignmentIds, IQueryBuilder::PARAM_INT_ARRAY)))->executeStatement();
+			}
+		}
 		if ($this->periodId !== null) {
-			$qb = $this->db->getQueryBuilder();
-			$qb->delete('dc_conflicts')->where($qb->expr()->eq('period_id', $qb->createNamedParameter($this->periodId, IQueryBuilder::PARAM_INT)))->executeStatement();
-			$qb = $this->db->getQueryBuilder();
-			$qb->delete('dc_period_audit_log')->where($qb->expr()->eq('period_id', $qb->createNamedParameter($this->periodId, IQueryBuilder::PARAM_INT)))->executeStatement();
+			foreach (['dc_conflicts', 'dc_period_audit_log', 'dc_period_locks', 'dc_roster_snapshots', 'dc_open_shifts'] as $table) {
+				if (!$this->db->tableExists($table)) {
+					continue;
+				}
+				$qb = $this->db->getQueryBuilder();
+				$qb->delete($table)->where($qb->expr()->eq('period_id', $qb->createNamedParameter($this->periodId, IQueryBuilder::PARAM_INT)))->executeStatement();
+			}
 			$qb = $this->db->getQueryBuilder();
 			$qb->delete('dc_periods')->where($qb->expr()->eq('id', $qb->createNamedParameter($this->periodId, IQueryBuilder::PARAM_INT)))->executeStatement();
 		}
 		if ($this->employeeId !== null) {
+			foreach (['dc_emp_quals', 'dc_emp_rot_assign', 'dc_avail_blackouts', 'dc_shift_preferences', 'dc_absences'] as $table) {
+				if (!$this->db->tableExists($table)) {
+					continue;
+				}
+				$qb = $this->db->getQueryBuilder();
+				$qb->delete($table)->where($qb->expr()->eq('employee_id', $qb->createNamedParameter($this->employeeId, IQueryBuilder::PARAM_INT)))->executeStatement();
+			}
 			$qb = $this->db->getQueryBuilder();
 			$qb->delete('dc_employees')->where($qb->expr()->eq('id', $qb->createNamedParameter($this->employeeId, IQueryBuilder::PARAM_INT)))->executeStatement();
 		}
 		if ($this->locationId !== null) {
+			if ($this->db->tableExists('dc_loc_quals')) {
+				$qb = $this->db->getQueryBuilder();
+				$qb->delete('dc_loc_quals')->where($qb->expr()->eq('location_id', $qb->createNamedParameter($this->locationId, IQueryBuilder::PARAM_INT)))->executeStatement();
+			}
 			$qb = $this->db->getQueryBuilder();
 			$qb->delete('dc_locations')->where($qb->expr()->eq('id', $qb->createNamedParameter($this->locationId, IQueryBuilder::PARAM_INT)))->executeStatement();
 		}

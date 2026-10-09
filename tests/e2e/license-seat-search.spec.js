@@ -91,9 +91,12 @@ test.describe('DutyCheck license seat search', () => {
 		await page.locator('#dc-license-seat-search-input').fill(needle)
 		const suggest = page.locator('#dc-license-seat-search-suggest')
 		await expect(suggest).toBeVisible({ timeout: 15_000 })
-		// Either a real option or an explicit empty-state — never a silent dead end.
+		// Either a real option or an explicit empty-state — never a silent dead
+		// end. The --err note must NOT satisfy this: a CSP-blocked/failed fetch
+		// would otherwise look like a legit empty state (127.0.0.1-vs-localhost
+		// connect-src regression class).
 		const options = suggest.locator('[role="option"]')
-		const empty = suggest.locator('.dc-license-seat-search__note')
+		const empty = suggest.locator('.dc-license-seat-search__note:not(.dc-license-seat-search__note--err)')
 		await expect(options.or(empty).first()).toBeVisible({ timeout: 15_000 })
 		if (await options.count()) {
 			await expect(options.first()).toBeVisible()

@@ -203,18 +203,37 @@ final class L10nCatalogIntegrityTest extends TestCase
 		self::assertSame([], $failures, "Untranslated visible chrome:\n" . implode("\n", $failures));
 	}
 
-	public function testRuntimeTranslationOverridesAreApplied(): void
+	public function testCuratedChromeOverridesAreAppliedInCatalogs(): void
 	{
-		$path = $this->l10nDir() . '/_runtime_translations.json';
-		self::assertFileExists($path);
-		/** @var array<string, array<string, string>> $overrides */
-		$overrides = json_decode((string) file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
-		self::assertArrayNotHasKey('en', $overrides);
-		foreach ($overrides as $lang => $pairs) {
+		// The curated overrides formerly lived in the tooling file
+		// l10n/_runtime_translations.json, which no longer ships (l10n hygiene:
+		// only <locale>.{json,js} may ship). Their contract survives here: the
+		// canonical translated values must be present in every base catalog.
+		$expectations = [
+			'de' => [
+				'(opens in a new tab)' => '(öffnet in neuem Tab)',
+				'All {total} rows are on screen.' => 'Alle {total} Zeilen sind sichtbar.',
+				'All {total} people are on screen.' => 'Alle {total} Personen sind sichtbar.',
+				'All {total} shifts are on screen.' => 'Alle {total} Schichten sind sichtbar.',
+				'Showing rows {from}–{to} of {total}. Scroll to see the rest.' => 'Zeilen {from}–{to} von {total}. Scrollen Sie, um den Rest zu sehen.',
+				'Showing people {from}–{to} of {total}. Scroll to see everyone.' => 'Personen {from}–{to} von {total}. Scrollen Sie, um alle zu sehen.',
+				'Showing shifts {from}–{to} of {total}. Scroll to see everyone.' => 'Schichten {from}–{to} von {total}. Scrollen Sie, um alle zu sehen.',
+			],
+			'sv' => [
+				'(opens in a new tab)' => '(öppnas i en ny flik)',
+				'All {total} rows are on screen.' => 'Alla {total} rader syns.',
+				'All {total} people are on screen.' => 'Alla {total} personer syns.',
+				'All {total} shifts are on screen.' => 'Alla {total} pass syns.',
+				'Showing rows {from}–{to} of {total}. Scroll to see the rest.' => 'Rader {from}–{to} av {total}. Rulla för att se resten.',
+				'Showing people {from}–{to} of {total}. Scroll to see everyone.' => 'Personer {from}–{to} av {total}. Rulla för att se alla.',
+				'Showing shifts {from}–{to} of {total}. Scroll to see everyone.' => 'Pass {from}–{to} av {total}. Rulla för att se alla.',
+			],
+		];
+		foreach ($expectations as $lang => $pairs) {
 			$tr = $this->translations($lang);
 			foreach ($pairs as $msgid => $msgstr) {
 				self::assertArrayHasKey($msgid, $tr, $lang . ' missing override key ' . $msgid);
-				self::assertSame($msgstr, $tr[$msgid], $lang . ' catalog does not match _runtime_translations.json for ' . $msgid);
+				self::assertSame($msgstr, $tr[$msgid], $lang . ' catalog lost curated override for ' . $msgid);
 			}
 		}
 	}

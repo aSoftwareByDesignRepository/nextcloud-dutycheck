@@ -85,10 +85,31 @@ async function snap(page, name) {
 	return { file, sha256: hash, bytes: buf.length }
 }
 
+/**
+ * goto with ONE transparent retry on 404: the shared lab serves a brief
+ * burst of spurious 404s while a concurrent lane rewrites routes.php /
+ * app config (documented flake). Only 404 retries — 401/403 are
+ * deterministic authz answers (expectDenied cells would waste the retry).
+ * Both statuses are recorded in `checks.httpFirst`/`checks.httpRetries`;
+ * a persistent 404 still FAILs.
+ */
+async function gotoRoute(page, url, checks) {
+	let resp = await page.goto(url, { waitUntil: 'domcontentloaded' }).catch(() => null)
+	if (resp && resp.status() === 404) {
+		checks.httpFirst = resp.status()
+		checks.httpRetries = 1
+		await page.waitForTimeout(3000)
+		resp = await page.goto(url, { waitUntil: 'domcontentloaded' }).catch(() => null)
+	}
+	return resp
+}
+
 async function settle(page, ms = 12000) {
 	await page.waitForLoadState('domcontentloaded').catch(() => {})
 	try { await page.waitForLoadState('networkidle', { timeout: 5000 }) } catch { /* long-polls */ }
-	await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))))
+	try {
+		await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))))
+	} catch { /* mid-settle navigation destroys the execution context */ }
 }
 
 function record(cell) {
@@ -211,7 +232,7 @@ async function phaseSweep(browser) {
 		await setUserTheme(page, theme)
 		for (const route of [...PLANNER_ROUTES, ...SETTINGS_SECTIONS.map((s) => ({ id: `settings-${s}`, path: `/apps/dutycheck/settings/${s}` }))]) {
 			const cell = { id: `${route.id}@${theme}@1440`, role: 'planner', theme, viewport: 1440, checks: {} }
-			const resp = await page.goto(`${BASE}${route.path}`, { waitUntil: 'domcontentloaded' }).catch((e) => null)
+			const resp = await gotoRoute(page, `${BASE}${route.path}`, cell.checks)
 			await settle(page)
 			cell.checks.http = resp ? resp.status() : 'nav-fail'
 			cell.checks.finalUrl = page.url().replace(BASE, '')
@@ -251,7 +272,7 @@ async function phaseSweep(browser) {
 		await page.reload({ waitUntil: 'domcontentloaded' })
 		for (const route of KEY_ROUTES) {
 			const cell = { id: `${route.id}@light@${vp.w}`, role: 'planner', theme: 'light', viewport: vp.w, checks: {} }
-			const resp = await page.goto(`${BASE}${route.path}`, { waitUntil: 'domcontentloaded' }).catch(() => null)
+			const resp = await gotoRoute(page, `${BASE}${route.path}`, cell.checks)
 			await settle(page)
 			cell.checks.http = resp ? resp.status() : 'nav-fail'
 			const ov = await checkOverflow(page)
@@ -286,7 +307,7 @@ async function phaseSweep(browser) {
 		await ep.setViewportSize({ width: vp.w, height: vp.h })
 		for (const route of EMPLOYEE_ROUTES) {
 			const cell = { id: `${route.id}@light@${vp.w}`, role: 'employee', theme: 'light', viewport: vp.w, checks: {} }
-			const resp = await ep.goto(`${BASE}${route.path}`, { waitUntil: 'domcontentloaded' }).catch(() => null)
+			const resp = await gotoRoute(ep, `${BASE}${route.path}`, cell.checks)
 			await settle(ep)
 			cell.checks.http = resp ? resp.status() : 'nav-fail'
 			cell.checks.finalUrl = ep.url().replace(BASE, '')
@@ -508,32 +529,49 @@ async function phaseDialogs(browser) {
 	// it off — the pattern-modal surface is unreachable then. Provision it via
 	// the app-admin settings API (requireAppAdmin → planner 403s) and restore
 	// the prior value at the end of the phase.
-	const settingsApi = async (state, fn) => {
+	const settingsApi = async (state, fn, arg) => {
 		const c = await browser.newContext({ baseURL: BASE, storageState: state })
 		const p = await c.newPage()
 		try {
 			await p.goto(`${BASE}/apps/dutycheck/patterns`, { waitUntil: 'domcontentloaded' })
 			await p.waitForSelector('#dc-main-content', { timeout: 20000 }).catch(() => {})
-			return await p.evaluate(fn)
+			// evaluate(fn, arg): the arg must cross the boundary explicitly —
+			// closures do not, so rotSet's value would otherwise post undefined.
+			return await p.evaluate(fn, arg)
 		} finally {
 			await c.close().catch(() => {})
 		}
 	}
 	const rotGet = (s) => settingsApi(s, async () => {
 		try {
+			if (typeof window.DutyCheckApi === 'undefined') return null
 			const res = await window.DutyCheckApi.get('/apps/dutycheck/api/self-service/settings')
 			return res?.data?.rotationPatternsEnabled === true
 		} catch { return null }
 	})
-	const rotSet = (s, v) => settingsApi(s, async (val) => {
-		try {
-			await window.DutyCheckApi.post('/apps/dutycheck/api/self-service/settings', { rotationPatternsEnabled: val })
-			return true
-		} catch { return false }
-	})
+	// The API call silently no-ops when the page hit a transient 404 (no
+	// DutyCheckApi), so verify the flag actually landed — retry a few times
+	// to ride out the shared-instance churn window.
+	const rotSet = async (s, v) => {
+		for (let i = 0; i < 4; i++) {
+			await settingsApi(s, async (val) => {
+				if (typeof val !== 'boolean') return
+				try {
+					if (typeof window.DutyCheckApi === 'undefined') return
+					await window.DutyCheckApi.post('/apps/dutycheck/api/self-service/settings', { rotationPatternsEnabled: val })
+				} catch { /* retry via verify below */ }
+			}, v)
+			if ((await rotGet(s)) === v) return true
+		}
+		return false
+	}
 	const rotWasEnabled = await rotGet(adminState)
-	if (rotWasEnabled === false) {
-		await rotSet(adminState, true)
+	let rotProvisioned = false
+	if (rotWasEnabled !== true) {
+		rotProvisioned = await rotSet(adminState, true)
+		if (!rotProvisioned) {
+			console.log('[warn] rotation_patterns_enabled could not be provisioned — pattern-modal cell may miss its trigger')
+		}
 	}
 
 	const ctx = await browser.newContext({ baseURL: BASE, storageState: plannerState, viewport: { width: 1440, height: 900 } })

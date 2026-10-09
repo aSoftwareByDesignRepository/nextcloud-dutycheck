@@ -32,6 +32,27 @@ final class MomosGaPolicyWiringContractTest extends TestCase
 		);
 	}
 
+	/**
+	 * Regression (avd_craft 2026-10-09): employee claims on open shifts with
+	 * slot-inherent soft conflicts (short break) must not bounce off the
+	 * ack gate — auto-apply has no planner step to supply acknowledgements.
+	 * createAssignment must gate the ack requirement on !$trustedMarketplaceApply
+	 * while updateAssignment keeps requiring planner acks.
+	 */
+	public function testCreateAssignmentSkipsSoftAckOnlyForTrustedMarketplace(): void
+	{
+		$src = (string) file_get_contents((new ReflectionClass(RosterService::class))->getFileName());
+		self::assertMatchesRegularExpression(
+			'/softConflicts !== \[\]\s*&&\s*!\$trustedMarketplaceApply\)\s*\{?\s*\$this->assertAcknowledgedSoftConflicts/s',
+			$src,
+		);
+		// Update path still requires acks — planner edits stay gated.
+		self::assertMatchesRegularExpression(
+			'/softConflicts !== \[\]\)\s*\{\s*\$this->assertAcknowledgedSoftConflicts/s',
+			$src,
+		);
+	}
+
 	public function testSettingsUpdateRequiresAppAdminInService(): void
 	{
 		$src = (string) file_get_contents((new ReflectionClass(SelfServiceSettingsService::class))->getFileName());

@@ -363,6 +363,15 @@
 		return new Promise((resolve) => {
 			let textarea;
 			let errorEl;
+			const clearInvalid = () => {
+				if (!textarea) return;
+				textarea.removeAttribute('aria-invalid');
+				textarea.removeAttribute('aria-describedby');
+				if (errorEl) {
+					errorEl.textContent = '';
+					errorEl.hidden = true;
+				}
+			};
 			openModal({
 				title: opts.title,
 				primaryLabel: opts.confirmLabel,
@@ -376,10 +385,12 @@
 						placeholder: opts.placeholder,
 						attrs: { maxlength: String(opts.maxLength) },
 					});
+					// Clear the invalid mark as soon as the user edits (field-errors contract).
+					textarea.addEventListener('input', clearInvalid);
 					errorEl = createElement('p', {
 						class: 'dc-field__error',
 						text: '',
-						attrs: { hidden: true },
+						attrs: { hidden: true, id: id + '-error' },
 					});
 					return createElement('div', { class: 'dc-field' }, [
 						createElement('label', { for: id, text: opts.hint, class: 'dc-field__label' }),
@@ -393,6 +404,14 @@
 						if (errorEl) {
 							errorEl.textContent = t('dutycheck', 'Please enter at least {n} characters.').replace('{n}', String(opts.minLength));
 							errorEl.hidden = false;
+						}
+						if (textarea) {
+							// WCAG 3.3.1/3.3.3: mark the control invalid + link the
+							// error text; the [aria-invalid] rule in app.css paints
+							// the error border (baseline :not() guard intentionally
+							// leaves it to this rule).
+							textarea.setAttribute('aria-invalid', 'true');
+							textarea.setAttribute('aria-describedby', errorEl ? errorEl.id : '');
 						}
 						textarea?.focus();
 						return false;

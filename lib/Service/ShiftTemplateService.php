@@ -154,6 +154,19 @@ class ShiftTemplateService
 			$this->companies->assertRowCompany($actorUserId, 'dc_shift_templates', $id, 'TEMPLATE_NOT_FOUND');
 		}
 		$this->getById($id);
+		// Cascade: children referencing this template must not dangle — both
+		// columns are nullable and already mean "no template".
+		foreach ([['dc_open_shifts', 'template_id'], ['dc_rotation_week_days', 'shift_template_id']] as [$table, $col]) {
+			if (!SchemaProbe::tableExists($this->db, $table)
+				|| !SchemaProbe::hasColumn($this->db, $table, $col)) {
+				continue;
+			}
+			$clr = $this->db->getQueryBuilder();
+			$clr->update($table)
+				->set($col, $clr->createNamedParameter(null))
+				->where($clr->expr()->eq($col, $clr->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
+				->executeStatement();
+		}
 		$qb = $this->db->getQueryBuilder();
 		$qb->delete('dc_shift_templates')
 			->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)))

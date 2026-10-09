@@ -4,6 +4,14 @@
  * Fail-fast on wrong credentials so a11y does not hang for 30s on /login.
  * Prefer landing on DutyCheck first so a valid storageState never hits /login
  * (admin sessions sometimes get the core "Update needed" interstitial there).
+ *
+ * Login strategy: try a request-context login first (real POST /login with
+ * Origin + requesttoken). Chromium >=151 enforces form-action 'self' against
+ * the login 303 redirect chain, so a configured overwritehost (e.g. the
+ * emulator alias 10.0.2.2) makes the UI form submit abort in-browser while the
+ * underlying endpoint keeps working. The request context shares cookies with
+ * the page, so the session is identical. The classic form flow stays as a
+ * fallback for environments where the request path fails for other reasons.
  */
 
 /**
@@ -27,6 +35,49 @@ export async function assertNotServerUpdater(page) {
  * @param {import('@playwright/test').Page} page
  * @param {{ username: string, password: string }} creds
  */
+/**
+ * POST /login through the browser context's APIRequestContext so the session
+ * cookie lands in the same jar the page uses. Throws on rejected credentials
+ * (same contract as the form flow). Returns true when a session was set up.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {{ username: string, password: string }} creds
+ * @returns {Promise<boolean>}
+ */
+async function loginViaRequestContext(page, { username, password }) {
+  const request = page.context().request
+  const loginPage = await request.get('/login')
+  if (!loginPage.ok()) {
+    return false
+  }
+  const html = await loginPage.text()
+  const tokenMatch = html.match(/data-requesttoken="([^"]+)"/)
+  if (!tokenMatch) {
+    return false
+  }
+  // The attribute ships URL-encoded; decode once so the form encoder can
+  // re-encode exactly once (double-encoding fails the CSRF check).
+  const requesttoken = decodeURIComponent(tokenMatch[1])
+  const origin = new URL(page.url()).origin
+  const res = await request.post('/login', {
+    form: { user: username, password, requesttoken },
+    headers: { Origin: origin },
+    maxRedirects: 0,
+  })
+  const location = res.headers()['location'] || ''
+  const target = location ? new URL(location, origin).pathname : ''
+  if (res.status() !== 303 || target.startsWith('/login')) {
+    throw new Error(`Login rejected for user "${username}" (Wrong login or password)`)
+  }
+  // Confirm the cookie jar actually authenticates before trusting it.
+  const probe = await request.get('/apps/dutycheck/', { maxRedirects: 0 })
+  const probeLoc = probe.headers()['location'] || ''
+  if (probe.status() === 401 || new URL(probeLoc || 'x', origin).pathname.startsWith('/login')) {
+    throw new Error(`Login rejected for user "${username}" (Wrong login or password)`)
+  }
+  return true
+}
+
 export async function login(page, { username, password }) {
   await page.goto('/apps/dutycheck/', { waitUntil: 'domcontentloaded' })
   if (await page.locator('#dc-main-content').isVisible().catch(() => false)) {
@@ -34,6 +85,20 @@ export async function login(page, { username, password }) {
   }
   if (await isServerUpdater(page)) {
     await assertNotServerUpdater(page)
+  }
+
+  try {
+    if (await loginViaRequestContext(page, { username, password })) {
+      await page.goto('/apps/dutycheck/', { waitUntil: 'domcontentloaded' })
+      return
+    }
+  } catch (err) {
+    // Credential rejections keep the old contract so loginWithFallback can
+    // advance to the next candidate; anything else falls through to the
+    // form-driven flow below.
+    if (/Wrong login or password/i.test(err instanceof Error ? err.message : String(err))) {
+      throw err
+    }
   }
 
   const maxAttempts = 3

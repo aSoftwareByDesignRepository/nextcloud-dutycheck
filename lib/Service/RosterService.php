@@ -996,7 +996,11 @@ class RosterService
 			$this->candidateSoftConflicts($periodId, $employeeId, $dutyDate, $startTime, $endTime, null, $breakMinutes),
 			array_values(array_filter($qualConflicts, static fn (array $c): bool => ($c['severity'] ?? '') === 'soft')),
 		);
-		if ($softConflicts !== []) {
+		// Trusted marketplace claim apply: the planner already accepted the posted
+		// slot's shape, so slot-inherent soft conflicts (e.g. short break) must not
+		// block the employee claim — there is no approve step to ack them.
+		// They are still recorded by refreshConflicts for planner visibility.
+		if ($softConflicts !== [] && !$trustedMarketplaceApply) {
 			$this->assertAcknowledgedSoftConflicts($softConflicts, $acknowledgements);
 		}
 
@@ -1351,6 +1355,8 @@ class RosterService
 				throw new \InvalidArgumentException('STALE_VERSION');
 			}
 
+			$this->releaseClaimedOpenShift($assignmentId);
+
 			$this->writeAuditEvent($periodId, $actor, 'assignment_cancelled', 'assignment', $assignmentId, []);
 			$this->refreshAndListConflicts($periodId);
 			if ($useTransaction) {
@@ -1376,6 +1382,34 @@ class RosterService
 		}
 
 		return $this->rosterData($periodId, $actor);
+	}
+
+	/**
+	 * Release-on-cancel invariant: a marketplace open shift bound to this
+	 * assignment (status 'claimed', assignment_id = id) returns to 'open' —
+	 * the slot still needs coverage. Without this, cancelling a claim-sourced
+	 * assignment strands the slot 'claimed' forever: invisible to listOpen,
+	 * undeletable (discardOpen requires 'open'), and dangling as soon as the
+	 * cancelled assignment row is purged.
+	 *
+	 * Called inside the cancel transaction so the release is atomic with the
+	 * status CAS. Rollback cancels (cancelAssignmentSilent after a lost
+	 * link CAS) never match: the link update sets assignment_id only when it
+	 * wins, so a rolled-back orphan assignment is referenced by no row.
+	 */
+	private function releaseClaimedOpenShift(int $assignmentId): void
+	{
+		if (!SchemaProbe::tableExists($this->db, 'dc_open_shifts')) {
+			return;
+		}
+		$qb = $this->db->getQueryBuilder();
+		$qb->update('dc_open_shifts')
+			->set('status', $qb->createNamedParameter('open'))
+			->set('claimed_by_emp', $qb->createNamedParameter(null))
+			->set('assignment_id', $qb->createNamedParameter(null))
+			->where($qb->expr()->eq('assignment_id', $qb->createNamedParameter($assignmentId, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->eq('status', $qb->createNamedParameter('claimed')))
+			->executeStatement();
 	}
 
 	/**
@@ -1858,6 +1892,86 @@ class RosterService
 				throw new \InvalidArgumentException('REASON_TOO_SHORT');
 			}
 		}
+	}
+
+	/**
+	 * Qualification conflicts per candidate cell, batched (two queries for the
+	 * whole set). Keyed by the caller's cell index.
+	 *
+	 * @param list<array{employeeId:int,locationId:int,dutyDate:string}> $cells
+	 * @return array<int, list<array<string,mixed>>>
+	 */
+	public function qualificationConflictsForCells(array $cells): array
+	{
+		if ($this->qualifications === null || $cells === []) {
+			return [];
+		}
+		return $this->qualifications->conflictsForAssignments($cells);
+	}
+
+	/**
+	 * Write-path verdict for one candidate cell, evaluated against caller-
+	 * provided existing rows for the same employee instead of a fresh DB read.
+	 * The suggest-fill preview uses this to predict exactly which cells
+	 * createAssignment() can write without acknowledgement reasons: absolute-
+	 * range overlap (incl. overnight tails) is a hard skip, rest/break/daily-
+	 * limit conflicts and soft qualifications would need an ack, hard
+	 * qualifications block the cell entirely.
+	 *
+	 * @param list<array{dutyDate:string,startTime:string,endTime:string}> $existingRows
+	 * @param list<array<string,mixed>> $qualConflicts output of {@see qualificationConflictsForCells()} for this cell
+	 * @return array{overlap:bool,softTypes:list<string>,hardQualification:bool}
+	 */
+	public function cellWriteVerdict(
+		int $periodId,
+		string $dutyDate,
+		string $startTime,
+		string $endTime,
+		int $breakMinutes,
+		array $existingRows,
+		array $qualConflicts = [],
+	): array {
+		$candidateRange = $this->assignmentAbsoluteRange($dutyDate, $startTime, $endTime);
+		$thresholds = $this->policyThresholdsForPeriod($periodId);
+		$minRest = $thresholds['minRestMinutes'];
+		$overlap = false;
+		$softTypes = [];
+		foreach ($existingRows as $row) {
+			$existingRange = $this->assignmentAbsoluteRange(
+				(string) $row['dutyDate'],
+				(string) $row['startTime'],
+				(string) $row['endTime'],
+			);
+			if ($this->absoluteRangesOverlap($candidateRange, $existingRange)) {
+				$overlap = true;
+				continue;
+			}
+			$restMinutes = $this->minutesBetweenRanges($existingRange, $candidateRange);
+			if ($restMinutes >= 0 && $restMinutes < $minRest) {
+				$softTypes['rest_time_violation'] = true;
+			}
+		}
+		$effective = $this->effectiveMinutes($startTime, $endTime, $breakMinutes);
+		if ($effective > 360 && $breakMinutes < 30) {
+			$softTypes['break_too_short'] = true;
+		}
+		if ($effective > $thresholds['maxDailyHard']) {
+			$softTypes['shift_too_long'] = true;
+		}
+		$hardQualification = false;
+		foreach ($qualConflicts as $qc) {
+			if (($qc['severity'] ?? '') === 'hard') {
+				$hardQualification = true;
+			} else {
+				$softTypes[(string) ($qc['type'] ?? 'qualification_soft')] = true;
+			}
+		}
+
+		return [
+			'overlap' => $overlap,
+			'softTypes' => array_keys($softTypes),
+			'hardQualification' => $hardQualification,
+		];
 	}
 
 	public function createAbsence(array $payload, string $actor): array

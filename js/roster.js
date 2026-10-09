@@ -3076,19 +3076,36 @@
 			const preview = await Api.post(`/apps/dutycheck/api/periods/${periodId}/suggest-preview`, suggestBody);
 			const d = preview?.data || {};
 			const created = Number(d.created ?? 0);
+			const writeSkipReasonLabels = {
+				rest_time_violation: t('dutycheck', 'Rest time under the configured minimum'),
+				break_too_short: t('dutycheck', 'Break shorter than required for this shift length'),
+				shift_too_long: t('dutycheck', 'Shift over the configured daily limit'),
+				qualification_missing: t('dutycheck', 'Required qualification missing'),
+				qualification_expired: t('dutycheck', 'Qualification expired'),
+			};
+			const countItems = [
+				create('li', { text: t('dutycheck', 'Skipped (already filled): {n}').replace('{n}', String(d.skippedExisting ?? 0)) }),
+				create('li', { text: t('dutycheck', 'Skipped (absence): {n}').replace('{n}', String(d.skippedAbsence ?? 0)) }),
+				create('li', { text: t('dutycheck', 'Skipped (cannot work): {n}').replace('{n}', String(d.skippedBlackout ?? 0)) }),
+				create('li', { text: t('dutycheck', 'Skipped (no pattern): {n}').replace('{n}', String(d.skippedNoPattern ?? 0)) }),
+				create('li', { text: t('dutycheck', 'Skipped (no location): {n}').replace('{n}', String(d.skippedNoLocation ?? 0)) }),
+				create('li', { text: t('dutycheck', 'Skipped (location filter): {n}').replace('{n}', String(d.skippedLocationMismatch ?? 0)) }),
+				create('li', { text: t('dutycheck', 'Skipped (need manual review): {n}').replace('{n}', String(d.skippedWrite ?? 0)) }),
+			];
+			const reasons = d.writeSkipReasons && typeof d.writeSkipReasons === 'object' ? d.writeSkipReasons : {};
+			Object.keys(reasons).forEach((key) => {
+				const count = Number(reasons[key] ?? 0);
+				if (count > 0) {
+					const label = writeSkipReasonLabels[key] || key;
+					countItems.push(create('li', { text: `${label}: ${count}` }));
+				}
+			});
 			const body = create('div', { class: 'dc-suggest-preview' }, [
 				create('p', {
 					text: t('dutycheck', 'Would create {n} shifts from patterns.')
 						.replace('{n}', String(created)),
 				}),
-				create('ul', { class: 'dc-suggest-preview__counts' }, [
-					create('li', { text: t('dutycheck', 'Skipped (already filled): {n}').replace('{n}', String(d.skippedExisting ?? 0)) }),
-					create('li', { text: t('dutycheck', 'Skipped (absence): {n}').replace('{n}', String(d.skippedAbsence ?? 0)) }),
-					create('li', { text: t('dutycheck', 'Skipped (cannot work): {n}').replace('{n}', String(d.skippedBlackout ?? 0)) }),
-					create('li', { text: t('dutycheck', 'Skipped (no pattern): {n}').replace('{n}', String(d.skippedNoPattern ?? 0)) }),
-					create('li', { text: t('dutycheck', 'Skipped (no location): {n}').replace('{n}', String(d.skippedNoLocation ?? 0)) }),
-					create('li', { text: t('dutycheck', 'Skipped (location filter): {n}').replace('{n}', String(d.skippedLocationMismatch ?? 0)) }),
-				]),
+				create('ul', { class: 'dc-suggest-preview__counts' }, countItems),
 			]);
 			const confirmed = await new Promise((resolve) => {
 				let settled = false;
@@ -3114,8 +3131,25 @@
 				});
 			});
 			if (!confirmed || created < 1) return;
-			await Api.post(`/apps/dutycheck/api/periods/${periodId}/suggest-confirm`, suggestBody);
-			Msg.announce(t('dutycheck', 'Suggest fill applied.'), 'success');
+			const result = await Api.post(`/apps/dutycheck/api/periods/${periodId}/suggest-confirm`, suggestBody);
+			const applied = result?.data || {};
+			const appliedCreated = Number(applied.created ?? 0);
+			const appliedSkipped = Number(applied.skippedWrite ?? 0);
+			if (appliedCreated > 0 && appliedSkipped > 0) {
+				Msg.announce(
+					t('dutycheck', 'Suggest fill applied: {created} created, {skipped} skipped for manual review.')
+						.replace('{created}', String(appliedCreated))
+						.replace('{skipped}', String(appliedSkipped)),
+					'success',
+				);
+			} else if (appliedCreated > 0) {
+				Msg.announce(t('dutycheck', 'Suggest fill applied.'), 'success');
+			} else {
+				Msg.announce(
+					t('dutycheck', 'No shifts created — the candidates need manual review (rest time, break, or daily limit).'),
+					'warning',
+				);
+			}
 			await loadRoster(periodId);
 		} catch (err) {
 			const code = String(err?.code || err?.payload?.error?.code || '');

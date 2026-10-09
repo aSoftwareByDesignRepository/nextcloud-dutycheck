@@ -37,6 +37,9 @@ final class RotationSuggestService
 		'BLACKOUT_CONFLICT',
 		'DATE_OUTSIDE_PERIOD',
 		'LOCATION_OUT_OF_SCOPE',
+		// A single hard qualification block must not roll back the whole fill —
+		// the cell is skipped and counted like every other unwritable cell.
+		'QUALIFICATION_MISSING',
 	];
 
 	public function __construct(
@@ -96,11 +99,13 @@ final class RotationSuggestService
 			// Build under the mutex so concurrent assign/blackout cannot race the candidate set.
 			$plan = $this->buildPlan($periodId, $actor, $employeeIds, $locationId);
 			$plan['created'] = 0;
-			$plan['skipped_write'] = 0;
+			// buildPlan already predicted write-time skips; keep that count and
+			// add residual write failures (e.g. a concurrent non-locked write) on top.
 			$plan['samples'] = [];
 
 			if ($plan['candidates'] === []
 				&& $plan['skipped_no_location'] > 0
+				&& $plan['skipped_write'] === 0
 				&& ($locationId === null || $locationId < 1)
 			) {
 				throw new \InvalidArgumentException('SUGGEST_LOCATION_REQUIRED');
@@ -134,6 +139,7 @@ final class RotationSuggestService
 					'skippedNoLocation' => $plan['skipped_no_location'],
 					'skippedLocationMismatch' => $plan['skipped_location_mismatch'],
 					'skippedWrite' => $plan['skipped_write'],
+					'writeSkipReasons' => $plan['write_skip_reasons'],
 				]);
 				$this->db->commit();
 			} catch (Throwable $e) {
@@ -160,6 +166,8 @@ final class RotationSuggestService
 	 *   skipped_no_pattern:int,
 	 *   skipped_no_location:int,
 	 *   skipped_location_mismatch:int,
+	 *   skipped_write:int,
+	 *   write_skip_reasons:array<string,int>,
 	 *   samples:list<array<string,mixed>>,
 	 *   candidates:list<array<string,mixed>>
 	 * }
@@ -269,6 +277,7 @@ final class RotationSuggestService
 			'skipped_no_location' => 0,
 			'skipped_location_mismatch' => 0,
 			'skipped_write' => 0,
+			'write_skip_reasons' => [],
 			'samples' => [],
 			'candidates' => [],
 		];
@@ -379,7 +388,89 @@ final class RotationSuggestService
 			}
 		}
 
+		$this->simulateWriteSkips($plan, $roster['assignments']);
+
 		return $plan;
+	}
+
+	/**
+	 * Predict which candidate cells confirm's write pass cannot create:
+	 * createAssignment() requires acknowledgement reasons for soft conflicts
+	 * (rest time, break length, daily limit, soft qualifications) that the
+	 * fill must not invent, hard qualification blocks, and absolute-range
+	 * overlaps the per-day occupied map cannot see (overnight tails from an
+	 * existing duty_date or an earlier accepted candidate). Without this
+	 * simulation the preview promised cells that confirm silently dropped
+	 * (customer report: "20 shifts" preview → empty roster).
+	 *
+	 * Runs in candidate order — the same order writeCell() applies them — so
+	 * accepted cells contribute rest/overlap ranges to later cells exactly
+	 * like rows committed inside the confirm transaction do.
+	 *
+	 * @param array<string,mixed> $plan
+	 * @param list<array<string,mixed>> $assignments rosterData() assignments for the period
+	 */
+	private function simulateWriteSkips(array &$plan, array $assignments): void
+	{
+		if ($plan['candidates'] === []) {
+			return;
+		}
+		$rowsByEmp = [];
+		foreach ($assignments as $a) {
+			$eid = (int) ($a['employeeId'] ?? 0);
+			if ($eid < 1) {
+				continue;
+			}
+			$rowsByEmp[$eid][] = [
+				'dutyDate' => (string) $a['dutyDate'],
+				'startTime' => (string) $a['startTime'],
+				'endTime' => (string) $a['endTime'],
+			];
+		}
+		$qualByCell = $this->roster->qualificationConflictsForCells(
+			array_map(static fn (array $cell): array => [
+				'employeeId' => (int) $cell['employeeId'],
+				'locationId' => (int) $cell['locationId'],
+				'dutyDate' => (string) $cell['dutyDate'],
+			], $plan['candidates']),
+		);
+
+		$writable = [];
+		foreach ($plan['candidates'] as $i => $cell) {
+			$verdict = $this->roster->cellWriteVerdict(
+				(int) $cell['periodId'],
+				(string) $cell['dutyDate'],
+				(string) $cell['startTime'],
+				(string) $cell['endTime'],
+				(int) $cell['breakMinutes'],
+				$rowsByEmp[(int) $cell['employeeId']] ?? [],
+				$qualByCell[$i] ?? [],
+			);
+			if ($verdict['overlap']) {
+				$plan['skipped_existing']++;
+				continue;
+			}
+			if ($verdict['hardQualification']) {
+				$plan['skipped_write']++;
+				$plan['write_skip_reasons']['qualification_missing'] =
+					($plan['write_skip_reasons']['qualification_missing'] ?? 0) + 1;
+				continue;
+			}
+			if ($verdict['softTypes'] !== []) {
+				$plan['skipped_write']++;
+				foreach ($verdict['softTypes'] as $type) {
+					$plan['write_skip_reasons'][$type] = ($plan['write_skip_reasons'][$type] ?? 0) + 1;
+				}
+				continue;
+			}
+			$writable[] = $cell;
+			$rowsByEmp[(int) $cell['employeeId']][] = [
+				'dutyDate' => (string) $cell['dutyDate'],
+				'startTime' => (string) $cell['startTime'],
+				'endTime' => (string) $cell['endTime'],
+			];
+		}
+		$plan['candidates'] = $writable;
 	}
 
 	/**
@@ -445,6 +536,8 @@ final class RotationSuggestService
 	 *   skipped_no_pattern:int,
 	 *   skipped_no_location:int,
 	 *   skipped_location_mismatch:int,
+	 *   skipped_write:int,
+	 *   write_skip_reasons:array<string,int>,
 	 *   samples:list<array<string,mixed>>,
 	 *   candidates:list<array<string,mixed>>
 	 * } $plan
@@ -463,6 +556,7 @@ final class RotationSuggestService
 			'skippedNoLocation' => $plan['skipped_no_location'] ?? 0,
 			'skippedLocationMismatch' => $plan['skipped_location_mismatch'] ?? 0,
 			'skippedWrite' => $plan['skipped_write'] ?? 0,
+			'writeSkipReasons' => $plan['write_skip_reasons'] ?? [],
 			'samples' => $plan['samples'],
 		];
 	}

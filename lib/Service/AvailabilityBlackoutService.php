@@ -151,6 +151,11 @@ final class AvailabilityBlackoutService
 			}
 		}
 
+		// Cascade: planner overrides referencing this blackout keep their audit
+		// row (assignment + reason) but must not dangle — blackout_id is nullable
+		// (recordOverride already stores null for unbound overrides).
+		$this->nullOverrideBlackoutRefs([$id]);
+
 		$qb = $this->db->getQueryBuilder();
 		$qb->delete('dc_avail_blackouts')
 			->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
@@ -168,9 +173,38 @@ final class AvailabilityBlackoutService
 		} catch (\InvalidArgumentException) {
 			return;
 		}
+		$ids = [];
+		$sel = $this->db->getQueryBuilder();
+		$sel->select('id')->from('dc_avail_blackouts')
+			->where($sel->expr()->eq('employee_id', $sel->createNamedParameter($employeeId, IQueryBuilder::PARAM_INT)));
+		foreach ($sel->executeQuery()->fetchAll() as $row) {
+			$ids[] = (int) $row['id'];
+		}
+		if ($ids !== []) {
+			$this->nullOverrideBlackoutRefs($ids);
+		}
 		$qb = $this->db->getQueryBuilder();
 		$qb->delete('dc_avail_blackouts')
 			->where($qb->expr()->eq('employee_id', $qb->createNamedParameter($employeeId, IQueryBuilder::PARAM_INT)))
+			->executeStatement();
+	}
+
+	/**
+	 * Clear dangling override → blackout references before blackouts vanish.
+	 * The override audit row (assignment + planner reason) is kept; only the
+	 * dead reference is removed.
+	 *
+	 * @param list<int> $blackoutIds
+	 */
+	private function nullOverrideBlackoutRefs(array $blackoutIds): void
+	{
+		if ($blackoutIds === [] || !SchemaProbe::tableExists($this->db, 'dc_blackout_overrides')) {
+			return;
+		}
+		$qb = $this->db->getQueryBuilder();
+		$qb->update('dc_blackout_overrides')
+			->set('blackout_id', $qb->createNamedParameter(null))
+			->where($qb->expr()->in('blackout_id', $qb->createNamedParameter($blackoutIds, IQueryBuilder::PARAM_INT_ARRAY)))
 			->executeStatement();
 	}
 
@@ -467,8 +501,19 @@ final class AvailabilityBlackoutService
 			'created_at' => $ins->createNamedParameter($now),
 			'updated_at' => $ins->createNamedParameter($now),
 		])->executeStatement();
+		$mergedId = (int) $ins->getLastInsertId();
 
-		return $this->normalize($this->getRawById((int) $ins->getLastInsertId()));
+		// Re-point override audit rows to the merged blackout — the merged row
+		// subsumes the deleted ones, so the audit link stays meaningful.
+		if ($idsToDelete !== [] && SchemaProbe::tableExists($this->db, 'dc_blackout_overrides')) {
+			$re = $this->db->getQueryBuilder();
+			$re->update('dc_blackout_overrides')
+				->set('blackout_id', $re->createNamedParameter($mergedId, IQueryBuilder::PARAM_INT))
+				->where($re->expr()->in('blackout_id', $re->createNamedParameter($idsToDelete, IQueryBuilder::PARAM_INT_ARRAY)))
+				->executeStatement();
+		}
+
+		return $this->normalize($this->getRawById($mergedId));
 	}
 
 	private function locationScopesCompatible(?int $a, ?int $b): bool

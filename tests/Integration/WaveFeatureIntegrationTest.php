@@ -9,6 +9,7 @@ use OCA\DutyCheck\Service\QualificationService;
 use OCA\DutyCheck\Service\RosterService;
 use OCA\DutyCheck\Service\ShiftTemplateService;
 use OCA\DutyCheck\Service\SnapshotRetentionService;
+use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 use Test\TestCase;
 
@@ -42,6 +43,16 @@ final class WaveFeatureIntegrationTest extends TestCase
 
 	protected function tearDown(): void
 	{
+		// Child tables first — a missed child row is orphan residue (learned class).
+		if ($this->assignmentIds !== []) {
+			foreach ([['dc_swap_requests', 'assignment_id'], ['dc_swap_requests', 'counter_assignment_id'], ['dc_blackout_overrides', 'assignment_id']] as [$table, $col]) {
+				if (!$this->db->tableExists($table)) {
+					continue;
+				}
+				$qb = $this->db->getQueryBuilder();
+				$qb->delete($table)->where($qb->expr()->in($col, $qb->createNamedParameter($this->assignmentIds, IQueryBuilder::PARAM_INT_ARRAY)))->executeStatement();
+			}
+		}
 		foreach ($this->assignmentIds as $id) {
 			$qb = $this->db->getQueryBuilder();
 			$qb->delete('dc_assignments')->where($qb->expr()->eq('id', $qb->createNamedParameter($id)))->executeStatement();
@@ -59,18 +70,32 @@ final class WaveFeatureIntegrationTest extends TestCase
 			$qb->delete('dc_qualifications')->where($qb->expr()->eq('id', $qb->createNamedParameter($this->qualificationId)))->executeStatement();
 		}
 		if ($this->periodId !== null) {
-			$qb = $this->db->getQueryBuilder();
-			$qb->delete('dc_conflicts')->where($qb->expr()->eq('period_id', $qb->createNamedParameter($this->periodId)))->executeStatement();
-			$qb = $this->db->getQueryBuilder();
-			$qb->delete('dc_period_audit_log')->where($qb->expr()->eq('period_id', $qb->createNamedParameter($this->periodId)))->executeStatement();
+			foreach (['dc_conflicts', 'dc_period_audit_log', 'dc_period_locks', 'dc_roster_snapshots', 'dc_open_shifts'] as $table) {
+				if (!$this->db->tableExists($table)) {
+					continue;
+				}
+				$qb = $this->db->getQueryBuilder();
+				$qb->delete($table)->where($qb->expr()->eq('period_id', $qb->createNamedParameter($this->periodId)))->executeStatement();
+			}
 			$qb = $this->db->getQueryBuilder();
 			$qb->delete('dc_periods')->where($qb->expr()->eq('id', $qb->createNamedParameter($this->periodId)))->executeStatement();
 		}
 		if ($this->employeeId !== null) {
+			foreach (['dc_emp_quals', 'dc_emp_rot_assign', 'dc_avail_blackouts', 'dc_shift_preferences', 'dc_absences'] as $table) {
+				if (!$this->db->tableExists($table)) {
+					continue;
+				}
+				$qb = $this->db->getQueryBuilder();
+				$qb->delete($table)->where($qb->expr()->eq('employee_id', $qb->createNamedParameter($this->employeeId)))->executeStatement();
+			}
 			$qb = $this->db->getQueryBuilder();
 			$qb->delete('dc_employees')->where($qb->expr()->eq('id', $qb->createNamedParameter($this->employeeId)))->executeStatement();
 		}
 		if ($this->locationId !== null) {
+			if ($this->db->tableExists('dc_loc_quals')) {
+				$qb = $this->db->getQueryBuilder();
+				$qb->delete('dc_loc_quals')->where($qb->expr()->eq('location_id', $qb->createNamedParameter($this->locationId)))->executeStatement();
+			}
 			$qb = $this->db->getQueryBuilder();
 			$qb->delete('dc_locations')->where($qb->expr()->eq('id', $qb->createNamedParameter($this->locationId)))->executeStatement();
 		}

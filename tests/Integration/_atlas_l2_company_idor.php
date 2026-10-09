@@ -62,11 +62,74 @@ $atlasCleanup = function () use ($db, $userMgr, $access): void {
 			foreach ($qb->executeQuery()->fetchAll() as $r) {
 				$periodIds[] = (int) $r['id'];
 			}
+			$employeeIds = [];
+			if ($db->tableExists('dc_employees')) {
+				$qb = $db->getQueryBuilder();
+				$qb->select('id')->from('dc_employees')
+					->where($qb->expr()->in('company_id', $qb->createNamedParameter($companyIds, IQueryBuilder::PARAM_INT_ARRAY)));
+				foreach ($qb->executeQuery()->fetchAll() as $r) {
+					$employeeIds[] = (int) $r['id'];
+				}
+			}
+			$locationIds = [];
+			if ($db->tableExists('dc_locations')) {
+				$qb = $db->getQueryBuilder();
+				$qb->select('id')->from('dc_locations')
+					->where($qb->expr()->in('company_id', $qb->createNamedParameter($companyIds, IQueryBuilder::PARAM_INT_ARRAY)));
+				foreach ($qb->executeQuery()->fetchAll() as $r) {
+					$locationIds[] = (int) $r['id'];
+				}
+			}
 			// dc_assignments has no company_id — purge via the period link.
 			if ($periodIds !== [] && $db->tableExists('dc_assignments')) {
+				// swap_requests link by assignment_id, not period — resolve first
+				$qb = $db->getQueryBuilder();
+				$qb->select('id')->from('dc_assignments')
+					->where($qb->expr()->in('period_id', $qb->createNamedParameter($periodIds, IQueryBuilder::PARAM_INT_ARRAY)));
+				$asgIds = array_map(static fn (array $r): int => (int) $r['id'], $qb->executeQuery()->fetchAll());
+				if ($asgIds !== []) {
+					foreach ([['dc_swap_requests', 'assignment_id'], ['dc_swap_requests', 'counter_assignment_id'], ['dc_blackout_overrides', 'assignment_id']] as [$t, $c]) {
+						if (!$db->tableExists($t)) {
+							continue;
+						}
+						$del = $db->getQueryBuilder();
+						$del->delete($t)->where($del->expr()->in($c, $del->createNamedParameter($asgIds, IQueryBuilder::PARAM_INT_ARRAY)))->executeStatement();
+					}
+				}
 				$del = $db->getQueryBuilder();
 				$del->delete('dc_assignments')
 					->where($del->expr()->in('period_id', $del->createNamedParameter($periodIds, IQueryBuilder::PARAM_INT_ARRAY)));
+				$del->executeStatement();
+			}
+			if ($periodIds !== []) {
+				// period-keyed children have no company_id column — purge by period_id
+				foreach (['dc_conflicts', 'dc_period_audit_log', 'dc_period_locks', 'dc_roster_snapshots'] as $table) {
+					if (!$db->tableExists($table)) {
+						continue;
+					}
+					$del = $db->getQueryBuilder();
+					$del->delete($table)
+						->where($del->expr()->in('period_id', $del->createNamedParameter($periodIds, IQueryBuilder::PARAM_INT_ARRAY)));
+					$del->executeStatement();
+				}
+			}
+			if ($employeeIds !== []) {
+				foreach (['dc_emp_quals' => 'employee_id', 'dc_emp_rot_assign' => 'employee_id',
+					'dc_avail_blackouts' => 'employee_id', 'dc_shift_preferences' => 'employee_id',
+					'dc_absences' => 'employee_id', 'dc_blackout_overrides' => 'employee_id'] as $table => $col) {
+					if (!$db->tableExists($table)) {
+						continue;
+					}
+					$del = $db->getQueryBuilder();
+					$del->delete($table)
+						->where($del->expr()->in($col, $del->createNamedParameter($employeeIds, IQueryBuilder::PARAM_INT_ARRAY)));
+					$del->executeStatement();
+				}
+			}
+			if ($locationIds !== [] && $db->tableExists('dc_loc_quals')) {
+				$del = $db->getQueryBuilder();
+				$del->delete('dc_loc_quals')
+					->where($del->expr()->in('location_id', $del->createNamedParameter($locationIds, IQueryBuilder::PARAM_INT_ARRAY)));
 				$del->executeStatement();
 			}
 			foreach (['dc_open_shifts', 'dc_swap_requests', 'dc_emp_rot_assign',

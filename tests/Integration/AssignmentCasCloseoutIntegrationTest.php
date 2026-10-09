@@ -7,6 +7,7 @@ namespace OCA\DutyCheck\Tests\Integration;
 use OCA\DutyCheck\Db\SchemaProbe;
 use OCA\DutyCheck\Service\RosterService;
 use OCA\DutyCheck\Service\ShiftTemplateService;
+use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 use Test\TestCase;
 
@@ -43,6 +44,16 @@ final class AssignmentCasCloseoutIntegrationTest extends TestCase
 
 	protected function tearDown(): void
 	{
+		// Child tables first — a missed child row is orphan residue (learned class).
+		if ($this->assignmentIds !== []) {
+			foreach ([['dc_swap_requests', 'assignment_id'], ['dc_swap_requests', 'counter_assignment_id'], ['dc_blackout_overrides', 'assignment_id']] as [$table, $col]) {
+				if (!$this->db->tableExists($table)) {
+					continue;
+				}
+				$qb = $this->db->getQueryBuilder();
+				$qb->delete($table)->where($qb->expr()->in($col, $qb->createNamedParameter($this->assignmentIds, IQueryBuilder::PARAM_INT_ARRAY)))->executeStatement();
+			}
+		}
 		foreach ($this->assignmentIds as $id) {
 			$qb = $this->db->getQueryBuilder();
 			$qb->delete('dc_assignments')->where($qb->expr()->eq('id', $qb->createNamedParameter($id)))->executeStatement();
@@ -52,18 +63,32 @@ final class AssignmentCasCloseoutIntegrationTest extends TestCase
 			$qb->delete('dc_shift_templates')->where($qb->expr()->eq('id', $qb->createNamedParameter($this->templateId)))->executeStatement();
 		}
 		if ($this->periodId !== null) {
-			$qb = $this->db->getQueryBuilder();
-			$qb->delete('dc_conflicts')->where($qb->expr()->eq('period_id', $qb->createNamedParameter($this->periodId)))->executeStatement();
-			$qb = $this->db->getQueryBuilder();
-			$qb->delete('dc_period_audit_log')->where($qb->expr()->eq('period_id', $qb->createNamedParameter($this->periodId)))->executeStatement();
+			foreach (['dc_conflicts', 'dc_period_audit_log', 'dc_period_locks', 'dc_roster_snapshots', 'dc_open_shifts'] as $table) {
+				if (!$this->db->tableExists($table)) {
+					continue;
+				}
+				$qb = $this->db->getQueryBuilder();
+				$qb->delete($table)->where($qb->expr()->eq('period_id', $qb->createNamedParameter($this->periodId)))->executeStatement();
+			}
 			$qb = $this->db->getQueryBuilder();
 			$qb->delete('dc_periods')->where($qb->expr()->eq('id', $qb->createNamedParameter($this->periodId)))->executeStatement();
 		}
 		if ($this->employeeId !== null) {
+			foreach (['dc_emp_quals', 'dc_emp_rot_assign', 'dc_avail_blackouts', 'dc_shift_preferences', 'dc_absences'] as $table) {
+				if (!$this->db->tableExists($table)) {
+					continue;
+				}
+				$qb = $this->db->getQueryBuilder();
+				$qb->delete($table)->where($qb->expr()->eq('employee_id', $qb->createNamedParameter($this->employeeId)))->executeStatement();
+			}
 			$qb = $this->db->getQueryBuilder();
 			$qb->delete('dc_employees')->where($qb->expr()->eq('id', $qb->createNamedParameter($this->employeeId)))->executeStatement();
 		}
 		if ($this->locationId !== null) {
+			if ($this->db->tableExists('dc_loc_quals')) {
+				$qb = $this->db->getQueryBuilder();
+				$qb->delete('dc_loc_quals')->where($qb->expr()->eq('location_id', $qb->createNamedParameter($this->locationId)))->executeStatement();
+			}
 			$qb = $this->db->getQueryBuilder();
 			$qb->delete('dc_locations')->where($qb->expr()->eq('id', $qb->createNamedParameter($this->locationId)))->executeStatement();
 		}
@@ -222,6 +247,64 @@ final class AssignmentCasCloseoutIntegrationTest extends TestCase
 		self::assertNotContains($firstId, $activeIds);
 	}
 
+	/**
+	 * dc-crit3515-teardown-orphan-residue: cancelling a claim-sourced
+	 * assignment must release its marketplace open shift back to 'open'
+	 * — a 'claimed' shift bound to a cancelled/dead assignment strands the
+	 * slot forever (invisible to listOpen, undeletable via discardOpen).
+	 */
+	public function testCancelReleasesClaimedOpenShiftBackToOpen(): void
+	{
+		if (!$this->db->tableExists('dc_open_shifts')) {
+			$this->markTestSkipped('open shifts table missing');
+		}
+		$this->seedCatalog('osrel');
+		$data = $this->roster->createAssignment([
+			'periodId' => $this->periodId,
+			'employeeId' => $this->employeeId,
+			'locationId' => $this->locationId,
+			'dutyDate' => '2098-06-03',
+			'startTime' => '08:00',
+			'endTime' => '12:00',
+			'breakMinutes' => 0,
+			'note' => '',
+		], 'cas-actor');
+		$assignmentId = (int) $data['assignments'][0]['id'];
+		$this->assignmentIds[] = $assignmentId;
+
+		// Post-approve link state: marketplace slot 'claimed' by this assignment.
+		$ins = $this->db->getQueryBuilder();
+		$values = [
+			'period_id' => $ins->createNamedParameter($this->periodId),
+			'location_id' => $ins->createNamedParameter($this->locationId),
+			'duty_date' => $ins->createNamedParameter('2098-06-03'),
+			'start_time' => $ins->createNamedParameter('08:00'),
+			'end_time' => $ins->createNamedParameter('12:00'),
+			'break_minutes' => $ins->createNamedParameter(0),
+			'status' => $ins->createNamedParameter('claimed'),
+			'claimed_by_emp' => $ins->createNamedParameter($this->employeeId),
+			'assignment_id' => $ins->createNamedParameter($assignmentId),
+			'created_by' => $ins->createNamedParameter('cas-actor'),
+			'created_at' => $ins->createNamedParameter('2098-01-01 00:00:00'),
+		];
+		if (SchemaProbe::hasColumn($this->db, 'dc_open_shifts', 'company_id')) {
+			$values['company_id'] = $ins->createNamedParameter($this->periodCompanyId(), IQueryBuilder::PARAM_INT);
+		}
+		$ins->insert('dc_open_shifts')->values($values)->executeStatement();
+		$openShiftId = (int) $ins->getLastInsertId();
+
+		$this->roster->cancelAssignment($assignmentId, 'cas-actor');
+
+		$sel = $this->db->getQueryBuilder();
+		$sel->select('status', 'claimed_by_emp', 'assignment_id')->from('dc_open_shifts')
+			->where($sel->expr()->eq('id', $sel->createNamedParameter($openShiftId, IQueryBuilder::PARAM_INT)));
+		$row = $sel->executeQuery()->fetch();
+		self::assertNotFalse($row);
+		self::assertSame('open', (string) $row['status']);
+		self::assertNull($row['claimed_by_emp']);
+		self::assertNull($row['assignment_id']);
+	}
+
 	public function testUnderstaffedSoftConflictWhenTemplateMinHeadcountNotMet(): void
 	{
 		if (!SchemaProbe::hasColumn($this->db, 'dc_shift_templates', 'min_headcount')) {
@@ -283,6 +366,18 @@ final class AssignmentCasCloseoutIntegrationTest extends TestCase
 		$this->locationId = $this->findCatalogId($locCatalog, $locName, 'name');
 		$period = $this->roster->createPeriod('2098-06-01', '2098-06-07', 'cas-actor');
 		$this->periodId = (int) $period['id'];
+	}
+
+	private function periodCompanyId(): int
+	{
+		if (!SchemaProbe::hasColumn($this->db, 'dc_periods', 'company_id')) {
+			return 1;
+		}
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('company_id')->from('dc_periods')
+			->where($qb->expr()->eq('id', $qb->createNamedParameter($this->periodId, IQueryBuilder::PARAM_INT)));
+		$row = $qb->executeQuery()->fetch();
+		return (int) ($row['company_id'] ?? 1);
 	}
 
 	/**
