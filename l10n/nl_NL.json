@@ -1059,7 +1059,7 @@
 		"Source": "Bron",
 		"Spät": "Spät",
 		"Staff can see published colleagues at the same location.": "Medewerkers zien gepubliceerde collega's op dezelfde locatie.",
-		"Staff seen: {acked}/{total} ({pct}%)": "Personeel gezien: {acked}/{total} ({pct}%)",
+		"Staff seen: {acked}/{total} ({pct}%)": "Personeel gezien: {acked}/{total} ({pct}%%)",
 		"Stale mirror — run sync or wait for the scheduled job.": "Verouderde spiegel: voer de synchronisatie uit of wacht op de geplande taak.",
 		"Start": "Begin",
 		"Start and end time must be different. For overnight shifts, set the end time earlier than the start (e.g. 22:00–06:00).": "Begin- en eindtijd moeten verschillend zijn. Voor nachtdiensten stelt u de eindtijd eerder in dan de start (bijvoorbeeld 22:00–06:00 uur).",

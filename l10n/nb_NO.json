@@ -1059,7 +1059,7 @@
     "Source": "Kilde",
     "Spät": "Spät",
     "Staff can see published colleagues at the same location.": "Ansatte kan se publiserte kolleger på samme lokasjon.",
-    "Staff seen: {acked}/{total} ({pct}%)": "Personal sett: {acked}/{total} ({pct}%)",
+    "Staff seen: {acked}/{total} ({pct}%)": "Personal sett: {acked}/{total} ({pct}%%)",
     "Stale mirror — run sync or wait for the scheduled job.": "Foreldet speil — kjør synkronisering eller vent på den planlagte jobben.",
     "Start": "Begynn",
     "Start and end time must be different. For overnight shifts, set the end time earlier than the start (e.g. 22:00–06:00).": "Start- og sluttid må være forskjellig. For nattskift, angi sluttid tidligere enn starten (f.eks. 22:00–06:00).",
