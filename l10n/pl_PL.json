@@ -1059,7 +1059,7 @@
 		"Source": "Źródło",
 		"Spät": "Spät",
 		"Staff can see published colleagues at the same location.": "Personel widzi opublikowanych kolegów w tej samej lokalizacji.",
-		"Staff seen: {acked}/{total} ({pct}%)": "Widziany personel: {acked}/{total} ({pct}%%)",
+		"Staff seen: {acked}/{total} ({pct}%)": "Widziany personel: {acked}/{total} ({pct}%)",
 		"Stale mirror — run sync or wait for the scheduled job.": "Nieaktualne lustro — uruchom synchronizację lub poczekaj na zaplanowane zadanie.",
 		"Start": "Początek",
 		"Start and end time must be different. For overnight shifts, set the end time earlier than the start (e.g. 22:00–06:00).": "Godziny rozpoczęcia i zakończenia muszą być różne. W przypadku zmian nocnych należy ustawić godzinę zakończenia wcześniej niż początek (np. 22:00–06:00).",

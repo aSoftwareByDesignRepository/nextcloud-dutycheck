@@ -166,7 +166,6 @@ class UpgradeBackupService
 			try {
 				$snapshots[] = $this->readManifest($this->getSnapshotFolder($snapshotId), $snapshotId);
 			} catch (\Throwable $e) {
-				// best-effort: skip one corrupt folder; listing continues.
 				$this->logger->warning('DutyCheck: skipping unreadable upgrade backup folder', [
 					'app' => UpgradeBackupCatalog::APP_ID,
 					'folder' => $snapshotId,
@@ -238,8 +237,10 @@ class UpgradeBackupService
 				$this->db->executeStatement('ALTER SESSION SET CONSTRAINTS = DEFERRED');
 				$oracleConstraintsDeferred = true;
 			} catch (\Throwable $e) {
-				// best-effort: deferral is an optimization; the restore below
-				// already relies on table order, so a failure here is non-fatal.
+				// best-effort: deferred constraints are an optimization; when the
+				// ALTER SESSION fails the FK-safe table order from
+				// UpgradeBackupCatalog::sortedRestoreTables still keeps the
+				// restore consistent, so warn and continue.
 				$this->logger->warning('DutyCheck: Oracle constraints could not be deferred for restore; relying on restore table order.', [
 					'exception' => $e,
 				]);
@@ -310,16 +311,6 @@ class UpgradeBackupService
 		}
 
 		return (string)($snapshots[0]['id'] ?? '');
-	}
-
-	/**
-	 * Delete a stored snapshot. Tests and the occ command need a real delete —
-	 * createSnapshot without it leaves appdata residue per call.
-	 */
-	public function deleteSnapshot(string $snapshotId): void
-	{
-		UpgradeBackupIntegrity::assertSnapshotId($snapshotId);
-		$this->deleteSnapshotFolderIfExists($snapshotId);
 	}
 
 	private function newSnapshotId(): string
@@ -817,8 +808,10 @@ class UpgradeBackupService
 					$folder->delete();
 				}
 			} catch (\Throwable $e) {
-				// best-effort: secondary cleanup; a corrupt manifest read still
-				// ends in deleteSnapshotFolderIfExists() compensation below.
+				// best-effort per snapshot: a corrupt/unreadable manifest or a
+				// failed ->delete() must not abort the purge sweep; the folder is
+				// still removed through the fallback path below so the corrupt
+				// snapshot cannot poison later listSnapshots() runs.
 				$this->logger->warning('DutyCheck: removing corrupt upgrade backup folder', [
 					'app' => UpgradeBackupCatalog::APP_ID,
 					'folder' => $snapshotId,

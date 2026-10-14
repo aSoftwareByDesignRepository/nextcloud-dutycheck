@@ -1059,7 +1059,7 @@
 		"Source": "Kilde",
 		"Spät": "Sen",
 		"Staff can see published colleagues at the same location.": "Medarbejdere kan se offentliggjorte kolleger på samme lokation.",
-		"Staff seen: {acked}/{total} ({pct}%)": "Personale set: {acked}/{total} ({pct}%%)",
+		"Staff seen: {acked}/{total} ({pct}%)": "Personale set: {acked}/{total} ({pct}%)",
 		"Stale mirror — run sync or wait for the scheduled job.": "Forældet spejl — kør synkronisering, eller vent på den planlagte opgave.",
 		"Start": "Starte",
 		"Start and end time must be different. For overnight shifts, set the end time earlier than the start (e.g. 22:00–06:00).": "Start- og sluttid skal være forskellige. For nattevagter skal sluttid være tidligere end start (f.eks. 22:00–06:00).",

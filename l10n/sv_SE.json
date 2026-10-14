@@ -1059,7 +1059,7 @@
 		"Source": "Källa",
 		"Spät": "Spät",
 		"Staff can see published colleagues at the same location.": "Personal kan se publicerade kollegor på samma plats.",
-		"Staff seen: {acked}/{total} ({pct}%)": "Sett av personal: {acked}/{total} ({pct}%%)",
+		"Staff seen: {acked}/{total} ({pct}%)": "Sett av personal: {acked}/{total} ({pct}%)",
 		"Stale mirror — run sync or wait for the scheduled job.": "Inaktuell spegel — kör synkronisering eller vänta på det schemalagda jobbet.",
 		"Start": "Start",
 		"Start and end time must be different. For overnight shifts, set the end time earlier than the start (e.g. 22:00–06:00).": "Start- och sluttid måste vara olika. För nattskift, ställ in sluttid tidigare än start (t.ex. 22:00–06:00).",
