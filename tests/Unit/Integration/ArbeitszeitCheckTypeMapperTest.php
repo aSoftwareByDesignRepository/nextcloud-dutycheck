@@ -26,8 +26,33 @@ class ArbeitszeitCheckTypeMapperTest extends TestCase
 
 	public function testUnknownTypeApprovedIsNotBlocking(): void
 	{
-		self::assertFalse(ArbeitszeitCheckTypeMapper::isBlockingApproved('custom_unknown', 'approved'));
-		self::assertFalse(ArbeitszeitCheckTypeMapper::isKnownType('custom_unknown'));
+		self::assertFalse(ArbeitszeitCheckTypeMapper::isBlockingApproved('space_vacation', 'approved'));
+		self::assertFalse(ArbeitszeitCheckTypeMapper::isKnownType('space_vacation'));
+	}
+
+	public function testNewAzcBuiltinsAreKnownAndBlocking(): void
+	{
+		// ArbeitszeitCheck ≥1.9 built-ins — both are real absences.
+		foreach (['child_sick', 'overtime_comp'] as $type) {
+			self::assertTrue(ArbeitszeitCheckTypeMapper::isKnownType($type), $type);
+			self::assertTrue(ArbeitszeitCheckTypeMapper::isBlockingApproved($type, 'approved'), $type);
+			self::assertFalse(ArbeitszeitCheckTypeMapper::isBlockingApproved($type, 'pending'), $type);
+		}
+		self::assertSame('sick', ArbeitszeitCheckTypeMapper::toDutyKind('child_sick'));
+		self::assertSame('other', ArbeitszeitCheckTypeMapper::toDutyKind('overtime_comp'));
+	}
+
+	public function testCustomTypesAreKnownAndBlocking(): void
+	{
+		// AZC admin-defined types carry the reserved `custom_` namespace and
+		// are absences by definition — approved ones must block rostering.
+		self::assertTrue(ArbeitszeitCheckTypeMapper::isKnownType('custom_fortbildung'));
+		self::assertTrue(ArbeitszeitCheckTypeMapper::isBlockingApproved('custom_fortbildung', 'approved'));
+		self::assertFalse(ArbeitszeitCheckTypeMapper::isBlockingApproved('custom_fortbildung', 'pending'));
+		self::assertSame('other', ArbeitszeitCheckTypeMapper::toDutyKind('custom_fortbildung'));
+		// Prefix check is exact — a lookalike without the namespace stays unknown.
+		self::assertFalse(ArbeitszeitCheckTypeMapper::isKnownType('customer_visit'));
+		self::assertFalse(ArbeitszeitCheckTypeMapper::isBlockingApproved('customer_visit', 'approved'));
 	}
 
 	public function testUnknownStatusIsNonBlockingForOverlap(): void
@@ -69,5 +94,6 @@ class ArbeitszeitCheckTypeMapperTest extends TestCase
 		self::assertSame('other', ArbeitszeitCheckTypeMapper::toDutyKind('home_office'));
 		self::assertSame('other', ArbeitszeitCheckTypeMapper::toDutyKind('business_trip'));
 		self::assertSame('other', ArbeitszeitCheckTypeMapper::toDutyKind('totally_unknown'));
+		self::assertSame('other', ArbeitszeitCheckTypeMapper::toDutyKind('custom_betriebsausflug'));
 	}
 }

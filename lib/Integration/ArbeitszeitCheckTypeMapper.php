@@ -11,6 +11,13 @@ namespace OCA\DutyCheck\Integration;
  */
 final class ArbeitszeitCheckTypeMapper
 {
+	/**
+	 * AZC reserves the `custom_` namespace for admin-defined absence types
+	 * (ArbeitszeitCheck `CustomAbsenceType::CODE_PREFIX`; duplicated here —
+	 * no cross-app PHP dependency per §15.2-style decoupling).
+	 */
+	public const AT_CUSTOM_TYPE_PREFIX = 'custom_';
+
 	/** @var list<string> */
 	public const AT_BLOCKING_TYPES = [
 		'vacation',
@@ -19,6 +26,9 @@ final class ArbeitszeitCheckTypeMapper
 		'personal_leave',
 		'parental_leave',
 		'special_leave',
+		// AZC ≥1.9 built-ins — both are real absences (employee away).
+		'child_sick',
+		'overtime_comp',
 	];
 
 	/** @var list<string> */
@@ -40,7 +50,8 @@ final class ArbeitszeitCheckTypeMapper
 	public static function isKnownType(string $atType): bool
 	{
 		return in_array($atType, self::AT_BLOCKING_TYPES, true)
-			|| in_array($atType, self::AT_SOFT_TYPES_DEFAULT, true);
+			|| in_array($atType, self::AT_SOFT_TYPES_DEFAULT, true)
+			|| str_starts_with($atType, self::AT_CUSTOM_TYPE_PREFIX);
 	}
 
 	public static function isKnownStatus(string $atStatus): bool
@@ -55,10 +66,12 @@ final class ArbeitszeitCheckTypeMapper
 	{
 		return match ($atType) {
 			'vacation' => 'vacation',
-			'sick_leave' => 'sick',
+			// Child sick leave is carer's absence, not the employee's own
+			// illness — but for planning the nearest DC kind is still `sick`.
+			'sick_leave', 'child_sick' => 'sick',
 			'unpaid_leave' => 'unpaid',
 			'personal_leave', 'parental_leave', 'special_leave' => 'other',
-			'home_office', 'business_trip' => 'other',
+			'home_office', 'business_trip', 'overtime_comp' => 'other',
 			default => 'other',
 		};
 	}
@@ -91,6 +104,14 @@ final class ArbeitszeitCheckTypeMapper
 			return false;
 		}
 		if (in_array($atType, self::AT_BLOCKING_TYPES, true)) {
+			return true;
+		}
+		// Admin-defined custom absence types are absences by definition — the
+		// only "working remotely" semantics in AZC are the built-in soft types
+		// and the per-entry work_location field (not part of at_absences).
+		// Under-blocking would silently roster a person who is away, so the
+		// reserved `custom_*` namespace blocks when approved.
+		if (str_starts_with($atType, self::AT_CUSTOM_TYPE_PREFIX)) {
 			return true;
 		}
 		// Unknown type: non-blocking (caller must log INTEGRATION_AT_UNKNOWN_ENUM).
