@@ -460,6 +460,11 @@ class Application extends App implements IBootstrap
 			);
 		});
 
+		// F17: advertise check.on-duty so compatible Check-family apps
+		// (MaintenanceCheck pickers, TourCheck planner chip) capability-
+		// detect the feed instead of blind-probing routes.
+		$context->registerCapability(\OCA\DutyCheck\Capabilities::class);
+
 	}
 
 	public function boot(IBootContext $context): void

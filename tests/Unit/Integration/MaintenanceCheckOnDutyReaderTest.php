@@ -34,7 +34,10 @@ final class MaintenanceCheckOnDutyReaderTest extends TestCase
 		$config = $this->createMock(IConfig::class);
 		$config->method('getAppValue')->willReturn('1');
 		$apps = $this->createMock(IAppManager::class);
-		$apps->method('isEnabledForUser')->with('maintenancecheck')->willReturn(false);
+		$apps->method('isEnabledForUser')->willReturnMap([
+			['maintenancecheck', null, false],
+			['tourcheck', null, false],
+		]);
 		$db = $this->createMock(IDBConnection::class);
 		$db->expects($this->never())->method('getQueryBuilder');
 		$reader = new MaintenanceCheckOnDutyReader(
@@ -45,5 +48,24 @@ final class MaintenanceCheckOnDutyReaderTest extends TestCase
 		);
 		self::assertFalse($reader->isEffective());
 		self::assertSame([], $reader->onDutyToday('2026-07-26'));
+	}
+
+	/** F17: TourCheck is an equivalent consumer — same flag, same feed. */
+	public function testTourCheckConsumerAlsoEnablesHook(): void
+	{
+		$config = $this->createMock(IConfig::class);
+		$config->method('getAppValue')->willReturn('1');
+		$apps = $this->createMock(IAppManager::class);
+		$apps->method('isEnabledForUser')->willReturnMap([
+			['maintenancecheck', null, false],
+			['tourcheck', null, true],
+		]);
+		$reader = new MaintenanceCheckOnDutyReader(
+			$this->createMock(IDBConnection::class),
+			$config,
+			$apps,
+			$this->createMock(LoggerInterface::class),
+		);
+		self::assertTrue($reader->isEffective());
 	}
 }
