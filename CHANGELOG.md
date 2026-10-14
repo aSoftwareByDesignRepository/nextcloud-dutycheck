@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.3.10 - 2026-10-16
+
+### Fixed
+
+- **ArbeitszeitCheck ≥1.9 absence types not recognised:** `child_sick`, `overtime_comp` and admin-defined `custom_*` types were treated as unknown — mirrored absences were non-blocking, so staff on approved leave could still be rostered. All are now known types and block assignment when approved (`child_sick` maps to `sick`, the rest to `other`).
+- **Mirror column too short for custom type codes:** `dc_at_absence_mirror.type` widened 32 → 64 to match AZC's `at_absences.type`; long `custom_*` codes no longer fail the reconcile batch.
+
 ## 0.3.9 - 2026-10-10
 
 ### Changed
