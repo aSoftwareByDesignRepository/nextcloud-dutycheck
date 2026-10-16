@@ -48,7 +48,11 @@ $codeOf = function (callable $fn): ?string {
 /**
  * Remove ALL artifacts from every atlas run (this run + leftovers from older runs).
  */
-$atlasCleanup = function () use ($db, $userMgr, $access): void {
+// Named (not a closure) so teardown-coverage audits can see the table list.
+function atlasL2Cleanup($db, $userMgr, $access): void {
+	// dc_conflict_policy is deliberately absent from the purge lists: it is a
+	// global singleton row (no company_id) — truncating it would wipe real
+	// admin config. Probes only ever UPDATE the singleton in place.
 	try {
 		$qb = $db->getQueryBuilder();
 		$qb->select('id')->from('dc_companies')
@@ -136,7 +140,7 @@ $atlasCleanup = function () use ($db, $userMgr, $access): void {
 				'dc_avail_blackouts', 'dc_shift_preferences', 'dc_absences',
 				'dc_employees', 'dc_locations', 'dc_shift_templates',
 				'dc_qualifications', 'dc_rotation_patterns', 'dc_periods',
-				'dc_company_members'] as $table) {
+				'dc_push_quiet_queue', 'dc_company_members'] as $table) {
 				if (!$db->tableExists($table)) {
 					continue;
 				}
@@ -167,7 +171,7 @@ $atlasCleanup = function () use ($db, $userMgr, $access): void {
 			fwrite(STDERR, "cleanup user $uid: " . $e->getMessage() . "\n");
 		}
 	}
-};
+}
 
 $overallOk = true;
 try {
@@ -443,7 +447,7 @@ try {
 	fwrite(STDERR, 'probe fatal: ' . $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine() . "\n");
 } finally {
 	try {
-		$atlasCleanup();
+		atlasL2Cleanup($db, $userMgr, $access);
 	} catch (\Throwable $e) {
 		fwrite(STDERR, 'cleanup fatal: ' . $e->getMessage() . "\n");
 	}

@@ -374,6 +374,11 @@ final class RotationPatternService
 	{
 		$this->assertSchemaReady();
 		$this->companies->assertRowCompany($actor, 'dc_employees', $employeeId, 'EMPLOYEE_NOT_FOUND');
+		// Existence is company-independent — assertRowCompany short-circuits on
+		// single-company installs; without this fetch a missing employee id is a
+		// 200 with an empty list instead of EMPLOYEE_NOT_FOUND (sibling
+		// preferences/blackouts reads already 404 via their own fetch).
+		$this->employeeRow($employeeId);
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('*')->from('dc_emp_rot_assign')
 			->where($qb->expr()->eq('employee_id', $qb->createNamedParameter($employeeId, IQueryBuilder::PARAM_INT)))
@@ -847,9 +852,25 @@ final class RotationPatternService
 	private function assertEmployeeInCompany(int $employeeId, int $companyId, string $actor): void
 	{
 		$this->companies->assertRowCompany($actor, 'dc_employees', $employeeId, 'EMPLOYEE_NOT_FOUND');
-		// Existence is company-independent: single-company installs short-circuit
-		// assertRowCompany, so without this fetch a planner could write orphan
-		// assignments for employee ids that do not exist at all.
+		$row = $this->employeeRow($employeeId);
+		$multi = $this->companies->isMultiCompanyActive()
+			&& SchemaProbe::hasColumn($this->db, 'dc_employees', 'company_id');
+		// Existence-blind: an employee in another company is invisible to the
+		// actor — report it like a missing row (no COMPANY_MISMATCH oracle).
+		if ($multi && (int) ($row['company_id'] ?? 0) !== $companyId) {
+			throw new \InvalidArgumentException('EMPLOYEE_NOT_FOUND');
+		}
+	}
+
+	/**
+	 * Employee row fetch — existence is company-independent: single-company
+	 * installs short-circuit assertRowCompany, so without this fetch a missing
+	 * employee id would pass reads and writes (orphan rows / 200-empty lists).
+	 *
+	 * @return array<string,mixed>
+	 */
+	private function employeeRow(int $employeeId): array
+	{
 		if (!SchemaProbe::tableExists($this->db, 'dc_employees')) {
 			throw new \InvalidArgumentException('EMPLOYEE_NOT_FOUND');
 		}
@@ -862,11 +883,7 @@ final class RotationPatternService
 		if ($row === false) {
 			throw new \InvalidArgumentException('EMPLOYEE_NOT_FOUND');
 		}
-		// Existence-blind: an employee in another company is invisible to the
-		// actor — report it like a missing row (no COMPANY_MISMATCH oracle).
-		if ($multi && (int) ($row['company_id'] ?? 0) !== $companyId) {
-			throw new \InvalidArgumentException('EMPLOYEE_NOT_FOUND');
-		}
+		return $row;
 	}
 
 	/**

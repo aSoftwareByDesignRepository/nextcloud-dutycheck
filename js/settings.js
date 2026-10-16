@@ -1091,9 +1091,11 @@
 
 		if (applyBtn) {
 			applyBtn.addEventListener('click', async () => {
-				const ok = window.confirm(
-					t('dutycheck', 'Apply the saved conflict thresholds to all open periods? Published and closed periods stay unchanged.'),
-				);
+				const ok = await C.confirmDialog({
+					title: t('dutycheck', 'Conflict thresholds'),
+					body: t('dutycheck', 'Apply the saved conflict thresholds to all open periods? Published and closed periods stay unchanged.'),
+					confirmLabel: t('dutycheck', 'Apply to open periods'),
+				});
 				if (!ok) return;
 				applyBtn.disabled = true;
 				applyBtn.setAttribute('aria-busy', 'true');

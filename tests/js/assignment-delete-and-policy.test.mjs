@@ -45,7 +45,8 @@ test('cancelAssignmentRow reports success so the modal can close', () => {
 	const src = read('js/roster.js');
 	const fn = src.match(/async function cancelAssignmentRow[\s\S]*?\n\t\}/);
 	assert.ok(fn, 'cancelAssignmentRow not found');
-	assert.match(fn[0], /return false;[\s\S]*window\.confirm/, 'abort path must return false');
+	assert.match(fn[0], /await C\.confirmDialog\(\{[\s\S]*danger:\s*true,[\s\S]*\}\);[\s\S]*if \(!ok\) \{\s*return false;/, 'abort path must return false after the styled confirm dialog');
+	assert.doesNotMatch(fn[0], /window\.confirm/, 'native confirm() is banned — DS styled dialog only');
 	assert.match(fn[0], /Msg\.announce\(t\('dutycheck', 'Shift cancelled\.'\), 'success'\);\s*return true;/, 'success path must return true');
 	assert.match(fn[0], /assignments\/\$\{assignment\.id\}\/cancel/, 'must POST the cancel endpoint');
 });

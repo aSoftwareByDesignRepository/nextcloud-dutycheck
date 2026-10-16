@@ -61,13 +61,13 @@
 
 .dc-license-feedback--success {
 	border-inline-start-color: var(--color-success-text, var(--color-success));
-	background: var(--dc-tint-success, color-mix(in srgb, var(--color-success-text, var(--color-success)) 18%, var(--color-main-background)));
+	background: var(--dc-tint-success, color-mix(in srgb, var(--color-success-text, #46ba61) 18%, var(--color-main-background)));
 	color: var(--color-main-text);
 }
 
 .dc-license-feedback--error {
 	border-inline-start-color: var(--color-error-text, var(--color-error));
-	background: var(--dc-tint-critical, color-mix(in srgb, var(--color-error-text, var(--color-error)) 18%, var(--color-main-background)));
+	background: var(--dc-tint-critical, color-mix(in srgb, var(--color-error-text, #cc4646) 18%, var(--color-main-background)));
 	color: var(--color-main-text);
 }
 
@@ -139,17 +139,17 @@
 }
 
 .dc-license-badge--active {
-	background: var(--dc-tint-success, color-mix(in srgb, var(--color-success-text, var(--color-success)) 18%, var(--color-main-background)));
+	background: var(--dc-tint-success, color-mix(in srgb, var(--color-success-text, #46ba61) 18%, var(--color-main-background)));
 	color: var(--color-main-text);
 }
 
 .dc-license-badge--warning {
-	background: var(--dc-tint-warning, color-mix(in srgb, var(--color-warning-text, var(--color-warning)) 22%, var(--color-main-background)));
+	background: var(--dc-tint-warning, color-mix(in srgb, var(--color-warning-text, #c98600) 22%, var(--color-main-background)));
 	color: var(--color-main-text);
 }
 
 .dc-license-badge--expired {
-	background: var(--dc-tint-critical, color-mix(in srgb, var(--color-error-text, var(--color-error)) 18%, var(--color-main-background)));
+	background: var(--dc-tint-critical, color-mix(in srgb, var(--color-error-text, #cc4646) 18%, var(--color-main-background)));
 	color: var(--color-main-text);
 }
 
@@ -330,7 +330,7 @@
 .dc-license-seat-search__note--err {
 	color: var(--color-main-text);
 	border-inline-start: 3px solid var(--color-error-text, var(--color-error));
-	background: var(--dc-tint-critical, color-mix(in srgb, var(--color-error-text, var(--color-error)) 18%, var(--color-main-background)));
+	background: var(--dc-tint-critical, color-mix(in srgb, var(--color-error-text, #cc4646) 18%, var(--color-main-background)));
 }
 
 .dc-license-seat-table-wrap {

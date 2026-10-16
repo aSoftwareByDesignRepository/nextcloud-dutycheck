@@ -24,6 +24,7 @@
 	function setStatus(text, kind) {
 		const el = document.getElementById('dc-today-status');
 		if (!el) return;
+		el.hidden = !text;
 		el.textContent = text || '';
 		el.classList.toggle('dc-roster-flash--error', kind === 'error');
 	}
@@ -145,6 +146,7 @@
 			const data = res?.data || {};
 			renderGaps(data.gaps || []);
 			renderShifts(data.shifts || []);
+			document.getElementById('dc-today-disabled')?.setAttribute('hidden', '');
 			const count = (data.shifts || []).length;
 			// Avoid doubled empty theater: body copy owns the empty message; status stays quiet.
 			if (count) {
@@ -156,12 +158,16 @@
 			const code = String(err?.code || err?.payload?.error?.code || '');
 			renderGaps([]);
 			renderShifts([]);
+			// A failed or disabled load is not an empty day — renderShifts([])
+			// unhides the "nobody scheduled" panel, which would fabricate state.
+			document.getElementById('dc-today-empty')?.setAttribute('hidden', '');
 			if (code === 'TODAY_BOARD_DISABLED') {
-				setStatus(msg('msg-disabled'), 'error');
+				// The warning callout owns this message — the strip stays quiet.
 				const disabled = document.getElementById('dc-today-disabled');
 				const text = document.getElementById('dc-today-disabled-text');
 				if (text) text.textContent = msg('msg-disabled');
 				if (disabled) disabled.hidden = false;
+				setStatus('');
 			} else {
 				document.getElementById('dc-today-disabled')?.setAttribute('hidden', '');
 				setStatus(msg('msg-error'), 'error');

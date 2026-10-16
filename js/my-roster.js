@@ -23,6 +23,9 @@
 	/** Whether the server already stores an iCal secret (URL is usually masked in the UI). */
 	let icalHasToken = false;
 
+	/** Generation counter: only the newest fetchAndRender may paint the roster. */
+	let rosterFetchSeq = 0;
+
 	function integrationBootstrapFromDom() {
 		const root = document.getElementById('app-content');
 		const raw = root?.dataset?.dcIntegrationBootstrap || '';
@@ -634,6 +637,8 @@
 	}
 
 	async function fetchAndRender() {
+		const seq = ++rosterFetchSeq;
+		const isCurrent = () => seq === rosterFetchSeq;
 		const tbody = document.getElementById('dc-my-roster-table-body');
 		C.setLoadingRow(tbody, TABLE_COLSPAN);
 		setStatus(t('dutycheck', 'Loading…'));
@@ -645,8 +650,10 @@
 				}),
 				refreshMyOpenSwaps(),
 			]);
+			if (!isCurrent()) return;
 			renderRoster(Array.isArray(response?.data) ? response.data : []);
 		} catch (err) {
+			if (!isCurrent()) return;
 			const code = String(err?.payload?.error?.code || err?.code || '');
 			if (code === 'EMPLOYEE_LINK_NOT_FOUND' || code === 'EMPLOYEE_RECORD_LINK_REQUIRED') {
 				renderUnlinkedFallback();
@@ -656,7 +663,7 @@
 			C.renderTableFetchError(tbody, TABLE_COLSPAN, t('dutycheck', 'Could not load your roster. Retry, or contact an administrator if this keeps happening.'), { retry: () => fetchAndRender() });
 			setStatus(t('dutycheck', 'Could not load roster.'));
 		} finally {
-			C.clearLoadingRow(tbody);
+			if (isCurrent()) C.clearLoadingRow(tbody);
 		}
 	}
 
@@ -944,8 +951,11 @@
 			});
 		}
 
+		let teamSeq = 0;
 		async function loadTeam() {
 			if (!locSelect || !weekInput || !list) return;
+			const seq = ++teamSeq;
+			const isCurrent = () => seq === teamSeq;
 			const locationId = Number(locSelect.value || 0);
 			let weekStart = String(weekInput.value || '');
 			if (!weekStart) {
@@ -969,6 +979,7 @@
 					page: 1,
 					pageSize: 50,
 				});
+				if (!isCurrent()) return;
 				const data = res?.data || {};
 				const items = data.items || [];
 				setTeamStatus('');
@@ -996,6 +1007,7 @@
 					].filter(Boolean)));
 				});
 			} catch (err) {
+				if (!isCurrent()) return;
 				const code = String(err?.code || err?.payload?.error?.code || '');
 				if (code === 'PEER_VISIBILITY_DISABLED') {
 					showDisabled('data-msg-disabled');

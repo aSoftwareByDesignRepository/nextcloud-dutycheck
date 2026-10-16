@@ -2526,9 +2526,12 @@
 		if (!assignment?.id || !canAddAssignment()) {
 			return false;
 		}
-		const ok = window.confirm(
-			t('dutycheck', 'Cancel this shift? It will be removed from the open period and staff will not see it after publish.'),
-		);
+		const ok = await C.confirmDialog({
+			title: t('dutycheck', 'Cancel shift'),
+			body: t('dutycheck', 'Cancel this shift? It will be removed from the open period and staff will not see it after publish.'),
+			confirmLabel: t('dutycheck', 'Cancel shift'),
+			danger: true,
+		});
 		if (!ok) {
 			return false;
 		}
@@ -2654,10 +2657,11 @@
 		}
 		const pct = total === 0 ? 0 : Math.round((acked / total) * 1000) / 10;
 		el.hidden = false;
-		el.textContent = t('dutycheck', 'Staff seen: {acked}/{total} ({pct}%)')
+		el.textContent = t('dutycheck', 'Staff seen: {acked}/{total} ({pct}%%)')
 			.replace('{acked}', String(acked))
 			.replace('{total}', String(total))
-			.replace('{pct}', String(pct));
+			.replace('{pct}', String(pct))
+			.replace(/%%/g, '%');
 	}
 
 	/**

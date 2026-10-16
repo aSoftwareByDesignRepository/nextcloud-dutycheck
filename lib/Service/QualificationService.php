@@ -178,6 +178,12 @@ class QualificationService
 				$this->companies->assertRowCompany($actorUserId, 'dc_qualifications', $qualificationId, 'QUALIFICATION_NOT_FOUND');
 			}
 		}
+		// No FK on dc_emp_quals — reference checks must live here. Existence is
+		// company-independent: single-company installs short-circuit
+		// assertRowCompany, so without these fetches a missing parent id would
+		// insert an orphan link row.
+		$this->assertRowExists('dc_employees', $employeeId, 'EMPLOYEE_NOT_FOUND');
+		$this->assertRowExists('dc_qualifications', $qualificationId, 'QUALIFICATION_NOT_FOUND');
 		if ($expiresOn !== null && $expiresOn !== '') {
 			if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $expiresOn) !== 1) {
 				throw new \InvalidArgumentException('INVALID_EXPIRY_DATE');
@@ -234,6 +240,10 @@ class QualificationService
 				$this->companies->assertRowCompany($actorUserId, 'dc_qualifications', $qualificationId, 'QUALIFICATION_NOT_FOUND');
 			}
 		}
+		// No FK on dc_loc_quals — same unconditional reference check as
+		// attachToEmployee (single-company mode skips assertRowCompany).
+		$this->assertRowExists('dc_locations', $locationId, 'LOCATION_NOT_FOUND');
+		$this->assertRowExists('dc_qualifications', $qualificationId, 'QUALIFICATION_NOT_FOUND');
 		// Idempotent: dc_lq_uq makes a second POST a constraint violation (raw
 		// 500). An existing requirement is already the desired end state.
 		$exists = $this->db->getQueryBuilder();
@@ -397,5 +407,19 @@ class QualificationService
 			}
 		}
 		return $out;
+	}
+
+	/**
+	 * Unconditional parent-row check for FK-free link tables. Company scoping
+	 * stays with assertRowCompany; this only proves the row exists at all.
+	 */
+	private function assertRowExists(string $table, int $id, string $notFoundCode): void
+	{
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('id')->from($table)
+			->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
+		if ($qb->executeQuery()->fetchOne() === false) {
+			throw new \InvalidArgumentException($notFoundCode);
+		}
 	}
 }

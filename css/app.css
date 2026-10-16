@@ -5287,6 +5287,7 @@ textarea {
 }
 
 .dc-roster-flash--error {
+	background: var(--dc-tint-critical);
 	color: var(--color-error-text, var(--color-error, #cc4646));
 }
 

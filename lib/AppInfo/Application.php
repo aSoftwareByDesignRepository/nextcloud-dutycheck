@@ -22,6 +22,7 @@ use OCA\DutyCheck\Middleware\AppAccessMiddleware;
 use OCA\DutyCheck\Middleware\ClientLicenseMiddleware;
 use OCA\DutyCheck\Middleware\SessionCsrfMiddleware;
 use OCA\DutyCheck\Service\AccessControlService;
+use OCA\DutyCheck\Support\NavGate;
 use OCA\DutyCheck\Service\ApiRateLimitService;
 use OCA\DutyCheck\Service\ConflictPolicyService;
 use OCA\DutyCheck\Service\CsrfTokenValidator;
@@ -469,37 +470,17 @@ class Application extends App implements IBootstrap
 
 	public function boot(IBootContext $context): void
 	{
-		try {
-			$c = $this->getContainer();
-			$user = $c->get(\OCP\IUserSession::class)->getUser();
-			if ($user === null) {
-				return;
-			}
-			$access = $c->get(AccessControlService::class);
-			if (!$access->canUseApp($user->getUID())) {
-				return;
-			}
-			$c->get(INavigationManager::class)->add(function () use ($c): array {
-				return [
-					'id' => self::APP_ID,
-					'app' => self::APP_ID,
-					'order' => 12,
-					'href' => $c->get(\OCP\IURLGenerator::class)->linkToRoute('dutycheck.page.index'),
-					'icon' => $c->get(\OCP\IURLGenerator::class)->imagePath(self::APP_ID, 'app.svg'),
-					'name' => $c->get(IFactory::class)->get(self::APP_ID)->t('DutyCheck'),
-				];
-			});
-		} catch (\Throwable $e) {
-			// best-effort: navigation registration must never break app boot.
-			try {
-				$c = $this->getContainer();
-				$c->get(\Psr\Log\LoggerInterface::class)->error(
-					'DutyCheck navigation registration failed',
-					['exception' => $e, 'app' => self::APP_ID],
-				);
-			} catch (\Throwable) {
-				// Logging must never break app boot.
-			}
-		}
+		$app = $context->getAppContainer();
+		// Menu entry only for users with app access — the predicate runs lazily
+		// inside NavigationManager::init(), i.e. after basic-auth login on OCS
+		// requests. An eager check here sees no user and strips the entry.
+		NavGate::register(
+			$app,
+			'dutycheck.page.index',
+			'app.svg',
+			'DutyCheck',
+			12,
+			static fn(string $uid): bool => $app->get(AccessControlService::class)->canUseApp($uid),
+		);
 	}
 }

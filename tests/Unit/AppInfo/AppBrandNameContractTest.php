@@ -54,8 +54,25 @@ final class AppBrandNameContractTest extends TestCase
 		}
 
 		$appPhp = (string)file_get_contents($this->root . '/lib/AppInfo/Application.php');
-		$this->assertStringContainsString('INavigationManager', $appPhp);
 		$quoted = preg_quote(self::NAV_L10N_KEY, '/');
+		if (str_contains($appPhp, 'NavGate::register')) {
+			// NavGate path: Application passes the English brand key and the
+			// shared gate translates it inside the lazy nav closure.
+			$this->assertMatchesRegularExpression(
+				"/NavGate::register\\([\\s\\S]*?['\"]{$quoted}['\"][\\s\\S]*?\\)/",
+				$appPhp,
+				'NavGate::register must receive the English brand key',
+			);
+			$gatePhp = (string)file_get_contents($this->root . '/lib/Support/NavGate.php');
+			$this->assertStringContainsString('IL10NFactory', $gatePhp);
+			$this->assertMatchesRegularExpression(
+				'/->t\(\$name\)/',
+				$gatePhp,
+				'NavGate must translate the nav name via l10n',
+			);
+			return;
+		}
+		$this->assertStringContainsString('INavigationManager', $appPhp);
 		$this->assertMatchesRegularExpression(
 			"/->t\\(['\"]{$quoted}['\"]\\)/",
 			$appPhp,

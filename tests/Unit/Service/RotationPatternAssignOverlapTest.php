@@ -259,6 +259,40 @@ final class RotationPatternAssignOverlapTest extends TestCase
 		$this->service($db)->assignToEmployee(5, 74, '2026-11-01', null, 'admin');
 	}
 
+	public function testListEmployeeAssignmentsRejectsMissingEmployeeId(): void
+	{
+		// Single-company installs short-circuit assertRowCompany; the list read
+		// must still 404 on a missing employee id — observed live as
+		// 200 + {"assignments":[]} before the fix (sibling preferences/blackouts
+		// reads already throw EMPLOYEE_NOT_FOUND via their own fetch).
+		$db = $this->createMock(IDBConnection::class);
+		$db->method('tableExists')->willReturn(true);
+		// QB 1: employee existence probe -> no row.
+		$db->method('getQueryBuilder')->willReturn($this->qb($this->result(null)));
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('EMPLOYEE_NOT_FOUND');
+
+		$this->service($db)->listEmployeeAssignments(424242, 'admin');
+	}
+
+	public function testListEmployeeAssignmentsReturnsRows(): void
+	{
+		$db = $this->createMock(IDBConnection::class);
+		$db->method('tableExists')->willReturn(true);
+		// QBs: employee existence probe -> assignment list query.
+		$db->method('getQueryBuilder')->willReturnOnConsecutiveCalls(
+			$this->employeeRowQb(),
+			$this->qb($this->result(null, [$this->assignmentRowResult()])),
+		);
+
+		$out = $this->service($db)->listEmployeeAssignments(5, 'admin');
+
+		self::assertCount(1, $out);
+		self::assertSame(42, $out[0]['id']);
+		self::assertSame('2026-11-01', $out[0]['validFrom']);
+	}
+
 	public function testCreateFreesNameHeldByInactivePattern(): void
 	{
 		// Companion regression to the customer's PATTERN_NAME_CONFLICT report:

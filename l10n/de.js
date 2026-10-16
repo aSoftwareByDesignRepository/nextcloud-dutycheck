@@ -1060,7 +1060,7 @@ OC.L10N.register(
 	"Source" : "Quelle",
 	"Spät" : "Spät",
 	"Staff can see published colleagues at the same location." : "Mitarbeitende sehen veröffentlichte Kollegen am selben Standort.",
-	"Staff seen: {acked}\/{total} ({pct}%)" : "Von Mitarbeitenden gesehen: {acked}\/{total} ({pct}%)",
+	"Staff seen: {acked}\/{total} ({pct}%%)" : "Von Mitarbeitenden gesehen: {acked}\/{total} ({pct}%%)",
 	"Stale mirror — run sync or wait for the scheduled job." : "Spiegel veraltet — Synchronisation ausführen oder geplanten Auftrag abwarten.",
 	"Start" : "Beginn",
 	"Start and end time must be different. For overnight shifts, set the end time earlier than the start (e.g. 22:00–06:00)." : "Start- und Endzeit müssen unterschiedlich sein. Bei Schichten über Mitternacht Endzeit vor Startzeit eintragen (z. B. 22:00–06:00).",

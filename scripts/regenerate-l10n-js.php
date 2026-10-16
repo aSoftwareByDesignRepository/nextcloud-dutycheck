@@ -21,18 +21,19 @@ $locales = array (
   7 => 'pl',
   8 => 'sv',
   9 => 'nb',
+  10 => 'pt',
   // Regional variants mirror their base catalog (kept in sync by
   // sync-l10n-from-runtime.php).
-  10 => 'pt_BR',
-  11 => 'da_DK',
-  12 => 'de_DE',
-  13 => 'es_ES',
-  14 => 'fr_FR',
-  15 => 'it_IT',
-  16 => 'nb_NO',
-  17 => 'nl_NL',
-  18 => 'pl_PL',
-  19 => 'sv_SE',
+  11 => 'pt_BR',
+  12 => 'da_DK',
+  13 => 'de_DE',
+  14 => 'es_ES',
+  15 => 'fr_FR',
+  16 => 'it_IT',
+  17 => 'nb_NO',
+  18 => 'nl_NL',
+  19 => 'pl_PL',
+  20 => 'sv_SE',
 );
 
 foreach ($locales as $lang) {

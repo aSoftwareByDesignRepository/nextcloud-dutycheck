@@ -131,15 +131,12 @@
 		if (!warnNeeded) {
 			return true;
 		}
-		if (typeof C.confirmDialog === 'function') {
-			return C.confirmDialog({
-				title: t('dutycheck', 'Soll from Duty'),
-				body: msg('msg-soll-warn', t('dutycheck', 'Turn on Soll from Duty anyway?')),
-				confirmLabel: t('dutycheck', 'Turn on'),
-				cancelLabel: t('dutycheck', 'Cancel'),
-			});
-		}
-		return window.confirm(msg('msg-soll-warn'));
+		return C.confirmDialog({
+			title: t('dutycheck', 'Soll from Duty'),
+			body: msg('msg-soll-warn', t('dutycheck', 'Turn on Soll from Duty anyway?')),
+			confirmLabel: t('dutycheck', 'Turn on'),
+			cancelLabel: t('dutycheck', 'Cancel'),
+		});
 	}
 
 	async function load() {

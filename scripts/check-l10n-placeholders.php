@@ -42,9 +42,25 @@ function dcCatalogLocales(string $base): array
  */
 function dcPrintfPlaceholders(string $s): array
 {
-	preg_match_all('/%%|%(?:\d+\$)?[sd]/', $s, $m);
+	preg_match_all('/%%|%(?:\d+\$)?[sd]|%/', $s, $m);
 
 	return $m[0];
+}
+
+/**
+ * Token multiset match for printf placeholders. A bare '%' in the msgid may be
+ * carried as '%' or '%%' in the msgstr: '%%' is the vsprintf-safe form the
+ * fleet quality sweep requires in .json catalogs, and the JS call sites
+ * unescape it (.replace(/%%/g, '%')). A '%%' in the msgid must stay '%%'.
+ */
+function dcPrintfTokensMatch(array $expected, array $actual): bool
+{
+	$norm = static fn (string $t): string => $t === '%%' ? '%' : $t;
+	if (array_count_values(array_map($norm, $expected)) != array_count_values(array_map($norm, $actual))) {
+		return false;
+	}
+	return count(array_filter($actual, static fn (string $t): bool => $t === '%%'))
+		>= count(array_filter($expected, static fn (string $t): bool => $t === '%%'));
 }
 
 /**
@@ -88,7 +104,7 @@ foreach ($enT as $key => $enVal) {
 		$val = (string) $langT[$key];
 
 		$valPrintf = dcPrintfPlaceholders($val);
-		if ($keyPrintf !== $valPrintf) {
+		if (!dcPrintfTokensMatch($keyPrintf, $valPrintf)) {
 			$failed = true;
 			fwrite(STDERR, "{$lang}.json printf placeholder mismatch for key: {$key}\n");
 			fwrite(STDERR, '  expected: ' . implode(', ', $keyPrintf) . "\n");

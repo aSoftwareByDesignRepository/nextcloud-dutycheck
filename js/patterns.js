@@ -604,7 +604,8 @@
 				state.enabled = false;
 				state.patterns = [];
 				renderList();
-				setStatus(msg('msg-disabled'), 'error');
+				// The disabled callout owns this message — no duplicate strip.
+				setStatus('');
 				return;
 			}
 			setStatus(msg('msg-load-error'), 'error');

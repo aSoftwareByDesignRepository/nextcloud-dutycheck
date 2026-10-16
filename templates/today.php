@@ -54,7 +54,7 @@ $dienstUrl = (string) ($urls['dienstTeamSettings'] ?? ($urls['settings'] ?? '#')
 		</div>
 	</form>
 
-	<p id="dc-today-status" class="dc-roster-flash" role="status" aria-live="polite" aria-atomic="true"></p>
+	<p id="dc-today-status" class="dc-roster-flash" role="status" aria-live="polite" aria-atomic="true" hidden></p>
 	<div id="dc-today-disabled" class="dc-callout dc-callout--warning" hidden role="status">
 		<p id="dc-today-disabled-text"></p>
 		<p><a class="button" id="dc-today-settings-link" href="<?php p($dienstUrl); ?>"><?php p($l->t('Open Duty & team')); ?></a></p>

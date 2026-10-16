@@ -411,14 +411,9 @@ Melhoramos este app com o uso real. Relatórios de bugs, atritos e ideias ajudam
 		<command>OCA\DutyCheck\Command\ReconcileArbeitszeitCheckMirrorCommand</command>
 		<command>OCA\DutyCheck\Command\SeedMobileDemoCommand</command>
 	</commands>
-	<navigations>
-		<navigation>
-			<name>DutyCheck</name>
-			<route>dutycheck.page.index</route>
-			<icon>app.svg</icon>
-			<order>12</order>
-		</navigation>
-	</navigations>
+	<!-- No <navigation> here: the menu entry is registered conditionally in
+	     Application::boot (canUseApp) — a static entry would advertise the
+	     app to excluded users when access is restricted. -->
 	<activity>
 		<providers>
 			<provider>OCA\DutyCheck\Activity\Provider</provider>

@@ -522,4 +522,26 @@ final class DesignSystemCssContractTest extends TestCase
 			'Dark nav muted chrome must use --color-text-maxcontrast',
 		);
 	}
+
+	public function testErrorFlashPaintsCriticalTintWell(): void
+	{
+		// dc-vis-flash-error-success-tint: the error modifier must repaint the
+		// well, not only the ink — danger text on a success tint is a
+		// status_well_semantic_inversion (DS §5 error uses danger well tokens).
+		self::assertMatchesRegularExpression(
+			'/\.dc-roster-flash--error\s*\{[^}]*background:\s*var\(--dc-tint-critical/s',
+			$this->appCss,
+			'.dc-roster-flash--error must paint the --dc-tint-critical well',
+		);
+		self::assertMatchesRegularExpression(
+			'/\.dc-roster-flash--error\s*\{[^}]*color:\s*var\(--color-error-text/s',
+			$this->appCss,
+			'.dc-roster-flash--error must keep error-text ink on the critical tint',
+		);
+		self::assertDoesNotMatchRegularExpression(
+			'/\.dc-roster-flash--error\s*\{[^}]*background:\s*var\(--dc-tint-success/s',
+			$this->appCss,
+			'.dc-roster-flash--error must never keep the success tint well',
+		);
+	}
 }

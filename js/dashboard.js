@@ -223,8 +223,13 @@
 		const target = urls?.settingsSections?.conflicts || '';
 		if (target) {
 			link.setAttribute('href', target);
+		} else if (window.OC && typeof OC.generateUrl === 'function') {
+			link.setAttribute('href', OC.generateUrl('/apps/dutycheck/settings/conflicts'));
 		} else {
-			link.setAttribute('href', '/apps/dutycheck/settings/conflicts');
+			// Last resort: index.php form is routable on every install; webroot
+			// covers subdir deployments.
+			const webroot = (window.OC && typeof OC.getRootPath === 'function') ? OC.getRootPath() : '';
+			link.setAttribute('href', webroot + '/index.php/apps/dutycheck/settings/conflicts');
 		}
 	}
 

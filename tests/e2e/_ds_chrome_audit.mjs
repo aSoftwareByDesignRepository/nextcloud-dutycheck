@@ -847,6 +847,80 @@ async function phaseStates(browser) {
 	await snap(pp, 'state__locations-empty')
 	record(emptyCell)
 	await pctx.close()
+
+	// today-disabled state (visual r1 must_fix dc-vis-today-disabled-empty-stack):
+	// exactly one disabled message (callout owns it), #dc-today-empty stays hidden.
+	const tctx = await browser.newContext({ baseURL: BASE, storageState: await loginState(browser, 'planner'), viewport: { width: 1440, height: 900 } })
+	const tp = await tctx.newPage()
+	await tp.route('**/apps/dutycheck/api/locations**', (route) =>
+		route.request().method() === 'GET'
+			? route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: [{ id: 1, name: 'Zentrale' }] }) })
+			: route.continue())
+	await tp.route('**/apps/dutycheck/api/today-board**', (route) =>
+		route.fulfill({ status: 422, contentType: 'application/json', body: JSON.stringify({ success: false, error: { code: 'TODAY_BOARD_DISABLED', message: 'disabled' } }) }))
+	await tp.goto(`${BASE}/apps/dutycheck/today`, { waitUntil: 'domcontentloaded' })
+	await settle(tp)
+	await tp.waitForSelector('#dc-today-disabled:not([hidden])', { timeout: 15000 }).catch(() => {})
+	const disCell = { id: 'today-board-disabled', checks: {}, status: 'ok' }
+	disCell.checks.disabledVisible = await tp.locator('#dc-today-disabled').isVisible().catch(() => false)
+	disCell.checks.emptyHidden = await tp.locator('#dc-today-empty').isHidden().catch(() => false)
+	disCell.checks.statusQuiet = await tp.evaluate(() => {
+		const el = document.getElementById('dc-today-status')
+		return !!el && (el.hidden || !(el.textContent || '').trim())
+	})
+	disCell.checks.disabledCarriers = await tp.evaluate(() => {
+		const root = document.getElementById('dc-today-board')
+		const message = root?.getAttribute('data-msg-disabled') || ''
+		if (!message) return -1
+		return [...root.querySelectorAll('*')].filter((el) => {
+			const own = [...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join('')
+			const visible = el.offsetParent !== null || el.getClientRects().length > 0
+			return visible && own.includes(message)
+		}).length
+	})
+	await snap(tp, 'state__today-disabled')
+	if (!disCell.checks.disabledVisible) { disCell.status = 'fail'; disCell.fails = ['disabled callout not shown'] }
+	if (!disCell.checks.emptyHidden) { disCell.status = 'fail'; (disCell.fails = disCell.fails || []).push('#dc-today-empty fabricated empty state on disabled') }
+	if (!disCell.checks.statusQuiet) { disCell.status = 'fail'; (disCell.fails = disCell.fails || []).push('status strip duplicates the disabled message') }
+	if (disCell.checks.disabledCarriers !== 1) { disCell.status = 'fail'; (disCell.fails = disCell.fails || []).push(`disabled message carriers=${disCell.checks.disabledCarriers} (want 1)`) }
+	record(disCell)
+
+	// today fetch-error (dc-vis-flash-error-success-tint): error flash must paint
+	// the critical tint well — computed background === var(--dc-tint-critical).
+	await tp.unroute('**/apps/dutycheck/api/today-board**')
+	await tp.route('**/apps/dutycheck/api/today-board**', (route) =>
+		route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ success: false, error: { code: 'INTERNAL_ERROR', message: 'boom' } }) }))
+	await tp.goto(`${BASE}/apps/dutycheck/today`, { waitUntil: 'domcontentloaded' })
+	await settle(tp)
+	await tp.waitForSelector('#dc-today-status:not([hidden])', { timeout: 15000 }).catch(() => {})
+	const terr = { id: 'today-fetch-error-tint', checks: {}, status: 'ok' }
+	terr.checks.flash = await tp.evaluate(() => {
+		const el = document.getElementById('dc-today-status')
+		if (!el || el.hidden) return { visible: false }
+		const resolve = (token) => {
+			const d = document.createElement('div')
+			d.style.background = `var(${token})`
+			document.body.appendChild(d)
+			const c = getComputedStyle(d).backgroundColor
+			d.remove()
+			return c
+		}
+		return {
+			visible: true,
+			errorClass: el.classList.contains('dc-roster-flash--error'),
+			strip: getComputedStyle(el).backgroundColor,
+			critical: resolve('--dc-tint-critical'),
+			success: resolve('--dc-tint-success'),
+		}
+	})
+	terr.checks.emptyHidden = await tp.locator('#dc-today-empty').isHidden().catch(() => false)
+	await snap(tp, 'state__today-fetch-error')
+	if (!terr.checks.flash?.visible || !terr.checks.flash?.errorClass) { terr.status = 'fail'; terr.fails = ['error flash not visible/flagged'] }
+	if (terr.checks.flash?.strip !== terr.checks.flash?.critical) { terr.status = 'fail'; (terr.fails = terr.fails || []).push(`error well ${terr.checks.flash?.strip} != --dc-tint-critical ${terr.checks.flash?.critical}`) }
+	if (terr.checks.flash?.strip === terr.checks.flash?.success) { terr.status = 'fail'; (terr.fails = terr.fails || []).push('error well still paints success tint') }
+	if (!terr.checks.emptyHidden) { terr.status = 'fail'; (terr.fails = terr.fails || []).push('#dc-today-empty fabricated empty state on fetch error') }
+	record(terr)
+	await tctx.close()
 }
 
 /* ───────────────────────────── main ───────────────────────────── */

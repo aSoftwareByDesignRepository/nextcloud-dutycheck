@@ -14,6 +14,7 @@ use OCA\DutyCheck\Repair\UninstallDropTables;
 use OCA\DutyCheck\Integration\IArbeitszeitCheckIntegration;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
+use OCP\IURLGenerator;
 use OCP\IUserManager;
 use Throwable;
 
@@ -4341,7 +4342,13 @@ class RosterService
 
 	private function icalUrlForEmployee(int $employeeId, string $token): string
 	{
-		return '/index.php/apps/dutycheck/api/ical/' . $employeeId . '?token=' . rawurlencode($token);
+		// Absolute URL: the feed is handed to external calendar clients, and a
+		// hardcoded /index.php/apps/... path loses the webroot on subdir
+		// installs. linkToRouteAbsolute keeps all three shapes correct.
+		return \OCP\Server::get(IURLGenerator::class)->linkToRouteAbsolute(
+			'dutycheck.rosterApi.publicIcal',
+			['employeeId' => $employeeId, 'token' => $token],
+		);
 	}
 
 	private function publishedAssignmentsForEmployee(int $employeeId): array
