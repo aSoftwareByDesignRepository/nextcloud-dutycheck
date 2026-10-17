@@ -41,6 +41,11 @@
 	};
 	let assignmentModalInstance = null;
 	let suggestedBreakMinutes = 0;
+	// Generation counters for period-scoped loaders: a retriggered fetch (period
+	// switcher, month nav) must never paint an older response over the newest
+	// selection's surface (stale-response clobber, cf. my-roster rosterFetchSeq).
+	let rosterViewSeq = 0;
+	let openShiftSeq = 0;
 
 	function clampBreakMinutes(value) {
 		const n = Number(value);
@@ -3114,6 +3119,8 @@
 	}
 
 	async function loadRoster(periodId) {
+		const seq = ++rosterViewSeq;
+		const isCurrent = () => seq === rosterViewSeq;
 		if (C.isModalOpen?.()) {
 			C.dismissOpenModal();
 		} else {
@@ -3124,26 +3131,30 @@
 		C.setLoadingRow(tbody, 7);
 		try {
 			const response = await Api.get('/apps/dutycheck/api/roster', { periodId });
+			if (!isCurrent()) return null;
 			render(response?.data || {});
 			updateUrlPeriodId(response?.data?.selectedPeriodId || null);
-			void loadRosterSignals(response?.data || {});
-			void loadCoverageStrip(response?.data?.selectedPeriodId);
+			void loadRosterSignals(response?.data || {}, isCurrent);
+			void loadCoverageStrip(response?.data?.selectedPeriodId, isCurrent);
 			return response?.data || {};
 		} catch (err) {
+			if (!isCurrent()) return null;
 			const code = String(err?.payload?.error?.code || err?.code || '');
 			if (code === 'PERIOD_NOT_FOUND' && periodId != null) {
 				try {
 					const fallback = await Api.get('/apps/dutycheck/api/roster', {});
+					if (!isCurrent()) return null;
 					render(fallback?.data || {});
 					updateUrlPeriodId(fallback?.data?.selectedPeriodId || null);
-					void loadRosterSignals(fallback?.data || {});
-					void loadCoverageStrip(fallback?.data?.selectedPeriodId);
+					void loadRosterSignals(fallback?.data || {}, isCurrent);
+					void loadCoverageStrip(fallback?.data?.selectedPeriodId, isCurrent);
 					Msg.announce(
 						t('dutycheck', 'That planning period is not available. Showing the roster for the current period instead.'),
 						'warning',
 					);
 					return fallback?.data || {};
 				} catch (retryErr) {
+					if (!isCurrent()) return null;
 					Msg.handleApiError(retryErr);
 					C.renderTableFetchError(tbody, 8, t('dutycheck', 'Could not load the roster. Retry, or contact an administrator if this keeps happening.'), { retry: () => loadRoster(periodId) });
 					syncGridScrollerTabStop();
@@ -3155,7 +3166,7 @@
 			syncGridScrollerTabStop();
 			return null;
 		} finally {
-			C.clearLoadingRow(tbody);
+			if (isCurrent()) C.clearLoadingRow(tbody);
 		}
 	}
 
@@ -3166,7 +3177,7 @@
 		return day >= start && day <= end;
 	}
 
-	async function loadRosterSignals(data) {
+	async function loadRosterSignals(data, isCurrent) {
 		state.preferencesByEmployee = {};
 		state.blackoutsByEmployeeDate = {};
 		const employees = data.employees || state.employees || [];
@@ -3183,6 +3194,7 @@
 				from,
 				to,
 			});
+			if (isCurrent && !isCurrent()) return;
 			const prefs = res?.data?.preferences || [];
 			const blackouts = res?.data?.blackouts || [];
 			prefs.forEach((p) => {
@@ -3218,7 +3230,7 @@
 		}
 	}
 
-	async function loadCoverageStrip(periodId) {
+	async function loadCoverageStrip(periodId, isCurrent) {
 		const strip = document.getElementById('dc-coverage-strip');
 		const text = document.getElementById('dc-coverage-strip-text');
 		if (!strip || !text) return;
@@ -3229,6 +3241,7 @@
 		}
 		try {
 			const res = await Api.get(`/apps/dutycheck/api/periods/${id}/publish-readiness`);
+			if (isCurrent && !isCurrent()) return;
 			const d = res?.data || {};
 			const hard = Number(d.hardConflicts ?? d.blockingConflicts ?? d.hard ?? 0);
 			const soft = Number(d.softConflicts ?? d.ackRequired ?? d.soft ?? 0);
@@ -3252,6 +3265,7 @@
 			text.textContent = message;
 			strip.hidden = false;
 		} catch (_) {
+			if (isCurrent && !isCurrent()) return;
 			strip.hidden = true;
 		}
 	}
@@ -3771,11 +3785,13 @@
 		const list = document.getElementById('dc-open-shift-list');
 		const empty = document.getElementById('dc-open-shift-empty');
 		if (!list) return;
+		const seq = ++openShiftSeq;
 		list.replaceChildren();
 		try {
 			const period = selectedPeriodFromState();
 			const qs = period?.id ? `?periodId=${Number(period.id)}` : '';
 			const res = await Api.get('/apps/dutycheck/api/open-shifts' + qs);
+			if (seq !== openShiftSeq) return;
 			const rows = Array.isArray(res?.data) ? res.data : [];
 			if (empty) empty.hidden = rows.length > 0;
 			for (const row of rows) {
@@ -3812,6 +3828,7 @@
 				list.appendChild(li);
 			}
 		} catch (_) {
+			if (seq !== openShiftSeq) return;
 			C.renderInlineFetchError?.(empty, t('dutycheck', 'Could not load open shifts.'), () => loadOpenShiftList());
 		}
 	}

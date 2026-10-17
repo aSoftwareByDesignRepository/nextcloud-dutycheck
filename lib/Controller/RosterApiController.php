@@ -390,7 +390,7 @@ class RosterApiController extends Controller
 			if ($this->plannerScope !== null && $locationId > 0) {
 				$this->plannerScope->assertCanPlanLocationOr($userId, $locationId, 'LOCATION_NOT_FOUND');
 			}
-			$data = $this->roster->createAssignment([
+			$createPayload = [
 				'periodId' => $params['periodId'] ?? null,
 				'employeeId' => $params['employeeId'] ?? null,
 				'locationId' => $params['locationId'] ?? null,
@@ -400,10 +400,16 @@ class RosterApiController extends Controller
 				'breakMinutes' => $params['breakMinutes'] ?? null,
 				'note' => $params['note'] ?? null,
 				'kind' => $params['kind'] ?? null,
-				'standbyCategoryId' => $params['standbyCategoryId'] ?? null,
-				'responseTimeMinutes' => $params['responseTimeMinutes'] ?? null,
 				'acknowledgements' => ApiMutationParams::acknowledgements($this->request),
-			], $userId);
+			];
+			// Standby fields only when the client actually sent them — an injected
+			// null key would suppress the category's default response-time fill.
+			foreach (['standbyCategoryId', 'responseTimeMinutes'] as $standbyField) {
+				if (array_key_exists($standbyField, $params)) {
+					$createPayload[$standbyField] = $params[$standbyField];
+				}
+			}
+			$data = $this->roster->createAssignment($createPayload, $userId);
 			return new DataResponse(['ok' => true, 'data' => $data]);
 		} catch (\InvalidArgumentException $e) {
 			return new DataResponse(['ok' => false, 'error' => ['code' => $e->getMessage()]], ApiJsonErrorResponse::statusForInvalidArgument($e->getMessage()));

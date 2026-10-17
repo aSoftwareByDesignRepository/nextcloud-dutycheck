@@ -76,4 +76,55 @@ final class RosterMinutesExportServiceTest extends TestCase
 		self::assertStringContainsString('"210"', $csv); // 4h - 30m
 		self::assertStringContainsString('Alice', $csv);
 	}
+
+	public function testFormulaCellsAreApostrophePrefixed(): void
+	{
+		$config = $this->createMock(IConfig::class);
+		$config->method('getAppValue')->willReturn('1');
+
+		$result = $this->createMock(IResult::class);
+		$result->method('fetchAll')->willReturn([
+			[
+				'duty_date' => '2099-01-02',
+				'start_time' => '08:00:00',
+				'end_time' => '12:00:00',
+				'break_minutes' => 0,
+				'display_name' => '=cmd|"/c calc"!A1',
+				'linked_user_id' => "-2+3",
+				'employee_id' => 7,
+				'status' => 'active',
+			],
+		]);
+
+		$expr = new class {
+			public function eq(...$a)
+			{
+				return 'eq';
+			}
+
+			public function neq(...$a)
+			{
+				return 'neq';
+			}
+		};
+		$qb = $this->createMock(IQueryBuilder::class);
+		$qb->method('select')->willReturnSelf();
+		$qb->method('from')->willReturnSelf();
+		$qb->method('innerJoin')->willReturnSelf();
+		$qb->method('where')->willReturnSelf();
+		$qb->method('orderBy')->willReturnSelf();
+		$qb->method('addOrderBy')->willReturnSelf();
+		$qb->method('expr')->willReturn($expr);
+		$qb->method('createNamedParameter')->willReturn('p');
+		$qb->method('executeQuery')->willReturn($result);
+
+		$db = $this->createMock(IDBConnection::class);
+		$db->method('getQueryBuilder')->willReturn($qb);
+		$db->method('tableExists')->willReturn(true);
+
+		$svc = new RosterMinutesExportService($db, $config);
+		$csv = $svc->toCsv(1);
+		self::assertStringContainsString('"\'=cmd', $csv);
+		self::assertStringContainsString('"\'-2+3"', $csv);
+	}
 }

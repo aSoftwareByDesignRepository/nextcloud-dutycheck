@@ -43,6 +43,10 @@ if (hasPlannerCreds()) {
 
 export default defineConfig({
   testDir: 'tests/e2e',
+  globalTeardown: './tests/e2e/global-teardown.mjs',
+
+  globalSetup: './tests/e2e/global-setup.mjs',
+
   timeout: 60_000,
   expect: { timeout: 10_000 },
   fullyParallel: false,

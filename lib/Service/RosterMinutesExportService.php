@@ -101,7 +101,7 @@ class RosterMinutesExportService
 		$lines = [implode(';', $matrix['headers'])];
 		foreach ($matrix['rows'] as $row) {
 			$lines[] = implode(';', array_map(static function (string $cell): string {
-				$escaped = str_replace('"', '""', $cell);
+				$escaped = str_replace('"', '""', CsvFormulaGuard::neutralize($cell));
 				return '"' . $escaped . '"';
 			}, $row));
 		}

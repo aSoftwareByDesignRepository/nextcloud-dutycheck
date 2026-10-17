@@ -59,4 +59,36 @@ class RosterCsvFormatterTest extends TestCase
 		self::assertCount(1, $lines);
 		self::assertStringStartsWith('Period ID,', $lines[0]);
 	}
+
+	public function testFormulaCellsAreApostrophePrefixed(): void
+	{
+		$l10n = $this->createMock(IL10N::class);
+		$l10n->method('t')->willReturnCallback(static fn (string $s): string => $s);
+
+		$formatter = new RosterCsvFormatter($l10n);
+		$period = [
+			'id' => 1,
+			'startDate' => '2026-05-01',
+			'endDate' => '2026-05-31',
+			'status' => 'open',
+		];
+		$assignments = [[
+			'id' => 9,
+			'dutyDate' => '2026-05-10',
+			'startTime' => '08:00',
+			'endTime' => '16:00',
+			'breakMinutes' => 0,
+			'employeeId' => 2,
+			'employeeName' => '=HYPERLINK("https://evil")',
+			'locationId' => 3,
+			'locationName' => "@cmd",
+			'note' => "+SUM(1,2)",
+		]];
+
+		$csv = $formatter->buildDutyRosterCsv($period, $assignments, 'admin', '2026-05-10T12:00:00Z');
+		self::assertStringContainsString('\'=HYPERLINK', $csv);
+		self::assertStringContainsString('\'@cmd', $csv);
+		self::assertStringContainsString('\'+SUM', $csv);
+		self::assertStringNotContainsString(',=HYPERLINK', $csv);
+	}
 }

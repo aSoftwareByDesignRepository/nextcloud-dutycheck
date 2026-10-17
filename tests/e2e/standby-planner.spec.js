@@ -204,7 +204,7 @@ test('standby create posts kind=standby with zero break and allows equal times',
 	await page.locator('#dc-assignment-end').fill('00:00')
 	await page.locator('#dc-assignment-standby-category').selectOption(String(STANDBY_CATEGORY.id))
 
-	await page.getByRole('button', { name: /Save assignment|[Ss]peichern/ }).click()
+	await page.locator('.dc-modal__dialog--roster-assignment .dc-modal__actions .button.primary').click()
 	await expect.poll(() => posted !== null, { timeout: 15000 }).toBe(true)
 	// The API client transports ids/minutes as form strings; assert on the
 	// semantic values, not the transport types.

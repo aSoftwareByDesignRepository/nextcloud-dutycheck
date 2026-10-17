@@ -88,6 +88,7 @@ class RosterCsvFormatter
 
 	private function escapeField(string $value): string
 	{
+		$value = CsvFormulaGuard::neutralize($value);
 		if (str_contains($value, '"')) {
 			$value = str_replace('"', '""', $value);
 		}

@@ -1944,7 +1944,9 @@ label.dc-checkbox {
 #app-content.dc-app .dc-filter-actions .button,
 #app-content.dc-app .dc-filter-actions button,
 #app-content.dc-app .dc-action-row .button,
-#app-content.dc-app .dc-action-row button {
+#app-content.dc-app .dc-action-row button,
+#app-content.dc-app .dc-employee-crossnav .button,
+#app-content.dc-app .dc-employee-crossnav a.button {
 	white-space: normal;
 	overflow-wrap: anywhere;
 	height: auto;
@@ -2447,6 +2449,19 @@ button.dc-license-modal__confirm-danger:hover {
 	color: var(--color-warning-text, color-mix(in srgb, var(--color-warning, #c98600) 80%, var(--color-main-text, #1d1d1d) 20%));
 	font-size: var(--dc-fs-xs);
 	font-weight: 600;
+}
+/*
+ * <480px: a long localized severity label can consume the `auto` track and
+ * starve the body column to a few px — title words then overflow the card.
+ * Stack badge, body and actions on one column instead.
+ */
+@media (width < 480px) {
+	.dc-conflict {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.dc-conflict > .dc-severity {
+		justify-self: start;
+	}
 }
 
 /* ── Modal ───────────────────────────────────────────────────── */

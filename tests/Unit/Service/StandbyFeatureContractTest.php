@@ -26,11 +26,13 @@ final class StandbyFeatureContractTest extends TestCase
 	private static string $mobile;
 	private static string $routes;
 	private static string $migration;
+	private static string $controller;
 
 	public static function setUpBeforeClass(): void
 	{
 		self::$root = dirname(__DIR__, 3);
 		self::$roster = (string) file_get_contents(self::$root . '/lib/Service/RosterService.php');
+		self::$controller = (string) file_get_contents(self::$root . '/lib/Controller/RosterApiController.php');
 		self::$apiErr = (string) file_get_contents(self::$root . '/lib/Controller/ApiJsonErrorResponse.php');
 		self::$mobile = (string) file_get_contents(self::$root . '/lib/Controller/MobileController.php');
 		self::$routes = (string) file_get_contents(self::$root . '/appinfo/routes.php');
@@ -149,6 +151,35 @@ final class StandbyFeatureContractTest extends TestCase
 		foreach (['standby_created', 'standby_updated', 'standby_deleted'] as $action) {
 			self::assertStringContainsString("'{$action}'", self::$roster);
 		}
+	}
+
+	public function testCreateDoesNotInjectNullStandbyKeys(): void
+	{
+		// Regression 2026-10-17: the create controller injected
+		// 'responseTimeMinutes' => null unconditionally, so
+		// array_key_exists() in resolveStandbyMetadata was always true and the
+		// category's defaultResponseTimeMinutes fill was dead code — rows were
+		// persisted with NULL response_time_minutes. Both write paths must
+		// only forward standby keys the client actually sent.
+		foreach (['function createAssignment', 'function updateAssignment'] as $fn) {
+			$start = strpos(self::$controller, $fn);
+			self::assertNotFalse($start, $fn);
+			$body = substr(self::$controller, $start, 4500);
+			foreach (['standbyCategoryId', 'responseTimeMinutes'] as $field) {
+				self::assertStringNotContainsString(
+					"'{$field}' => \$params['{$field}'] ?? null",
+					$body,
+					"{$fn} must not inject a null {$field} key",
+				);
+			}
+			self::assertStringContainsString('array_key_exists', $body);
+		}
+		// Service side: the category default fill depends on the key being
+		// absent — the guard branch must stay.
+		self::assertStringContainsString(
+			"!array_key_exists('responseTimeMinutes', \$payload)",
+			self::$roster,
+		);
 	}
 
 	public function testErrorCodeMapping(): void
