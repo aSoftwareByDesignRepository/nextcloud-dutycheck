@@ -96,6 +96,10 @@ class ThresholdApproachNotifier
 				$qb->expr()->isNull('status'),
 			));
 		}
+		// Standby produces no working-time minutes — never feed the cap check.
+		if (SchemaProbe::hasColumn($this->db, 'dc_assignments', 'kind')) {
+			$qb->andWhere($qb->expr()->neq('kind', $qb->createNamedParameter(AssignmentKind::STANDBY)));
+		}
 		$total = 0;
 		foreach ($qb->executeQuery()->fetchAll() as $row) {
 			$total += $this->effectiveMinutes((string) $row['start_time'], (string) $row['end_time'], (int) $row['break_minutes']);

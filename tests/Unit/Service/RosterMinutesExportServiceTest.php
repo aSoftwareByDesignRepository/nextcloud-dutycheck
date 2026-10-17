@@ -48,6 +48,11 @@ final class RosterMinutesExportServiceTest extends TestCase
 			{
 				return 'eq';
 			}
+
+			public function neq(...$a)
+			{
+				return 'neq';
+			}
 		};
 		$qb = $this->createMock(IQueryBuilder::class);
 		$qb->method('select')->willReturnSelf();

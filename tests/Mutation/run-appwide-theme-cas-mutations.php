@@ -78,8 +78,8 @@ $mutations = [
 	],
 	'company_mismatch_maps_to_400' => [
 		'file' => $apiErr,
-		'from' => "'FORBIDDEN', 'COMPANY_MISMATCH', 'COMPANY_MEMBERSHIP_REQUIRED' => 403,",
-		'to' => "'FORBIDDEN', 'COMPANY_MEMBERSHIP_REQUIRED' => 403,",
+		'from' => "'FORBIDDEN', 'COMPANY_MISMATCH', 'COMPANY_MEMBERSHIP_REQUIRED', 'LOCATION_OUT_OF_SCOPE' => 403,",
+		'to' => "'FORBIDDEN', 'COMPANY_MEMBERSHIP_REQUIRED', 'LOCATION_OUT_OF_SCOPE' => 403,",
 	],
 	'period_cas_removed' => [
 		'file' => $roster,

@@ -192,7 +192,7 @@ $assert(str_contains($access, 'dc_company_members') && str_contains($access, 'dc
 $assert(str_contains($listener, 'purgeUser(') && !str_contains($listener, 'purgeUserDutyRole('), 'gdpr_listener_full_purge');
 $assert(
 	(bool) preg_match(
-		'/function transferAssignmentEmployee[\s\S]{0,2500}?AssignmentSlotKey::forActive/',
+		'/function transferAssignmentEmployee[\s\S]{0,4200}?AssignmentSlotKey::forActive/',
 		$roster,
 	),
 	'transfer_rewrites_slot_key',

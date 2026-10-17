@@ -1,0 +1,21 @@
+LENS 4 — UX dead-end audit (standby surface), round 7
+=====================================================
+
+Finding UX-01 (Must-Fix -> VERIFIED): STANDBY_ACKNOWLEDGE_DISABLED reached
+the wire (422, mapped in ApiControllerTrait error map) but had no
+knownCodeMessage entry in js/common/messaging.js — a flag-toggle race
+(employee opens ack sheet -> admin disables ack -> employee confirms)
+would surface a bare/generic error instead of actionable copy.
+
+Fix: added translated copy in js/common/messaging.js:
+  en: "On-call duty acknowledgement is switched off for this company.
+       Reload the page."
+  de: "Die Bestätigung der Rufbereitschaft ist für dieses Unternehmen
+       deaktiviert. Laden Sie die Seite neu."
+(de.json updated with a real translation, not English fallback)
+
+Verification executed this session:
+- phpunit l10n runtime + parity gates: green, 1426 keys x 11 locales
+- error-code coverage: all STANDBY_* wire codes now map to actionable
+  copy (STANDBY_DISABLED, STANDBY_OVERLAP, STANDBY_CATEGORY_NOT_FOUND,
+  STANDBY_SHIFT_COLLISION, STANDBY_ACKNOWLEDGE_DISABLED, INVALID_KIND)

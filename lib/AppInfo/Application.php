@@ -264,6 +264,14 @@ class Application extends App implements IBootstrap
 				$c->query(PlannerLocationScopeService::class),
 				$c->query(ApiRateLimitService::class),
 				$c->query(PeriodLockService::class),
+				$c->query(SelfServiceSettingsService::class),
+				$c->query(\OCA\DutyCheck\Service\StandbyCategoryService::class),
+			);
+		});
+		$context->registerService(\OCA\DutyCheck\Service\StandbyCategoryService::class, function ($c): \OCA\DutyCheck\Service\StandbyCategoryService {
+			return new \OCA\DutyCheck\Service\StandbyCategoryService(
+				$c->query(\OCP\IDBConnection::class),
+				$c->query(\OCA\DutyCheck\Service\CompanyService::class),
 			);
 		});
 		$context->registerService(SwapService::class, function ($c): SwapService {

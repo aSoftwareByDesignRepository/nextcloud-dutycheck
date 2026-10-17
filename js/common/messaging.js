@@ -167,6 +167,8 @@
 				return t('dutycheck', 'This exact assignment already exists. Reload the page to see the latest roster.');
 			case 'CONFLICT_ACK_STALE':
 				return t('dutycheck', 'Someone else already confirmed this exception. Reload to see the latest checks.');
+			case 'STANDBY_ACKNOWLEDGE_DISABLED':
+				return t('dutycheck', 'On-call duty acknowledgement is switched off for this company. Reload the page.');
 			case 'COMPANY_MEMBERSHIP_REQUIRED':
 				return t('dutycheck', 'Your account is not on a company yet. Ask an administrator to add you under Settings → Companies.');
 			default:

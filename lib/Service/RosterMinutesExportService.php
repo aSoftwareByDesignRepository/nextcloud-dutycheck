@@ -66,6 +66,11 @@ class RosterMinutesExportService
 			->orderBy('e.display_name', 'ASC')
 			->addOrderBy('a.duty_date', 'ASC')
 			->addOrderBy('a.start_time', 'ASC');
+		// Standby is planning context, not working time — excluded from every
+		// minutes/payroll export (compensation lives in external HCM systems).
+		if (SchemaProbe::hasColumn($this->db, 'dc_assignments', 'kind')) {
+			$qb->andWhere($qb->expr()->neq('a.kind', $qb->createNamedParameter(AssignmentKind::STANDBY)));
+		}
 		$rows = $qb->executeQuery()->fetchAll();
 		$headers = ['linkedUserId', 'employeeName', 'employeeId', 'dutyDate', 'startTime', 'endTime', 'breakMinutes', 'effectiveMinutes'];
 		$out = [];

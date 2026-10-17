@@ -81,6 +81,8 @@ class MobileController extends Controller
 				'dutycheck.quietHours' => (bool) ($snapshot['pushQuietHoursEnabled'] ?? false),
 				'dutycheck.planWeekLabel' => (bool) ($snapshot['rotationPatternsEnabled'] ?? false),
 				'dutycheck.swapBilateral' => (($snapshot['swapApprovalMode'] ?? '') === SelfServiceSettingsService::SWAP_BILATERAL_AUTO),
+				'dutycheck.standby' => (bool) ($snapshot['standbyEnabled'] ?? false),
+				'dutycheck.standbyAcknowledge' => (bool) ($snapshot['standbyAcknowledgeEnabled'] ?? false),
 			]);
 			if ($snapshot !== null) {
 				$payload['selfService'] = $snapshot;
@@ -100,10 +102,16 @@ class MobileController extends Controller
 			$this->gate->assertGatePassed($uid);
 			$from = $this->request->getParam('from');
 			$to = $this->request->getParam('to');
+			// Opt-in contract: clients that advertise `caps=standby` receive
+			// standby rows; old clients get shift-only payloads so they can
+			// never misrender a standby duty as worked time.
+			$caps = (string) $this->request->getParam('caps', '');
+			$includeStandby = in_array('standby', array_map('trim', explode(',', strtolower($caps))), true);
 			$data = $this->roster->myRoster(
 				$uid,
 				is_string($from) ? $from : null,
 				is_string($to) ? $to : null,
+				$includeStandby,
 			);
 			$data = $this->enrichRosterWithPlanWeek($uid, $data);
 			return new JSONResponse(['ok' => true, 'data' => $data]);
@@ -484,6 +492,13 @@ class MobileController extends Controller
 			'pushQuietHoursEnabled' => (bool) ($full['pushQuietHoursEnabled'] ?? false),
 			'pushQuietHoursStart' => (string) ($full['pushQuietHoursStart'] ?? '22:00'),
 			'pushQuietHoursEnd' => (string) ($full['pushQuietHoursEnd'] ?? '06:00'),
+			'standbyEnabled' => (bool) ($full['standbyEnabled'] ?? false),
+			'standbyAcknowledgeEnabled' => (bool) ($full['standbyAcknowledgeEnabled'] ?? false),
+			'peerRosterVisibility' => (bool) ($full['peerRosterVisibility'] ?? false),
+			'preferencesEnabled' => (bool) ($full['preferencesEnabled'] ?? false),
+			'blackoutsEnabled' => (bool) ($full['blackoutsEnabled'] ?? false),
+			'rotationPatternsEnabled' => (bool) ($full['rotationPatternsEnabled'] ?? false),
+			'swapApprovalMode' => (string) ($full['swapApprovalMode'] ?? ''),
 		];
 	}
 

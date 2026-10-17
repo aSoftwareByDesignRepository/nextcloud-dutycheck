@@ -1,0 +1,25 @@
+LENS 1 — Follow-up finding (boot-wiring race, generalized), round 7
+===================================================================
+
+ARCH-02 (Must-Fix -> VERIFIED): partial fix for the Add-Assignment dead
+click (ARCH-01) widened the race: the trigger listener moved pre-await,
+but every listener on the statically-rendered assignment form stayed
+post-await — dc-assignment-form-clear, template change, field
+change-eligibility, kind toggle, and form submit were dead during the
+initial Promise.all window. Two atlas-dialogs-filters e2e failures:
+  - "assignment form clear cancels entered fields without persist"
+    (note field kept its value after Clear — listener not yet bound)
+  - "assignment soft-conflict promptReason open -> cancel + minLength
+    + confirm" (submit/eligibility path dead during boot)
+
+Fix (js/roster.js): ALL listeners on static controls — period switcher,
+assignment form internals, copy panel — now wired before the first
+await, together with the trigger delegation. Only the boot loads
+themselves remain post-await.
+
+Verification executed this session:
+- npx playwright test -g "assignment form clear cancels|soft-conflict
+  promptReason" -> 3 passed (incl. setup)
+- phpunit --filter EnsureCalendarMonthContractTest -> 4 tests /
+  27 assertions OK (wireMonthNavigator adjacency contract preserved)
+- node --check js/roster.js -> clean

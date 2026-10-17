@@ -127,6 +127,10 @@ final class TodayBoardService
 				$qb->expr()->isNull('a.status'),
 			));
 		}
+		// "Wer ist wo?" is on-site presence — standby duty is remote on-call.
+		if (SchemaProbe::hasColumn($this->db, 'dc_assignments', 'kind')) {
+			$qb->andWhere($qb->expr()->neq('a.kind', $qb->createNamedParameter(AssignmentKind::STANDBY)));
+		}
 		if (SchemaProbe::hasColumn($this->db, 'dc_employees', 'company_id')) {
 			$qb->andWhere($qb->expr()->eq('e.company_id', $qb->createNamedParameter($companyId, IQueryBuilder::PARAM_INT)));
 		}
@@ -175,6 +179,9 @@ final class TodayBoardService
 				$qb->expr()->neq('a.status', $qb->createNamedParameter('cancelled')),
 				$qb->expr()->isNull('a.status'),
 			));
+		}
+		if (SchemaProbe::hasColumn($this->db, 'dc_assignments', 'kind')) {
+			$qb->andWhere($qb->expr()->neq('a.kind', $qb->createNamedParameter(AssignmentKind::STANDBY)));
 		}
 		if (SchemaProbe::hasColumn($this->db, 'dc_employees', 'company_id')) {
 			$qb->andWhere($qb->expr()->eq('e.company_id', $qb->createNamedParameter($companyId, IQueryBuilder::PARAM_INT)));
@@ -255,6 +262,9 @@ final class TodayBoardService
 				$qb->expr()->neq('a.status', $qb->createNamedParameter('cancelled')),
 				$qb->expr()->isNull('a.status'),
 			));
+		}
+		if (SchemaProbe::hasColumn($this->db, 'dc_assignments', 'kind')) {
+			$qb->andWhere($qb->expr()->neq('a.kind', $qb->createNamedParameter(AssignmentKind::STANDBY)));
 		}
 		if (SchemaProbe::hasColumn($this->db, 'dc_periods', 'company_id')) {
 			$qb->andWhere($qb->expr()->eq('p.company_id', $qb->createNamedParameter($companyId, IQueryBuilder::PARAM_INT)));

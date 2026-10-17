@@ -16,6 +16,8 @@
 		'blackoutsEnabled',
 		'pushQuietHoursEnabled',
 		'pushAllowUrgentDuringQuiet',
+		'standbyEnabled',
+		'standbyAcknowledgeEnabled',
 	];
 
 	function root() {
@@ -67,6 +69,19 @@
 		if (warn) {
 			warn.hidden = !data.sollFromDutyWarning;
 		}
+		syncStandbyVisibility();
+	}
+
+	function syncStandbyVisibility() {
+		const f = form();
+		const enabled = !!(f && f.elements.namedItem('standbyEnabled') && f.elements.namedItem('standbyEnabled').checked);
+		const extra = document.getElementById('dc-dt-standby-extra');
+		if (extra) {
+			extra.hidden = !enabled;
+		}
+		if (enabled) {
+			void loadStandbyCategories();
+		}
 	}
 
 	function readPayload() {
@@ -101,11 +116,177 @@
 				}
 			});
 		}
+		document.querySelectorAll('#dc-dt-standby-cats-list .dc-standby-cats__action').forEach((btn) => {
+			btn.disabled = !!locked;
+		});
 		if (btn) btn.disabled = !!locked;
 		if (banner) {
 			banner.hidden = !locked;
 			const p = banner.querySelector('p');
 			if (p) p.textContent = reason || msg('msg-admin-only');
+		}
+	}
+
+	function setCatStatus(text, kind) {
+		const el = document.getElementById('dc-dt-standby-cats-status');
+		if (!el) return;
+		el.hidden = !text;
+		el.textContent = text || '';
+		el.classList.toggle('dc-roster-flash--error', kind === 'error');
+	}
+
+	async function loadStandbyCategories() {
+		const list = document.getElementById('dc-dt-standby-cats-list');
+		if (!list) return;
+		try {
+			const res = await Api.get('/apps/dutycheck/api/standby/categories');
+			renderStandbyCategories(res?.data?.categories || []);
+		} catch (err) {
+			setCatStatus(msg('msg-load-error', t('dutycheck', 'Could not load standby categories.')), 'error');
+		}
+	}
+
+	function renderStandbyCategories(cats) {
+		const list = document.getElementById('dc-dt-standby-cats-list');
+		if (!list) return;
+		list.textContent = '';
+		if (!Array.isArray(cats) || !cats.length) {
+			const li = document.createElement('li');
+			li.className = 'dc-standby-cats__empty';
+			li.textContent = t('dutycheck', 'No categories yet — you can leave this empty.');
+			list.appendChild(li);
+			return;
+		}
+		cats.forEach((cat) => {
+			const li = document.createElement('li');
+			li.className = 'dc-standby-cats__item' + (cat.active ? '' : ' dc-standby-cats__item--inactive');
+
+			const swatch = document.createElement('span');
+			swatch.className = 'dc-standby-cats__swatch';
+			swatch.setAttribute('aria-hidden', 'true');
+			if (cat.color) {
+				swatch.style.backgroundColor = String(cat.color);
+			}
+			li.appendChild(swatch);
+
+			const label = document.createElement('span');
+			label.className = 'dc-standby-cats__label';
+			label.textContent = String(cat.label || '');
+			li.appendChild(label);
+
+			const meta = document.createElement('span');
+			meta.className = 'dc-standby-cats__meta';
+			const bits = [];
+			if (cat.defaultResponseTimeMinutes != null) {
+				bits.push(t('dutycheck', '{n} min').replace('{n}', String(cat.defaultResponseTimeMinutes)));
+			}
+			if (!cat.active) {
+				bits.push(t('dutycheck', 'inactive'));
+			}
+			meta.textContent = bits.join(' · ');
+			li.appendChild(meta);
+
+			const toggleBtn = document.createElement('button');
+			toggleBtn.type = 'button';
+			toggleBtn.className = 'button dc-standby-cats__action';
+			toggleBtn.textContent = cat.active
+				? t('dutycheck', 'Deactivate')
+				: t('dutycheck', 'Activate');
+			toggleBtn.addEventListener('click', () => { void setCategoryActive(cat, !cat.active); });
+			li.appendChild(toggleBtn);
+
+			const delBtn = document.createElement('button');
+			delBtn.type = 'button';
+			delBtn.className = 'button dc-standby-cats__action dc-standby-cats__action--danger';
+			delBtn.textContent = t('dutycheck', 'Delete');
+			delBtn.setAttribute('aria-label', t('dutycheck', 'Delete category {name}').replace('{name}', String(cat.label || '')));
+			delBtn.addEventListener('click', () => { void deleteCategory(cat); });
+			li.appendChild(delBtn);
+
+			list.appendChild(li);
+		});
+	}
+
+	async function addStandbyCategory() {
+		const labelEl = document.getElementById('dc-dt-cat-label');
+		const colorEl = document.getElementById('dc-dt-cat-color');
+		const rtEl = document.getElementById('dc-dt-cat-rt');
+		const label = String(labelEl?.value || '').trim();
+		if (!label) {
+			setCatStatus(t('dutycheck', 'Enter a category name.'), 'error');
+			labelEl?.focus();
+			return;
+		}
+		const rtRaw = String(rtEl?.value || '').trim();
+		if (rtRaw !== '' && !/^\d+$/.test(rtRaw)) {
+			setCatStatus(t('dutycheck', 'Response time must be between 0 and 10080 minutes.'), 'error');
+			rtEl?.focus();
+			return;
+		}
+		const payload = {
+			label,
+			color: String(colorEl?.value || '').trim() || null,
+			defaultResponseTimeMinutes: rtRaw === '' ? null : Number(rtRaw),
+		};
+		const btn = document.getElementById('dc-dt-cat-add');
+		if (btn) btn.disabled = true;
+		try {
+			await Api.post('/apps/dutycheck/api/standby/categories', payload);
+			if (labelEl) labelEl.value = '';
+			if (rtEl) rtEl.value = '';
+			setCatStatus(t('dutycheck', 'Category added.'));
+			await loadStandbyCategories();
+		} catch (err) {
+			setCatStatus(categoryErrorMessage(err), 'error');
+		} finally {
+			if (btn) btn.disabled = false;
+		}
+	}
+
+	async function setCategoryActive(cat, active) {
+		try {
+			await Api.post('/apps/dutycheck/api/standby/categories/' + encodeURIComponent(cat.id), { active: !!active });
+			setCatStatus(active
+				? t('dutycheck', 'Category activated.')
+				: t('dutycheck', 'Category deactivated — existing on-call duties keep their label.'));
+			await loadStandbyCategories();
+		} catch (err) {
+			setCatStatus(categoryErrorMessage(err), 'error');
+		}
+	}
+
+	async function deleteCategory(cat) {
+		const ok = await C.confirmDialog({
+			title: t('dutycheck', 'Delete category'),
+			body: t('dutycheck', 'Really delete “{name}”? On-call duties that use it keep their label.').replace('{name}', String(cat.label || '')),
+			confirmLabel: t('dutycheck', 'Delete'),
+			cancelLabel: t('dutycheck', 'Cancel'),
+		});
+		if (!ok) return;
+		try {
+			await Api.del('/apps/dutycheck/api/standby/categories/' + encodeURIComponent(cat.id));
+			setCatStatus(t('dutycheck', 'Category deleted.'));
+			await loadStandbyCategories();
+		} catch (err) {
+			setCatStatus(categoryErrorMessage(err), 'error');
+		}
+	}
+
+	function categoryErrorMessage(err) {
+		const code = String(err?.code || err?.payload?.error?.code || '');
+		switch (code) {
+			case 'STANDBY_CATEGORY_IN_USE':
+				return t('dutycheck', 'This category is still used by on-call duties. Deactivate it instead.');
+			case 'STANDBY_CATEGORY_INVALID':
+				return t('dutycheck', 'Check the category name and colour.');
+			case 'INVALID_RESPONSE_TIME':
+				return t('dutycheck', 'Response time must be between 0 and 10080 minutes.');
+			case 'FORBIDDEN':
+			case 'INSUFFICIENT_ROLE':
+			case 'access_denied':
+				return msg('msg-admin-only', t('dutycheck', 'Only a DutyCheck app admin can change categories.'));
+			default:
+				return t('dutycheck', 'Could not save the category.');
 		}
 	}
 
@@ -208,6 +389,16 @@
 		document.getElementById('dc-dt-quiet')?.addEventListener('change', (e) => {
 			const badge = document.getElementById('dc-dt-quiet-badge');
 			if (badge) badge.hidden = !!e.target.checked;
+		});
+		document.getElementById('dc-dt-standby')?.addEventListener('change', syncStandbyVisibility);
+		document.getElementById('dc-dt-cat-add')?.addEventListener('click', () => { void addStandbyCategory(); });
+		['dc-dt-cat-label', 'dc-dt-cat-rt'].forEach((id) => {
+			document.getElementById(id)?.addEventListener('keydown', (e) => {
+				if (e.key === 'Enter') {
+					e.preventDefault();
+					void addStandbyCategory();
+				}
+			});
 		});
 		void load();
 	});

@@ -72,8 +72,8 @@ $mutations = [
 	],
 	'policy_cache_not_invalidated' => [
 		'file' => $access,
-		'from' => "\t\t\$this->forgetPolicyCaches();\n\t\treturn \$this->appPolicy();",
-		'to' => "\t\treturn \$this->appPolicy();",
+		'from' => "\t\t\$this->forgetPolicyCaches();\n\t\treturn \$this->appPolicy() + ['pruned' => \$pruned];",
+		'to' => "\t\treturn \$this->appPolicy() + ['pruned' => \$pruned];",
 		'php' => true,
 		'js' => false,
 	],
@@ -115,7 +115,7 @@ $mutations = [
 	'peek_assignment_skips_company_check' => [
 		'file' => $roster,
 		'from' => 'if ($actorUserId !== null) {
-			$this->assertPeriodCompanyAccess($actorUserId, $periodId);
+			$this->assertPeriodCompanyAccess($actorUserId, $periodId, \'ASSIGNMENT_NOT_FOUND\');
 		}',
 		'to' => '/* skip company */',
 		'php' => true,
@@ -144,8 +144,8 @@ $mutations = [
 	],
 	'roster_boot_sequential' => [
 		'file' => $rosterJs,
-		'from' => "await Promise.all([\n\t\t\tloadRoster(selectedPeriodIdFromUrl()),\n\t\t\tloadPendingSwaps(),\n\t\t\tloadPendingOpenClaims(),\n\t\t]);",
-		'to' => "await loadRoster(selectedPeriodIdFromUrl());\n\t\tawait loadPendingSwaps();\n\t\tawait loadPendingOpenClaims();",
+		'from' => "await Promise.all([\n\t\t\t\tloadRoster(Number.isInteger(periodId) && periodId > 0 ? periodId : null),\n\t\t\t\tloadPendingSwaps(),\n\t\t\t\tloadPendingOpenClaims(),\n\t\t\t]);",
+		'to' => "await loadRoster(Number.isInteger(periodId) && periodId > 0 ? periodId : null);\n\t\t\tawait loadPendingSwaps();\n\t\t\tawait loadPendingOpenClaims();",
 		'php' => false,
 		'js' => true,
 	],

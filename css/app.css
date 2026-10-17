@@ -4757,6 +4757,108 @@ textarea {
 	margin-top: var(--dc-space-2);
 }
 
+/* On-call duty (Bereitschaft) settings */
+.dc-dienst-team__standby-extra {
+	display: flex;
+	flex-direction: column;
+	gap: var(--dc-space-3);
+	margin-top: var(--dc-space-2);
+	padding-inline-start: calc(20px + var(--dc-space-2));
+	border-inline-start: 2px solid var(--color-border);
+}
+
+.dc-standby-cats {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: var(--dc-space-1);
+	max-width: 42rem;
+}
+
+.dc-standby-cats__item {
+	display: flex;
+	align-items: center;
+	gap: var(--dc-space-2);
+	padding: var(--dc-space-2) var(--dc-space-3);
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius-large, 10px);
+	background: var(--color-main-background);
+}
+
+.dc-standby-cats__item--inactive {
+	opacity: 0.65;
+}
+
+.dc-standby-cats__item--inactive .dc-standby-cats__label {
+	text-decoration: line-through;
+}
+
+.dc-standby-cats__swatch {
+	flex: none;
+	inline-size: 1rem;
+	block-size: 1rem;
+	border-radius: 50%;
+	border: 1px solid var(--color-border-dark, var(--color-border));
+	background: var(--color-background-dark);
+}
+
+.dc-standby-cats__label {
+	font-weight: 600;
+	overflow-wrap: anywhere;
+}
+
+.dc-standby-cats__meta {
+	color: var(--color-text-maxcontrast, var(--color-text-lighter));
+	font-size: var(--dc-font-size-small, 0.875em);
+	margin-inline-start: auto;
+	white-space: nowrap;
+}
+
+.dc-standby-cats__action {
+	flex: none;
+	min-height: var(--default-clickable-area, 34px);
+}
+
+.dc-standby-cats__empty {
+	color: var(--color-text-maxcontrast, var(--color-text-lighter));
+	padding: var(--dc-space-2) 0;
+}
+
+.dc-standby-cat-form {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: var(--dc-space-3);
+	margin-top: var(--dc-space-3);
+	padding-top: var(--dc-space-3);
+	border-top: 1px dashed var(--color-border);
+}
+
+.dc-standby-cat-form .dc-field {
+	min-inline-size: 10rem;
+	flex: 1 1 auto;
+}
+
+.dc-standby-cat-form .dc-field:has(.dc-input--color) {
+	min-inline-size: 4.5rem;
+	flex: 0 0 auto;
+}
+
+.dc-input--color {
+	inline-size: 4rem;
+	block-size: 2.5rem;
+	padding: 2px;
+	cursor: pointer;
+}
+
+.dc-standby-cat-form__actions {
+	display: flex;
+	align-items: flex-end;
+	flex: 0 0 auto;
+}
+
 .dc-today__filters {
 	margin-bottom: var(--dc-space-4);
 	align-items: end;
@@ -5495,6 +5597,118 @@ body[data-theme-dark-highcontrast] #app-navigation .dc-nav__subtitle {
 }
 .dc-roster-grid__cell--filled {
 	background: var(--dc-bg-soft);
+}
+
+/* Standby (Rufbereitschaft) — dashed border + phone icon, never colour alone. */
+.dc-roster-grid__cell--standby {
+	border: 2px dashed var(--dc-standby-accent, var(--color-element-warning, var(--color-warning-text, #c98600)));
+	background: color-mix(
+		in srgb,
+		var(--dc-standby-accent, var(--color-element-warning, var(--color-warning-text, #c98600))) 8%,
+		var(--color-main-background, #fff)
+	);
+}
+.dc-roster-grid__shift--standby {
+	--dc-band-accent: var(--color-element-warning, var(--color-warning-text, #c98600));
+	border-style: dashed;
+}
+.dc-roster-grid__standby-tag {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--dc-space-1);
+	font-size: var(--dc-fs-xs, 0.8rem);
+	font-weight: 700;
+	color: var(--color-main-text, #1d1d1d);
+}
+.dc-roster-band-legend__chip--standby {
+	--dc-band-accent: var(--color-element-warning, var(--color-warning-text, #c98600));
+	border-style: dashed;
+}
+.dc-badge--standby {
+	border: 1px dashed var(--color-element-warning, var(--color-warning-text, #c98600));
+	background: color-mix(
+		in srgb,
+		var(--color-element-warning, var(--color-warning-text, #c98600)) 10%,
+		var(--color-main-background, #fff)
+	);
+	color: var(--color-main-text, #1d1d1d);
+}
+.dc-row-kind-badge {
+	display: inline-block;
+	margin-inline-start: var(--dc-space-2);
+	vertical-align: middle;
+}
+tr.dc-my-roster__row--standby > th,
+tr.dc-my-roster__row--standby > td {
+	background: color-mix(
+		in srgb,
+		var(--color-element-warning, var(--color-warning-text, #c98600)) 5%,
+		var(--color-main-background, #fff)
+	);
+}
+
+/* Assignment-kind choice cards (Shift / On-call) in the roster form. */
+.dc-kind-choice {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	gap: var(--dc-space-3);
+	margin: 0 0 var(--dc-space-3);
+}
+.dc-kind-choice__option {
+	display: block;
+	cursor: pointer;
+}
+.dc-kind-choice__option input {
+	position: absolute;
+	opacity: 0;
+	width: 1px;
+	height: 1px;
+}
+.dc-kind-choice__card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--dc-space-1);
+	padding: var(--dc-space-3) var(--dc-space-4);
+	border: 2px solid var(--dc-border);
+	border-radius: var(--dc-radius-md);
+	background: var(--dc-bg-card);
+	text-align: center;
+	min-height: 44px;
+	transition: border-color 0.15s ease, background 0.15s ease;
+}
+.dc-kind-choice__icon {
+	font-size: 1.4rem;
+	line-height: 1;
+}
+.dc-kind-choice__label {
+	font-weight: 700;
+	color: var(--color-main-text, #1d1d1d);
+}
+.dc-kind-choice__hint {
+	font-size: var(--dc-fs-xs, 0.8rem);
+	color: var(--dc-muted);
+}
+.dc-kind-choice__option input:checked + .dc-kind-choice__card {
+	border-color: var(--color-primary-element, #0082c9);
+	background: color-mix(
+		in srgb,
+		var(--color-primary-element, #0082c9) 10%,
+		var(--color-main-background, #fff)
+	);
+}
+.dc-kind-choice__option input:focus-visible + .dc-kind-choice__card {
+	outline: 2px solid var(--color-primary-element, #0082c9);
+	outline-offset: 2px;
+}
+.dc-kind-choice__option--standby input:checked + .dc-kind-choice__card {
+	border-style: dashed;
+	border-color: var(--color-element-warning, var(--color-warning-text, #c98600));
+	background: color-mix(
+		in srgb,
+		var(--color-element-warning, var(--color-warning-text, #c98600)) 10%,
+		var(--color-main-background, #fff)
+	);
 }
 
 /* Band legend — flat family strip (sticky inside the grid scroller). */

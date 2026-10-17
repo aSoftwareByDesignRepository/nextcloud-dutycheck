@@ -12,8 +12,24 @@ final class AssignmentSlotKeyTest extends TestCase
 	public function testActiveKeyIsDeterministicAndStable(): void
 	{
 		$key = AssignmentSlotKey::forActive(3, 9, '2026-07-15', '08:00', '16:00');
-		self::assertSame('a:3:9:2026-07-15:08:00:16:00', $key);
+		self::assertSame('a:3:9:2026-07-15:08:00:16:00:shift', $key);
 		self::assertSame($key, AssignmentSlotKey::forActive(3, 9, '2026-07-15', '08:00', '16:00'));
+	}
+
+	public function testKindDifferentiatesIdenticalSlots(): void
+	{
+		$shift = AssignmentSlotKey::forActive(1, 2, '2026-07-15', '00:00', '00:00', 'shift');
+		$standby = AssignmentSlotKey::forActive(1, 2, '2026-07-15', '00:00', '00:00', 'standby');
+		self::assertNotSame($shift, $standby);
+		self::assertSame('a:1:2:2026-07-15:00:00:00:00:standby', $standby);
+	}
+
+	public function testInvalidKindFallsBackToShift(): void
+	{
+		self::assertSame(
+			AssignmentSlotKey::forActive(1, 2, '2026-07-15', '08:00', '16:00', 'shift'),
+			AssignmentSlotKey::forActive(1, 2, '2026-07-15', '08:00', '16:00', 'bogus'),
+		);
 	}
 
 	public function testCancelledKeyFreesLogicalSlot(): void

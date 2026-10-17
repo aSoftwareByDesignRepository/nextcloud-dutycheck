@@ -71,6 +71,12 @@ class MaintenanceCheckOnDutyReader
 					$qb->expr()->isNull('a.status'),
 				));
 			}
+			// "On duty" means physically working a shift — standby is remote on-call.
+			if (SchemaProbe::hasColumn($this->db, 'dc_assignments', 'kind')) {
+				$qb->andWhere($qb->expr()->neq('a.kind', $qb->createNamedParameter(
+					\OCA\DutyCheck\Service\AssignmentKind::STANDBY,
+				)));
+			}
 			if (
 				$actorUserId !== null
 				&& $this->companies !== null

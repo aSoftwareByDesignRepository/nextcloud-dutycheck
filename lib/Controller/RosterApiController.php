@@ -61,6 +61,8 @@ class RosterApiController extends Controller
 		private ?MaintenanceCheckOnDutyReader $onDutyReader = null,
 		private ?RosterMinutesExportService $rosterMinutesExport = null,
 		private ?CompanyService $companies = null,
+		private ?\OCA\DutyCheck\Service\StandbyCategoryService $standbyCategories = null,
+		private ?\OCA\DutyCheck\Service\SelfServiceSettingsService $selfService = null,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -397,6 +399,9 @@ class RosterApiController extends Controller
 				'endTime' => $params['endTime'] ?? null,
 				'breakMinutes' => $params['breakMinutes'] ?? null,
 				'note' => $params['note'] ?? null,
+				'kind' => $params['kind'] ?? null,
+				'standbyCategoryId' => $params['standbyCategoryId'] ?? null,
+				'responseTimeMinutes' => $params['responseTimeMinutes'] ?? null,
 				'acknowledgements' => ApiMutationParams::acknowledgements($this->request),
 			], $userId);
 			return new DataResponse(['ok' => true, 'data' => $data]);
@@ -432,7 +437,7 @@ class RosterApiController extends Controller
 				$this->plannerScope->assertCanPlanLocationOr($userId, (int) $existing['locationId'], 'ASSIGNMENT_NOT_FOUND');
 				$this->plannerScope->assertCanPlanLocationOr($userId, $targetLocationId, 'LOCATION_NOT_FOUND');
 			}
-			$data = $this->roster->updateAssignment($id, [
+			$updatePayload = [
 				'employeeId' => $params['employeeId'] ?? null,
 				'locationId' => $params['locationId'] ?? null,
 				'dutyDate' => $params['dutyDate'] ?? null,
@@ -442,7 +447,15 @@ class RosterApiController extends Controller
 				'note' => $params['note'] ?? null,
 				'expectedVersion' => $params['expectedVersion'] ?? ($params['version'] ?? null),
 				'acknowledgements' => ApiMutationParams::acknowledgements($this->request),
-			], $userId);
+			];
+			// Standby fields only when the client actually sent them — an absent
+			// `kind` must not reset a standby row's slot identity or wipe metadata.
+			foreach (['kind', 'standbyCategoryId', 'responseTimeMinutes'] as $standbyField) {
+				if (array_key_exists($standbyField, $params)) {
+					$updatePayload[$standbyField] = $params[$standbyField];
+				}
+			}
+			$data = $this->roster->updateAssignment($id, $updatePayload, $userId);
 			return new DataResponse(['ok' => true, 'data' => $data]);
 		} catch (\InvalidArgumentException $e) {
 			return new DataResponse(['ok' => false, 'error' => ['code' => $e->getMessage()]], ApiJsonErrorResponse::statusForInvalidArgument($e->getMessage()));
@@ -471,6 +484,106 @@ class RosterApiController extends Controller
 			}
 			$data = $this->roster->cancelAssignment($id, $userId);
 			return new DataResponse(['ok' => true, 'data' => $data]);
+		} catch (Throwable $e) {
+			return ApiJsonErrorResponse::fromThrowable($e);
+		}
+	}
+
+	/**
+	 * Published standby roster for a period. Draft (open) periods return an
+	 * empty row set — unpublished standby data never leaves this endpoint.
+	 */
+	#[NoAdminRequired]
+	public function standbyRoster(int $periodId): DataResponse
+	{
+		try {
+			$userId = $this->access->currentUserId();
+			$this->access->requirePlannerOrAdmin($userId);
+			return new DataResponse(['ok' => true, 'data' => $this->roster->standbyRosterData($periodId, $userId)]);
+		} catch (Throwable $e) {
+			return ApiJsonErrorResponse::fromThrowable($e);
+		}
+	}
+
+	private function standbyCategoriesService(): \OCA\DutyCheck\Service\StandbyCategoryService
+	{
+		return $this->standbyCategories ?? throw new \RuntimeException('STANDBY_CATEGORIES_UNAVAILABLE');
+	}
+
+	#[NoAdminRequired]
+	public function listStandbyCategories(): DataResponse
+	{
+		try {
+			$userId = $this->access->currentUserId();
+			$this->access->requirePlannerOrAdmin($userId);
+			$companyId = $this->companies !== null
+				? $this->companies->writeCompanyIdFor($userId)
+				: CompanyService::DEFAULT_COMPANY_ID;
+			return new DataResponse(['ok' => true, 'data' => [
+				'categories' => $this->standbyCategoriesService()->listForCompany($companyId, true),
+			]]);
+		} catch (Throwable $e) {
+			return ApiJsonErrorResponse::fromThrowable($e);
+		}
+	}
+
+	#[NoAdminRequired]
+	public function createStandbyCategory(): DataResponse
+	{
+		try {
+			$userId = $this->access->currentUserId();
+			$this->access->requireAppAdmin($userId);
+			$params = ApiMutationParams::all($this->request);
+			$companyId = $this->companies !== null
+				? $this->companies->writeCompanyIdFor($userId)
+				: CompanyService::DEFAULT_COMPANY_ID;
+			$created = $this->standbyCategoriesService()->create(
+				$companyId,
+				$userId,
+				$params['label'] ?? null,
+				$params['color'] ?? null,
+				$params['defaultResponseTimeMinutes'] ?? null,
+			);
+			return new DataResponse(['ok' => true, 'data' => $created], 201);
+		} catch (Throwable $e) {
+			return ApiJsonErrorResponse::fromThrowable($e);
+		}
+	}
+
+	#[NoAdminRequired]
+	public function updateStandbyCategory(int $id): DataResponse
+	{
+		try {
+			$userId = $this->access->currentUserId();
+			$this->access->requireAppAdmin($userId);
+			$params = ApiMutationParams::all($this->request);
+			$companyId = $this->companies !== null
+				? $this->companies->writeCompanyIdFor($userId)
+				: CompanyService::DEFAULT_COMPANY_ID;
+			$patch = [];
+			foreach (['label', 'color', 'defaultResponseTimeMinutes', 'active'] as $field) {
+				if (array_key_exists($field, $params)) {
+					$patch[$field] = $params[$field];
+				}
+			}
+			$updated = $this->standbyCategoriesService()->update($companyId, $userId, $id, $patch);
+			return new DataResponse(['ok' => true, 'data' => $updated]);
+		} catch (Throwable $e) {
+			return ApiJsonErrorResponse::fromThrowable($e);
+		}
+	}
+
+	#[NoAdminRequired]
+	public function deleteStandbyCategory(int $id): DataResponse
+	{
+		try {
+			$userId = $this->access->currentUserId();
+			$this->access->requireAppAdmin($userId);
+			$companyId = $this->companies !== null
+				? $this->companies->writeCompanyIdFor($userId)
+				: CompanyService::DEFAULT_COMPANY_ID;
+			$this->standbyCategoriesService()->delete($companyId, $userId, $id);
+			return new DataResponse(['ok' => true]);
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);
 		}

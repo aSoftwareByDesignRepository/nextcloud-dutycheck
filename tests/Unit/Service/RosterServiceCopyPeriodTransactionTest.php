@@ -27,10 +27,10 @@ final class RosterServiceCopyPeriodTransactionTest extends TestCase
 	public function testApplyDefersRosterHydrationAndConflictRefreshUntilCommit(): void
 	{
 		$fn = $this->copyPeriodSource();
-		self::assertStringContainsString('], $actor, false, false, false, false);', $fn);
+		self::assertStringContainsString('$this->createAssignment($copyPayload, $actor, false, false, false, false);', $fn);
 		self::assertStringContainsString('$useTransaction', (string) file_get_contents((new ReflectionClass(RosterService::class))->getFileName()));
 		self::assertStringContainsString('$this->refreshAndListConflicts($targetPeriodId);', $fn);
-		$createPos = strpos($fn, '], $actor, false, false, false, false);');
+		$createPos = strpos($fn, '$this->createAssignment($copyPayload, $actor, false, false, false, false);');
 		$refreshPos = strpos($fn, '$this->refreshAndListConflicts($targetPeriodId);');
 		self::assertNotFalse($createPos);
 		self::assertNotFalse($refreshPos);

@@ -169,6 +169,9 @@ foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as
 			<span class="dc-roster-band-legend__chip dc-roster-band-legend__chip--day"><?php p($l->t('Tag')); ?></span>
 			<span class="dc-roster-band-legend__chip dc-roster-band-legend__chip--late"><?php p($l->t('Spät')); ?></span>
 			<span class="dc-roster-band-legend__chip dc-roster-band-legend__chip--night"><?php p($l->t('Nacht')); ?></span>
+			<span class="dc-roster-band-legend__chip dc-roster-band-legend__chip--standby" id="dc-legend-chip-standby" hidden>
+				<span aria-hidden="true">📞</span> <?php p($l->t('Bereitschaft')); ?>
+			</span>
 		</div>
 		<p id="dc-roster-grid-status" class="dc-roster-virtual-status" aria-hidden="true"></p>
 		<div id="dc-roster-grid-scroller" class="dc-roster-grid-scroller" tabindex="0" role="region" aria-labelledby="dc-assignments-title">
@@ -318,6 +321,50 @@ foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as
 			<p id="dc-assignment-form-intro" class="dc-roster-form__intro">
 				<?php p($l->t('Three steps: pick the day, choose who works and where, then enter shift times. People on approved leave are not listed for that day.')); ?>
 			</p>
+			<fieldset class="dc-roster-form__step-group" id="dc-assignment-kind-group" aria-labelledby="dc-roster-step-kind" hidden>
+				<h3 id="dc-roster-step-kind" class="dc-roster-form__section-heading dc-roster-form__section-heading--step">
+					<span class="dc-roster-form__step-badge" aria-hidden="true">•</span>
+					<?php p($l->t('Type of duty')); ?>
+				</h3>
+				<div class="dc-kind-choice" role="radiogroup" aria-labelledby="dc-roster-step-kind">
+					<label class="dc-kind-choice__option" for="dc-assignment-kind-shift">
+						<input type="radio" id="dc-assignment-kind-shift" name="assignmentKind" value="shift" checked>
+						<span class="dc-kind-choice__card">
+							<span class="dc-kind-choice__icon" aria-hidden="true">🕐</span>
+							<span class="dc-kind-choice__label"><?php p($l->t('Shift')); ?></span>
+							<span class="dc-kind-choice__hint"><?php p($l->t('Worked time — counts towards totals.')); ?></span>
+						</span>
+					</label>
+					<label class="dc-kind-choice__option dc-kind-choice__option--standby" for="dc-assignment-kind-standby">
+						<input type="radio" id="dc-assignment-kind-standby" name="assignmentKind" value="standby">
+						<span class="dc-kind-choice__card">
+							<span class="dc-kind-choice__icon" aria-hidden="true">📞</span>
+							<span class="dc-kind-choice__label"><?php p($l->t('On-call (standby)')); ?></span>
+							<span class="dc-kind-choice__hint"><?php p($l->t('Rufbereitschaft — not counted as worked time.')); ?></span>
+						</span>
+					</label>
+				</div>
+				<div class="dc-field dc-field--full" id="dc-assignment-standby-fields" hidden>
+					<div class="dc-field">
+						<label class="dc-field__label" for="dc-assignment-standby-category"><?php p($l->t('Standby category (optional)')); ?></label>
+						<select id="dc-assignment-standby-category" name="standbyCategoryId" class="dc-input" aria-describedby="dc-assignment-standby-category-hint">
+							<option value=""><?php p($l->t('No category')); ?></option>
+						</select>
+						<p id="dc-assignment-standby-category-hint" class="dc-field__hint">
+							<?php p($l->t('Managed by an administrator under Settings → On-call duty.')); ?>
+						</p>
+					</div>
+					<div class="dc-field">
+						<label class="dc-field__label" for="dc-assignment-response-time"><?php p($l->t('Response time (minutes, optional)')); ?></label>
+						<input id="dc-assignment-response-time" type="number" name="responseTimeMinutes" class="dc-input dc-input--num"
+							min="0" max="10080" step="5"
+							aria-describedby="dc-assignment-response-time-hint">
+						<p id="dc-assignment-response-time-hint" class="dc-field__hint">
+							<?php p($l->t('How quickly the person must react when called. Leave empty if not agreed.')); ?>
+						</p>
+					</div>
+				</div>
+			</fieldset>
 			<div class="dc-field dc-field--full" id="dc-assignment-template-field">
 				<label class="dc-field__label" for="dc-assignment-template"><?php p($l->t('Shift template (optional)')); ?></label>
 				<select id="dc-assignment-template" class="dc-input" aria-describedby="dc-assignment-template-hint">
@@ -364,7 +411,7 @@ foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as
 			<fieldset class="dc-roster-form__step-group" aria-labelledby="dc-roster-shift-schedule-label">
 				<h3 id="dc-roster-shift-schedule-label" class="dc-roster-form__section-heading dc-roster-form__section-heading--step">
 					<span class="dc-roster-form__step-badge" aria-hidden="true">3</span>
-					<?php p($l->t('Shift times')); ?>
+					<span id="dc-roster-step-times-label"><?php p($l->t('Shift times')); ?></span>
 				</h3>
 				<div class="dc-field dc-field--full dc-field--roster-time-hint">
 					<p id="dc-roster-24h-hint" class="dc-field__hint dc-roster-24h-hint">
@@ -395,7 +442,7 @@ foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as
 				<h3 id="dc-roster-form-extras-label" class="dc-roster-form__section-heading">
 					<?php p($l->t('Break and note')); ?>
 				</h3>
-			<div class="dc-field dc-field--roster-break">
+			<div class="dc-field dc-field--roster-break" id="dc-assignment-break-field">
 				<label class="dc-field__label" for="dc-assignment-break"><?php p($l->t('Break (minutes)')); ?></label>
 				<input id="dc-assignment-break" type="number" name="breakMinutes" class="dc-input dc-input--num"
 					min="0" max="720" step="5" value="0" required

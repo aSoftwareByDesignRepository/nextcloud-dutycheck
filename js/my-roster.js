@@ -233,6 +233,10 @@
 		);
 		for (const row of rows) {
 			const tr = create('tr');
+			const isStandby = String(row?.kind || 'shift') === 'standby';
+			if (isStandby) {
+				tr.classList.add('dc-my-roster__row--standby');
+			}
 
 			const date = D?.formatDisplayDate?.(row.dutyDate) || row.dutyDate;
 			const thDate = create('th', {
@@ -241,6 +245,16 @@
 				dataset: { cell: t('dutycheck', 'Date') },
 				text: date,
 			});
+			if (isStandby) {
+				thDate.appendChild(create('span', {
+					class: 'dc-badge dc-badge--standby',
+					text: `📞 ${t('dutycheck', 'Bereitschaft')}`,
+					attrs: {
+						title: t('dutycheck', 'On-call duty — not working time'),
+						'aria-label': t('dutycheck', 'On-call duty (not working time)'),
+					},
+				}));
+			}
 			tr.appendChild(thDate);
 
 			const tdDay = create('td', { text: weekdayLabel(row.dutyDate) });
@@ -255,15 +269,29 @@
 			const tdEnd = create('td');
 			tdEnd.dataset.cell = t('dutycheck', 'End');
 			tdEnd.appendChild(create('span', { class: 'dc-time-cell__value', text: startClock(row.endTime) }));
-			if (D?.isOvernightWallClockShift?.(row.startTime, row.endTime)) {
+			if (isStandby && String(row.startTime) === String(row.endTime)) {
+				tdEnd.appendChild(create('span', { class: 'dc-row-meta', text: t('dutycheck', '24 h') }));
+			} else if (D?.isOvernightWallClockShift?.(row.startTime, row.endTime)) {
 				tdEnd.appendChild(create('span', { class: 'dc-row-meta', text: overnightHintText }));
 			}
 			tr.appendChild(tdEnd);
 
+			const noteBits = [];
+			if (isStandby) {
+				if (row.standbyCategoryLabel) {
+					noteBits.push(String(row.standbyCategoryLabel));
+				}
+				if (row.responseTimeMinutes != null) {
+					noteBits.push(t('dutycheck', 'Respond within {n} min').replace('{n}', String(row.responseTimeMinutes)));
+				}
+				if (row.note) {
+					noteBits.push(String(row.note));
+				}
+			}
 			const rest = [
 				{ label: t('dutycheck', 'Location'), value: row.locationName || '' },
-				{ label: t('dutycheck', 'Break'), value: t('dutycheck', '{n} min').replace('{n}', String(row.breakMinutes ?? 0)) },
-				{ label: t('dutycheck', 'Note'), value: row.note || '' },
+				{ label: t('dutycheck', 'Break'), value: isStandby ? '—' : t('dutycheck', '{n} min').replace('{n}', String(row.breakMinutes ?? 0)) },
+				{ label: t('dutycheck', 'Note'), value: isStandby ? noteBits.join(' · ') : (row.note || '') },
 			];
 			for (const cell of rest) {
 				const td = create('td', { text: String(cell.value ?? '') });
@@ -273,11 +301,16 @@
 
 			const tdAck = create('td');
 			tdAck.dataset.cell = t('dutycheck', 'Confirm');
-			if (row.acknowledged || row.acknowledgedAt) {
+			const ackAllowed = row.acknowledgeable !== false;
+			if (!ackAllowed) {
+				tdAck.appendChild(create('span', { class: 'dc-row-meta', text: '—' }));
+			} else if (row.acknowledged || row.acknowledgedAt) {
 				tdAck.appendChild(create('span', {
 					class: 'dc-badge dc-badge--success',
 					text: t('dutycheck', 'Seen'),
-					attrs: { 'aria-label': t('dutycheck', 'You have confirmed this shift') },
+					attrs: { 'aria-label': isStandby
+						? t('dutycheck', 'You have confirmed this on-call duty')
+						: t('dutycheck', 'You have confirmed this shift') },
 				}));
 			} else {
 				const btn = create('button', {
@@ -285,7 +318,9 @@
 					text: t('dutycheck', 'Got it'),
 					attrs: {
 						type: 'button',
-						'aria-label': t('dutycheck', 'Confirm you have seen this shift'),
+						'aria-label': isStandby
+							? t('dutycheck', 'Confirm you have seen this on-call duty')
+							: t('dutycheck', 'Confirm you have seen this shift'),
 					},
 				});
 				btn.style.minHeight = '44px';
@@ -300,7 +335,9 @@
 							class: 'dc-badge dc-badge--success',
 							text: t('dutycheck', 'Seen'),
 						}));
-						C?.announce?.(t('dutycheck', 'Shift confirmed'));
+						C?.announce?.(isStandby
+							? t('dutycheck', 'On-call duty confirmed')
+							: t('dutycheck', 'Shift confirmed'));
 					} catch (err) {
 						btn.disabled = false;
 						Messaging?.showError?.(err) || console.error(err);
@@ -312,6 +349,13 @@
 
 			const tdSwap = create('td');
 			tdSwap.dataset.cell = t('dutycheck', 'Swap');
+			if (isStandby) {
+				// Standby is planned by the company — employees cannot swap it.
+				tdSwap.appendChild(create('span', { class: 'dc-row-meta', text: '—' }));
+				tr.appendChild(tdSwap);
+				tbody.appendChild(tr);
+				continue;
+			}
 			const openSwap = myOpenSwapByAssignment.get(row.id);
 			if (openSwap) {
 				const withdrawBtn = create('button', {

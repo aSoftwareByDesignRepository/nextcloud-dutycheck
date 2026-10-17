@@ -1,0 +1,1242 @@
+{
+  "steps": [
+    {
+      "step": "enable-flags",
+      "ok": true
+    }
+  ],
+  "context": {
+    "periodId": 343,
+    "employeeId": 10,
+    "locationId": 534,
+    "standbyEnabled": true,
+    "periodStart": "2199-01-04",
+    "periodEnd": "2199-01-10"
+  },
+  "concurrentCreate": [
+    {
+      "ok": true,
+      "r": {
+        "ok": true,
+        "data": {
+          "periods": [
+            {
+              "id": 343,
+              "startDate": "2199-01-04",
+              "endDate": "2199-01-10",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-29 16:47:21",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 345,
+              "startDate": "2198-06-01",
+              "endDate": "2198-06-07",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-29 16:51:48",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 348,
+              "startDate": "2197-10-04",
+              "endDate": "2197-10-10",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-29 17:01:32",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 347,
+              "startDate": "2197-09-13",
+              "endDate": "2197-09-19",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-29 16:57:49",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 346,
+              "startDate": "2197-09-06",
+              "endDate": "2197-09-12",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-29 16:56:54",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 178,
+              "startDate": "2106-03-14",
+              "endDate": "2106-03-20",
+              "status": "published",
+              "createdBy": "admin",
+              "createdAt": "2026-09-21 09:08:00",
+              "publishedAt": "2026-09-21 09:08:00",
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 176,
+              "startDate": "2105-10-10",
+              "endDate": "2105-10-16",
+              "status": "open",
+              "createdBy": "admin",
+              "createdAt": "2026-09-21 09:07:26",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 177,
+              "startDate": "2105-02-25",
+              "endDate": "2105-03-03",
+              "status": "published",
+              "createdBy": "admin",
+              "createdAt": "2026-09-21 09:07:56",
+              "publishedAt": "2026-09-21 09:07:58",
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 195,
+              "startDate": "2100-06-23",
+              "endDate": "2100-06-29",
+              "status": "open",
+              "createdBy": "admin",
+              "createdAt": "2026-09-21 15:14:31",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 194,
+              "startDate": "2100-05-29",
+              "endDate": "2100-06-04",
+              "status": "published",
+              "createdBy": "admin",
+              "createdAt": "2026-09-21 15:14:27",
+              "publishedAt": "2026-09-21 15:14:27",
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 193,
+              "startDate": "2099-12-21",
+              "endDate": "2099-12-27",
+              "status": "published",
+              "createdBy": "admin",
+              "createdAt": "2026-09-21 15:14:23",
+              "publishedAt": "2026-09-21 15:14:25",
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 192,
+              "startDate": "2099-11-05",
+              "endDate": "2099-11-11",
+              "status": "open",
+              "createdBy": "admin",
+              "createdAt": "2026-09-21 15:14:20",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 191,
+              "startDate": "2097-04-02",
+              "endDate": "2097-04-08",
+              "status": "open",
+              "createdBy": "admin",
+              "createdAt": "2026-09-21 12:46:33",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 190,
+              "startDate": "2095-11-02",
+              "endDate": "2095-11-08",
+              "status": "published",
+              "createdBy": "admin",
+              "createdAt": "2026-09-21 12:29:51",
+              "publishedAt": "2026-09-21 12:29:51",
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 189,
+              "startDate": "2094-05-26",
+              "endDate": "2094-06-01",
+              "status": "published",
+              "createdBy": "admin",
+              "createdAt": "2026-09-21 12:29:47",
+              "publishedAt": "2026-09-21 12:29:49",
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 188,
+              "startDate": "2094-05-06",
+              "endDate": "2094-05-12",
+              "status": "open",
+              "createdBy": "admin",
+              "createdAt": "2026-09-21 12:29:43",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 187,
+              "startDate": "2093-11-26",
+              "endDate": "2093-12-02",
+              "status": "open",
+              "createdBy": "admin",
+              "createdAt": "2026-09-21 12:25:44",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 186,
+              "startDate": "2091-10-02",
+              "endDate": "2091-10-08",
+              "status": "open",
+              "createdBy": "admin",
+              "createdAt": "2026-09-21 12:11:25",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 181,
+              "startDate": "2091-01-13",
+              "endDate": "2091-01-19",
+              "status": "published",
+              "createdBy": "admin",
+              "createdAt": "2026-09-21 12:00:31",
+              "publishedAt": "2026-09-21 12:00:31",
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 180,
+              "startDate": "2090-06-27",
+              "endDate": "2090-07-03",
+              "status": "published",
+              "createdBy": "admin",
+              "createdAt": "2026-09-21 12:00:28",
+              "publishedAt": "2026-09-21 12:00:29",
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 179,
+              "startDate": "2089-10-25",
+              "endDate": "2089-10-31",
+              "status": "open",
+              "createdBy": "admin",
+              "createdAt": "2026-09-21 12:00:24",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 354,
+              "startDate": "2031-04-21",
+              "endDate": "2031-04-27",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-29 17:05:04",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 353,
+              "startDate": "2031-04-14",
+              "endDate": "2031-04-20",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-29 17:04:42",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 352,
+              "startDate": "2031-04-07",
+              "endDate": "2031-04-13",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-29 17:04:11",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 351,
+              "startDate": "2031-04-06",
+              "endDate": "2031-04-12",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-29 17:03:25",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 350,
+              "startDate": "2031-03-02",
+              "endDate": "2031-03-08",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-29 17:03:05",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 344,
+              "startDate": "2030-01-01",
+              "endDate": "2030-01-07",
+              "status": "open",
+              "createdBy": "e2e_employee",
+              "createdAt": "2026-09-29 16:49:06",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 80,
+              "startDate": "2027-08-01",
+              "endDate": "2027-08-31",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-08 06:35:14",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 79,
+              "startDate": "2027-07-01",
+              "endDate": "2027-07-31",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-08 06:35:11",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 78,
+              "startDate": "2027-06-01",
+              "endDate": "2027-06-30",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-08 06:35:07",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 77,
+              "startDate": "2027-05-01",
+              "endDate": "2027-05-31",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-08 06:35:04",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 568,
+              "startDate": "2027-04-01",
+              "endDate": "2027-04-07",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-10-16 00:41:04",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 76,
+              "startDate": "2027-04-01",
+              "endDate": "2027-04-30",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-08 06:35:01",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 566,
+              "startDate": "2027-03-25",
+              "endDate": "2027-03-31",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-10-15 21:23:57",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 556,
+              "startDate": "2027-03-18",
+              "endDate": "2027-03-24",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-10-15 19:34:44",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 477,
+              "startDate": "2027-03-11",
+              "endDate": "2027-03-17",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-10-09 19:39:57",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 437,
+              "startDate": "2027-03-04",
+              "endDate": "2027-03-10",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-10-07 17:12:30",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 75,
+              "startDate": "2027-03-01",
+              "endDate": "2027-03-31",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-08 03:45:21",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 428,
+              "startDate": "2027-02-25",
+              "endDate": "2027-03-03",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-10-07 16:54:21",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 357,
+              "startDate": "2027-02-18",
+              "endDate": "2027-02-24",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-29 18:40:33",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 356,
+              "startDate": "2027-02-11",
+              "endDate": "2027-02-17",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-29 17:46:06",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 355,
+              "startDate": "2027-02-04",
+              "endDate": "2027-02-10",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-29 17:25:12",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 74,
+              "startDate": "2027-02-01",
+              "endDate": "2027-02-28",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-08 03:45:18",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 349,
+              "startDate": "2027-01-28",
+              "endDate": "2027-02-03",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-29 17:02:24",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 342,
+              "startDate": "2027-01-21",
+              "endDate": "2027-01-27",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-29 16:37:45",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 341,
+              "startDate": "2027-01-14",
+              "endDate": "2027-01-20",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-29 16:30:40",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 340,
+              "startDate": "2027-01-07",
+              "endDate": "2027-01-13",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-29 16:17:29",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 73,
+              "startDate": "2027-01-01",
+              "endDate": "2027-01-31",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-08 03:45:14",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 339,
+              "startDate": "2026-12-31",
+              "endDate": "2027-01-06",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-29 16:14:43",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 338,
+              "startDate": "2026-12-24",
+              "endDate": "2026-12-30",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-29 16:14:06",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 337,
+              "startDate": "2026-12-17",
+              "endDate": "2026-12-23",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-29 16:12:23",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 336,
+              "startDate": "2026-12-10",
+              "endDate": "2026-12-16",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-29 16:11:57",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 567,
+              "startDate": "2026-12-09",
+              "endDate": "2026-12-15",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-10-15 22:37:14",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 335,
+              "startDate": "2026-12-03",
+              "endDate": "2026-12-09",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-29 16:11:15",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 47,
+              "startDate": "2026-12-01",
+              "endDate": "2026-12-31",
+              "status": "published",
+              "createdBy": "admin",
+              "createdAt": "2026-09-07 20:28:57",
+              "publishedAt": "2026-09-08 03:08:37",
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 333,
+              "startDate": "2026-11-28",
+              "endDate": "2026-12-04",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-29 15:58:28",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 334,
+              "startDate": "2026-11-26",
+              "endDate": "2026-12-02",
+              "status": "open",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-29 16:09:07",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 46,
+              "startDate": "2026-11-01",
+              "endDate": "2026-11-30",
+              "status": "open",
+              "createdBy": "admin",
+              "createdAt": "2026-09-07 20:28:57",
+              "publishedAt": null,
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 531,
+              "startDate": "2026-10-12",
+              "endDate": "2026-11-05",
+              "status": "published",
+              "createdBy": "admin",
+              "createdAt": "2026-10-15 18:42:40",
+              "publishedAt": "2026-10-16 19:17:07",
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 521,
+              "startDate": "2026-10-12",
+              "endDate": "2026-11-04",
+              "status": "published",
+              "createdBy": "admin",
+              "createdAt": "2026-10-14 00:37:39",
+              "publishedAt": "2026-10-15 21:13:38",
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 511,
+              "startDate": "2026-10-12",
+              "endDate": "2026-11-03",
+              "status": "published",
+              "createdBy": "admin",
+              "createdAt": "2026-10-13 06:36:27",
+              "publishedAt": "2026-10-13 06:36:27",
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 580,
+              "startDate": "2026-10-12",
+              "endDate": "2026-11-06",
+              "status": "published",
+              "createdBy": "admin",
+              "createdAt": "2026-10-16 18:12:09",
+              "publishedAt": "2026-10-16 18:12:09",
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 442,
+              "startDate": "2026-10-05",
+              "endDate": "2026-10-29",
+              "status": "published",
+              "createdBy": "admin",
+              "createdAt": "2026-10-08 09:16:27",
+              "publishedAt": "2026-10-08 09:16:27",
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 423,
+              "startDate": "2026-10-05",
+              "endDate": "2026-10-28",
+              "status": "published",
+              "createdBy": "admin",
+              "createdAt": "2026-10-07 16:46:10",
+              "publishedAt": "2026-10-07 16:46:10",
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 462,
+              "startDate": "2026-10-05",
+              "endDate": "2026-10-30",
+              "status": "published",
+              "createdBy": "admin",
+              "createdAt": "2026-10-09 19:10:52",
+              "publishedAt": "2026-10-09 20:50:46",
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 49,
+              "startDate": "2026-10-01",
+              "endDate": "2026-10-31",
+              "status": "published",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-07 20:48:41",
+              "publishedAt": "2026-10-03 20:15:03",
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 376,
+              "startDate": "2026-09-28",
+              "endDate": "2026-10-24",
+              "status": "published",
+              "createdBy": "admin",
+              "createdAt": "2026-10-03 20:01:56",
+              "publishedAt": "2026-10-03 20:01:56",
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 362,
+              "startDate": "2026-09-28",
+              "endDate": "2026-10-20",
+              "status": "published",
+              "createdBy": "admin",
+              "createdAt": "2026-09-29 18:50:49",
+              "publishedAt": "2026-09-29 18:50:49",
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 217,
+              "startDate": "2026-09-21",
+              "endDate": "2026-10-15",
+              "status": "published",
+              "createdBy": "admin",
+              "createdAt": "2026-09-24 06:00:42",
+              "publishedAt": "2026-09-24 06:00:42",
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 204,
+              "startDate": "2026-09-21",
+              "endDate": "2026-10-13",
+              "status": "published",
+              "createdBy": "admin",
+              "createdAt": "2026-09-22 19:31:38",
+              "publishedAt": "2026-09-22 19:31:38",
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 159,
+              "startDate": "2026-09-14",
+              "endDate": "2026-10-05",
+              "status": "published",
+              "createdBy": "admin",
+              "createdAt": "2026-09-14 02:36:17",
+              "publishedAt": "2026-09-14 02:36:17",
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 83,
+              "startDate": "2026-09-07",
+              "endDate": "2026-09-20",
+              "status": "published",
+              "createdBy": "admin",
+              "createdAt": "2026-09-08 19:37:38",
+              "publishedAt": "2026-09-10 16:29:00",
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 146,
+              "startDate": "2026-09-07",
+              "endDate": "2026-10-04",
+              "status": "published",
+              "createdBy": "admin",
+              "createdAt": "2026-09-13 19:24:04",
+              "publishedAt": "2026-09-13 19:24:04",
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 93,
+              "startDate": "2026-09-07",
+              "endDate": "2026-10-01",
+              "status": "published",
+              "createdBy": "admin",
+              "createdAt": "2026-09-10 16:28:32",
+              "publishedAt": "2026-09-10 16:28:32",
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 48,
+              "startDate": "2026-09-01",
+              "endDate": "2026-09-30",
+              "status": "published",
+              "createdBy": "admin",
+              "createdAt": "2026-09-07 20:36:28",
+              "publishedAt": "2026-09-08 03:08:37",
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 72,
+              "startDate": "2026-08-01",
+              "endDate": "2026-08-31",
+              "status": "published",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-08 03:08:34",
+              "publishedAt": "2026-09-08 03:08:36",
+              "closedAt": null,
+              "closeSnapshotId": null
+            },
+            {
+              "id": 71,
+              "startDate": "2026-07-01",
+              "endDate": "2026-07-31",
+              "status": "closed",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-08 03:08:34",
+              "publishedAt": "2026-09-08 03:08:36",
+              "closedAt": "2026-09-08 03:08:36",
+              "closeSnapshotId": null
+            },
+            {
+              "id": 70,
+              "startDate": "2026-06-01",
+              "endDate": "2026-06-30",
+              "status": "closed",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-08 03:08:34",
+              "publishedAt": "2026-09-08 03:08:36",
+              "closedAt": "2026-09-08 03:08:36",
+              "closeSnapshotId": null
+            },
+            {
+              "id": 69,
+              "startDate": "2026-05-01",
+              "endDate": "2026-05-31",
+              "status": "closed",
+              "createdBy": "dc_atlas_planner",
+              "createdAt": "2026-09-08 03:08:34",
+              "publishedAt": "2026-09-08 03:08:36",
+              "closedAt": "2026-09-08 03:08:36",
+              "closeSnapshotId": null
+            }
+          ],
+          "selectedPeriodId": 343,
+          "selectedPeriodStatus": "open",
+          "canCreateAssignments": true,
+          "employees": [
+            {
+              "id": 10,
+              "name": "Ben Richter",
+              "linkedUserId": "e2e_employee"
+            },
+            {
+              "id": 14,
+              "name": "Felix Neumann",
+              "linkedUserId": null
+            },
+            {
+              "id": 48,
+              "name": "Greta Lorenz",
+              "linkedUserId": "dc-ds-employee"
+            },
+            {
+              "id": 49,
+              "name": "Jonas Vogel",
+              "linkedUserId": null
+            },
+            {
+              "id": 143,
+              "name": "Katja Sommer",
+              "linkedUserId": null
+            },
+            {
+              "id": 144,
+              "name": "Lars Brandt",
+              "linkedUserId": null
+            },
+            {
+              "id": 57,
+              "name": "Mirko Lorenz",
+              "linkedUserId": null
+            },
+            {
+              "id": 145,
+              "name": "Nadia Fuchs",
+              "linkedUserId": null
+            },
+            {
+              "id": 146,
+              "name": "Oliver Kern",
+              "linkedUserId": null
+            },
+            {
+              "id": 62,
+              "name": "Petra Reuter",
+              "linkedUserId": "dc.seed.9c81d0"
+            },
+            {
+              "id": 314,
+              "name": "Play Review Employee",
+              "linkedUserId": "dc.seed.ce201b"
+            },
+            {
+              "id": 151,
+              "name": "Sabine Otto",
+              "linkedUserId": null
+            },
+            {
+              "id": 233,
+              "name": "Sven Hartmann",
+              "linkedUserId": null
+            },
+            {
+              "id": 152,
+              "name": "Thomas Vogel",
+              "linkedUserId": null
+            },
+            {
+              "id": 153,
+              "name": "Ute Krause",
+              "linkedUserId": null
+            },
+            {
+              "id": 154,
+              "name": "Walter Hoffmann",
+              "linkedUserId": null
+            },
+            {
+              "id": 155,
+              "name": "Yvonne Seidel",
+              "linkedUserId": null
+            }
+          ],
+          "locations": [
+            {
+              "id": 534,
+              "name": "0dcinv-mva48ur7-3li2-dbl",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 533,
+              "name": "0dcinv-mva48ur7-3li2-renamed",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 154,
+              "name": "Depot Spandau",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 146,
+              "name": "Depot Süd",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 161,
+              "name": "Depot Tempelhof",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 157,
+              "name": "Depot Wedding",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 51,
+              "name": "Flughafen Ost",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 149,
+              "name": "Klinik Mitte",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 50,
+              "name": "Klinik Süd",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 10,
+              "name": "Nordwache",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 319,
+              "name": "Play Review Station",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 148,
+              "name": "Standort Hafen",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 158,
+              "name": "Standort Neukölln",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 162,
+              "name": "Standort Schöneberg",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 160,
+              "name": "Station Charlottenburg",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 156,
+              "name": "Station Kreuzberg",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 63,
+              "name": "Station Mitte",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 155,
+              "name": "Wache Flughafen",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 163,
+              "name": "Wache Friedrichshain",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 144,
+              "name": "Wache Nord",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 145,
+              "name": "Wache Ost",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 159,
+              "name": "Wache Prenzlauer Berg",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 147,
+              "name": "Wache West",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 9,
+              "name": "Zentrale",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 479,
+              "name": "dcinv-mv9vdekf-6nip <img src=\"x\" onerror=\"window.__atlasXss='img-onerror'\">",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 480,
+              "name": "dcinv-mv9ve60l-74c5 <img src=\"x\" onerror=\"window.__atlasXss='img-onerror'\">",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 481,
+              "name": "dcinv-mv9ved1g-jm2f-fresh",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 482,
+              "name": "dcinv-mv9vek1y-qcbv-fresh",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 485,
+              "name": "dcinv-mv9vl7lt-cliv-dbl",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 484,
+              "name": "dcinv-mv9vl7lt-cliv-renamed",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 517,
+              "name": "dcinv-mv9xpacv-fjfb-dbl",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 516,
+              "name": "dcinv-mv9xpacv-fjfb-renamed",
+              "timezone": "Europe/Berlin"
+            },
+            {
+              "id": 528,
+              "name": "dcinv-mva1llqq-9te7-fresh",
+              "timezone": "Europe/Berlin"
+            }
+          ],
+          "assignments": [
+            {
+              "id": 3634,
+              "periodId": 343,
+              "employeeId": 10,
+              "employeeName": "Ben Richter",
+              "locationId": 534,
+              "locationName": "0dcinv-mva48ur7-3li2-dbl",
+              "dutyDate": "2199-01-04",
+              "startTime": "22:00",
+              "endTime": "22:00",
+              "breakMinutes": 0,
+              "note": "atlas-r7-concurrency",
+              "status": "active",
+              "acknowledgedAt": null,
+              "acknowledgedBy": null,
+              "version": 0,
+              "kind": "standby",
+              "standbyCategoryId": null,
+              "standbyCategoryLabel": null,
+              "standbyCategoryColor": null,
+              "responseTimeMinutes": null
+            }
+          ],
+          "conflicts": [],
+          "absenceBlocks": [],
+          "defaultBreakMinutes": 0,
+          "standbyEnabled": true,
+          "standbyAcknowledgeEnabled": true,
+          "standbyCategories": [],
+          "createdAssignmentId": 3634
+        }
+      }
+    },
+    {
+      "ok": false,
+      "code": "STANDBY_OVERLAP",
+      "status": 409
+    },
+    {
+      "ok": false,
+      "code": "STANDBY_OVERLAP",
+      "status": 409
+    },
+    {
+      "ok": false,
+      "code": "STANDBY_OVERLAP",
+      "status": 409
+    },
+    {
+      "ok": false,
+      "code": "STANDBY_OVERLAP",
+      "status": 409
+    },
+    {
+      "ok": false,
+      "code": "STANDBY_OVERLAP",
+      "status": 409
+    }
+  ],
+  "winners": 1,
+  "loserCodes": [
+    "STANDBY_OVERLAP",
+    "STANDBY_OVERLAP",
+    "STANDBY_OVERLAP",
+    "STANDBY_OVERLAP",
+    "STANDBY_OVERLAP"
+  ],
+  "dbRows": 1,
+  "rowKinds": [
+    "standby"
+  ],
+  "createdId": 3634,
+  "retryAfterWin": {
+    "ok": false,
+    "code": "STANDBY_OVERLAP",
+    "status": 409
+  },
+  "cancel": {
+    "ok": false,
+    "code": null
+  },
+  "afterCancelRace": {
+    "winners": 0,
+    "codes": [
+      "STANDBY_OVERLAP",
+      "STANDBY_OVERLAP",
+      "STANDBY_OVERLAP",
+      "STANDBY_OVERLAP"
+    ]
+  },
+  "dbRowsAfterCancelRace": 1
+}

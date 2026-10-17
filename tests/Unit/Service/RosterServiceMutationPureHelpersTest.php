@@ -50,6 +50,9 @@ final class RosterServiceMutationPureHelpersTest extends TestCase
 			'Employee qualification is expired for this location',
 			'Break is shorter than required for this shift length',
 			'Location is understaffed relative to template headcount',
+			'Employee has overlapping standby duties',
+			'Standby duty overlaps a planned shift',
+			'Standby duty collides with approved absence',
 		], RosterService::rosterApiConflictMessageKeys());
 	}
 

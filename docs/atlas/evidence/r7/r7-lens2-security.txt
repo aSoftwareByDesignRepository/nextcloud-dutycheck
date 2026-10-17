@@ -1,0 +1,118 @@
+EMPLOYEE: {
+ "getCategories": {
+  "ok": true,
+  "r": {
+   "keys": [
+    "ok",
+    "data"
+   ]
+  }
+ },
+ "postCategory": {
+  "ok": true,
+  "r": {
+   "keys": [
+    "ok",
+    "data"
+   ]
+  }
+ },
+ "getStandbyRoster": {
+  "ok": true,
+  "r": {
+   "keys": [
+    "ok",
+    "data"
+   ]
+  }
+ },
+ "postAssignmentStandby": {
+  "ok": true,
+  "r": {
+   "keys": [
+    "ok",
+    "data"
+   ]
+  }
+ }
+}
+PLANNER: {
+ "flagOffCreate": {
+  "ok": false,
+  "status": 422,
+  "code": "STANDBY_DISABLED"
+ },
+ "flagOffStandbyRoster": {
+  "ok": true,
+  "data": {
+   "available": false,
+   "periodId": 343,
+   "periodStatus": "open",
+   "rows": []
+  }
+ },
+ "invalidKind": {
+  "ok": false,
+  "status": 422,
+  "code": "INVALID_KIND"
+ },
+ "foreignCategory": {
+  "ok": false,
+  "status": 404,
+  "code": "STANDBY_CATEGORY_NOT_FOUND"
+ },
+ "plannerCategoryWrite": {
+  "ok": true,
+  "data": {
+   "id": 2,
+   "companyId": 1,
+   "label": "x",
+   "color": null,
+   "defaultResponseTimeMinutes": null,
+   "active": true
+  }
+ },
+ "plannerCategoryRead": {
+  "ok": true,
+  "data": {
+   "categories": [
+    {
+     "id": 1,
+     "companyId": 1,
+     "label": "x",
+     "color": null,
+     "defaultResponseTimeMinutes": null,
+     "active": true
+    },
+    {
+     "id": 2,
+     "companyId": 1,
+     "label": "x",
+     "color": null,
+     "defaultResponseTimeMinutes": null,
+     "active": true
+    }
+   ]
+  }
+ },
+ "standbyRosterBadPeriod": {
+  "ok": false,
+  "status": 404,
+  "code": "PERIOD_NOT_FOUND"
+ },
+ "immutableSetup": {
+  "ok": false,
+  "status": 422,
+  "code": "STANDBY_SHIFT_COLLISION"
+ }
+}
+
+SELF-CRITIQUE RE-RUN (fresh, this session):
+Recreated atlas_r7_peon (zero roles, zero memberships), re-ran
+_atlas_r7_lens2_denial.mjs:
+  getCategories     -> 403 INSUFFICIENT_ROLE
+  postCategory      -> 403 INSUFFICIENT_ROLE
+  getStandbyRoster  -> 403 INSUFFICIENT_ROLE
+  postAssignment    -> 403 INSUFFICIENT_ROLE
+  rosterRead        -> 403 INSUFFICIENT_ROLE
+User deleted afterwards. VERIFIED — uniform 403, no existence oracle.

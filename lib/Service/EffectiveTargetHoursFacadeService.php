@@ -373,6 +373,9 @@ class EffectiveTargetHoursFacadeService implements EffectiveTargetHoursFacade
 				$qb->expr()->isNull('a.status'),
 			));
 		}
+		if (SchemaProbe::hasColumn($this->db, 'dc_assignments', 'kind')) {
+			$qb->andWhere($qb->expr()->neq('a.kind', $qb->createNamedParameter(AssignmentKind::STANDBY)));
+		}
 		$rows = $qb->executeQuery()->fetchAll();
 		if ($rows === []) {
 			return null;
@@ -419,6 +422,9 @@ class EffectiveTargetHoursFacadeService implements EffectiveTargetHoursFacade
 				$qb->expr()->neq('a.status', $qb->createNamedParameter('cancelled')),
 				$qb->expr()->isNull('a.status'),
 			));
+		}
+		if (SchemaProbe::hasColumn($this->db, 'dc_assignments', 'kind')) {
+			$qb->andWhere($qb->expr()->neq('a.kind', $qb->createNamedParameter(AssignmentKind::STANDBY)));
 		}
 		$rows = $qb->executeQuery()->fetchAll();
 		if ($rows === []) {

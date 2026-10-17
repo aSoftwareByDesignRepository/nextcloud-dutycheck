@@ -33,6 +33,11 @@
 		calendarYearMonth: null,
 		/** When set (YYYY-MM), the person×day grid shows only that month — even if the backing open period covers a wider range. Cleared when the advanced period switcher is used. */
 		gridMonthClamp: null,
+		standbyEnabled: false,
+		standbyAcknowledgeEnabled: false,
+		standbyCategories: [],
+		/** Immutable kind of the assignment currently open in the edit modal. */
+		editingAssignmentKind: null,
 	};
 	let assignmentModalInstance = null;
 	let suggestedBreakMinutes = 0;
@@ -280,11 +285,17 @@
 		}
 	}
 
+	/**
+	 * Kind-aware overlap pre-check. Same-kind overlap is a hard error on the
+	 * server; mixed shift↔standby overlap is a soft, acknowledgeable hint —
+	 * so the client check must not block it.
+	 */
 	function findOverlapAssignment(payload) {
 		const candidate = assignmentAbsoluteRange(payload.dutyDate, payload.startTime, payload.endTime);
 		if (!candidate) {
 			return null;
 		}
+		const candidateKind = String(payload.kind || 'shift');
 		const ignoreId = Number(payload.assignmentId || state.editingAssignmentId || 0);
 		for (const assignment of state.assignments) {
 			if (ignoreId > 0 && Number(assignment?.id) === ignoreId) {
@@ -292,6 +303,17 @@
 			}
 			if (Number(assignment?.employeeId) !== Number(payload.employeeId)) {
 				continue;
+			}
+			if (String(assignment?.kind || 'shift') !== candidateKind) {
+				// 24h standby (start==end) collides hard even across kinds —
+				// mirror the server's STANDBY_SHIFT_COLLISION gate.
+				const existingIs24hStandby = String(assignment?.kind || '') === 'standby'
+					&& String(assignment?.startTime || '') === String(assignment?.endTime || '');
+				const candidateIs24hStandby = candidateKind === 'standby'
+					&& payload.startTime === payload.endTime;
+				if (!existingIs24hStandby && !candidateIs24hStandby) {
+					continue;
+				}
 			}
 			const existing = assignmentAbsoluteRange(
 				String(assignment?.dutyDate || ''),
@@ -336,9 +358,16 @@
 			{ test: () => !payload.locationId, id: 'dc-assignment-location' },
 			{ test: () => !payload.startTime, id: 'dc-assignment-start' },
 			{ test: () => !payload.endTime, id: 'dc-assignment-end' },
-			{ test: () => payload.startTime && payload.endTime && payload.startTime === payload.endTime, id: 'dc-assignment-start' },
+			{
+				test: () => String(payload.kind || state.editingAssignmentKind || 'shift') !== 'standby'
+					&& payload.startTime && payload.endTime && payload.startTime === payload.endTime,
+				id: 'dc-assignment-start',
+			},
 			{
 				test: () => {
+					if (String(payload.kind || state.editingAssignmentKind || 'shift') === 'standby') {
+						return false;
+					}
 					const effective = effectiveWorkMinutes(payload.startTime, payload.endTime, payload.breakMinutes);
 					return effective === null || effective <= 0;
 				},
@@ -493,6 +522,103 @@
 			return;
 		}
 		updateAssignmentFormFeedback(readForm(form));
+	}
+
+	/** Currently selected kind in the form (radios); edit mode keeps the row's kind. */
+	function currentFormKind() {
+		if (state.editingAssignmentKind) {
+			return state.editingAssignmentKind;
+		}
+		const checked = document.querySelector('#dc-assignment-form input[name="assignmentKind"]:checked');
+		return checked && checked.value === 'standby' ? 'standby' : 'shift';
+	}
+
+	/**
+	 * Toggle standby-only UI: category/response-time fields, hidden break,
+	 * adjusted step-3 heading. Locked in edit mode (kind is immutable).
+	 */
+	function syncAssignmentKindUi() {
+		const isStandby = currentFormKind() === 'standby';
+		const isEdit = state.editingAssignmentId !== null && state.editingAssignmentId !== undefined;
+		const standbyFields = document.getElementById('dc-assignment-standby-fields');
+		if (standbyFields) {
+			standbyFields.hidden = !isStandby;
+		}
+		const breakField = document.getElementById('dc-assignment-break-field');
+		if (breakField) {
+			breakField.hidden = isStandby;
+		}
+		const breakInput = document.getElementById('dc-assignment-break');
+		if (breakInput) {
+			breakInput.required = !isStandby;
+			if (isStandby) {
+				breakInput.value = '0';
+			}
+		}
+		const timesLabel = document.getElementById('dc-roster-step-times-label');
+		if (timesLabel) {
+			timesLabel.textContent = isStandby
+				? t('dutycheck', 'On-call times')
+				: t('dutycheck', 'Shift times');
+		}
+		// Edit mode: kind is immutable — lock the radios to the row's kind.
+		document.querySelectorAll('#dc-assignment-kind-group input[name="assignmentKind"]').forEach((radio) => {
+			radio.disabled = isEdit;
+			radio.checked = radio.value === (isStandby ? 'standby' : 'shift');
+		});
+		const templateField = document.getElementById('dc-assignment-template-field');
+		if (templateField) {
+			// Templates are shift presets (times + break) — meaningless for standby.
+			templateField.hidden = isStandby;
+		}
+	}
+
+	function fillStandbyCategorySelect() {
+		const sel = document.getElementById('dc-assignment-standby-category');
+		if (!sel) {
+			return;
+		}
+		const current = sel.value;
+		sel.replaceChildren();
+		sel.appendChild(create('option', {
+			value: '',
+			text: t('dutycheck', 'No category'),
+		}));
+		for (const cat of state.standbyCategories || []) {
+			sel.appendChild(create('option', {
+				value: String(cat.id),
+				text: String(cat.label || `#${cat.id}`),
+			}));
+		}
+		if (current && Array.from(sel.options).some((o) => o.value === current)) {
+			sel.value = current;
+		}
+	}
+
+	function wireAssignmentKindToggle() {
+		document.querySelectorAll('#dc-assignment-kind-group input[name="assignmentKind"]').forEach((radio) => {
+			if (radio.dataset.dcKindWired === '1') {
+				return;
+			}
+			radio.dataset.dcKindWired = '1';
+			radio.addEventListener('change', () => {
+				syncAssignmentKindUi();
+				refreshAssignmentFormEligibility();
+			});
+		});
+		const catSel = document.getElementById('dc-assignment-standby-category');
+		if (catSel && catSel.dataset.dcKindWired !== '1') {
+			catSel.dataset.dcKindWired = '1';
+			catSel.addEventListener('change', () => {
+				// Convenience only: a category's default response time prefills
+				// an empty field; an explicit value is never overwritten.
+				const rt = document.getElementById('dc-assignment-response-time');
+				const cat = (state.standbyCategories || []).find((c) => Number(c.id) === Number(catSel.value));
+				if (rt && rt.value === '' && cat && cat.defaultResponseTimeMinutes != null) {
+					rt.value = String(cat.defaultResponseTimeMinutes);
+				}
+			});
+		}
 	}
 
 	function updateLocationTimezoneHint() {
@@ -952,9 +1078,17 @@
 			tr.dataset.assignmentId = String(a.id);
 			tr.setAttribute('tabindex', '-1');
 		}
+		const isStandby = String(a?.kind || 'shift') === 'standby';
 		const date = D?.formatDisplayDate(a.dutyDate) || a.dutyDate;
 		const tdDate = create('td', { text: date });
 		tdDate.dataset.cell = t('dutycheck', 'Date');
+		if (isStandby) {
+			tdDate.appendChild(create('span', {
+				class: 'dc-badge dc-badge--standby dc-row-kind-badge',
+				text: `📞 ${t('dutycheck', 'Bereitschaft')}`,
+				attrs: { title: t('dutycheck', 'On-call duty — not counted as worked time') },
+			}));
+		}
 		tr.appendChild(tdDate);
 
 		const tdStart = create('td');
@@ -965,17 +1099,29 @@
 		const tdEnd = create('td');
 		tdEnd.dataset.cell = t('dutycheck', 'End');
 		tdEnd.appendChild(create('span', { class: 'dc-time-cell__value', text: startClock(a.endTime) }));
-		if (D?.isOvernightWallClockShift?.(a.startTime, a.endTime)) {
+		if (isStandby && String(a.startTime) === String(a.endTime)) {
+			tdEnd.title = t('dutycheck', '24-hour on-call duty');
+			tdEnd.appendChild(create('span', { class: 'dc-row-meta', text: t('dutycheck', '24 h') }));
+		} else if (D?.isOvernightWallClockShift?.(a.startTime, a.endTime)) {
 			tdEnd.title = overnightHintText;
 			tdEnd.appendChild(create('span', { class: 'dc-row-meta', text: overnightHintText }));
 		}
 		tr.appendChild(tdEnd);
 
+		const standbyNoteBits = [];
+		if (isStandby) {
+			if (a.standbyCategoryLabel) {
+				standbyNoteBits.push(String(a.standbyCategoryLabel));
+			}
+			if (a.responseTimeMinutes != null) {
+				standbyNoteBits.push(t('dutycheck', '{n} min response').replace('{n}', String(a.responseTimeMinutes)));
+			}
+		}
 		const rest = [
 			{ label: t('dutycheck', 'Employee'), value: a.employeeName || '' },
 			{ label: t('dutycheck', 'Location'), value: a.locationName || '' },
-			{ label: t('dutycheck', 'Break'), value: t('dutycheck', '{n} min').replace('{n}', String(a.breakMinutes ?? 0)) },
-			{ label: t('dutycheck', 'Note'), value: a.note || '' },
+			{ label: t('dutycheck', 'Break'), value: isStandby ? '—' : t('dutycheck', '{n} min').replace('{n}', String(a.breakMinutes ?? 0)) },
+			{ label: t('dutycheck', 'Note'), value: [a.note || '', ...standbyNoteBits].filter(Boolean).join(' · ') },
 		];
 		for (const cell of rest) {
 			const td = create('td', { text: String(cell.value ?? '') });
@@ -1356,6 +1502,7 @@
 			if (cellAssignments.length) {
 				cell.classList.add('dc-roster-grid__cell--filled');
 				const first = cellAssignments[0];
+				const isStandby = String(first.kind || 'shift') === 'standby';
 				const startH = Number(String(first.startTime || '').slice(0, 2));
 				let band = 'day';
 				if (Number.isFinite(startH)) {
@@ -1363,26 +1510,48 @@
 					else if (startH < 9) band = 'early';
 					else if (startH >= 14) band = 'late';
 				}
-				const bandName = band === 'early'
-					? t('dutycheck', 'Früh')
-					: (band === 'late'
-						? t('dutycheck', 'Spät')
-						: (band === 'night'
-							? t('dutycheck', 'Nacht')
-							: t('dutycheck', 'Tag')));
-				cell.classList.add('dc-roster-grid__cell--' + band);
-				cell.setAttribute('data-shift-band', band);
+				const bandName = isStandby
+					? t('dutycheck', 'Bereitschaft')
+					: (band === 'early'
+						? t('dutycheck', 'Früh')
+						: (band === 'late'
+							? t('dutycheck', 'Spät')
+							: (band === 'night'
+								? t('dutycheck', 'Nacht')
+								: t('dutycheck', 'Tag'))));
 				const clock = `${String(first.startTime || '').slice(0, 5)}–${String(first.endTime || '').slice(0, 5)}`;
-				// Signature craft: band-name pill is primary (Früh/Tag/Spät/Nacht); clock stays in title/a11y.
-				cell.appendChild(create('span', {
-					class: 'dc-roster-grid__shift dc-roster-grid__shift--' + band,
-					text: bandName,
-					attrs: { title: clock, 'data-shift-clock': clock },
-				}));
+				if (isStandby) {
+					cell.classList.add('dc-roster-grid__cell--standby');
+					cell.setAttribute('data-shift-band', 'standby');
+					// Icon + label + tooltip — never colour alone (WCAG 1.4.1).
+					const standbyLabel = String(first.standbyCategoryLabel || '').trim() || bandName;
+					cell.appendChild(create('span', {
+						class: 'dc-roster-grid__shift dc-roster-grid__shift--standby',
+						attrs: { title: clock, 'data-shift-clock': clock },
+					}, [
+						create('span', { class: 'dc-roster-grid__standby-icon', attrs: { 'aria-hidden': 'true' }, text: '📞' }),
+						create('span', { class: 'dc-roster-grid__standby-tag', text: standbyLabel }),
+					]));
+					if (first.standbyCategoryColor) {
+						cell.style.setProperty('--dc-standby-accent', String(first.standbyCategoryColor));
+					}
+				} else {
+					cell.classList.add('dc-roster-grid__cell--' + band);
+					cell.setAttribute('data-shift-band', band);
+					// Signature craft: band-name pill is primary (Früh/Tag/Spät/Nacht); clock stays in title/a11y.
+					cell.appendChild(create('span', {
+						class: 'dc-roster-grid__shift dc-roster-grid__shift--' + band,
+						text: bandName,
+						attrs: { title: clock, 'data-shift-clock': clock },
+					}));
+				}
 				const editLabel = canAddAssignment()
 					? t('dutycheck', 'Edit assignment')
 					: t('dutycheck', 'View assignment (read-only)');
-				cell.setAttribute('aria-label', `${editLabel}: ${bandName} ${clock}`);
+				const a11yBits = isStandby
+					? `${t('dutycheck', 'Rufbereitschaft')} ${String(first.employeeName || '')}, ${clock}${first.locationName ? `, ${t('dutycheck', 'Standort')} ${first.locationName}` : ''}${first.responseTimeMinutes != null ? `, ${t('dutycheck', 'Reaktionszeit')} ${first.responseTimeMinutes} ${t('dutycheck', 'min')}` : ''}`
+					: `${bandName} ${clock}`;
+				cell.setAttribute('aria-label', `${editLabel}: ${a11yBits}`);
 				if (cellAssignments.length > 1) {
 					cell.appendChild(create('span', {
 						class: 'dc-roster-grid__more',
@@ -2308,6 +2477,8 @@
 		}
 		form.reset();
 		state.editingAssignmentId = null;
+		state.editingAssignmentKind = null;
+		syncAssignmentKindUi();
 		const idHidden = document.getElementById('dc-assignment-id');
 		if (idHidden) {
 			idHidden.value = '';
@@ -2390,12 +2561,18 @@
 			return;
 		}
 		state.editingAssignmentId = null;
+		state.editingAssignmentKind = null;
 		const idHidden = document.getElementById('dc-assignment-id');
 		if (idHidden) {
 			idHidden.value = '';
 		}
 		await ensureAssignmentModalPrereqs();
 		prepareAssignmentFormForModal();
+		const shiftRadio = document.getElementById('dc-assignment-kind-shift');
+		if (shiftRadio) {
+			shiftRadio.checked = true;
+		}
+		syncAssignmentKindUi();
 		clearAssignmentsSectionSuccess();
 		const panel = document.getElementById('dc-assignment-form-panel');
 		if (!panel) {
@@ -2415,6 +2592,7 @@
 			onClose: (result) => {
 				assignmentModalInstance = null;
 				state.editingAssignmentId = null;
+				state.editingAssignmentKind = null;
 				restoreAssignmentFormHost(panel);
 				if (!result) {
 					clearAssignmentFormSuccess();
@@ -2449,8 +2627,10 @@
 		}
 		state.editingAssignmentId = Number(assignment.id);
 		state.editingAssignmentVersion = Number(assignment.version ?? 0);
+		state.editingAssignmentKind = String(assignment.kind || 'shift') === 'standby' ? 'standby' : 'shift';
 		await ensureAssignmentModalPrereqs();
 		prepareAssignmentFormForModal();
+		syncAssignmentKindUi();
 		const idHidden = document.getElementById('dc-assignment-id');
 		if (idHidden) {
 			idHidden.value = String(assignment.id);
@@ -2480,6 +2660,14 @@
 		if (br) {
 			br.value = String(assignment.breakMinutes ?? 0);
 		}
+		const catSel = document.getElementById('dc-assignment-standby-category');
+		if (catSel) {
+			catSel.value = assignment.standbyCategoryId != null ? String(assignment.standbyCategoryId) : '';
+		}
+		const rtInput = document.getElementById('dc-assignment-response-time');
+		if (rtInput) {
+			rtInput.value = assignment.responseTimeMinutes != null ? String(assignment.responseTimeMinutes) : '';
+		}
 		const note = document.getElementById('dc-assignment-note');
 		if (note) {
 			note.value = String(assignment.note || '');
@@ -2506,6 +2694,7 @@
 			onClose: () => {
 				assignmentModalInstance = null;
 				state.editingAssignmentId = null;
+				state.editingAssignmentKind = null;
 				restoreAssignmentFormHost(panel);
 				clearAssignmentFormSuccess();
 				if (triggerEl && typeof triggerEl.focus === 'function') {
@@ -2845,6 +3034,19 @@
 		state.assignments = data.assignments || [];
 		state.absenceBlocks = data.absenceBlocks || [];
 		state.canCreateAssignments = Boolean(data.canCreateAssignments);
+		state.standbyEnabled = Boolean(data.standbyEnabled);
+		state.standbyAcknowledgeEnabled = Boolean(data.standbyAcknowledgeEnabled);
+		state.standbyCategories = Array.isArray(data.standbyCategories) ? data.standbyCategories : [];
+		const kindGroup = document.getElementById('dc-assignment-kind-group');
+		if (kindGroup) {
+			kindGroup.hidden = !state.standbyEnabled;
+		}
+		const legendStandby = document.getElementById('dc-legend-chip-standby');
+		if (legendStandby) {
+			legendStandby.hidden = !state.standbyEnabled;
+		}
+		fillStandbyCategorySelect();
+		syncAssignmentKindUi();
 		fillPeriodSwitcher(state.periods, data.selectedPeriodId);
 		const selectedPeriod = state.periods.find((p) => Number(p.id) === Number(data.selectedPeriodId));
 		if (data.calendarYearMonth) {
@@ -3187,6 +3389,7 @@
 			periodHidden.value = periodVal;
 		}
 		applyDefaultBreakToForm();
+		syncAssignmentKindUi();
 		D?.applyLocaleToTemporalInputs(form);
 		refreshAssignmentFormEligibility();
 		const clearedMsg = t('dutycheck', 'Form cleared. You can enter another assignment.');
@@ -3203,6 +3406,12 @@
 		const startTime = (D?.formatClock24FromTimeString(rawStart) || rawStart).trim();
 		const endTime = (D?.formatClock24FromTimeString(rawEnd) || rawEnd).trim();
 		const assignmentId = Number(data.get('assignmentId') || state.editingAssignmentId || 0);
+		const isEdit = Number.isInteger(assignmentId) && assignmentId > 0;
+		const formKind = String(data.get('assignmentKind') || 'shift');
+		const kind = isEdit
+			? (state.editingAssignmentKind || 'shift')
+			: (formKind === 'standby' && state.standbyEnabled ? 'standby' : 'shift');
+		const isStandby = kind === 'standby';
 		const out = {
 			periodId: Number(data.get('periodId')),
 			employeeId: Number(data.get('employeeId')),
@@ -3210,10 +3419,21 @@
 			dutyDate: String(data.get('dutyDate') || ''),
 			startTime,
 			endTime,
-			breakMinutes: Number(data.get('breakMinutes') || 0),
+			// Standby has no working minutes — break is always 0.
+			breakMinutes: isStandby ? 0 : Number(data.get('breakMinutes') || 0),
 			note: String(data.get('note') || '').trim(),
-			assignmentId: Number.isInteger(assignmentId) && assignmentId > 0 ? assignmentId : 0,
+			assignmentId: isEdit ? assignmentId : 0,
 		};
+		if (!isEdit) {
+			// kind is immutable after create — never send it on updates.
+			out.kind = kind;
+		}
+		if (isStandby) {
+			const catRaw = String(data.get('standbyCategoryId') || '').trim();
+			out.standbyCategoryId = catRaw === '' ? null : Number(catRaw);
+			const rtRaw = String(data.get('responseTimeMinutes') || '').trim();
+			out.responseTimeMinutes = rtRaw === '' ? null : Number(rtRaw);
+		}
 		if (out.assignmentId > 0 && state.editingAssignmentVersion !== null && state.editingAssignmentVersion !== undefined) {
 			out.expectedVersion = Number(state.editingAssignmentVersion);
 		}
@@ -3258,21 +3478,30 @@
 			&& (payload.dutyDate < String(period.startDate) || payload.dutyDate > String(period.endDate))) {
 			return t('dutycheck', 'Date must fall within the selected period.');
 		}
-		if (payload.startTime === payload.endTime) {
+		const isStandby = String(payload.kind || state.editingAssignmentKind || 'shift') === 'standby';
+		if (!isStandby && payload.startTime === payload.endTime) {
 			return t(
 				'dutycheck',
 				'Start and end time must be different. For overnight shifts, set the end time earlier than the start (e.g. 22:00–06:00).',
 			);
 		}
-		if (!Number.isFinite(payload.breakMinutes) || payload.breakMinutes < 0 || payload.breakMinutes > 720) {
-			return t('dutycheck', 'Break minutes must be between 0 and 720.');
+		if (isStandby && payload.responseTimeMinutes !== null && payload.responseTimeMinutes !== undefined) {
+			const rt = Number(payload.responseTimeMinutes);
+			if (!Number.isFinite(rt) || rt < 0 || rt > 10080) {
+				return t('dutycheck', 'Response time must be between 0 and 10080 minutes.');
+			}
 		}
-		const effective = effectiveWorkMinutes(payload.startTime, payload.endTime, payload.breakMinutes);
-		if (effective === null) {
-			return t('dutycheck', 'Please check the dates and times.');
-		}
-		if (effective <= 0) {
-			return t('dutycheck', 'Shift length is invalid after break (check overnight times and break minutes).');
+		if (!isStandby) {
+			if (!Number.isFinite(payload.breakMinutes) || payload.breakMinutes < 0 || payload.breakMinutes > 720) {
+				return t('dutycheck', 'Break minutes must be between 0 and 720.');
+			}
+			const effective = effectiveWorkMinutes(payload.startTime, payload.endTime, payload.breakMinutes);
+			if (effective === null) {
+				return t('dutycheck', 'Please check the dates and times.');
+			}
+			if (effective <= 0) {
+				return t('dutycheck', 'Shift length is invalid after break (check overnight times and break minutes).');
+			}
 		}
 		if (isDateInAbsenceBlock(payload.employeeId, payload.dutyDate)) {
 			return t('dutycheck', 'This employee has approved leave on the selected date.');
@@ -3344,6 +3573,26 @@
 				return t('dutycheck', 'Select an employee.');
 			case 'LOCATION_ID_REQUIRED':
 				return t('dutycheck', 'Select a location.');
+			case 'STANDBY_DISABLED':
+				return t('dutycheck', 'On-call duty (standby) is not enabled for this company. Ask an administrator to turn it on under Settings → On-call duty.');
+			case 'STANDBY_OVERLAP':
+				return t('dutycheck', 'This employee already has an overlapping on-call duty.');
+			case 'STANDBY_SHIFT_COLLISION':
+				return t('dutycheck', 'A 24-hour on-call duty cannot overlap a planned shift.');
+			case 'STANDBY_ABSENCE_CONFLICT':
+				return t('dutycheck', 'This employee has an approved absence in the on-call period.');
+			case 'STANDBY_BREAK_FORBIDDEN':
+				return t('dutycheck', 'On-call duty cannot have a break — it is not working time.');
+			case 'STANDBY_CATEGORY_NOT_FOUND':
+				return t('dutycheck', 'The selected standby category is not available. Pick another one or leave it empty.');
+			case 'STANDBY_CATEGORY_IN_USE':
+				return t('dutycheck', 'This category is still used by on-call duties.');
+			case 'KIND_IMMUTABLE':
+				return t('dutycheck', 'The type of an existing assignment cannot be changed. Cancel it and create a new one.');
+			case 'INVALID_KIND':
+				return t('dutycheck', 'Please choose a valid duty type.');
+			case 'INVALID_RESPONSE_TIME':
+				return t('dutycheck', 'Response time must be between 0 and 10080 minutes.');
 			default:
 				return null;
 		}
@@ -3634,22 +3883,19 @@
 		document.getElementById('dc-roster-suggest-fill')?.addEventListener('click', () => {
 			void runSuggestFill();
 		});
-		// Wire month nav before the initial ensure so E2E/users never click dead buttons
-		// while #dc-roster-grid (present in HTML) already satisfies waitForSelector.
-		wireMonthNavigator();
-		await Promise.all([
-			(async () => {
-				const fromUrl = selectedPeriodIdFromUrl();
-				if (fromUrl) {
-					await loadRoster(fromUrl);
-					return;
-				}
-				await goToCalendarMonth(currentCompanyYearMonth(), { quiet: true });
-			})(),
-			loadPendingSwaps(),
-			loadPendingOpenClaims(),
-		]).then(() => loadOpenShiftList());
-
+		// Add-assignment delegation must exist before the initial boot loads
+		// resolve, otherwise a click during boot lands on a visible-but-unwired
+		// button and is silently dropped.
+		document.getElementById('dc-roster-assignments-section')?.addEventListener('click', (event) => {
+			const btn = event.target.closest('.dc-roster-add-assignment-trigger');
+			if (!btn) {
+				return;
+			}
+			void openAssignmentCreateModal(btn);
+		});
+		// All listeners on static controls must exist before the initial boot
+		// loads resolve — the modal can already be open and every visible
+		// button is clickable, so post-await wiring is a dead-click window.
 		const switcher = document.getElementById('dc-roster-period-switcher');
 		switcher?.addEventListener('change', async () => {
 			clearAssignmentsSectionSuccess();
@@ -3662,14 +3908,6 @@
 				loadPendingOpenClaims(),
 			]);
 			await loadOpenShiftList();
-		});
-
-		document.getElementById('dc-roster-assignments-section')?.addEventListener('click', (event) => {
-			const btn = event.target.closest('.dc-roster-add-assignment-trigger');
-			if (!btn) {
-				return;
-			}
-			openAssignmentCreateModal(btn);
 		});
 
 		document.getElementById('dc-assignment-form-clear')?.addEventListener('click', () => {
@@ -3706,6 +3944,7 @@
 		document.getElementById('dc-assignment-start')?.addEventListener('change', scheduleEligibilityRefresh);
 		document.getElementById('dc-assignment-end')?.addEventListener('change', scheduleEligibilityRefresh);
 		document.getElementById('dc-assignment-location')?.addEventListener('change', scheduleEligibilityRefresh);
+		wireAssignmentKindToggle();
 		form?.addEventListener('submit', (event) => {
 			event.preventDefault();
 			const dialog = form.closest('.dc-modal__dialog--roster-assignment');
@@ -3717,5 +3956,20 @@
 				primary.click();
 			}
 		});
+		// Wire month nav before the initial ensure so E2E/users never click dead buttons
+		// while #dc-roster-grid (present in HTML) already satisfies waitForSelector.
+		wireMonthNavigator();
+		await Promise.all([
+			(async () => {
+				const fromUrl = selectedPeriodIdFromUrl();
+				if (fromUrl) {
+					await loadRoster(fromUrl);
+					return;
+				}
+				await goToCalendarMonth(currentCompanyYearMonth(), { quiet: true });
+			})(),
+			loadPendingSwaps(),
+			loadPendingOpenClaims(),
+		]).then(() => loadOpenShiftList());
 	});
 })();

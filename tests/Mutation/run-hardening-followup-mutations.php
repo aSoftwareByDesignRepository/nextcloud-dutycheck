@@ -95,8 +95,8 @@ $mutations = [
 	],
 	'copy_period_nests_inner_transactions' => [
 		'file' => $roster,
-		'from' => '], $actor, false, false, false, false);',
-		'to' => '], $actor, false, false, false, true);',
+		'from' => '$this->createAssignment($copyPayload, $actor, false, false, false, false);',
+		'to' => '$this->createAssignment($copyPayload, $actor, false, false, false, true);',
 		'php' => true,
 		'js' => false,
 	],
@@ -144,8 +144,8 @@ $mutations = [
 	],
 	'conflict_ack_stale_maps_to_400' => [
 		'file' => $appRoot . '/lib/Controller/ApiJsonErrorResponse.php',
-		'from' => "'PERIOD_STATUS_CONFLICT', 'ABSENCE_STATUS_CONFLICT', 'STALE_VERSION', 'ASSIGNMENT_TRANSFER_STALE', 'CONFLICT_ACK_STALE' => 409,",
-		'to' => "'PERIOD_STATUS_CONFLICT', 'ABSENCE_STATUS_CONFLICT', 'STALE_VERSION', 'ASSIGNMENT_TRANSFER_STALE' => 409,",
+		'from' => "'PERIOD_STATUS_CONFLICT', 'ABSENCE_STATUS_CONFLICT', 'STALE_VERSION', 'ASSIGNMENT_TRANSFER_STALE', 'CONFLICT_ACK_STALE', 'SUGGEST_IN_PROGRESS', 'SWAP_NOT_PENDING', 'SETTINGS_CONFLICT', 'STANDBY_OVERLAP' => 409,",
+		'to' => "'PERIOD_STATUS_CONFLICT', 'ABSENCE_STATUS_CONFLICT', 'STALE_VERSION', 'ASSIGNMENT_TRANSFER_STALE', 'SUGGEST_IN_PROGRESS', 'SWAP_NOT_PENDING', 'SETTINGS_CONFLICT', 'STANDBY_OVERLAP' => 409,",
 		'php' => true,
 		'js' => false,
 	],

@@ -74,6 +74,7 @@ final class UninstallDropTables implements IRepairStep
 		'dc_rotation_week_days',
 		'dc_shift_preferences',
 		'dc_shift_templates',
+		'dc_standby_categories',
 		'dc_swap_requests',
 		'dc_user_preferences',
 		'dc_user_roles',

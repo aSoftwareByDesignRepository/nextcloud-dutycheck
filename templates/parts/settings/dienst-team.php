@@ -64,6 +64,55 @@ $patternsUrl = (string) ($urls['patterns'] ?? '#');
 			</p>
 		</div>
 
+		<div class="dc-dienst-team__group" role="group" aria-labelledby="dc-dt-group-standby">
+			<h3 id="dc-dt-group-standby" class="dc-dienst-team__group-title"><?php p($l->t('On-call duty (Bereitschaft)')); ?></h3>
+			<p class="dc-dienst-team__group-lead">
+				<?php p($l->t('Plan who is on call. On-call duty is planning context — it never counts as worked time.')); ?>
+			</p>
+			<label class="dc-checkbox dc-dienst-team__primary" for="dc-dt-standby">
+				<input id="dc-dt-standby" type="checkbox" name="standbyEnabled" aria-describedby="dc-dt-standby-hint">
+				<span class="dc-checkbox__text">
+					<strong><?php p($l->t('On-call duty')); ?></strong>
+					<span id="dc-dt-standby-hint" class="dc-dienst-team__hint">
+						<?php p($l->t('Adds Bereitschaft as a duty type in the roster. Off = the planner sees only normal shifts.')); ?>
+					</span>
+				</span>
+			</label>
+			<div id="dc-dt-standby-extra" class="dc-dienst-team__standby-extra" hidden>
+				<label class="dc-checkbox" for="dc-dt-standby-ack">
+					<input id="dc-dt-standby-ack" type="checkbox" name="standbyAcknowledgeEnabled">
+					<span class="dc-checkbox__text"><?php p($l->t('Employees confirm on-call duties')); ?></span>
+				</label>
+				<div class="dc-field dc-field--full dc-dt-standby-categories">
+					<span class="dc-field__label" id="dc-dt-standby-cats-label"><?php p($l->t('Standby categories')); ?></span>
+					<p class="dc-field__hint" id="dc-dt-standby-cats-hint">
+						<?php p($l->t('Optional labels such as “Night” or “Weekend”, each with a colour and an optional default response time.')); ?>
+					</p>
+					<ul id="dc-dt-standby-cats-list" class="dc-standby-cats" aria-labelledby="dc-dt-standby-cats-label"></ul>
+					<div id="dc-dt-standby-cat-form" class="dc-standby-cat-form" role="group" aria-label="<?php p($l->t('Add standby category')); ?>">
+						<div class="dc-field">
+							<label class="dc-field__label" for="dc-dt-cat-label"><?php p($l->t('Name')); ?></label>
+							<input id="dc-dt-cat-label" type="text" class="dc-input" maxlength="120" required
+								placeholder="<?php p($l->t('e.g. Night')); ?>">
+						</div>
+						<div class="dc-field">
+							<label class="dc-field__label" for="dc-dt-cat-color"><?php p($l->t('Colour')); ?></label>
+							<input id="dc-dt-cat-color" type="color" class="dc-input dc-input--color" value="#7c3aed">
+						</div>
+						<div class="dc-field">
+							<label class="dc-field__label" for="dc-dt-cat-rt"><?php p($l->t('Response time (min)')); ?></label>
+							<input id="dc-dt-cat-rt" type="number" class="dc-input" min="0" max="10080" step="1"
+								inputmode="numeric" placeholder="<?php p($l->t('optional')); ?>">
+						</div>
+						<div class="dc-field dc-standby-cat-form__actions">
+							<button type="button" class="button" id="dc-dt-cat-add"><?php p($l->t('Add category')); ?></button>
+						</div>
+					</div>
+					<p id="dc-dt-standby-cats-status" class="dc-roster-flash" role="status" aria-live="polite" aria-atomic="true" hidden></p>
+				</div>
+			</div>
+		</div>
+
 		<div class="dc-dienst-team__group" role="group" aria-labelledby="dc-dt-group-today">
 			<h3 id="dc-dt-group-today" class="dc-dienst-team__group-title"><?php p($l->t('Locations & Today')); ?></h3>
 			<p class="dc-dienst-team__group-lead">

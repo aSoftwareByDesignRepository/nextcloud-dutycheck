@@ -1,0 +1,41 @@
+=== ATLAS R8 Lens 5 — translations deep-quality (formal) ===
+gate: php scripts/l10n/check-l10n-formal-quality.php --app=dutycheck
+
+Formal native quality OK: dutycheck/de (1426 keys)
+Formal native quality OK: dutycheck/fr (1426 keys)
+Formal native quality OK: dutycheck/es (1426 keys)
+Formal native quality OK: dutycheck/da (1426 keys)
+Formal native quality OK: dutycheck/nl (1426 keys)
+Formal native quality OK: dutycheck/it (1426 keys)
+Formal native quality OK: dutycheck/pl (1426 keys)
+Formal native quality OK: dutycheck/sv (1426 keys)
+Formal native quality OK: dutycheck/nb (1426 keys)
+Formal native quality OK: dutycheck/pt_BR (1426 keys)
+Formal native quality OK: dutycheck/pt (1426 keys)
+Formal l10n quality OK for dutycheck (de/fr/es/da/nl/it/pl/sv/nb/pt_BR/pt).
+
+=== runtime parity (dutycheck row) ===
+App                 en keys  runtime  missing    de=en
+dutycheck              1426     1356        0        3
+
+=== post-translation focused e2e (en surface) ===
+npx playwright test standby-planner.spec.js web-pages-smoke.spec.js
+=> 12 passed (1.3m) — includes 'standby create posts kind=standby with
+   zero break and allows equal times'
+
+=== regional-variant sync ===
+pl_PL.json / de_DE.json synced with parents (pl informal register fix:
+'ci użytkownicy' false-positive rephrase + 'Twoja' -> 'Pańska'; de_DE got
+STANDBY_ACKNOWLEDGE_DISABLED copy). pt_BR = independent locale (1013
+legitimate diffs vs pt).
+
+=== checker allowlist additions (scripts/l10n/check-l10n-formal-quality-lib.php) ===
+- L10N_ALLOW_EXACT += '24 h' (universal unit abbreviation)
+- L10N_DACH_ALLOW_PATTERNS += Bereitschaft|Reaktionszeit|Rufbereitschaft|Standort
+  (de msgstr identical to German loanword msgids is correct)
+
+=== test-env fix ===
+dc_atlas_planner core lang restored de -> en (stale from r8 lens-5 render
+probe). standby-planner.spec.js save-button regex fixed: de alternates were
+aspirational ('Zuordnung speichern', capital-S) — actual de copy is
+'Einsatz speichern'; now /Save assignment|[Ss]peichern/.

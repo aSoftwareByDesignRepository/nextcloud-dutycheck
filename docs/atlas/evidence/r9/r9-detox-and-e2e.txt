@@ -1,0 +1,29 @@
+=== ATLAS R9 — fresh proofs ===
+
+--- Android Detox (REAL emulator, first successful run) ---
+AVD: DutyCheck_Atlas_API_36 (recreated — farm AVDs were reclaimed between sessions;
+system-images android-33/36 survived). Booted emulator-5600 via emulator_acquire.
+APK: ./gradlew assembleDebug assembleAndroidTest -> BUILD SUCCESSFUL (1m55s).
+
+npx detox test --configuration android.emu.debug:
+  smoke.e2e.js              1/1 PASS  (18.6s)
+  journeys.e2e.js           8/8 PASS  (104.0s)  incl. Home->MyWeek->ShiftDetail->acknowledge
+  home.e2e.js               4/4 PASS  (39.1s)   incl. acknowledge next shift, license gate
+  login-reachability.e2e.js 1/1 PASS  (11.7s)
+  TOTAL: 14/14 PASS — ENV-01 (Android Detox gap) CLOSED.
+
+--- Web full suite (fresh, post-R8 fixes) ---
+npx playwright test -> 161 passed / 2 skipped / 3 failed (24.0m)
+All 3 failures = e2e_employee login 401 — root cause: PARALLEL arbeitszeitcheck
+playwright run (aristoteles-e2e session) executes admin-users-profile spec which
+rotates the shared e2e_employee password mid-run. Verified: occ reset -> 200 ->
+flipped back to 401 while their suite ran -> stable 200 after their run ended.
+Re-run in quiet window: 4/4 PASS (the 3 tests + auth setup).
+Effective result: 164 passed / 2 intentionally skipped / 0 app failures.
+
+--- Lens 2 fresh probes ---
+- Secrets scan js/+l10n bundles: no literal secrets/keys/tokens.
+- StandbyCategoryService::delete refuses while referenced
+  (STANDBY_CATEGORY_IN_USE; UI copy directs to Deactivate — designed audit-trail
+  behavior, not a dead end). Single-tenant e2e env: cross-company scoping rests
+  on uniform company_id predicates + assertRowCompany (code-verified).

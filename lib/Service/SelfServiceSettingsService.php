@@ -39,6 +39,8 @@ final class SelfServiceSettingsService
 		'shift_terminal_plan_strip' => false,
 		'today_board_enabled' => false,
 		'blackouts_enabled' => false,
+		'standby_enabled' => false,
+		'standby_acknowledge_enabled' => false,
 		'early_end_latest' => '12:00',
 		'late_start_earliest' => '14:00',
 		'push_quiet_hours_enabled' => false,
@@ -59,7 +61,8 @@ final class SelfServiceSettingsService
 		'rotation_patterns_enabled', 'soll_from_duty', 'peer_roster_visibility',
 		'allow_cross_location_swaps', 'claim_requires_planner', 'preferences_enabled',
 		'preference_ranking_on_suggest', 'shift_terminal_plan_strip', 'today_board_enabled',
-		'blackouts_enabled', 'push_quiet_hours_enabled', 'push_allow_urgent_during_quiet',
+		'blackouts_enabled', 'standby_enabled', 'standby_acknowledge_enabled',
+		'push_quiet_hours_enabled', 'push_allow_urgent_during_quiet',
 		'user_may_disable_quiet',
 	];
 
@@ -185,6 +188,21 @@ final class SelfServiceSettingsService
 		return (bool) $this->getForCompany($companyId)['blackouts_enabled'];
 	}
 
+	/**
+	 * On-call / standby (Rufbereitschaft) feature gate. All standby mutations and
+	 * standby-specific reads must check this server-side — UI hiding alone is
+	 * cosmetic. Default off so existing companies see zero behavioural change.
+	 */
+	public function isStandbyEnabled(int $companyId): bool
+	{
+		return (bool) $this->getForCompany($companyId)['standby_enabled'];
+	}
+
+	public function isStandbyAcknowledgeEnabled(int $companyId): bool
+	{
+		return (bool) $this->getForCompany($companyId)['standby_acknowledge_enabled'];
+	}
+
 	public function isQuietHoursEnabled(int $companyId): bool
 	{
 		return (bool) $this->getForCompany($companyId)['push_quiet_hours_enabled'];
@@ -247,6 +265,8 @@ final class SelfServiceSettingsService
 			'shiftTerminalPlanStrip' => (bool) $s['shift_terminal_plan_strip'],
 			'todayBoardEnabled' => (bool) $s['today_board_enabled'],
 			'blackoutsEnabled' => (bool) $s['blackouts_enabled'],
+			'standbyEnabled' => (bool) $s['standby_enabled'],
+			'standbyAcknowledgeEnabled' => (bool) $s['standby_acknowledge_enabled'],
 			'earlyEndLatest' => (string) $s['early_end_latest'],
 			'lateStartEarliest' => (string) $s['late_start_earliest'],
 			'pushQuietHoursEnabled' => (bool) $s['push_quiet_hours_enabled'],
@@ -374,6 +394,8 @@ final class SelfServiceSettingsService
 			'shiftTerminalPlanStrip' => 'shift_terminal_plan_strip',
 			'todayBoardEnabled' => 'today_board_enabled',
 			'blackoutsEnabled' => 'blackouts_enabled',
+			'standbyEnabled' => 'standby_enabled',
+			'standbyAcknowledgeEnabled' => 'standby_acknowledge_enabled',
 			'earlyEndLatest' => 'early_end_latest',
 			'lateStartEarliest' => 'late_start_earliest',
 			'pushQuietHoursEnabled' => 'push_quiet_hours_enabled',
@@ -419,7 +441,8 @@ final class SelfServiceSettingsService
 				'rotation_patterns_enabled', 'soll_from_duty', 'peer_roster_visibility',
 				'allow_cross_location_swaps', 'claim_requires_planner', 'preferences_enabled',
 				'preference_ranking_on_suggest', 'shift_terminal_plan_strip', 'today_board_enabled',
-				'blackouts_enabled', 'push_quiet_hours_enabled', 'push_allow_urgent_during_quiet',
+				'blackouts_enabled', 'standby_enabled', 'standby_acknowledge_enabled',
+				'push_quiet_hours_enabled', 'push_allow_urgent_during_quiet',
 				'user_may_disable_quiet' => (bool) $val,
 				'swap_approval_mode' => ((string) $val === self::SWAP_BILATERAL_AUTO)
 					? self::SWAP_BILATERAL_AUTO

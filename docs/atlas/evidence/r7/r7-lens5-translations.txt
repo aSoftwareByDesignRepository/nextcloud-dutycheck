@@ -1,0 +1,19 @@
+LENS 5 — Translations/copy (standby surface), round 7
+=====================================================
+
+Audited: js/roster.js standby blocks, templates, mobile
+src/ui/StandbyPill.tsx + src/utils/assignmentKind.ts + rosterSections.ts
+
+- No hardcoded user-facing strings in new code (all via t()/i18n keys)
+- Mobile standby keys present in all 11 locales: shortLabel, a11yLabel,
+  fullDay, responseWithin, notWorkedTime, responseTime, acknowledge
+
+Finding TR-01 (Should-Fix -> VERIFIED): fr.json a11yLabel read
+"Duty d'astreinte" — English word leaking into French copy.
+Fix: -> "Astreinte". Mobile jest locale suites re-run: 7 suites green;
+full mobile jest re-run this session: 53 suites / 382 tests green.
+
+Web l10n: runtime + parity green — 1356 unique runtime strings,
+1426 keys across 11 locales after extracting the new
+STANDBY_ACKNOWLEDGE_DISABLED copy. No raw i18n keys observed on
+standby surfaces in e2e runs.

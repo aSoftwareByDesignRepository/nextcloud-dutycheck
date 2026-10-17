@@ -158,8 +158,9 @@ final class PeerRosterService
 		}
 		$total = (int) $countQb->executeQuery()->fetchOne();
 
+		$hasKind = SchemaProbe::hasColumn($this->db, 'dc_assignments', 'kind');
 		$listQb = $this->db->getQueryBuilder();
-		$listQb->select(
+		$listSelect = [
 			'a.id',
 			'a.employee_id',
 			'a.duty_date',
@@ -167,7 +168,11 @@ final class PeerRosterService
 			'a.end_time',
 			'a.break_minutes',
 			'e.display_name',
-		)
+		];
+		if ($hasKind) {
+			$listSelect[] = 'a.kind';
+		}
+		$listQb->select(...$listSelect)
 			->from('dc_assignments', 'a')
 			->innerJoin('a', 'dc_periods', 'p', 'a.period_id = p.id')
 			->innerJoin('a', 'dc_employees', 'e', 'a.employee_id = e.id')
@@ -205,10 +210,12 @@ final class PeerRosterService
 				'dutyDate' => (string) $row['duty_date'],
 				'startTime' => $start,
 				'endTime' => $end,
-				'breakMinutes' => (int) $row['break_minutes'],
+				// Standby carries no break semantics — report 0, never raw data.
+				'breakMinutes' => $hasKind && (string) ($row['kind'] ?? 'shift') === 'standby' ? 0 : (int) $row['break_minutes'],
 				'locationId' => $locationId,
 				'locationName' => (string) $location['name'],
 				'templateName' => $templates[$key] ?? null,
+				'kind' => $hasKind ? (string) ($row['kind'] ?? 'shift') : 'shift',
 			];
 		}
 

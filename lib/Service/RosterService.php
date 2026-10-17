@@ -38,6 +38,8 @@ class RosterService
 		private ?PlannerLocationScopeService $plannerScope = null,
 		private ?ApiRateLimitService $apiRateLimits = null,
 		private ?PeriodLockService $periodLocks = null,
+		private ?SelfServiceSettingsService $selfService = null,
+		private ?StandbyCategoryService $standbyCategories = null,
 	) {
 	}
 
@@ -65,6 +67,9 @@ class RosterService
 			'Employee qualification is expired for this location',
 			'Break is shorter than required for this shift length',
 			'Location is understaffed relative to template headcount',
+			'Employee has overlapping standby duties',
+			'Standby duty overlaps a planned shift',
+			'Standby duty collides with approved absence',
 		];
 	}
 
@@ -800,6 +805,24 @@ class RosterService
 			? $this->listBlockingAbsenceSpansForPeriod($selected, $selectedPeriod)
 			: [];
 
+		$standbyEnabled = false;
+		$standbyAckEnabled = false;
+		$standbyCategories = [];
+		if ($selected !== null && $this->assignmentHasKindColumn() && $this->selfService !== null) {
+			try {
+				$companyId = $this->readRowCompanyId('dc_periods', $selected);
+				$standbyEnabled = $this->selfService->isStandbyEnabled($companyId);
+				$standbyAckEnabled = $this->selfService->isStandbyAcknowledgeEnabled($companyId);
+				if ($standbyEnabled && $this->standbyCategories !== null) {
+					$standbyCategories = $this->standbyCategories->listForCompany($companyId, true);
+				}
+			} catch (Throwable) {
+				$standbyEnabled = false;
+				$standbyAckEnabled = false;
+				$standbyCategories = [];
+			}
+		}
+
 		return [
 			'periods' => $periods,
 			'selectedPeriodId' => $selected,
@@ -814,6 +837,80 @@ class RosterService
 			'conflicts' => $conflicts,
 			'absenceBlocks' => $absenceBlocks,
 			'defaultBreakMinutes' => $this->planningDefaults?->getDefaultBreakMinutes() ?? 0,
+			'standbyEnabled' => $standbyEnabled,
+			'standbyAcknowledgeEnabled' => $standbyAckEnabled,
+			'standbyCategories' => $standbyCategories,
+		];
+	}
+
+	/**
+	 * Published standby roster for a period (GET /api/standby/roster/{id}).
+	 *
+	 * Returns only published/closed rows — an open period is a draft and must
+	 * never leak through this surface. `available` tells clients whether the
+	 * company has the feature on; when off, rows stay empty.
+	 *
+	 * @return array{available:bool,periodId:int,periodStatus:string,rows:list<array<string,mixed>>}
+	 */
+	public function standbyRosterData(int $periodId, string $actorUserId): array
+	{
+		if ($this->companies !== null) {
+			$this->companies->assertRowCompany($actorUserId, 'dc_periods', $periodId, 'PERIOD_NOT_FOUND');
+		}
+		$period = $this->periodById($periodId);
+
+		$available = false;
+		try {
+			$companyId = $this->readRowCompanyId('dc_periods', $periodId);
+			$available = $this->assignmentHasKindColumn()
+				&& $this->selfService !== null
+				&& $this->selfService->isStandbyEnabled($companyId);
+		} catch (Throwable) {
+			$available = false;
+		}
+
+		if (!$available || !in_array($period['status'], ['published', 'closed'], true)) {
+			return [
+				'available' => $available,
+				'periodId' => $periodId,
+				'periodStatus' => (string) $period['status'],
+				'rows' => [],
+			];
+		}
+
+		$rows = array_values(array_filter(
+			array_map(
+				fn (array $a): array => [
+					'id' => (int) $a['id'],
+					'employeeId' => (int) $a['employeeId'],
+					'employeeName' => (string) $a['employeeName'],
+					'userId' => $this->linkedUserIdForEmployeeId((int) $a['employeeId']),
+					'locationId' => (int) $a['locationId'],
+					'locationName' => (string) $a['locationName'],
+					'dutyDate' => (string) $a['dutyDate'],
+					'startTime' => (string) $a['startTime'],
+					'endTime' => (string) $a['endTime'],
+					'kind' => AssignmentKind::STANDBY,
+					'category' => $a['standbyCategoryId'] !== null ? [
+						'id' => (int) $a['standbyCategoryId'],
+						'label' => $a['standbyCategoryLabel'] !== null ? (string) $a['standbyCategoryLabel'] : null,
+						'color' => $a['standbyCategoryColor'] !== null ? (string) $a['standbyCategoryColor'] : null,
+					] : null,
+					'responseTimeMinutes' => $a['responseTimeMinutes'],
+					'note' => (string) $a['note'],
+				],
+				array_filter(
+					$this->listAssignments($periodId),
+					static fn (array $a): bool => AssignmentKind::isStandby($a['kind'] ?? AssignmentKind::SHIFT),
+				),
+			),
+		));
+
+		return [
+			'available' => true,
+			'periodId' => $periodId,
+			'periodStatus' => (string) $period['status'],
+			'rows' => $rows,
 		];
 	}
 
@@ -939,10 +1036,12 @@ class RosterService
 		$dutyDate = (string) ($payload['dutyDate'] ?? '');
 		$startTime = (string) ($payload['startTime'] ?? '');
 		$endTime = (string) ($payload['endTime'] ?? '');
+		$kind = AssignmentKind::normalize($payload['kind'] ?? null);
 		$breakMinutes = PlanningDefaultsService::parseAssignmentBreakMinutes($payload['breakMinutes'] ?? null);
 		$note = trim((string) ($payload['note'] ?? ''));
 		$acknowledgements = is_array($payload['acknowledgements'] ?? null) ? $payload['acknowledgements'] : [];
 		$pendingBlackoutOverride = null;
+		$isStandby = AssignmentKind::isStandby($kind);
 
 		if ($periodId <= 0) {
 			throw new \InvalidArgumentException('PERIOD_ID_REQUIRED');
@@ -957,13 +1056,17 @@ class RosterService
 		$this->assertDate($dutyDate);
 		$startTime = $this->normalizeDutyTime($startTime);
 		$endTime = $this->normalizeDutyTime($endTime);
-		if ($startTime === $endTime) {
+		if ($startTime === $endTime && !$isStandby) {
 			throw new \InvalidArgumentException('EQUAL_DUTY_TIMES');
 		}
 		if (mb_strlen($note) > 512) {
 			throw new \InvalidArgumentException('NOTE_TOO_LONG');
 		}
-		if ($this->effectiveMinutes($startTime, $endTime, $breakMinutes) <= 0) {
+		if ($isStandby && $breakMinutes !== 0) {
+			// Standby has no working-time minutes — a break would corrupt exports.
+			throw new \InvalidArgumentException('STANDBY_BREAK_FORBIDDEN');
+		}
+		if (!$isStandby && $this->effectiveMinutes($startTime, $endTime, $breakMinutes) <= 0) {
 			throw new \InvalidArgumentException('INVALID_SHIFT_LENGTH');
 		}
 
@@ -971,6 +1074,12 @@ class RosterService
 		if (!$trustedMarketplaceApply && $this->companies !== null) {
 			$this->companies->assertRowCompany($actor, 'dc_periods', $periodId, 'PERIOD_NOT_FOUND');
 		}
+		if ($isStandby) {
+			$this->assertStandbyEnabledForPeriod($periodId, $actor);
+		}
+		$standbyMeta = $isStandby
+			? $this->resolveStandbyMetadata($periodId, $payload)
+			: ['categoryId' => null, 'responseTimeMinutes' => null];
 		$allowedStatuses = $allowPublishedMarketplace ? ['open', 'published'] : ['open'];
 		if (!in_array($period['status'], $allowedStatuses, true)) {
 			throw new \InvalidArgumentException('PERIOD_NOT_OPEN');
@@ -984,9 +1093,9 @@ class RosterService
 		if (!$trustedMarketplaceApply && $this->plannerScope !== null) {
 			$this->plannerScope->assertCanPlanLocationOr($actor, $locationId, 'LOCATION_NOT_FOUND');
 		}
-		$this->assertNoAbsenceConflict($employeeId, $dutyDate);
+		$this->assertNoAssignmentAbsenceConflict($employeeId, $dutyDate, $kind);
 		$pendingBlackoutOverride = $this->assertNoBlackoutConflict($employeeId, $dutyDate, $startTime, $endTime, $locationId, $payload, $actor);
-		$this->assertNoOverlapConflict($periodId, $employeeId, $dutyDate, $startTime, $endTime);
+		$this->assertNoOverlapConflict($periodId, $employeeId, $dutyDate, $startTime, $endTime, null, $kind);
 		$qualConflicts = $this->qualificationConflicts($employeeId, $locationId, $dutyDate);
 		foreach ($qualConflicts as $qc) {
 			if (($qc['severity'] ?? '') === 'hard') {
@@ -994,7 +1103,7 @@ class RosterService
 			}
 		}
 		$softConflicts = array_merge(
-			$this->candidateSoftConflicts($periodId, $employeeId, $dutyDate, $startTime, $endTime, null, $breakMinutes),
+			$this->candidateSoftConflicts($periodId, $employeeId, $dutyDate, $startTime, $endTime, null, $breakMinutes, $kind),
 			array_values(array_filter($qualConflicts, static fn (array $c): bool => ($c['severity'] ?? '') === 'soft')),
 		);
 		// Trusted marketplace claim apply: the planner already accepted the posted
@@ -1005,10 +1114,12 @@ class RosterService
 			$this->assertAcknowledgedSoftConflicts($softConflicts, $acknowledgements);
 		}
 
-		// Fail closed: create requires integrity columns (Version1011/1014/1016+).
+		// Fail closed: create requires integrity columns (Version1011/1014/1016+);
+		// standby additionally requires the Version1021 kind column.
 		if (!$this->assignmentHasStatusColumn()
 			|| !$this->assignmentHasVersionColumn()
-			|| !$this->assignmentHasSlotKeyColumn()) {
+			|| !$this->assignmentHasSlotKeyColumn()
+			|| ($isStandby && !$this->assignmentHasKindColumn())) {
 			throw new \InvalidArgumentException('SCHEMA_NOT_READY');
 		}
 
@@ -1038,8 +1149,14 @@ class RosterService
 							$dutyDate,
 							$startTime,
 							$endTime,
+							$kind,
 						)),
 					];
+				if ($this->assignmentHasKindColumn()) {
+					$values['kind'] = $qb->createNamedParameter($kind);
+					$values['standby_category_id'] = $qb->createNamedParameter($standbyMeta['categoryId'], IQueryBuilder::PARAM_INT);
+					$values['response_time_minutes'] = $qb->createNamedParameter($standbyMeta['responseTimeMinutes'], IQueryBuilder::PARAM_INT);
+				}
 				$qb->insert('dc_assignments')->values($values)->executeStatement();
 				$createdAssignmentId = (int) $qb->getLastInsertId();
 			} catch (Throwable $e) {
@@ -1047,6 +1164,17 @@ class RosterService
 					throw new \InvalidArgumentException('ASSIGNMENT_DUPLICATE_SLOT');
 				}
 				throw $e;
+			}
+
+			if ($isStandby) {
+				$this->writeAuditEvent($periodId, $actor, 'standby_created', 'assignment', $createdAssignmentId, [
+					'kind' => $kind,
+					'employeeId' => $employeeId,
+					'locationId' => $locationId,
+					'dutyDate' => $dutyDate,
+					'startTime' => $startTime,
+					'endTime' => $endTime,
+				]);
 			}
 
 			if ($refreshConflicts) {
@@ -1118,6 +1246,23 @@ class RosterService
 		if ($period['status'] !== 'open') {
 			throw new \InvalidArgumentException('PERIOD_NOT_OPEN');
 		}
+		// Fail closed: update requires integrity columns (aligned with create).
+		// Checked before the validation cascade — a broken schema must never
+		// surface as a domain validation error.
+		if (!$this->assignmentHasVersionColumn()
+			|| !$this->assignmentHasStatusColumn()
+			|| !$this->assignmentHasSlotKeyColumn()) {
+			throw new \InvalidArgumentException('SCHEMA_NOT_READY');
+		}
+		$kind = $this->assignmentKindFromRow($row);
+		$isStandby = AssignmentKind::isStandby($kind);
+		if (array_key_exists('kind', $payload) && AssignmentKind::normalize($payload['kind']) !== $kind) {
+			// Changing kind would corrupt slot-key identity, ack state, and audit lineage.
+			throw new \InvalidArgumentException('KIND_IMMUTABLE');
+		}
+		if ($isStandby) {
+			$this->assertStandbyEnabledForPeriod($periodId, $actor);
+		}
 
 		$employeeId = array_key_exists('employeeId', $payload) ? (int) $payload['employeeId'] : (int) $row['employee_id'];
 		$locationId = array_key_exists('locationId', $payload) ? (int) $payload['locationId'] : (int) $row['location_id'];
@@ -1132,6 +1277,9 @@ class RosterService
 		$expectedVersion = self::parseExpectedVersionToken(
 			$payload['expectedVersion'] ?? $payload['version'] ?? null,
 		);
+		$standbyMeta = $isStandby
+			? $this->resolveStandbyMetadata($periodId, $payload, $row)
+			: ['categoryId' => null, 'responseTimeMinutes' => null];
 
 		if ($employeeId <= 0) {
 			throw new \InvalidArgumentException('EMPLOYEE_ID_REQUIRED');
@@ -1142,13 +1290,16 @@ class RosterService
 		$this->assertDate($dutyDate);
 		$startTime = $this->normalizeDutyTime($startTime);
 		$endTime = $this->normalizeDutyTime($endTime);
-		if ($startTime === $endTime) {
+		if ($startTime === $endTime && !$isStandby) {
 			throw new \InvalidArgumentException('EQUAL_DUTY_TIMES');
 		}
 		if (mb_strlen($note) > 512) {
 			throw new \InvalidArgumentException('NOTE_TOO_LONG');
 		}
-		if ($this->effectiveMinutes($startTime, $endTime, $breakMinutes) <= 0) {
+		if ($isStandby && $breakMinutes !== 0) {
+			throw new \InvalidArgumentException('STANDBY_BREAK_FORBIDDEN');
+		}
+		if (!$isStandby && $this->effectiveMinutes($startTime, $endTime, $breakMinutes) <= 0) {
 			throw new \InvalidArgumentException('INVALID_SHIFT_LENGTH');
 		}
 		if ($dutyDate < $period['startDate'] || $dutyDate > $period['endDate']) {
@@ -1161,9 +1312,9 @@ class RosterService
 			// Target-location gate: out-of-scope reports like a missing location.
 			$this->plannerScope->assertCanPlanLocationOr($actor, $locationId, 'LOCATION_NOT_FOUND');
 		}
-		$this->assertNoAbsenceConflict($employeeId, $dutyDate);
+		$this->assertNoAssignmentAbsenceConflict($employeeId, $dutyDate, $kind);
 		$pendingBlackoutOverride = $this->assertNoBlackoutConflict($employeeId, $dutyDate, $startTime, $endTime, $locationId, $payload, $actor);
-		$this->assertNoOverlapConflict($periodId, $employeeId, $dutyDate, $startTime, $endTime, $assignmentId);
+		$this->assertNoOverlapConflict($periodId, $employeeId, $dutyDate, $startTime, $endTime, $assignmentId, $kind);
 		$qualConflicts = $this->qualificationConflicts($employeeId, $locationId, $dutyDate);
 		foreach ($qualConflicts as $qc) {
 			if (($qc['severity'] ?? '') === 'hard') {
@@ -1171,19 +1322,13 @@ class RosterService
 			}
 		}
 		$softConflicts = array_merge(
-			$this->candidateSoftConflicts($periodId, $employeeId, $dutyDate, $startTime, $endTime, $assignmentId, $breakMinutes),
+			$this->candidateSoftConflicts($periodId, $employeeId, $dutyDate, $startTime, $endTime, $assignmentId, $breakMinutes, $kind),
 			array_values(array_filter($qualConflicts, static fn (array $c): bool => ($c['severity'] ?? '') === 'soft')),
 		);
 		if ($softConflicts !== []) {
 			$this->assertAcknowledgedSoftConflicts($softConflicts, $acknowledgements);
 		}
 
-		// Fail closed: update requires integrity columns (aligned with create).
-		if (!$this->assignmentHasVersionColumn()
-			|| !$this->assignmentHasStatusColumn()
-			|| !$this->assignmentHasSlotKeyColumn()) {
-			throw new \InvalidArgumentException('SCHEMA_NOT_READY');
-		}
 		$currentVersion = (int) ($row['version'] ?? 0);
 		if ($expectedVersion === null) {
 			throw new \InvalidArgumentException('EXPECTED_VERSION_REQUIRED');
@@ -1211,10 +1356,15 @@ class RosterService
 					$dutyDate,
 					$startTime,
 					$endTime,
+					$kind,
 				)))
 				->set('acknowledged_at', $qb->createNamedParameter(null))
 				->set('acknowledged_by', $qb->createNamedParameter(null))
 				->andWhere($qb->expr()->neq('status', $qb->createNamedParameter('cancelled')));
+			if ($this->assignmentHasKindColumn()) {
+				$qb->set('standby_category_id', $qb->createNamedParameter($standbyMeta['categoryId'], IQueryBuilder::PARAM_INT))
+					->set('response_time_minutes', $qb->createNamedParameter($standbyMeta['responseTimeMinutes'], IQueryBuilder::PARAM_INT));
+			}
 			$qb->where($qb->expr()->eq('id', $qb->createNamedParameter($assignmentId, IQueryBuilder::PARAM_INT)))
 				->andWhere($qb->expr()->eq('version', $qb->createNamedParameter($casVersion, IQueryBuilder::PARAM_INT)));
 			try {
@@ -1229,7 +1379,8 @@ class RosterService
 				throw new \InvalidArgumentException('STALE_VERSION');
 			}
 
-			$this->writeAuditEvent($periodId, $actor, 'assignment_updated', 'assignment', $assignmentId, [
+			$this->writeAuditEvent($periodId, $actor, $isStandby ? 'standby_updated' : 'assignment_updated', 'assignment', $assignmentId, [
+				'kind' => $kind,
 				'employeeId' => $employeeId,
 				'locationId' => $locationId,
 				'dutyDate' => $dutyDate,
@@ -1358,7 +1509,15 @@ class RosterService
 
 			$this->releaseClaimedOpenShift($assignmentId);
 
-			$this->writeAuditEvent($periodId, $actor, 'assignment_cancelled', 'assignment', $assignmentId, []);
+			$rowKind = $this->assignmentKindFromRow($row);
+			$this->writeAuditEvent(
+				$periodId,
+				$actor,
+				AssignmentKind::isStandby($rowKind) ? 'standby_deleted' : 'assignment_cancelled',
+				'assignment',
+				$assignmentId,
+				AssignmentKind::isStandby($rowKind) ? ['kind' => $rowKind] : [],
+			);
 			$this->refreshAndListConflicts($periodId);
 			if ($useTransaction) {
 				$this->db->commit();
@@ -1465,6 +1624,23 @@ class RosterService
 		if (!in_array($period['status'], ['published', 'closed'], true)) {
 			throw new \InvalidArgumentException('PERIOD_NOT_PUBLISHED');
 		}
+		// Standby acknowledgement is opt-in per company (fail closed when the
+		// settings service is unavailable — treat as feature off).
+		if (AssignmentKind::isStandby($this->assignmentKindFromRow($row))) {
+			$standbyAckAllowed = false;
+			if ($this->selfService !== null) {
+				try {
+					$standbyAckAllowed = $this->selfService->isStandbyAcknowledgeEnabled(
+						$this->readRowCompanyId('dc_periods', (int) $row['period_id']),
+					);
+				} catch (Throwable) {
+					$standbyAckAllowed = false;
+				}
+			}
+			if (!$standbyAckAllowed) {
+				throw new \InvalidArgumentException('STANDBY_ACKNOWLEDGE_DISABLED');
+			}
+		}
 
 		$existingAt = $row['acknowledged_at'] ?? null;
 		if ($existingAt !== null && (string) $existingAt !== '') {
@@ -1560,7 +1736,7 @@ class RosterService
 					continue;
 				}
 				try {
-					$this->createAssignment([
+					$copyPayload = [
 						'periodId' => $targetPeriodId,
 						'employeeId' => $assignment['employeeId'],
 						'locationId' => $assignment['locationId'],
@@ -1570,7 +1746,13 @@ class RosterService
 						'breakMinutes' => $assignment['breakMinutes'],
 						'note' => $assignment['note'] ?? '',
 						'acknowledgements' => [],
-					], $actor, false, false, false, false);
+						'kind' => $assignment['kind'] ?? AssignmentKind::SHIFT,
+					];
+					if (AssignmentKind::isStandby($copyPayload['kind'])) {
+						$copyPayload['standbyCategoryId'] = $assignment['standbyCategoryId'] ?? null;
+						$copyPayload['responseTimeMinutes'] = $assignment['responseTimeMinutes'] ?? null;
+					}
+					$this->createAssignment($copyPayload, $actor, false, false, false, false);
 					$created++;
 				} catch (ConflictAckRequiredException $e) {
 					$skipped++;
@@ -1659,7 +1841,11 @@ class RosterService
 		$dutyDate = (string) $row['duty_date'];
 		$startTime = (string) $row['start_time'];
 		$endTime = (string) $row['end_time'];
-		$this->assertNoAbsenceConflict($toEmployeeId, $dutyDate);
+		$rowKind = $this->assignmentKindFromRow($row);
+		if (AssignmentKind::isStandby($rowKind)) {
+			$this->assertStandbyEnabledForPeriod($periodId, $actor);
+		}
+		$this->assertNoAssignmentAbsenceConflict($toEmployeeId, $dutyDate, $rowKind);
 		$this->assertNoBlackoutConflict(
 			$toEmployeeId,
 			$dutyDate,
@@ -1669,7 +1855,7 @@ class RosterService
 			[],
 			$actor,
 		);
-		$this->assertNoOverlapConflict($periodId, $toEmployeeId, $dutyDate, $startTime, $endTime, $assignmentId);
+		$this->assertNoOverlapConflict($periodId, $toEmployeeId, $dutyDate, $startTime, $endTime, $assignmentId, $rowKind);
 
 		$casVersion = (int) ($row['version'] ?? 0);
 		if ($useTransaction) {
@@ -1685,6 +1871,7 @@ class RosterService
 					$dutyDate,
 					$startTime,
 					$endTime,
+					$rowKind,
 				)))
 				->set('version', $qb->createNamedParameter($casVersion + 1, IQueryBuilder::PARAM_INT))
 				->set('acknowledged_at', $qb->createNamedParameter(null))
@@ -1705,6 +1892,7 @@ class RosterService
 				throw new \InvalidArgumentException('ASSIGNMENT_TRANSFER_STALE');
 			}
 			$this->writeAuditEvent($periodId, $actor, 'assignment_transferred', 'assignment', $assignmentId, [
+				'kind' => $rowKind,
 				'fromEmployeeId' => $fromEmployeeId,
 				'toEmployeeId' => $toEmployeeId,
 				'version' => $casVersion + 1,
@@ -1799,9 +1987,10 @@ class RosterService
 	/**
 	 * @return list<array<string,mixed>>
 	 */
-	private function candidateSoftConflicts(int $periodId, int $employeeId, string $dutyDate, string $startTime, string $endTime, ?int $excludeAssignmentId = null, ?int $breakMinutes = null): array
+	private function candidateSoftConflicts(int $periodId, int $employeeId, string $dutyDate, string $startTime, string $endTime, ?int $excludeAssignmentId = null, ?int $breakMinutes = null, string $kind = AssignmentKind::SHIFT): array
 	{
 		$candidateRange = $this->assignmentAbsoluteRange($dutyDate, $startTime, $endTime);
+		$candidateIsStandby = AssignmentKind::isStandby($kind);
 		$assignments = $this->listAssignments($periodId);
 		$thresholds = $this->policyThresholdsForPeriod($periodId);
 		$minRest = $thresholds['minRestMinutes'];
@@ -1813,12 +2002,28 @@ class RosterService
 			if ((int) $assignment['employeeId'] !== $employeeId) {
 				continue;
 			}
+			$existingIsStandby = AssignmentKind::isStandby($assignment['kind'] ?? AssignmentKind::SHIFT);
 			$existingRange = $this->assignmentAbsoluteRange(
 				(string) $assignment['dutyDate'],
 				(string) $assignment['startTime'],
 				(string) $assignment['endTime']
 			);
 			if ($this->absoluteRangesOverlap($candidateRange, $existingRange)) {
+				// Mixed shift↔standby overlap survives the hard gate (except 24h
+				// standby) and lands here as an acknowledgeable planning hint.
+				if ($existingIsStandby !== $candidateIsStandby) {
+					$soft[] = [
+						'type' => 'standby_shift_collision',
+						'severity' => 'soft',
+						'message' => 'Standby duty overlaps a planned shift',
+						'assignmentIds' => [(int) $assignment['id']],
+						'payload' => ['kinds' => [$kind, $existingIsStandby ? 'standby' : 'shift']],
+					];
+				}
+				continue;
+			}
+			// Rest-time is a working-time rule — standby rows never feed it.
+			if ($existingIsStandby || $candidateIsStandby) {
 				continue;
 			}
 			$restMinutes = $this->minutesBetweenRanges($existingRange, $candidateRange);
@@ -1833,7 +2038,7 @@ class RosterService
 			}
 		}
 
-		if ($breakMinutes !== null) {
+		if ($breakMinutes !== null && !$candidateIsStandby) {
 			$effective = $this->effectiveMinutes($startTime, $endTime, $breakMinutes);
 			if ($effective > 360 && $breakMinutes < 30) {
 				$soft[] = [
@@ -2310,7 +2515,11 @@ class RosterService
 	 * + 730 days in the future so a malicious or buggy caller cannot scan
 	 * unbounded history.
 	 */
-	public function myRoster(string $userId, ?string $from = null, ?string $to = null): array
+	/**
+	 * $includeStandby=false drops standby rows entirely (legacy clients that
+	 * would misrender them as shifts). Published/closed only — never drafts.
+	 */
+	public function myRoster(string $userId, ?string $from = null, ?string $to = null, bool $includeStandby = true): array
 	{
 		$employeeId = $this->linkedEmployeeIdByUserId($userId);
 		$today = new DateTimeImmutable('today');
@@ -2330,8 +2539,39 @@ class RosterService
 		$fromIso = $fromDate->format('Y-m-d');
 		$toIso = $toDate->format('Y-m-d');
 
+		// Feature flag wins over client capability: standby rows never leak
+		// for a company that has the feature disabled (rows may predate
+		// flag-off and must stay hidden everywhere). When the settings
+		// service is unavailable the flag cannot be verified → fail closed.
+		$standbyAckEnabled = false;
+		if ($this->selfService === null) {
+			$includeStandby = false;
+		} else {
+			try {
+				$companyId = $this->readRowCompanyId('dc_employees', $employeeId);
+				if ($includeStandby) {
+					$includeStandby = $this->selfService->isStandbyEnabled($companyId);
+				}
+				$standbyAckEnabled = $this->selfService->isStandbyAcknowledgeEnabled($companyId);
+			} catch (Throwable) {
+				$includeStandby = false;
+			}
+		}
+
 		$qb = $this->db->getQueryBuilder();
-		$qb->select('a.id', 'a.duty_date', 'a.start_time', 'a.end_time', 'a.break_minutes', 'a.note', 'a.period_id', 'l.name AS location_name', 'p.status AS period_status')
+		$hasKind = $this->assignmentHasKindColumn();
+		$select = ['a.id', 'a.duty_date', 'a.start_time', 'a.end_time', 'a.break_minutes', 'a.note', 'a.period_id', 'l.name AS location_name', 'p.status AS period_status'];
+		if ($hasKind) {
+			$select[] = 'a.kind';
+			$select[] = 'a.standby_category_id';
+			$select[] = 'a.response_time_minutes';
+		}
+		$hasCategoryTable = $hasKind && SchemaProbe::tableExists($this->db, 'dc_standby_categories');
+		if ($hasCategoryTable) {
+			$select[] = 'c.label AS standby_category_label';
+			$select[] = 'c.color AS standby_category_color';
+		}
+		$qb->select(...$select)
 			->from('dc_assignments', 'a')
 			->innerJoin('a', 'dc_periods', 'p', 'a.period_id = p.id')
 			->leftJoin('a', 'dc_locations', 'l', 'a.location_id = l.id')
@@ -2339,6 +2579,12 @@ class RosterService
 			->andWhere($qb->expr()->in('p.status', $qb->createNamedParameter(['published', 'closed'], IQueryBuilder::PARAM_STR_ARRAY)))
 			->andWhere($qb->expr()->gte('a.duty_date', $qb->createNamedParameter($fromIso)))
 			->andWhere($qb->expr()->lte('a.duty_date', $qb->createNamedParameter($toIso)));
+		if ($hasCategoryTable) {
+			$qb->leftJoin('a', 'dc_standby_categories', 'c', 'a.standby_category_id = c.id');
+		}
+		if ($hasKind && !$includeStandby) {
+			$qb->andWhere($qb->expr()->neq('a.kind', $qb->createNamedParameter(AssignmentKind::STANDBY)));
+		}
 		if ($this->assignmentHasStatusColumn()) {
 			$qb->andWhere($qb->expr()->orX(
 				$qb->expr()->neq('a.status', $qb->createNamedParameter('cancelled')),
@@ -2351,7 +2597,8 @@ class RosterService
 		$rows = $qb->executeQuery()->fetchAll();
 
 		$hasStatus = $this->assignmentHasStatusColumn();
-		return array_map(static function (array $r) use ($hasStatus): array {
+		return array_map(static function (array $r) use ($hasStatus, $hasKind, $standbyAckEnabled): array {
+			$kind = $hasKind ? (string) ($r['kind'] ?? AssignmentKind::SHIFT) : AssignmentKind::SHIFT;
 			return [
 				'id' => (int) $r['id'],
 				'periodId' => (int) ($r['period_id'] ?? 0),
@@ -2364,6 +2611,14 @@ class RosterService
 				'locationName' => (string) ($r['location_name'] ?? ''),
 				'acknowledgedAt' => ($hasStatus && ($r['acknowledged_at'] ?? null) !== null) ? (string) $r['acknowledged_at'] : null,
 				'acknowledged' => $hasStatus && ($r['acknowledged_at'] ?? null) !== null,
+				'kind' => $kind,
+				// Per-row acknowledge gate: shifts stay always-acknowledgeable
+				// (existing contract); standby honours the company toggle.
+				'acknowledgeable' => $kind !== AssignmentKind::STANDBY || $standbyAckEnabled,
+				'standbyCategoryId' => $hasKind && ($r['standby_category_id'] ?? null) !== null ? (int) $r['standby_category_id'] : null,
+				'standbyCategoryLabel' => isset($r['standby_category_label']) ? (string) $r['standby_category_label'] : null,
+				'standbyCategoryColor' => isset($r['standby_category_color']) ? (string) $r['standby_category_color'] : null,
+				'responseTimeMinutes' => $hasKind && ($r['response_time_minutes'] ?? null) !== null ? (int) $r['response_time_minutes'] : null,
 			];
 		}, $rows);
 	}
@@ -2505,14 +2760,20 @@ class RosterService
 			'METHOD:PUBLISH',
 		];
 		foreach ($rows as $row) {
+			$isStandbyRow = AssignmentKind::isStandby($row['kind'] ?? AssignmentKind::SHIFT);
 			$startUtc = $this->toUtcDateTime((string) $row['duty_date'], (string) $row['start_time']);
 			$endUtc = $this->toUtcDateTime((string) $row['duty_date'], (string) $row['end_time']);
 			if ($endUtc <= $startUtc) {
 				$endUtc = $endUtc->modify('+1 day');
 			}
 			$uid = sprintf('dc-%d-%d@dutycheck.local', (int) $row['id'], $employeeId);
-			$summary = $this->icsEscape('Duty shift - ' . (string) ($row['location_name'] ?? 'Location'));
-			$description = $this->icsEscape('Break: ' . (int) $row['break_minutes'] . ' min');
+			if ($isStandbyRow) {
+				$summary = $this->icsEscape('Rufbereitschaft - ' . (string) ($row['location_name'] ?? 'Location'));
+				$description = $this->icsEscape('On-call duty (standby) — not counted as worked time');
+			} else {
+				$summary = $this->icsEscape('Duty shift - ' . (string) ($row['location_name'] ?? 'Location'));
+				$description = $this->icsEscape('Break: ' . (int) $row['break_minutes'] . ' min');
+			}
 			$ics[] = 'BEGIN:VEVENT';
 			$ics[] = 'UID:' . $uid;
 			$ics[] = 'DTSTAMP:' . gmdate('Ymd\THis\Z');
@@ -2520,6 +2781,10 @@ class RosterService
 			$ics[] = 'DTEND:' . $endUtc->format('Ymd\THis\Z');
 			$ics[] = 'SUMMARY:' . $summary;
 			$ics[] = 'DESCRIPTION:' . $description;
+			if ($isStandbyRow) {
+				$ics[] = 'CATEGORIES:' . $this->icsEscape('Rufbereitschaft');
+				$ics[] = 'TRANSP:TRANSPARENT';
+			}
 			$ics[] = 'END:VEVENT';
 		}
 		$ics[] = 'END:VCALENDAR';
@@ -2770,6 +3035,7 @@ class RosterService
 		$qb = $this->db->getQueryBuilder();
 		$hasStatus = $this->assignmentHasStatusColumn();
 		$hasVersion = $this->assignmentHasVersionColumn();
+		$hasKind = $this->assignmentHasKindColumn();
 		$select = ['a.id', 'a.period_id', 'a.employee_id', 'a.location_id', 'a.duty_date', 'a.start_time', 'a.end_time', 'a.break_minutes', 'a.note', 'e.display_name', 'l.name AS location_name'];
 		if ($hasStatus) {
 			$select[] = 'a.status';
@@ -2779,11 +3045,24 @@ class RosterService
 		if ($hasVersion) {
 			$select[] = 'a.version';
 		}
+		if ($hasKind) {
+			$select[] = 'a.kind';
+			$select[] = 'a.standby_category_id';
+			$select[] = 'a.response_time_minutes';
+		}
+		$hasCategoryTable = $hasKind && SchemaProbe::tableExists($this->db, 'dc_standby_categories');
+		if ($hasCategoryTable) {
+			$select[] = 'c.label AS standby_category_label';
+			$select[] = 'c.color AS standby_category_color';
+		}
 		$qb->select(...$select)
 			->from('dc_assignments', 'a')
 			->leftJoin('a', 'dc_employees', 'e', 'a.employee_id = e.id')
 			->leftJoin('a', 'dc_locations', 'l', 'a.location_id = l.id')
 			->where($qb->expr()->eq('a.period_id', $qb->createNamedParameter($periodId, IQueryBuilder::PARAM_INT)));
+		if ($hasCategoryTable) {
+			$qb->leftJoin('a', 'dc_standby_categories', 'c', 'a.standby_category_id = c.id');
+		}
 		if ($hasStatus) {
 			$qb->andWhere($qb->expr()->orX(
 				$qb->expr()->neq('a.status', $qb->createNamedParameter('cancelled')),
@@ -2792,7 +3071,7 @@ class RosterService
 		}
 		$qb->orderBy('a.duty_date', 'ASC')->addOrderBy('a.start_time', 'ASC');
 		$rows = $qb->executeQuery()->fetchAll();
-		return array_map(static function (array $r) use ($hasStatus, $hasVersion): array {
+		return array_map(static function (array $r) use ($hasStatus, $hasVersion, $hasKind): array {
 			return [
 				'id' => (int) $r['id'],
 				'periodId' => (int) $r['period_id'],
@@ -2809,6 +3088,11 @@ class RosterService
 				'acknowledgedAt' => ($hasStatus && ($r['acknowledged_at'] ?? null) !== null) ? (string) $r['acknowledged_at'] : null,
 				'acknowledgedBy' => ($hasStatus && ($r['acknowledged_by'] ?? null) !== null) ? (string) $r['acknowledged_by'] : null,
 				'version' => $hasVersion ? (int) ($r['version'] ?? 0) : 0,
+				'kind' => $hasKind ? (string) ($r['kind'] ?? AssignmentKind::SHIFT) : AssignmentKind::SHIFT,
+				'standbyCategoryId' => $hasKind && ($r['standby_category_id'] ?? null) !== null ? (int) $r['standby_category_id'] : null,
+				'standbyCategoryLabel' => isset($r['standby_category_label']) ? (string) $r['standby_category_label'] : null,
+				'standbyCategoryColor' => isset($r['standby_category_color']) ? (string) $r['standby_category_color'] : null,
+				'responseTimeMinutes' => $hasKind && ($r['response_time_minutes'] ?? null) !== null ? (int) $r['response_time_minutes'] : null,
 			];
 		}, $rows);
 	}
@@ -2826,6 +3110,105 @@ class RosterService
 	private function assignmentHasSlotKeyColumn(): bool
 	{
 		return SchemaProbe::hasColumn($this->db, 'dc_assignments', 'slot_key');
+	}
+
+	private function assignmentHasKindColumn(): bool
+	{
+		return SchemaProbe::hasColumn($this->db, 'dc_assignments', 'kind');
+	}
+
+	/**
+	 * @param array<string,mixed> $row raw dc_assignments row
+	 */
+	private function assignmentKindFromRow(array $row): string
+	{
+		$kind = $row['kind'] ?? AssignmentKind::SHIFT;
+		return AssignmentKind::isValid($kind) ? (string) $kind : AssignmentKind::SHIFT;
+	}
+
+	/**
+	 * Standby writes are gated server-side on the period's company flag —
+	 * UI hiding alone is cosmetic. Missing settings service means "disabled".
+	 */
+	private function assertStandbyEnabledForPeriod(int $periodId, string $actor): void
+	{
+		if (!$this->assignmentHasKindColumn()) {
+			throw new \InvalidArgumentException('SCHEMA_NOT_READY');
+		}
+		if ($this->selfService === null) {
+			throw new \InvalidArgumentException('STANDBY_DISABLED');
+		}
+		$companyId = $this->readRowCompanyId('dc_periods', $periodId);
+		if (!$this->selfService->isStandbyEnabled($companyId)) {
+			throw new \InvalidArgumentException('STANDBY_DISABLED');
+		}
+	}
+
+	/**
+	 * Resolve optional standby category + response time for a write.
+	 * Category default fills responseTimeMinutes when the payload leaves it unset.
+	 *
+	 * @param array<string,mixed> $payload
+	 * @param array<string,mixed>|null $existingRow current row on update (keeps stored values)
+	 * @return array{categoryId:?int,responseTimeMinutes:?int}
+	 */
+	private function resolveStandbyMetadata(int $periodId, array $payload, ?array $existingRow = null): array
+	{
+		$companyId = $this->readRowCompanyId('dc_periods', $periodId);
+		$categoryId = null;
+		if (array_key_exists('standbyCategoryId', $payload)) {
+			$category = $this->standbyCategories?->resolveForAssignment($companyId, $payload['standbyCategoryId']);
+			$categoryId = $category['id'] ?? null;
+			if ($category !== null && !array_key_exists('responseTimeMinutes', $payload)
+				&& $category['defaultResponseTimeMinutes'] !== null) {
+				return ['categoryId' => $categoryId, 'responseTimeMinutes' => $category['defaultResponseTimeMinutes']];
+			}
+		} elseif ($existingRow !== null) {
+			$categoryId = ($existingRow['standby_category_id'] ?? null) !== null
+				? (int) $existingRow['standby_category_id']
+				: null;
+		}
+		if (array_key_exists('responseTimeMinutes', $payload)) {
+			$minutes = self::normalizeResponseTimeMinutes($payload['responseTimeMinutes']);
+		} elseif ($existingRow !== null) {
+			$minutes = ($existingRow['response_time_minutes'] ?? null) !== null
+				? (int) $existingRow['response_time_minutes']
+				: null;
+		} else {
+			$minutes = null;
+		}
+		return ['categoryId' => $categoryId, 'responseTimeMinutes' => $minutes];
+	}
+
+	public static function normalizeResponseTimeMinutes(mixed $raw): ?int
+	{
+		if ($raw === null || $raw === '') {
+			return null;
+		}
+		if (is_int($raw)) {
+			$minutes = $raw;
+		} elseif (is_string($raw) && preg_match('/^\d+$/', $raw) === 1) {
+			$minutes = (int) $raw;
+		} else {
+			throw new \InvalidArgumentException('INVALID_RESPONSE_TIME');
+		}
+		if ($minutes < 0 || $minutes > StandbyCategoryService::MAX_RESPONSE_MINUTES) {
+			throw new \InvalidArgumentException('INVALID_RESPONSE_TIME');
+		}
+		return $minutes;
+	}
+
+	/**
+	 * Kind-aware absence gate: standby colliding with an approved/imported
+	 * absence reports a standby-specific code so clients can label it.
+	 */
+	private function assertNoAssignmentAbsenceConflict(int $employeeId, string $dutyDate, string $kind = AssignmentKind::SHIFT): void
+	{
+		if ($this->hasApprovedAbsenceOnDate($employeeId, $dutyDate)) {
+			throw new \InvalidArgumentException(
+				AssignmentKind::isStandby($kind) ? 'STANDBY_ABSENCE_CONFLICT' : 'ABSENCE_CONFLICT',
+			);
+		}
 	}
 
 	private function periodHasFrozenThresholdsColumn(): bool
@@ -3178,6 +3561,13 @@ class RosterService
 	{
 		$period = $this->periodById($periodId);
 		$assignments = $this->listAssignments($periodId);
+		// Standby is planning context, never working time: every minute-based
+		// check (daily/period/weekly caps, break, consecutive days, understaffed)
+		// must see only real shifts.
+		$shiftAssignments = array_values(array_filter(
+			$assignments,
+			static fn (array $a): bool => !AssignmentKind::isStandby($a['kind'] ?? AssignmentKind::SHIFT),
+		));
 		$conflicts = [];
 		$conflictDedup = [];
 		$thresholds = $this->policyThresholdsForPeriod($periodId);
@@ -3189,13 +3579,21 @@ class RosterService
 			}
 			$byEmployee[$employeeId][] = $assignment;
 		}
+		$byEmployeeShifts = [];
+		foreach ($shiftAssignments as $assignment) {
+			$employeeId = (int) $assignment['employeeId'];
+			if (!isset($byEmployeeShifts[$employeeId])) {
+				$byEmployeeShifts[$employeeId] = [];
+			}
+			$byEmployeeShifts[$employeeId][] = $assignment;
+		}
 		foreach ($byEmployee as $employeeAssignments) {
 			foreach ($this->pairOverlapAndRestConflicts($employeeAssignments, $thresholds, $conflictDedup) as $pairConflict) {
 				$conflicts[] = $pairConflict;
 			}
 		}
 
-		foreach ($assignments as $assignment) {
+		foreach ($shiftAssignments as $assignment) {
 			$effectiveMinutes = $this->effectiveMinutes(
 				(string) $assignment['startTime'],
 				(string) $assignment['endTime'],
@@ -3217,7 +3615,7 @@ class RosterService
 			}
 		}
 
-		foreach ($byEmployee as $employeeId => $employeeAssignments) {
+		foreach ($byEmployeeShifts as $employeeId => $employeeAssignments) {
 			usort($employeeAssignments, static function (array $a, array $b): int {
 				$cmp = strcmp((string) $a['dutyDate'], (string) $b['dutyDate']);
 				if ($cmp !== 0) {
@@ -3309,6 +3707,7 @@ class RosterService
 			$absenceByEmployee[$eid][] = $span;
 		}
 		foreach ($assignments as $assignment) {
+			$isStandbyRow = AssignmentKind::isStandby($assignment['kind'] ?? AssignmentKind::SHIFT);
 			$collisionSource = self::absenceCollisionSourceFromSpans(
 				(string) $assignment['dutyDate'],
 				$absenceByEmployee[(int) $assignment['employeeId']] ?? [],
@@ -3322,12 +3721,14 @@ class RosterService
 			}
 			$conflictDedup[$key] = true;
 			$conflict = [
-				'type' => 'absence_collision',
+				'type' => $isStandbyRow ? 'standby_absence' : 'absence_collision',
 				'severity' => 'hard',
 				'source' => $collisionSource,
-				'message' => $collisionSource === 'arbeitszeitcheck'
-					? 'Employee assignment collides with an ArbeitszeitCheck absence'
-					: 'Employee assignment collides with approved absence',
+				'message' => $isStandbyRow
+					? 'Standby duty collides with approved absence'
+					: ($collisionSource === 'arbeitszeitcheck'
+						? 'Employee assignment collides with an ArbeitszeitCheck absence'
+						: 'Employee assignment collides with approved absence'),
 				'employeeId' => (int) $assignment['employeeId'],
 				'assignmentIds' => [(int) $assignment['id']],
 			];
@@ -3379,7 +3780,7 @@ class RosterService
 			}
 		}
 
-		foreach ($assignments as $assignment) {
+		foreach ($shiftAssignments as $assignment) {
 			$effective = $this->effectiveMinutes(
 				(string) $assignment['startTime'],
 				(string) $assignment['endTime'],
@@ -3407,7 +3808,7 @@ class RosterService
 		}
 
 		// ISO calendar-week totals (Mon–Sun) — complements period totals.
-		foreach ($byEmployee as $employeeId => $employeeAssignments) {
+		foreach ($byEmployeeShifts as $employeeId => $employeeAssignments) {
 			$byWeek = [];
 			foreach ($employeeAssignments as $assignment) {
 				$weekKey = (new DateTimeImmutable((string) $assignment['dutyDate']))->format('o-\WW');
@@ -3460,7 +3861,7 @@ class RosterService
 			}
 		}
 
-		$this->appendUnderstaffedConflicts($periodId, $assignments, $conflicts, $conflictDedup);
+		$this->appendUnderstaffedConflicts($periodId, $shiftAssignments, $conflicts, $conflictDedup);
 
 		return $conflicts;
 	}
@@ -3799,9 +4200,19 @@ class RosterService
 		);
 	}
 
-	private function assertNoOverlapConflict(int $periodId, int $employeeId, string $dutyDate, string $startTime, string $endTime, ?int $excludeAssignmentId = null): void
+	/**
+	 * Hard overlap gate, kind-aware:
+	 * - standby vs standby → STANDBY_OVERLAP (409)
+	 * - shift vs shift → ASSIGNMENT_OVERLAP
+	 * - mixed shift↔standby → hard STANDBY_SHIFT_COLLISION only when a 24h
+	 *   standby (start==end) covers the shift; partial mixes are planner-ack soft
+	 *   conflicts surfaced by {@see candidateSoftConflicts}.
+	 */
+	private function assertNoOverlapConflict(int $periodId, int $employeeId, string $dutyDate, string $startTime, string $endTime, ?int $excludeAssignmentId = null, string $kind = AssignmentKind::SHIFT): void
 	{
 		$candidateRange = $this->assignmentAbsoluteRange($dutyDate, $startTime, $endTime);
+		$candidateIsStandby = AssignmentKind::isStandby($kind);
+		$candidateIs24h = $candidateIsStandby && $startTime === $endTime;
 		$assignments = $this->listAssignments($periodId);
 		foreach ($assignments as $assignment) {
 			if ($excludeAssignmentId !== null && (int) $assignment['id'] === $excludeAssignmentId) {
@@ -3815,9 +4226,19 @@ class RosterService
 				(string) $assignment['startTime'],
 				(string) $assignment['endTime'],
 			);
-			if ($this->absoluteRangesOverlap($candidateRange, $existingRange)) {
-				throw new \InvalidArgumentException('ASSIGNMENT_OVERLAP');
+			if (!$this->absoluteRangesOverlap($candidateRange, $existingRange)) {
+				continue;
 			}
+			$existingIsStandby = AssignmentKind::isStandby($assignment['kind'] ?? AssignmentKind::SHIFT);
+			if ($existingIsStandby === $candidateIsStandby) {
+				throw new \InvalidArgumentException($candidateIsStandby ? 'STANDBY_OVERLAP' : 'ASSIGNMENT_OVERLAP');
+			}
+			$existingIs24h = $existingIsStandby
+				&& (string) $assignment['startTime'] === (string) $assignment['endTime'];
+			if ($candidateIs24h || $existingIs24h) {
+				throw new \InvalidArgumentException('STANDBY_SHIFT_COLLISION');
+			}
+			// Partial shift↔standby overlap: soft, resolved via acknowledgements.
 		}
 	}
 
@@ -4143,10 +4564,49 @@ class RosterService
 			for ($j = $i + 1; $j < $count; $j++) {
 				$a = $employeeAssignments[$i];
 				$b = $employeeAssignments[$j];
+				$aKind = AssignmentKind::isValid($a['kind'] ?? null) ? (string) $a['kind'] : AssignmentKind::SHIFT;
+				$bKind = AssignmentKind::isValid($b['kind'] ?? null) ? (string) $b['kind'] : AssignmentKind::SHIFT;
+				$aStandby = AssignmentKind::isStandby($aKind);
+				$bStandby = AssignmentKind::isStandby($bKind);
 				$aRange = $this->assignmentAbsoluteRange((string) $a['dutyDate'], (string) $a['startTime'], (string) $a['endTime']);
 				$bRange = $this->assignmentAbsoluteRange((string) $b['dutyDate'], (string) $b['startTime'], (string) $b['endTime']);
 				if ($this->absoluteRangesOverlap($aRange, $bRange)) {
-					$key = 'double_booking:' . min((int) $a['id'], (int) $b['id']) . ':' . max((int) $a['id'], (int) $b['id']);
+					$idPair = min((int) $a['id'], (int) $b['id']) . ':' . max((int) $a['id'], (int) $b['id']);
+					if ($aStandby && $bStandby) {
+						$key = 'standby_overlap:' . $idPair;
+						if (isset($conflictDedup[$key])) {
+							continue;
+						}
+						$conflictDedup[$key] = true;
+						$conflicts[] = [
+							'type' => 'standby_overlap',
+							'severity' => 'hard',
+							'message' => 'Employee has overlapping standby duties',
+							'employeeId' => (int) $a['employeeId'],
+							'assignmentIds' => [$a['id'], $b['id']],
+						];
+						continue;
+					}
+					if ($aStandby !== $bStandby) {
+						// Mixed overlap: hard when a 24h standby (start==end) swallows
+						// the shift, otherwise an acknowledgeable planning hint.
+						$standbyRow = $aStandby ? $a : $b;
+						$is24h = (string) $standbyRow['startTime'] === (string) $standbyRow['endTime'];
+						$key = 'standby_shift_collision:' . $idPair;
+						if (isset($conflictDedup[$key])) {
+							continue;
+						}
+						$conflictDedup[$key] = true;
+						$conflicts[] = [
+							'type' => 'standby_shift_collision',
+							'severity' => $is24h ? 'hard' : 'soft',
+							'message' => 'Standby duty overlaps a planned shift',
+							'employeeId' => (int) $a['employeeId'],
+							'assignmentIds' => [$a['id'], $b['id']],
+						];
+						continue;
+					}
+					$key = 'double_booking:' . $idPair;
 					if (isset($conflictDedup[$key])) {
 						continue;
 					}
@@ -4158,6 +4618,10 @@ class RosterService
 						'employeeId' => (int) $a['employeeId'],
 						'assignmentIds' => [$a['id'], $b['id']],
 					];
+					continue;
+				}
+				// Rest-time is a working-time rule; standby never feeds it.
+				if ($aStandby || $bStandby) {
 					continue;
 				}
 				$gapMinutes = $this->minutesBetweenRanges($aRange, $bRange);
@@ -4354,13 +4818,36 @@ class RosterService
 	private function publishedAssignmentsForEmployee(int $employeeId): array
 	{
 		$qb = $this->db->getQueryBuilder();
-		$qb->select('a.id', 'a.duty_date', 'a.start_time', 'a.end_time', 'a.break_minutes', 'l.name AS location_name')
+		$hasKind = $this->assignmentHasKindColumn();
+		$select = ['a.id', 'a.duty_date', 'a.start_time', 'a.end_time', 'a.break_minutes', 'l.name AS location_name'];
+		if ($hasKind) {
+			$select[] = 'a.kind';
+		}
+		$qb->select(...$select)
 			->from('dc_assignments', 'a')
 			->innerJoin('a', 'dc_periods', 'p', 'a.period_id = p.id')
 			->leftJoin('a', 'dc_locations', 'l', 'a.location_id = l.id')
 			->where($qb->expr()->eq('a.employee_id', $qb->createNamedParameter($employeeId, IQueryBuilder::PARAM_INT)))
-			->andWhere($qb->expr()->eq('p.status', $qb->createNamedParameter('published')))
-			->orderBy('a.duty_date', 'ASC')
+			->andWhere($qb->expr()->eq('p.status', $qb->createNamedParameter('published')));
+		if ($hasKind && $this->selfService !== null) {
+			// Flag-off companies must not leak standby into public feeds even
+			// for rows that predate the flag change.
+			try {
+				if (!$this->selfService->isStandbyEnabled($this->readRowCompanyId('dc_employees', $employeeId))) {
+					$qb->andWhere($qb->expr()->neq('a.kind', $qb->createNamedParameter(AssignmentKind::STANDBY)));
+				}
+			} catch (Throwable) {
+				$qb->andWhere($qb->expr()->neq('a.kind', $qb->createNamedParameter(AssignmentKind::STANDBY)));
+			}
+		}
+		if ($this->assignmentHasStatusColumn()) {
+			// Cancelled rows must never reach the published feed.
+			$qb->andWhere($qb->expr()->orX(
+				$qb->expr()->neq('a.status', $qb->createNamedParameter('cancelled')),
+				$qb->expr()->isNull('a.status'),
+			));
+		}
+		$qb->orderBy('a.duty_date', 'ASC')
 			->addOrderBy('a.start_time', 'ASC');
 		return $qb->executeQuery()->fetchAll();
 	}
