@@ -1,6 +1,7 @@
 OC.L10N.register(
 	"dutycheck",
 	{
+	"Choose date" : "Vælg dato",
 	" page first." : " først.",
 	"%s stays free (AGPL) on your Nextcloud. Bug reports and ideas on GitHub stay welcome — that is free open-source care. If your organisation needs bookable help on an invoice — or official mobile licenses — choose an option below:" : "%s forbliver gratis (AGPL) på Nextcloud. Fejlrapporter og idéer på GitHub er velkomne — det er gratis open source-pleje. Hvis organisationen har brug for bookbar hjælp på en faktura — eller officielle mobillicenser — skal der vælges en mulighed nedenfor:",
 	"%s stays free (AGPL) on your Nextcloud. Bug reports and ideas on GitHub stay welcome — that is free open-source care. If your organisation needs bookable help on an invoice, choose an option below:" : "%s forbliver gratis (AGPL) på Nextcloud. Fejlrapporter og idéer på GitHub er velkomne — det er gratis open source-pleje. Hvis organisationen har brug for bookbar hjælp på en faktura, skal der vælges en mulighed nedenfor:",
@@ -1426,7 +1427,17 @@ OC.L10N.register(
 	"{title}: {have} of {need} staff ({time})" : "{title}: {have} af {need} medarbejdere ({time})",
 	"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page." : "{unlinked} af {total} aktive medarbejdere har ingen linket Nextcloud-konto — fravær for dem forbliver i DutyCheck, indtil konti linkes på siden Medarbejdere.",
 	"{used} of {total} seats used" : "{used} af {total} brugte sæder",
-	"“Must fix” issues block publishing." : "\"Skal rettes\"-problemer blokerer offentliggørelse."
+	"“Must fix” issues block publishing." : "\"Skal rettes\"-problemer blokerer offentliggørelse.",
+	"Delete period?" : "Slet periode?",
+	"This permanently removes the period {start} – {end}. Only possible while it is open and empty." : "Dette sletter perioden {start} – {end} permanent. Kun muligt, mens den er åben og tom.",
+	"Delete period {start} – {end}" : "Slet perioden {start} – {end}",
+	"Period deleted." : "Periode slettet.",
+	"Only empty, unpublished periods can be deleted. Close it instead." : "Kun tomme, ikke-publicerede perioder kan slettes. Luk den i stedet.",
+	"Failed to delete period." : "Perioden kunne ikke slettes.",
+	"Period overlaps existing periods" : "Perioden overlapper eksisterende perioder",
+	"The new period {start} – {end} overlaps existing period(s): {list}. Create it anyway?" : "Den nye periode {start} – {end} overlapper eksisterende perioder: {list}. Opret den alligevel?",
+	"Create anyway" : "Opret alligevel",
+	"Opened {month} for planning. It overlaps {count} existing period(s)." : "{month} åbnet til planlægning. Den overlapper {count} eksisterende periode(r)."
 	},
 	"nplurals=2; plural=(n != 1);"
 );

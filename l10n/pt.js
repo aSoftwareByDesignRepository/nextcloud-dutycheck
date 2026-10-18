@@ -1,6 +1,7 @@
 OC.L10N.register(
 	"dutycheck",
 	{
+	"Choose date" : "Escolher data",
 	" page first." : " primeiro.",
 	"%s stays free (AGPL) on your Nextcloud. Bug reports and ideas on GitHub stay welcome — that is free open-source care. If your organisation needs bookable help on an invoice — or official mobile licenses — choose an option below:" : "O %s continua gratuito (AGPL) no seu Nextcloud. Relatórios de erros e ideias no GitHub são bem-vindos — é o apoio open-source gratuito. Se a sua organização precisar de ajuda com fatura — ou de licenças móveis oficiais — escolha uma opção abaixo:",
 	"%s stays free (AGPL) on your Nextcloud. Bug reports and ideas on GitHub stay welcome — that is free open-source care. If your organisation needs bookable help on an invoice, choose an option below:" : "O %s continua gratuito (AGPL) no seu Nextcloud. Relatórios de erros e ideias no GitHub são bem-vindos — é o apoio open-source gratuito. Se a sua organização precisar de ajuda com fatura, escolha uma opção abaixo:",
@@ -1426,7 +1427,17 @@ OC.L10N.register(
 	"{title}: {have} of {need} staff ({time})" : "{title}: {have} de {need} pessoas ({time})",
 	"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page." : "{unlinked} de {total} colaboradores ativos não têm conta Nextcloud ligada — as ausências deles ficam no DutyCheck até as contas serem ligadas na página Colaboradores.",
 	"{used} of {total} seats used" : "{used} de {total} lugares usados",
-	"“Must fix” issues block publishing." : "Os problemas «Tem de corrigir» bloqueiam a publicação."
+	"“Must fix” issues block publishing." : "Os problemas «Tem de corrigir» bloqueiam a publicação.",
+	"Delete period?" : "Eliminar período?",
+	"This permanently removes the period {start} – {end}. Only possible while it is open and empty." : "Isto remove permanentemente o período {start} – {end}. Só é possível enquanto estiver aberto e vazio.",
+	"Delete period {start} – {end}" : "Eliminar período {start} – {end}",
+	"Period deleted." : "Período eliminado.",
+	"Only empty, unpublished periods can be deleted. Close it instead." : "Apenas períodos vazios e não publicados podem ser eliminados. Feche-o em vez disso.",
+	"Failed to delete period." : "Falha ao eliminar o período.",
+	"Period overlaps existing periods" : "O período sobrepõe-se a períodos existentes",
+	"The new period {start} – {end} overlaps existing period(s): {list}. Create it anyway?" : "O novo período {start} – {end} sobrepõe-se a períodos existentes: {list}. Criar mesmo assim?",
+	"Create anyway" : "Criar mesmo assim",
+	"Opened {month} for planning. It overlaps {count} existing period(s)." : "{month} aberto para planeamento. Sobrepõe-se a {count} período(s) existente(s)."
 	},
 	"nplurals=2; plural=(n > 1);"
 );

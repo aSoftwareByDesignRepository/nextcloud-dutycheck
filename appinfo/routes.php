@@ -28,6 +28,8 @@ return [
 		['name' => 'rosterApi#roster', 'url' => '/api/roster', 'verb' => 'GET'],
 		['name' => 'rosterApi#listPeriods', 'url' => '/api/periods', 'verb' => 'GET'],
 		['name' => 'rosterApi#createPeriod', 'url' => '/api/periods', 'verb' => 'POST'],
+		['name' => 'rosterApi#deletePeriod', 'url' => '/api/periods/{id}', 'verb' => 'DELETE',
+			'requirements' => ['id' => '\d+']],
 		['name' => 'rosterApi#ensureCalendarMonth', 'url' => '/api/periods/ensure-calendar-month', 'verb' => 'POST'],
 		['name' => 'rosterApi#transitionPeriod', 'url' => '/api/periods/{id}/transition', 'verb' => 'POST',
 			'requirements' => ['id' => '\d+']],

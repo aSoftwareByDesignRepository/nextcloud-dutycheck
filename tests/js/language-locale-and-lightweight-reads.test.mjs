@@ -76,11 +76,13 @@ describe('lightweight list endpoints', () => {
 });
 
 describe('dates.js language vs locale', () => {
-	const src = read('js/common/dates.js');
+	// Internals live in the synced canonical module (common/check-dates.js);
+	// common/dates.js is now a thin adapter re-exporting CheckDates.
+	const src = read('js/common/check-dates.js') + read('js/common/dates.js');
 
 	it('formats calendar dates with locale and relative time with language', () => {
-		assert.match(src, /Intl\.DateTimeFormat\(currentLocale\(\)/);
-		assert.match(src, /Intl\.RelativeTimeFormat\(currentLanguage\(\)/);
+		assert.match(src, /currentLocale\(\)/);
+		assert.match(src, /Intl\.RelativeTimeFormat\([^)]*currentLanguage\(\)/);
 		assert.doesNotMatch(src, /Intl\.RelativeTimeFormat\(currentLocale\(\)/);
 		assert.match(src, /data-language/);
 		assert.match(src, /data-first-day-of-week/);
@@ -88,9 +90,10 @@ describe('dates.js language vs locale', () => {
 	});
 
 	it('never treats OC.getLocale as the UI language helper', () => {
-		assert.match(src, /function currentLanguage\s*\(/);
-		assert.match(src, /function currentFirstDayOfWeek\s*\(/);
-		const languageFn = src.slice(src.indexOf('function currentLanguage'), src.indexOf('function currentFirstDayOfWeek'));
+		const moduleSrc = read('js/common/check-dates.js');
+		assert.match(moduleSrc, /function currentLanguage\s*\(/);
+		assert.match(moduleSrc, /function currentFirstDayOfWeek\s*\(/);
+		const languageFn = moduleSrc.slice(moduleSrc.indexOf('function currentLanguage'), moduleSrc.indexOf('function currentFirstDayOfWeek'));
 		assert.doesNotMatch(languageFn, /OC\.getLocale/);
 	});
 
@@ -116,7 +119,8 @@ describe('dates.js language vs locale', () => {
 			navigator: { language: 'en' },
 		};
 		sandbox.window = sandbox;
-		vm.runInNewContext(src, sandbox, { filename: 'dates.js' });
+		vm.runInNewContext(read('js/common/check-dates.js'), sandbox, { filename: 'check-dates.js' });
+		vm.runInNewContext(read('js/common/dates.js'), sandbox, { filename: 'dates.js' });
 		return sandbox.window.DutyCheckDates;
 	}
 
@@ -151,9 +155,11 @@ describe('dates.js language vs locale', () => {
 	});
 
 	it('names weekdays in the UI language, not the date locale', () => {
-		const src = read('js/common/dates.js');
-		assert.match(src, /function formatWeekday\s*\(/);
-		assert.match(src, /Intl\.DateTimeFormat\(currentLanguage\(\)/);
+		const moduleSrc = read('js/common/check-dates.js');
+		assert.match(moduleSrc, /function formatWeekday\s*\(/);
+		assert.match(moduleSrc, /currentLanguage\(\)/);
+		const adapterSrc = read('js/common/dates.js');
+		assert.match(adapterSrc, /Intl\.DateTimeFormat\(D\.currentLanguage\(\)/);
 		const roster = read('js/my-roster.js');
 		assert.match(roster, /D\?\.formatWeekday|currentLanguage/);
 		assert.doesNotMatch(roster, /DateTimeFormat\(D\?\.currentLocale/);

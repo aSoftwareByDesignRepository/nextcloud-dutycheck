@@ -5421,84 +5421,10 @@ textarea {
 }
 /* === roster-self-service-ga:dc end === */
 
-/* Locale date-order hint — retired (overlay owns the format; hints leaked under shortcuts). */
+/* Date-input chrome moved to the synced canonical stylesheet
+ * css/common/check-dates.css (scripts/check-dates/). Do not re-add
+ * .dc-date-field / .dc-date-display rules here — they will drift. */
 .dc-field { position: relative; }
-.dc-date-locale-hint {
-	display: none !important;
-}
-
-/* Locale date display overlay — hides Chromium’s US mm/dd/yyyy chrome when host ICU lacks de. */
-.dc-date-field {
-	position: relative;
-	display: grid;
-}
-.dc-date-field > input[type="date"] {
-	color: transparent;
-	caret-color: var(--color-main-text, #222);
-}
-.dc-date-field > input[type="date"]::-webkit-datetime-edit,
-.dc-date-field > input[type="date"]::-webkit-datetime-edit-fields-wrapper,
-.dc-date-field > input[type="date"]::-webkit-datetime-edit-text,
-.dc-date-field > input[type="date"]::-webkit-datetime-edit-month-field,
-.dc-date-field > input[type="date"]::-webkit-datetime-edit-day-field,
-.dc-date-field > input[type="date"]::-webkit-datetime-edit-year-field {
-	color: transparent;
-}
-.dc-date-display {
-	position: absolute;
-	inset: 0 2.5rem 0 0.85rem;
-	display: flex;
-	align-items: center;
-	pointer-events: none;
-	font-size: var(--dc-fs-md, 1rem);
-	line-height: 1.2;
-	color: var(--color-main-text, #222);
-	z-index: 1;
-	overflow: hidden;
-	white-space: nowrap;
-	transform: none;
-	top: 0;
-	bottom: 0;
-	left: 0.85rem;
-	right: 2.5rem;
-}
-.dc-date-display--empty {
-	color: var(--dc-muted, var(--color-text-maxcontrast));
-	letter-spacing: 0.04em;
-}
-/* Keep the calendar picker icon clickable on the right. */
-.dc-date-field > input[type="date"]::-webkit-calendar-picker-indicator {
-	position: relative;
-	z-index: 2;
-	opacity: 1;
-	cursor: pointer;
-}
-
-.dc-date-field {
-	position: relative;
-	display: block;
-	width: 100%;
-}
-.dc-date-field > input[type="date"] {
-	width: 100%;
-	color: transparent !important;
-	caret-color: transparent;
-}
-.dc-date-display {
-	position: absolute;
-	left: 0.85rem;
-	right: 2.5rem;
-	top: 0;
-	bottom: 0;
-	display: flex;
-	align-items: center;
-	pointer-events: none;
-	font-size: var(--dc-fs-md, 1rem);
-	color: var(--color-main-text, #222);
-	z-index: 1;
-	overflow: hidden;
-	white-space: nowrap;
-}
 .dc-field > .dc-date-locale-hint {
 	margin-top: 0.35rem;
 }

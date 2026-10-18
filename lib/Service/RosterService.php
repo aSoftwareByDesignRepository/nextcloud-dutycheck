@@ -202,7 +202,7 @@ class RosterService
 		return array_map(fn (array $r): array => $this->normalizePeriod($r), $rows);
 	}
 
-	public function createPeriod(string $startDate, string $endDate, string $actor): array
+	public function createPeriod(string $startDate, string $endDate, string $actor, bool $allowOverlap = false): array
 	{
 		$this->assertDate($startDate);
 		$this->assertDate($endDate);
@@ -213,6 +213,12 @@ class RosterService
 			? $this->companies->writeCompanyIdFor($actor)
 			: null;
 		$this->assertNoDuplicatePeriodRange($startDate, $endDate, $companyId);
+		if (!$allowOverlap) {
+			$overlaps = $this->findOverlappingPeriodRanges($startDate, $endDate, $companyId);
+			if ($overlaps !== []) {
+				throw new \OCA\DutyCheck\Exception\PeriodOverlapException($overlaps);
+			}
+		}
 
 		$now = $this->now();
 		$frozenThresholds = $this->policyThresholds();
@@ -235,6 +241,64 @@ class RosterService
 		$qb->insert('dc_periods')->values($values)->executeStatement();
 
 		return $this->periodById((int) $qb->getLastInsertId());
+	}
+
+	/**
+	 * Delete a period — only an open, completely empty one. Published or
+	 * closed periods carry tamper-evident snapshots and are never deletable;
+	 * periods with any content (assignments incl. cancelled, open shifts,
+	 * conflicts, snapshots) must be closed instead.
+	 *
+	 * The audit event is written before the row is removed so the deletion
+	 * itself leaves a trail (actor + range) even though the period is gone.
+	 */
+	public function deletePeriod(int $periodId, string $actorUserId): array
+	{
+		if ($this->companies !== null) {
+			$this->companies->assertRowCompany($actorUserId, 'dc_periods', $periodId, 'PERIOD_NOT_FOUND');
+		}
+		$this->db->beginTransaction();
+		try {
+			$period = $this->periodById($periodId);
+			if ((string) $period['status'] !== 'open') {
+				throw new \InvalidArgumentException('PERIOD_NOT_DELETABLE');
+			}
+			foreach (['dc_assignments', 'dc_open_shifts', 'dc_conflicts', 'dc_roster_snapshots'] as $table) {
+				if (!SchemaProbe::tableExists($this->db, $table)) {
+					continue;
+				}
+				$qb = $this->db->getQueryBuilder();
+				$qb->select($qb->func()->count('id'))
+					->from($table)
+					->where($qb->expr()->eq('period_id', $qb->createNamedParameter($periodId, IQueryBuilder::PARAM_INT)));
+				if ((int) $qb->executeQuery()->fetchOne() > 0) {
+					throw new \InvalidArgumentException('PERIOD_NOT_DELETABLE');
+				}
+			}
+			$this->writeAuditEvent($periodId, $actorUserId, 'period_delete', 'period', $periodId, [
+				'startDate' => (string) $period['startDate'],
+				'endDate' => (string) $period['endDate'],
+			]);
+			if (SchemaProbe::tableExists($this->db, 'dc_period_locks')) {
+				$qb = $this->db->getQueryBuilder();
+				$qb->delete('dc_period_locks')
+					->where($qb->expr()->eq('period_id', $qb->createNamedParameter($periodId, IQueryBuilder::PARAM_INT)))
+					->executeStatement();
+			}
+			$qb = $this->db->getQueryBuilder();
+			$deleted = $qb->delete('dc_periods')
+				->where($qb->expr()->eq('id', $qb->createNamedParameter($periodId, IQueryBuilder::PARAM_INT)))
+				->andWhere($qb->expr()->eq('status', $qb->createNamedParameter('open')))
+				->executeStatement();
+			if ($deleted !== 1) {
+				throw new \InvalidArgumentException('PERIOD_STATUS_CONFLICT');
+			}
+			$this->db->commit();
+			return $period;
+		} catch (Throwable $e) {
+			$this->db->rollBack();
+			throw $e;
+		}
 	}
 
 	/**
@@ -295,7 +359,9 @@ class RosterService
 				}
 			}
 			try {
-				$created = $this->createPeriod($start, $end, $actor);
+				// Auto-created month periods may legitimately overlap
+				// planner-made ranges (weeks, quarters) — never block them.
+				$created = $this->createPeriod($start, $end, $actor, true);
 			} catch (\InvalidArgumentException $e) {
 				if ($e->getMessage() !== 'PERIOD_RANGE_EXISTS') {
 					throw $e;
@@ -317,6 +383,8 @@ class RosterService
 			return [
 				'period' => $created,
 				'created' => true,
+				'autoCreated' => true,
+				'overlaps' => $this->findOverlappingPeriodRanges($start, $end, $companyId === 0 ? null : $companyId, (int) ($created['id'] ?? 0)),
 				'yearMonth' => $ym,
 				'writable' => true,
 			];
@@ -4933,6 +5001,35 @@ class RosterService
 			'id' => (int) $row['id'],
 			'startDate' => (string) $row['start_date'],
 			'endDate' => (string) $row['end_date'],
+		], $qb->executeQuery()->fetchAll());
+	}
+
+	/**
+	 * Overlaps for a not-yet-created range. Company-scoped when the column
+	 * exists; a null companyId matches the legacy default company.
+	 *
+	 * @return list<array{id:int,startDate:string,endDate:string,status:string}>
+	 */
+	private function findOverlappingPeriodRanges(string $startDate, string $endDate, ?int $companyId, int $ignoreId = 0): array
+	{
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('id', 'start_date', 'end_date', 'status')
+			->from('dc_periods')
+			->andWhere($qb->expr()->neq('id', $qb->createNamedParameter($ignoreId, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->lte('start_date', $qb->createNamedParameter($endDate)))
+			->andWhere($qb->expr()->gte('end_date', $qb->createNamedParameter($startDate)));
+		if (SchemaProbe::hasColumn($this->db, 'dc_periods', 'company_id')) {
+			$qb->andWhere($qb->expr()->eq(
+				'company_id',
+				$qb->createNamedParameter($companyId ?? CompanyService::DEFAULT_COMPANY_ID, IQueryBuilder::PARAM_INT),
+			));
+		}
+
+		return array_map(static fn (array $row): array => [
+			'id' => (int) $row['id'],
+			'startDate' => (string) $row['start_date'],
+			'endDate' => (string) $row['end_date'],
+			'status' => (string) $row['status'],
 		], $qb->executeQuery()->fetchAll());
 	}
 

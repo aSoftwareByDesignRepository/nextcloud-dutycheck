@@ -1,5 +1,6 @@
 {
 	"translations": {
+		"Choose date": "Escolher data",
 		" page first.": "página primeiro.",
 		"%s stays free (AGPL) on your Nextcloud. Bug reports and ideas on GitHub stay welcome — that is free open-source care. If your organisation needs bookable help on an invoice — or official mobile licenses — choose an option below:": "%s permanece grátis (AGPL) no seu Nextcloud. Relatórios de bugs e ideias sobre GitHub são bem-vindos - isso é atendimento gratuito de código aberto. Se sua organização precisar de ajuda reservável em uma fatura — ou licenças móveis oficiais — escolha uma opção abaixo:",
 		"%s stays free (AGPL) on your Nextcloud. Bug reports and ideas on GitHub stay welcome — that is free open-source care. If your organisation needs bookable help on an invoice, choose an option below:": "%s permanece grátis (AGPL) no seu Nextcloud. Relatórios de bugs e ideias sobre GitHub são bem-vindos - isso é atendimento gratuito de código aberto. Se sua organização precisar de ajuda reservável em uma fatura, escolha uma opção abaixo:",
@@ -1425,7 +1426,17 @@
 		"{title}: {have} of {need} staff ({time})": "{title}: {have} de {need} pessoas ({time})",
 		"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page.": "{unlinked} dos {total} funcionários ativos não têm conta Nextcloud vinculada — as ausências deles permanecem em DutyCheck até que as contas sejam vinculadas na página Funcionários.",
 		"{used} of {total} seats used": "{used} de {total} assentos usados",
-		"“Must fix” issues block publishing.": "Problemas “devem ser corrigidos” bloqueiam a publicação."
+		"“Must fix” issues block publishing.": "Problemas “devem ser corrigidos” bloqueiam a publicação.",
+		"Delete period?": "Excluir período?",
+		"This permanently removes the period {start} – {end}. Only possible while it is open and empty.": "Isso remove permanentemente o período {start} – {end}. Só é possível enquanto estiver aberto e vazio.",
+		"Delete period {start} – {end}": "Excluir período {start} – {end}",
+		"Period deleted.": "Período excluído.",
+		"Only empty, unpublished periods can be deleted. Close it instead.": "Apenas períodos vazios e não publicados podem ser excluídos. Feche-o em vez disso.",
+		"Failed to delete period.": "Falha ao excluir o período.",
+		"Period overlaps existing periods": "O período se sobrepõe a períodos existentes",
+		"The new period {start} – {end} overlaps existing period(s): {list}. Create it anyway?": "O novo período {start} – {end} se sobrepõe a períodos existentes: {list}. Criar mesmo assim?",
+		"Create anyway": "Criar mesmo assim",
+		"Opened {month} for planning. It overlaps {count} existing period(s).": "{month} aberto para planejamento. Ele se sobrepõe a {count} período(s) existente(s)."
 	},
 	"pluralForm": "nplurals=2; plural=(n > 1);"
 }

@@ -172,6 +172,21 @@
 			actions.dataset.cell = t('dutycheck', 'Actions');
 			const next = STATUS_ACTIONS[period.status] || [];
 			const wrap = create('div', { class: 'dc-row-actions' });
+			if (String(period.status || '').toLowerCase() === 'open') {
+				const delBtn = create('button', {
+					type: 'button',
+					class: 'button button--text dc-period-delete-btn',
+					text: t('dutycheck', 'Delete'),
+					attrs: {
+						'aria-label': t('dutycheck', 'Delete period {start} – {end}').replace('{start}', start).replace('{end}', end),
+					},
+				});
+				delBtn.addEventListener('click', (event) => {
+					event.stopPropagation();
+					deletePeriod(period);
+				});
+				wrap.appendChild(delBtn);
+			}
 			for (const target of next) {
 				if (target === 'open' && !canReopen) {
 					continue;
@@ -651,12 +666,66 @@
 			case 'INVALID_PERIOD_RANGE':
 				return t('dutycheck', 'End date must be on or after start date.');
 			case 'DUPLICATE_PERIOD_RANGE':
+			case 'PERIOD_RANGE_EXISTS':
 				return t('dutycheck', 'A period with the same date range already exists.');
 			case 'INVALID_DATE':
 				return t('dutycheck', 'Please provide valid dates.');
 			default:
 				return t('dutycheck', 'Failed to create period.');
 		}
+	}
+
+	function deletePeriodErrorMessage(code) {
+		switch (code) {
+			case 'PERIOD_NOT_DELETABLE':
+				return t('dutycheck', 'Only empty, unpublished periods can be deleted. Close it instead.');
+			case 'PERIOD_STATUS_CONFLICT':
+				return t('dutycheck', 'Someone else changed this period’s status. Reload the page and try again.');
+			case 'NOT_APPLICABLE_FOR_ROLE':
+				return t('dutycheck', 'You do not have permission for this action.');
+			default:
+				return t('dutycheck', 'Failed to delete period.');
+		}
+	}
+
+	async function deletePeriod(period) {
+		if (isBusy) return;
+		const start = D?.formatDisplayDate(period.startDate) || period.startDate;
+		const end = D?.formatDisplayDate(period.endDate) || period.endDate;
+		const ok = await C.confirmDialog({
+			title: t('dutycheck', 'Delete period?'),
+			body: t('dutycheck', 'This permanently removes the period {start} – {end}. Only possible while it is open and empty.')
+				.replace('{start}', start).replace('{end}', end),
+			confirmLabel: t('dutycheck', 'Delete'),
+			cancelLabel: t('dutycheck', 'Cancel'),
+		});
+		if (!ok) return;
+		try {
+			setBusy(true);
+			await Api.del(`/apps/dutycheck/api/periods/${period.id}`);
+			if (currentPeriodId === Number(period.id)) {
+				currentPeriodId = null;
+				currentPeriod = null;
+				updateUrlPeriodId(null);
+			}
+			await loadPeriods();
+			Msg.announce(t('dutycheck', 'Period deleted.'));
+		} catch (err) {
+			const code = String(err?.payload?.error?.code || '');
+			Msg.announce(deletePeriodErrorMessage(code), 'error');
+		} finally {
+			setBusy(false);
+		}
+	}
+
+	function periodOverlapConfirmBody(overlaps, start, end) {
+		const list = (overlaps || []).map((o) => {
+			const s = D?.formatDisplayDate(o.startDate) || o.startDate;
+			const e = D?.formatDisplayDate(o.endDate) || o.endDate;
+			return `${s} – ${e}`;
+		}).join(', ');
+		return t('dutycheck', 'The new period {start} – {end} overlaps existing period(s): {list}. Create it anyway?')
+			.replace('{start}', start).replace('{end}', end).replace('{list}', list);
 	}
 
 	async function transitionPeriod(id, status) {
@@ -739,7 +808,29 @@
 			}
 			try {
 				setBusy(true);
-				await Api.post('/apps/dutycheck/api/periods', { startDate, endDate });
+				let payload = { startDate, endDate };
+				try {
+					await Api.post('/apps/dutycheck/api/periods', payload);
+				} catch (err) {
+					const code = String(err?.payload?.error?.code || '');
+					if (code !== 'PERIOD_OVERLAP') {
+						throw err;
+					}
+					const overlaps = err?.payload?.error?.overlaps || [];
+					const ok = await C.confirmDialog({
+						title: t('dutycheck', 'Period overlaps existing periods'),
+						body: periodOverlapConfirmBody(overlaps,
+							D?.formatDisplayDate(startDate) || startDate,
+							D?.formatDisplayDate(endDate) || endDate),
+						confirmLabel: t('dutycheck', 'Create anyway'),
+						cancelLabel: t('dutycheck', 'Cancel'),
+					});
+					if (!ok) {
+						return;
+					}
+					payload = { startDate, endDate, allowOverlap: true };
+					await Api.post('/apps/dutycheck/api/periods', payload);
+				}
 				form.reset();
 				await loadPeriods();
 				Msg.announce(t('dutycheck', 'Period created.'));

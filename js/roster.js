@@ -783,7 +783,12 @@
 			state.gridMonthClamp = state.calendarYearMonth;
 			syncMonthNavigator(state.calendarYearMonth);
 			if (!quiet) {
-				if (created) {
+				const overlapCount = Array.isArray(ensured?.data?.overlaps) ? ensured.data.overlaps.length : 0;
+				if (created && overlapCount > 0) {
+					setMonthStatus(t('dutycheck', 'Opened {month} for planning. It overlaps {count} existing period(s).')
+						.replace('{month}', D?.formatYearMonth?.(ym) || ym)
+						.replace('{count}', String(overlapCount)), false);
+				} else if (created) {
 					setMonthStatus(t('dutycheck', 'Opened {month} for planning.').replace('{month}', D?.formatYearMonth?.(ym) || ym), false);
 				} else if (!writable) {
 					setMonthStatus(t('dutycheck', '{month} is read-only (published or closed).').replace('{month}', D?.formatYearMonth?.(ym) || ym), false);
@@ -1291,7 +1296,7 @@
 			const last = new Date(`${monthStart}T12:00:00Z`);
 			last.setUTCMonth(last.getUTCMonth() + 1);
 			last.setUTCDate(0);
-			const monthEnd = last.toISOString().slice(0, 10);
+			const monthEnd = last.toISOString().slice(0, 10); // tz-audit-ok: noon-UTC anchored setUTCDate math, UTC-day extraction intentional
 			if (startIso < monthStart) {
 				startIso = monthStart;
 			}
@@ -1306,7 +1311,7 @@
 		const cursor = new Date(`${startIso}T00:00:00Z`);
 		const end = new Date(`${endIso}T00:00:00Z`);
 		while (cursor <= end) {
-			out.push(cursor.toISOString().slice(0, 10));
+			out.push(cursor.toISOString().slice(0, 10)); // tz-audit-ok: cursor is T00:00:00Z-anchored, setUTCDate iterates UTC days
 			cursor.setUTCDate(cursor.getUTCDate() + 1);
 			if (out.length > 62) {
 				break;

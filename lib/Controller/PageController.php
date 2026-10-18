@@ -400,9 +400,11 @@ class PageController extends Controller
 	{
 		$userId = $this->access->currentUserId();
 		Util::addStyle(Application::APP_ID, 'common/tokens');
+		Util::addStyle(Application::APP_ID, 'common/check-dates');
 		Util::addStyle(Application::APP_ID, 'app');
 		Util::addScript(Application::APP_ID, 'common/api');
 		Util::addScript(Application::APP_ID, 'common/session');
+		Util::addScript(Application::APP_ID, 'common/check-dates');
 		Util::addScript(Application::APP_ID, 'common/dates');
 		Util::addScript(Application::APP_ID, 'common/messaging');
 		if (in_array($template, ['dashboard', 'roster', 'periods'], true)) {

@@ -1,6 +1,7 @@
 OC.L10N.register(
 	"dutycheck",
 	{
+	"Choose date" : "Choose date",
 	" page first." : " page first.",
 	"%s stays free (AGPL) on your Nextcloud. Bug reports and ideas on GitHub stay welcome — that is free open-source care. If your organisation needs bookable help on an invoice — or official mobile licenses — choose an option below:" : "%s stays free (AGPL) on your Nextcloud. Bug reports and ideas on GitHub stay welcome — that is free open-source care. If your organisation needs bookable help on an invoice — or official mobile licenses — choose an option below:",
 	"%s stays free (AGPL) on your Nextcloud. Bug reports and ideas on GitHub stay welcome — that is free open-source care. If your organisation needs bookable help on an invoice, choose an option below:" : "%s stays free (AGPL) on your Nextcloud. Bug reports and ideas on GitHub stay welcome — that is free open-source care. If your organisation needs bookable help on an invoice, choose an option below:",
@@ -1426,7 +1427,17 @@ OC.L10N.register(
 	"{title}: {have} of {need} staff ({time})" : "{title}: {have} of {need} staff ({time})",
 	"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page." : "{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page.",
 	"{used} of {total} seats used" : "{used} of {total} seats used",
-	"“Must fix” issues block publishing." : "“Must fix” issues block publishing."
+	"“Must fix” issues block publishing." : "“Must fix” issues block publishing.",
+	"Delete period?" : "Delete period?",
+	"This permanently removes the period {start} – {end}. Only possible while it is open and empty." : "This permanently removes the period {start} – {end}. Only possible while it is open and empty.",
+	"Delete period {start} – {end}" : "Delete period {start} – {end}",
+	"Period deleted." : "Period deleted.",
+	"Only empty, unpublished periods can be deleted. Close it instead." : "Only empty, unpublished periods can be deleted. Close it instead.",
+	"Failed to delete period." : "Failed to delete period.",
+	"Period overlaps existing periods" : "Period overlaps existing periods",
+	"The new period {start} – {end} overlaps existing period(s): {list}. Create it anyway?" : "The new period {start} – {end} overlaps existing period(s): {list}. Create it anyway?",
+	"Create anyway" : "Create anyway",
+	"Opened {month} for planning. It overlaps {count} existing period(s)." : "Opened {month} for planning. It overlaps {count} existing period(s)."
 	},
 	"nplurals=2; plural=(n != 1);"
 );

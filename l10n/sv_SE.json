@@ -1,5 +1,6 @@
 {
 	"translations": {
+		"Choose date": "Välj datum",
 		" page first.": " först.",
 		"%s stays free (AGPL) on your Nextcloud. Bug reports and ideas on GitHub stay welcome — that is free open-source care. If your organisation needs bookable help on an invoice — or official mobile licenses — choose an option below:": "%s förblir gratis (AGPL) på Nextcloud. Felrapporter och idéer på GitHub är välkomna — det är gratis open source-omsorg. Om organisationen behöver bokningsbar hjälp på faktura — eller officiella mobillicenser — välj ett alternativ nedan:",
 		"%s stays free (AGPL) on your Nextcloud. Bug reports and ideas on GitHub stay welcome — that is free open-source care. If your organisation needs bookable help on an invoice, choose an option below:": "%s förblir gratis (AGPL) på Nextcloud. Felrapporter och idéer på GitHub är välkomna — det är gratis open source-omsorg. Om organisationen behöver bokningsbar hjälp på faktura, välj ett alternativ nedan:",
@@ -1425,7 +1426,17 @@
 		"{title}: {have} of {need} staff ({time})": "{title}: {have} av {need} personal ({time})",
 		"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page.": "{unlinked} av {total} aktiva anställda har inget länkat Nextcloud-konto – frånvaro för dem stannar i DutyCheck tills konton länkas på sidan Anställda.",
 		"{used} of {total} seats used": "{used} av {total} platser använda",
-		"“Must fix” issues block publishing.": "“Måste åtgärdas”-problem blockerar publicering."
+		"“Must fix” issues block publishing.": "“Måste åtgärdas”-problem blockerar publicering.",
+		"Delete period?": "Ta bort period?",
+		"This permanently removes the period {start} – {end}. Only possible while it is open and empty.": "Detta tar bort perioden {start} – {end} permanent. Möjligt endast när den är öppen och tom.",
+		"Delete period {start} – {end}": "Ta bort perioden {start} – {end}",
+		"Period deleted.": "Period borttagen.",
+		"Only empty, unpublished periods can be deleted. Close it instead.": "Endast tomma, opublicerade perioder kan tas bort. Stäng den istället.",
+		"Failed to delete period.": "Perioden kunde inte tas bort.",
+		"Period overlaps existing periods": "Perioden överlappar befintliga perioder",
+		"The new period {start} – {end} overlaps existing period(s): {list}. Create it anyway?": "Den nya perioden {start} – {end} överlappar befintliga perioder: {list}. Skapa den ändå?",
+		"Create anyway": "Skapa ändå",
+		"Opened {month} for planning. It overlaps {count} existing period(s).": "{month} öppnad för planering. Den överlappar {count} befintliga period(er)."
 	},
 	"pluralForm": "nplurals=2; plural=(n != 1);"
 }

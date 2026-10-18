@@ -170,12 +170,37 @@ class RosterApiController extends Controller
 	{
 		try {
 			$this->access->requirePlannerOrAdmin($this->access->currentUserId());
+			// Form-encoded boolean: only an explicit true arms the overlap bypass.
+			$allowOverlapRaw = $this->request->getParam('allowOverlap');
+			$allowOverlap = $allowOverlapRaw === true || $allowOverlapRaw === 'true' || $allowOverlapRaw === '1' || $allowOverlapRaw === 1;
 			$created = $this->roster->createPeriod(
 				(string) $this->request->getParam('startDate', ''),
 				(string) $this->request->getParam('endDate', ''),
 				$this->access->currentUserId(),
+				$allowOverlap,
 			);
 			return new DataResponse(['ok' => true, 'data' => $created]);
+		} catch (\OCA\DutyCheck\Exception\PeriodOverlapException $e) {
+			return ApiJsonErrorResponse::fromThrowable($e);
+		} catch (\InvalidArgumentException $e) {
+			return new DataResponse(['ok' => false, 'error' => ['code' => $e->getMessage()]], ApiJsonErrorResponse::statusForInvalidArgument($e->getMessage()));
+		} catch (Throwable $e) {
+			return ApiJsonErrorResponse::fromThrowable($e);
+		}
+	}
+
+	/**
+	 * Delete an open, empty period. Published/closed periods and periods with
+	 * any content are never deletable (snapshot integrity) — close instead.
+	 */
+	#[NoAdminRequired]
+	public function deletePeriod(int $id): DataResponse
+	{
+		try {
+			$userId = $this->access->currentUserId();
+			$this->access->requirePlannerOrAdmin($userId);
+			$deleted = $this->roster->deletePeriod($id, $userId);
+			return new DataResponse(['ok' => true, 'data' => $deleted]);
 		} catch (\InvalidArgumentException $e) {
 			return new DataResponse(['ok' => false, 'error' => ['code' => $e->getMessage()]], ApiJsonErrorResponse::statusForInvalidArgument($e->getMessage()));
 		} catch (Throwable $e) {
