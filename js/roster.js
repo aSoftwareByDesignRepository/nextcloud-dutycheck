@@ -2682,6 +2682,7 @@
 		if (note) {
 			note.value = String(assignment.note || '');
 		}
+		refreshTckRoundCandidates(assignment.tckRoundId ?? null);
 		D?.applyLocaleToTemporalInputs(document.getElementById('dc-assignment-form') || document);
 		clearAssignmentsSectionSuccess();
 		const panel = document.getElementById('dc-assignment-form-panel');
@@ -3453,10 +3454,96 @@
 			const rtRaw = String(data.get('responseTimeMinutes') || '').trim();
 			out.responseTimeMinutes = rtRaw === '' ? null : Number(rtRaw);
 		}
+		// F17 soft link: only sent when the TourCheck picker is offered —
+		// a hidden field (sibling absent) never clears an existing link.
+		const tckField = document.getElementById('dc-assignment-tck-round-field');
+		if (tckField && !tckField.hidden) {
+			const tckRaw = String(data.get('tckRoundId') || '').trim();
+			if (tckRaw !== '') {
+				out.tckRoundId = Number(tckRaw);
+			} else if (isEdit) {
+				out.tckRoundId = null;
+			}
+		}
 		if (out.assignmentId > 0 && state.editingAssignmentVersion !== null && state.editingAssignmentVersion !== undefined) {
 			out.expectedVersion = Number(state.editingAssignmentVersion);
 		}
 		return out;
+	}
+
+	let tckRoundsReqSeq = 0;
+
+	/**
+	 * F17: fill the optional round-link select for the picked duty date.
+	 * available:false / a fetch error / no date → the field hides and the
+	 * form falls back to "no link field", so a TourCheck outage can never
+	 * wedge the roster editor. Stale responses are dropped via a request
+	 * sequence counter (rapid date changes resolve out of order).
+	 */
+	async function refreshTckRoundCandidates(selectedId) {
+		const field = document.getElementById('dc-assignment-tck-round-field');
+		const sel = document.getElementById('dc-assignment-tck-round');
+		if (!field || !sel) {
+			return;
+		}
+		const seq = ++tckRoundsReqSeq;
+		const keep = selectedId !== undefined && selectedId !== null ? Number(selectedId) : (sel.value ? Number(sel.value) : null);
+		const date = String(document.getElementById('dc-assignment-date')?.value || '');
+		if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+			field.hidden = true;
+			return;
+		}
+		let data = null;
+		try {
+			const resp = await Api.get('/apps/dutycheck/api/tck-rounds', { date });
+			data = resp && resp.data !== undefined ? resp.data : resp;
+		} catch (_e) {
+			data = null;
+		}
+		if (seq !== tckRoundsReqSeq) {
+			return;
+		}
+		const rounds = data && data.available === true && Array.isArray(data.rounds) ? data.rounds : null;
+		if (rounds === null) {
+			field.hidden = true;
+			return;
+		}
+		sel.textContent = '';
+		const noneOpt = document.createElement('option');
+		noneOpt.value = '';
+		noneOpt.textContent = t('dutycheck', 'No linked round');
+		sel.appendChild(noneOpt);
+		let found = false;
+		for (const r of rounds) {
+			const rid = Number(r && r.id);
+			if (!Number.isInteger(rid) || rid <= 0) {
+				continue;
+			}
+			const o = document.createElement('option');
+			o.value = String(rid);
+			const parts = [t('dutycheck', 'Round') + ' #' + rid];
+			if (r.siteName) {
+				parts.push(String(r.siteName));
+			}
+			if (r.scheduledStart) {
+				parts.push(String(r.scheduledStart).slice(11, 16));
+			}
+			o.textContent = parts.join(' — ');
+			sel.appendChild(o);
+			if (rid === keep) {
+				found = true;
+			}
+		}
+		if (keep && !found) {
+			// The stored link is not in today's candidates (different date or
+			// terminal round) — still offer it so the planner can see/clear it.
+			const o = document.createElement('option');
+			o.value = String(keep);
+			o.textContent = t('dutycheck', 'Round') + ' #' + keep + ' — ' + t('dutycheck', 'linked');
+			sel.appendChild(o);
+		}
+		sel.value = keep ? String(keep) : '';
+		field.hidden = false;
 	}
 
 	/**
@@ -3962,6 +4049,7 @@
 			refreshAssignmentFormEligibility();
 		};
 		document.getElementById('dc-assignment-date')?.addEventListener('change', scheduleEligibilityRefresh);
+		document.getElementById('dc-assignment-date')?.addEventListener('change', () => refreshTckRoundCandidates());
 		document.getElementById('dc-assignment-employee')?.addEventListener('change', scheduleEligibilityRefresh);
 		document.getElementById('dc-assignment-start')?.addEventListener('change', scheduleEligibilityRefresh);
 		document.getElementById('dc-assignment-end')?.addEventListener('change', scheduleEligibilityRefresh);

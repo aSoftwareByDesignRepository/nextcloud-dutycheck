@@ -1436,7 +1436,13 @@
 		"Period overlaps existing periods": "O período sobrepõe-se a períodos existentes",
 		"The new period {start} – {end} overlaps existing period(s): {list}. Create it anyway?": "O novo período {start} – {end} sobrepõe-se a períodos existentes: {list}. Criar mesmo assim?",
 		"Create anyway": "Criar mesmo assim",
-		"Opened {month} for planning. It overlaps {count} existing period(s).": "{month} aberto para planeamento. Sobrepõe-se a {count} período(s) existente(s)."
+		"Opened {month} for planning. It overlaps {count} existing period(s).": "{month} aberto para planeamento. Sobrepõe-se a {count} período(s) existente(s).",
+		"Linked TourCheck round was missed": "Linked TourCheck round was missed",
+		"Link this shift to a security round. A missed round then shows up under Planning checks.": "Link this shift to a security round. A missed round then shows up under Planning checks.",
+		"No linked round": "No linked round",
+		"Round": "Round",
+		"TourCheck round (optional)": "TourCheck round (optional)",
+		"linked": "linked"
 	},
 	"pluralForm": "nplurals=2; plural=(n > 1);"
 }

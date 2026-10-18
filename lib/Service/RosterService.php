@@ -40,6 +40,7 @@ class RosterService
 		private ?PeriodLockService $periodLocks = null,
 		private ?SelfServiceSettingsService $selfService = null,
 		private ?StandbyCategoryService $standbyCategories = null,
+		private ?TckRoundLinkService $tckRounds = null,
 	) {
 	}
 
@@ -70,6 +71,7 @@ class RosterService
 			'Employee has overlapping standby duties',
 			'Standby duty overlaps a planned shift',
 			'Standby duty collides with approved absence',
+			'Linked TourCheck round was missed',
 		];
 	}
 
@@ -1105,6 +1107,7 @@ class RosterService
 		$startTime = (string) ($payload['startTime'] ?? '');
 		$endTime = (string) ($payload['endTime'] ?? '');
 		$kind = AssignmentKind::normalize($payload['kind'] ?? null);
+		$tckRoundId = self::parseNullableIntRef($payload['tckRoundId'] ?? null, 'TCK_ROUND_ID_INVALID');
 		$breakMinutes = PlanningDefaultsService::parseAssignmentBreakMinutes($payload['breakMinutes'] ?? null);
 		$note = trim((string) ($payload['note'] ?? ''));
 		$acknowledgements = is_array($payload['acknowledgements'] ?? null) ? $payload['acknowledgements'] : [];
@@ -1187,7 +1190,8 @@ class RosterService
 		if (!$this->assignmentHasStatusColumn()
 			|| !$this->assignmentHasVersionColumn()
 			|| !$this->assignmentHasSlotKeyColumn()
-			|| ($isStandby && !$this->assignmentHasKindColumn())) {
+			|| ($isStandby && !$this->assignmentHasKindColumn())
+			|| ($tckRoundId !== null && !$this->assignmentHasTckRoundColumn())) {
 			throw new \InvalidArgumentException('SCHEMA_NOT_READY');
 		}
 
@@ -1224,6 +1228,9 @@ class RosterService
 					$values['kind'] = $qb->createNamedParameter($kind);
 					$values['standby_category_id'] = $qb->createNamedParameter($standbyMeta['categoryId'], IQueryBuilder::PARAM_INT);
 					$values['response_time_minutes'] = $qb->createNamedParameter($standbyMeta['responseTimeMinutes'], IQueryBuilder::PARAM_INT);
+				}
+				if ($this->assignmentHasTckRoundColumn()) {
+					$values['tck_round_id'] = $qb->createNamedParameter($tckRoundId, IQueryBuilder::PARAM_INT);
 				}
 				$qb->insert('dc_assignments')->values($values)->executeStatement();
 				$createdAssignmentId = (int) $qb->getLastInsertId();
@@ -1319,7 +1326,8 @@ class RosterService
 		// surface as a domain validation error.
 		if (!$this->assignmentHasVersionColumn()
 			|| !$this->assignmentHasStatusColumn()
-			|| !$this->assignmentHasSlotKeyColumn()) {
+			|| !$this->assignmentHasSlotKeyColumn()
+			|| (array_key_exists('tckRoundId', $payload) && !$this->assignmentHasTckRoundColumn())) {
 			throw new \InvalidArgumentException('SCHEMA_NOT_READY');
 		}
 		$kind = $this->assignmentKindFromRow($row);
@@ -1341,6 +1349,9 @@ class RosterService
 			? PlanningDefaultsService::parseAssignmentBreakMinutes($payload['breakMinutes'] ?? null)
 			: (int) $row['break_minutes'];
 		$note = array_key_exists('note', $payload) ? trim((string) $payload['note']) : (string) ($row['note'] ?? '');
+		$tckRoundId = array_key_exists('tckRoundId', $payload)
+			? self::parseNullableIntRef($payload['tckRoundId'], 'TCK_ROUND_ID_INVALID')
+			: null;
 		$acknowledgements = is_array($payload['acknowledgements'] ?? null) ? $payload['acknowledgements'] : [];
 		$expectedVersion = self::parseExpectedVersionToken(
 			$payload['expectedVersion'] ?? $payload['version'] ?? null,
@@ -1433,6 +1444,9 @@ class RosterService
 				$qb->set('standby_category_id', $qb->createNamedParameter($standbyMeta['categoryId'], IQueryBuilder::PARAM_INT))
 					->set('response_time_minutes', $qb->createNamedParameter($standbyMeta['responseTimeMinutes'], IQueryBuilder::PARAM_INT));
 			}
+			if (array_key_exists('tckRoundId', $payload)) {
+				$qb->set('tck_round_id', $qb->createNamedParameter($tckRoundId, IQueryBuilder::PARAM_INT));
+			}
 			$qb->where($qb->expr()->eq('id', $qb->createNamedParameter($assignmentId, IQueryBuilder::PARAM_INT)))
 				->andWhere($qb->expr()->eq('version', $qb->createNamedParameter($casVersion, IQueryBuilder::PARAM_INT)));
 			try {
@@ -1455,6 +1469,7 @@ class RosterService
 				'startTime' => $startTime,
 				'endTime' => $endTime,
 				'version' => $casVersion + 1,
+				'tckRoundId' => array_key_exists('tckRoundId', $payload) ? $tckRoundId : ($row['tck_round_id'] ?? null),
 			]);
 			$this->refreshAndListConflicts($periodId);
 			if ($pendingBlackoutOverride !== null) {
@@ -3118,6 +3133,10 @@ class RosterService
 			$select[] = 'a.standby_category_id';
 			$select[] = 'a.response_time_minutes';
 		}
+		$hasTckRound = $this->assignmentHasTckRoundColumn();
+		if ($hasTckRound) {
+			$select[] = 'a.tck_round_id';
+		}
 		$hasCategoryTable = $hasKind && SchemaProbe::tableExists($this->db, 'dc_standby_categories');
 		if ($hasCategoryTable) {
 			$select[] = 'c.label AS standby_category_label';
@@ -3139,7 +3158,7 @@ class RosterService
 		}
 		$qb->orderBy('a.duty_date', 'ASC')->addOrderBy('a.start_time', 'ASC');
 		$rows = $qb->executeQuery()->fetchAll();
-		return array_map(static function (array $r) use ($hasStatus, $hasVersion, $hasKind): array {
+		return array_map(static function (array $r) use ($hasStatus, $hasVersion, $hasKind, $hasTckRound): array {
 			return [
 				'id' => (int) $r['id'],
 				'periodId' => (int) $r['period_id'],
@@ -3161,6 +3180,7 @@ class RosterService
 				'standbyCategoryLabel' => isset($r['standby_category_label']) ? (string) $r['standby_category_label'] : null,
 				'standbyCategoryColor' => isset($r['standby_category_color']) ? (string) $r['standby_category_color'] : null,
 				'responseTimeMinutes' => $hasKind && ($r['response_time_minutes'] ?? null) !== null ? (int) $r['response_time_minutes'] : null,
+				'tckRoundId' => $hasTckRound && ($r['tck_round_id'] ?? null) !== null ? (int) $r['tck_round_id'] : null,
 			];
 		}, $rows);
 	}
@@ -3178,6 +3198,35 @@ class RosterService
 	private function assignmentHasSlotKeyColumn(): bool
 	{
 		return SchemaProbe::hasColumn($this->db, 'dc_assignments', 'slot_key');
+	}
+
+	private function assignmentHasTckRoundColumn(): bool
+	{
+		return SchemaProbe::hasColumn($this->db, 'dc_assignments', 'tck_round_id');
+	}
+
+	/**
+	 * F17 soft-link field: accepts int, digit-string, null, or '' (form
+	 * "no link"). Anything else — floats, negative, leading whitespace,
+	 * bools — is a validation error, never silently truncated (strict-id
+	 * rule: is_numeric + (int) would forge references to foreign rows).
+	 */
+	private static function parseNullableIntRef(mixed $raw, string $errorCode): ?int
+	{
+		if ($raw === null || $raw === '') {
+			return null;
+		}
+		if (is_int($raw)) {
+			$value = $raw;
+		} elseif (is_string($raw) && preg_match('/^\d+$/', $raw) === 1) {
+			$value = (int) $raw;
+		} else {
+			throw new \InvalidArgumentException($errorCode);
+		}
+		if ($value <= 0) {
+			throw new \InvalidArgumentException($errorCode);
+		}
+		return $value;
 	}
 
 	private function assignmentHasKindColumn(): bool
@@ -3930,8 +3979,95 @@ class RosterService
 		}
 
 		$this->appendUnderstaffedConflicts($periodId, $shiftAssignments, $conflicts, $conflictDedup);
+		$this->appendTckMissedRoundConflicts($assignments, $conflicts, $conflictDedup);
 
 		return $conflicts;
+	}
+
+	/**
+	 * F17: a shift linked to a TourCheck round whose status is 'missed'
+	 * materializes as a coverage-gap conflict. Source of truth is the
+	 * sibling facade — a missing TourCheck app, a missing/inaccessible
+	 * round, or a facade error simply contributes no conflicts, so this
+	 * source can never 500 the roster or deadlock the rematerialization.
+	 * 'soft' severity on purpose: an external signal must not hard-block
+	 * publish/swap paths that reject on 'hard'.
+	 *
+	 * @param list<array<string,mixed>> $assignments
+	 * @param list<array<string,mixed>> $conflicts
+	 * @param array<string,bool> $conflictDedup
+	 */
+	private function appendTckMissedRoundConflicts(array $assignments, array &$conflicts, array &$conflictDedup): void
+	{
+		if ($this->tckRounds === null) {
+			return;
+		}
+		$roundIds = [];
+		foreach ($assignments as $assignment) {
+			$rid = (int) ($assignment['tckRoundId'] ?? 0);
+			if ($rid > 0) {
+				$roundIds[$rid] = true;
+			}
+		}
+		if ($roundIds === []) {
+			return;
+		}
+		$statuses = $this->tckRounds->roundStatuses(array_keys($roundIds));
+		foreach ($assignments as $assignment) {
+			$rid = (int) ($assignment['tckRoundId'] ?? 0);
+			if ($rid <= 0 || ($statuses[$rid]['status'] ?? '') !== 'missed') {
+				continue;
+			}
+			$key = 'round_missed:' . (int) $assignment['id'] . ':' . $rid;
+			if (isset($conflictDedup[$key])) {
+				continue;
+			}
+			$conflictDedup[$key] = true;
+			$conflicts[] = [
+				'type' => 'round_missed',
+				'severity' => 'soft',
+				'message' => 'Linked TourCheck round was missed',
+				'employeeId' => (int) $assignment['employeeId'],
+				'assignmentIds' => [(int) $assignment['id']],
+				'details' => [
+					'tckRoundId' => $rid,
+					'siteName' => (string) ($statuses[$rid]['siteName'] ?? ''),
+					'scheduledStart' => $statuses[$rid]['scheduledStart'] ?? null,
+				],
+			];
+		}
+	}
+
+	/**
+	 * F17 reconcile trigger: TourCheck dispatched a round status event —
+	 * mark every open period holding a linked assignment dirty so the
+	 * dirty-drain recomputes the round_missed conflict (appears on
+	 * 'missed', auto-resolves on completed/skipped/correction). DC writes
+	 * only its own table; never called inside a sibling's transaction.
+	 */
+	public function markConflictsDirtyForTckRound(int $roundId): int
+	{
+		if ($roundId <= 0
+			|| !$this->periodHasConflictsDirtyColumn()
+			|| !$this->assignmentHasTckRoundColumn()) {
+			return 0;
+		}
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('a.period_id')
+			->from('dc_assignments', 'a')
+			->innerJoin('a', 'dc_periods', 'p', 'p.id = a.period_id')
+			->where($qb->expr()->eq('a.tck_round_id', $qb->createNamedParameter($roundId, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->eq('p.status', $qb->createNamedParameter('open')))
+			->groupBy('a.period_id');
+		$marked = 0;
+		foreach ($qb->executeQuery()->fetchAll() as $row) {
+			$periodId = (int) $row['period_id'];
+			if ($periodId > 0) {
+				$this->setPeriodConflictsDirty($periodId, true);
+				$marked++;
+			}
+		}
+		return $marked;
 	}
 
 	/**

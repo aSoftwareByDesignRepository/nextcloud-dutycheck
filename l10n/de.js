@@ -1437,7 +1437,13 @@ OC.L10N.register(
 	"Period overlaps existing periods" : "Zeitraum überschneidet sich mit bestehenden Zeiträumen",
 	"The new period {start} – {end} overlaps existing period(s): {list}. Create it anyway?" : "Der neue Zeitraum {start} – {end} überschneidet sich mit bestehenden Zeiträumen: {list}. Trotzdem anlegen?",
 	"Create anyway" : "Trotzdem anlegen",
-	"Opened {month} for planning. It overlaps {count} existing period(s)." : "{month} wurde für die Planung geöffnet. Er überschneidet sich mit {count} bestehenden Zeiträumen."
+	"Opened {month} for planning. It overlaps {count} existing period(s)." : "{month} wurde für die Planung geöffnet. Er überschneidet sich mit {count} bestehenden Zeiträumen.",
+	"Linked TourCheck round was missed" : "Verknüpfte TourCheck-Runde wurde verpasst",
+	"Link this shift to a security round. A missed round then shows up under Planning checks." : "Verknüpfen Sie diese Schicht mit einer Kontrollrunde. Eine verpasste Runde erscheint dann unter Planungsprüfungen.",
+	"No linked round" : "Keine verknüpfte Runde",
+	"Round" : "Runde",
+	"TourCheck round (optional)" : "TourCheck-Runde (optional)",
+	"linked" : "verknüpft"
 	},
 	"nplurals=2; plural=(n != 1);"
 );

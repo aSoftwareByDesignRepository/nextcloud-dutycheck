@@ -1437,7 +1437,13 @@ OC.L10N.register(
 	"Period overlaps existing periods" : "Perioden överlappar befintliga perioder",
 	"The new period {start} – {end} overlaps existing period(s): {list}. Create it anyway?" : "Den nya perioden {start} – {end} överlappar befintliga perioder: {list}. Skapa den ändå?",
 	"Create anyway" : "Skapa ändå",
-	"Opened {month} for planning. It overlaps {count} existing period(s)." : "{month} öppnad för planering. Den överlappar {count} befintliga period(er)."
+	"Opened {month} for planning. It overlaps {count} existing period(s)." : "{month} öppnad för planering. Den överlappar {count} befintliga period(er).",
+	"Linked TourCheck round was missed" : "Linked TourCheck round was missed",
+	"Link this shift to a security round. A missed round then shows up under Planning checks." : "Link this shift to a security round. A missed round then shows up under Planning checks.",
+	"No linked round" : "No linked round",
+	"Round" : "Round",
+	"TourCheck round (optional)" : "TourCheck round (optional)",
+	"linked" : "linked"
 	},
 	"nplurals=2; plural=(n != 1);"
 );

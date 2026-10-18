@@ -63,6 +63,7 @@ class RosterApiController extends Controller
 		private ?CompanyService $companies = null,
 		private ?\OCA\DutyCheck\Service\StandbyCategoryService $standbyCategories = null,
 		private ?\OCA\DutyCheck\Service\SelfServiceSettingsService $selfService = null,
+		private ?\OCA\DutyCheck\Service\TckRoundLinkService $tckRounds = null,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -404,6 +405,30 @@ class RosterApiController extends Controller
 		return $base . '.csv';
 	}
 
+	/**
+	 * GET /api/tck-rounds?date=YYYY-MM-DD — link candidates for the shift
+	 * editor. Planner-gated like every roster read; `available:false` when
+	 * TourCheck is absent/incompatible so the UI hides the field entirely.
+	 */
+	#[NoAdminRequired]
+	public function tckRoundCandidates(): DataResponse
+	{
+		try {
+			$userId = $this->access->currentUserId();
+			$this->access->requirePlannerOrAdmin($userId);
+			$date = trim((string) ($this->request->getParam('date') ?? ''));
+			if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) !== 1) {
+				return new DataResponse(['ok' => false, 'error' => ['code' => 'DATE_INVALID']], 400);
+			}
+			$data = $this->tckRounds !== null
+				? $this->tckRounds->openRounds($date)
+				: ['available' => false, 'rounds' => []];
+			return new DataResponse(['ok' => true, 'data' => $data]);
+		} catch (Throwable $e) {
+			return ApiJsonErrorResponse::fromThrowable($e);
+		}
+	}
+
 	#[NoAdminRequired]
 	public function createAssignment(): DataResponse
 	{
@@ -429,7 +454,8 @@ class RosterApiController extends Controller
 			];
 			// Standby fields only when the client actually sent them — an injected
 			// null key would suppress the category's default response-time fill.
-			foreach (['standbyCategoryId', 'responseTimeMinutes'] as $standbyField) {
+			// tckRoundId likewise: absent must not clear/force the soft link.
+			foreach (['standbyCategoryId', 'responseTimeMinutes', 'tckRoundId'] as $standbyField) {
 				if (array_key_exists($standbyField, $params)) {
 					$createPayload[$standbyField] = $params[$standbyField];
 				}
@@ -481,7 +507,7 @@ class RosterApiController extends Controller
 			];
 			// Standby fields only when the client actually sent them — an absent
 			// `kind` must not reset a standby row's slot identity or wipe metadata.
-			foreach (['kind', 'standbyCategoryId', 'responseTimeMinutes'] as $standbyField) {
+			foreach (['kind', 'standbyCategoryId', 'responseTimeMinutes', 'tckRoundId'] as $standbyField) {
 				if (array_key_exists($standbyField, $params)) {
 					$updatePayload[$standbyField] = $params[$standbyField];
 				}

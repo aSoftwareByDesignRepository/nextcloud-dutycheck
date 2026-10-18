@@ -802,6 +802,9 @@ class UpgradeBackupService
 	}
 
 	/**
+	 * @param array<string, mixed> $payload
+	 */
+	/**
 	 * @param array<array-key, mixed> $payload
 	 */
 	private function writeJsonFile(Folder $parent, string $name, array $payload): void

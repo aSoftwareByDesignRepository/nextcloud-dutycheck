@@ -53,6 +53,7 @@ final class RosterServiceMutationPureHelpersTest extends TestCase
 			'Employee has overlapping standby duties',
 			'Standby duty overlaps a planned shift',
 			'Standby duty collides with approved absence',
+			'Linked TourCheck round was missed',
 		], RosterService::rosterApiConflictMessageKeys());
 	}
 

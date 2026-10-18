@@ -1437,7 +1437,13 @@ OC.L10N.register(
 	"Period overlaps existing periods" : "La période chevauche des périodes existantes",
 	"The new period {start} – {end} overlaps existing period(s): {list}. Create it anyway?" : "La nouvelle période {start} – {end} chevauche des périodes existantes : {list}. La créer quand même ?",
 	"Create anyway" : "Créer quand même",
-	"Opened {month} for planning. It overlaps {count} existing period(s)." : "{month} ouvert à la planification. Il chevauche {count} période(s) existante(s)."
+	"Opened {month} for planning. It overlaps {count} existing period(s)." : "{month} ouvert à la planification. Il chevauche {count} période(s) existante(s).",
+	"Linked TourCheck round was missed" : "La ronde TourCheck liée a été manquée",
+	"Link this shift to a security round. A missed round then shows up under Planning checks." : "Liez ce service à une ronde de contrôle. Une ronde manquée apparaît alors dans les vérifications de planification.",
+	"No linked round" : "Aucune ronde liée",
+	"Round" : "Ronde",
+	"TourCheck round (optional)" : "Ronde TourCheck (facultatif)",
+	"linked" : "liée"
 	},
 	"nplurals=2; plural=(n > 1);"
 );

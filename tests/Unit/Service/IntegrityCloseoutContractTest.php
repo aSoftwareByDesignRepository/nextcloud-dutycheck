@@ -88,7 +88,7 @@ final class IntegrityCloseoutContractTest extends TestCase
 	{
 		$src = (string) file_get_contents(dirname(__DIR__, 3) . '/lib/Service/RosterService.php');
 		self::assertMatchesRegularExpression(
-			'/function updateAssignment[\s\S]{0,4500}?assignmentHasSlotKeyColumn\(\)\)[\s\S]{0,200}?SCHEMA_NOT_READY/',
+			'/function updateAssignment[\s\S]{0,4500}?assignmentHasSlotKeyColumn\(\)[\s\S]{0,260}?SCHEMA_NOT_READY/',
 			$src,
 		);
 		self::assertMatchesRegularExpression(

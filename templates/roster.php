@@ -456,6 +456,14 @@ foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as
 				<label class="dc-field__label" for="dc-assignment-note"><?php p($l->t('Note (optional)')); ?></label>
 				<input id="dc-assignment-note" type="text" name="note" class="dc-input" maxlength="512" autocomplete="off">
 			</div>
+			<div class="dc-field dc-field--roster-note" id="dc-assignment-tck-round-field" hidden>
+				<label class="dc-field__label" for="dc-assignment-tck-round"><?php p($l->t('TourCheck round (optional)')); ?></label>
+				<select id="dc-assignment-tck-round" name="tckRoundId" class="dc-input"
+					aria-describedby="dc-assignment-tck-round-hint"></select>
+				<p id="dc-assignment-tck-round-hint" class="dc-field__hint">
+					<?php p($l->t('Link this shift to a security round. A missed round then shows up under Planning checks.')); ?>
+				</p>
+			</div>
 			</div>
 			<div id="dc-assignment-form-feedback" class="dc-roster-form__feedback" role="status" aria-live="polite" aria-atomic="true" hidden></div>
 			<div class="dc-form-actions dc-form-actions--roster">

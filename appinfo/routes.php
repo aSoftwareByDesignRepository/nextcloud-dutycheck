@@ -48,6 +48,7 @@ return [
 		['name' => 'rosterApi#periodAudit', 'url' => '/api/periods/{id}/audit', 'verb' => 'GET',
 			'requirements' => ['id' => '\d+']],
 		['name' => 'rosterApi#exportRosterCsv', 'url' => '/api/admin/roster-export', 'verb' => 'GET'],
+		['name' => 'rosterApi#tckRoundCandidates', 'url' => '/api/tck-rounds', 'verb' => 'GET'],
 		['name' => 'rosterApi#createAssignment', 'url' => '/api/assignments', 'verb' => 'POST'],
 		['name' => 'rosterApi#updateAssignment', 'url' => '/api/assignments/{id}', 'verb' => 'PUT',
 			'requirements' => ['id' => '\d+']],

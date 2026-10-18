@@ -10,6 +10,7 @@ use OCP\App\IAppManager;
 use OCA\DutyCheck\Service\UpgradeBackupService;
 use OCA\DutyCheck\Repair\BackupBeforeUpdate;
 use OCA\DutyCheck\Integration\ArbeitszeitCheckAbsenceReader;
+use OCA\DutyCheck\Listener\TourCheckRoundLinkListener;
 use OCA\DutyCheck\Listener\UserDeletedListener;
 use OCA\DutyCheck\Integration\ArbeitszeitCheckIntegrationService;
 use OCA\DutyCheck\Integration\IArbeitszeitCheckAbsenceReader;
@@ -266,6 +267,7 @@ class Application extends App implements IBootstrap
 				$c->query(PeriodLockService::class),
 				$c->query(SelfServiceSettingsService::class),
 				$c->query(\OCA\DutyCheck\Service\StandbyCategoryService::class),
+				$c->query(\OCA\DutyCheck\Service\TckRoundLinkService::class),
 			);
 		});
 		$context->registerService(\OCA\DutyCheck\Service\StandbyCategoryService::class, function ($c): \OCA\DutyCheck\Service\StandbyCategoryService {
@@ -436,6 +438,18 @@ class Application extends App implements IBootstrap
 		$context->registerMiddleware(ClientLicenseMiddleware::class);
 		$context->registerMiddleware(SessionCsrfMiddleware::class);
 		$context->registerEventListener(UserDeletedEvent::class, UserDeletedListener::class);
+		// F17: TourCheck round status transitions mark linked periods
+		// conflicts_dirty; the drain job recomputes the coverage gap.
+		$context->registerEventListener('OCA\TourCheck::roundMissed', TourCheckRoundLinkListener::class);
+		$context->registerEventListener('OCA\TourCheck::roundCompleted', TourCheckRoundLinkListener::class);
+		$context->registerEventListener('OCA\TourCheck::roundSkipped', TourCheckRoundLinkListener::class);
+		// F17 producer half: TourCheck annotates missed rounds with the
+		// shifts linked to them.
+		$context->registerService(\OCA\DutyCheck\Public\ShiftRoundLinkReadFacade::class, function ($c): \OCA\DutyCheck\Public\ShiftRoundLinkReadFacade {
+			return new \OCA\DutyCheck\Public\ShiftRoundLinkReadFacade(
+				$c->query(\OCP\IDBConnection::class),
+			);
+		});
 		$context->registerNotifierService(\OCA\DutyCheck\Notification\Notifier::class);
 
 		$context->registerService(EnsureDutyCheckSchema::class, function ($c): EnsureDutyCheckSchema {

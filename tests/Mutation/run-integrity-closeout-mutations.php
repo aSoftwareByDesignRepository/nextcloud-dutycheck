@@ -44,7 +44,7 @@ $assert((bool) preg_match('/eq\(\'version\'/', $roster), 'assignment_cas_version
 $assert(str_contains($roster, "SCHEMA_NOT_READY"), 'assignment_cas_fail_closed_without_version_column');
 $assert(
 	(bool) preg_match(
-		'/createAssignment[\s\S]{0,3500}?assignmentHasSlotKeyColumn\(\)\)[\s\S]{0,200}?SCHEMA_NOT_READY/',
+		'/createAssignment[\s\S]{0,3500}?assignmentHasSlotKeyColumn\(\)[\s\S]{0,300}?SCHEMA_NOT_READY/',
 		$roster,
 	),
 	'create_assignment_fail_closed_without_slot_key',
@@ -63,7 +63,7 @@ $assert(str_contains($retention, 'latestCloseSnapshotIdsPerPeriod'), 'retention_
 $assert(str_contains($retention, 'closedPeriodCloseSnapshotIds'), 'retention_protects_closed_period_tips');
 $assert(
 	(bool) preg_match(
-		'/function updateAssignment[\s\S]{0,4500}?assignmentHasSlotKeyColumn\(\)\)[\s\S]{0,200}?SCHEMA_NOT_READY/',
+		'/function updateAssignment[\s\S]{0,4500}?assignmentHasSlotKeyColumn\(\)[\s\S]{0,260}?SCHEMA_NOT_READY/',
 		$roster,
 	),
 	'update_assignment_fail_closed_without_slot_key',

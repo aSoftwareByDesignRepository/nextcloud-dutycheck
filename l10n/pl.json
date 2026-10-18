@@ -1436,7 +1436,13 @@
 		"Period overlaps existing periods": "Okres nakłada się na istniejące okresy",
 		"The new period {start} – {end} overlaps existing period(s): {list}. Create it anyway?": "Nowy okres {start} – {end} nakłada się na istniejące okresy: {list}. Utworzyć mimo to?",
 		"Create anyway": "Utwórz mimo to",
-		"Opened {month} for planning. It overlaps {count} existing period(s).": "Otwarto {month} do planowania. Nakłada się na {count} istniejące okres(y)."
+		"Opened {month} for planning. It overlaps {count} existing period(s).": "Otwarto {month} do planowania. Nakłada się na {count} istniejące okres(y).",
+		"Linked TourCheck round was missed": "Linked TourCheck round was missed",
+		"Link this shift to a security round. A missed round then shows up under Planning checks.": "Link this shift to a security round. A missed round then shows up under Planning checks.",
+		"No linked round": "No linked round",
+		"Round": "Round",
+		"TourCheck round (optional)": "TourCheck round (optional)",
+		"linked": "linked"
 	},
 	"pluralForm": "nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);"
 }

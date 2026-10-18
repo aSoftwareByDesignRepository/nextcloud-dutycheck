@@ -1437,7 +1437,13 @@ OC.L10N.register(
 	"Period overlaps existing periods" : "El período se solapa con períodos existentes",
 	"The new period {start} – {end} overlaps existing period(s): {list}. Create it anyway?" : "El nuevo período {start} – {end} se solapa con períodos existentes: {list}. ¿Crearlo de todos modos?",
 	"Create anyway" : "Crear de todos modos",
-	"Opened {month} for planning. It overlaps {count} existing period(s)." : "{month} abierto para planificación. Se solapa con {count} período(s) existente(s)."
+	"Opened {month} for planning. It overlaps {count} existing period(s)." : "{month} abierto para planificación. Se solapa con {count} período(s) existente(s).",
+	"Linked TourCheck round was missed" : "La ronda TourCheck vinculada se ha perdido",
+	"Link this shift to a security round. A missed round then shows up under Planning checks." : "Vincula este turno a una ronda de control. Una ronda perdida aparece en las comprobaciones de planificación.",
+	"No linked round" : "Sin ronda vinculada",
+	"Round" : "Ronda",
+	"TourCheck round (optional)" : "Ronda TourCheck (opcional)",
+	"linked" : "vinculada"
 	},
 	"nplurals=2; plural=(n != 1);"
 );
