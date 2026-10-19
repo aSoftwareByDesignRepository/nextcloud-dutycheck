@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.3.12 - 2026-10-19
+
+### Added
+
+- **Standby planner:** standby-duty assignments with a dedicated assignment kind, roster UI, and schema support.
+- **Suite integration (F17):** DutyCheck now advertises a versioned `check.on-duty` capability and accepts TourCheck as a consumer alongside MaintenanceCheck. Duty shifts can be soft-linked to TourCheck rounds, and a missed round now surfaces as a roster conflict source.
+
+### Security
+
+- **Roster CSV export formula injection:** all roster/minutes CSV emitters now pass through a shared formula guard, so values starting with `=`, `+`, `-`, `@` or control characters can no longer become live spreadsheet formulas.
+
+### Fixed
+
+- **Calendar-day timezone hardening:** dates and periods resolve to local calendar days; period overlap detection and the delete path were hardened.
+- `responseTimeMinutes` is now returned correctly by the roster API, and a stale-guard keeps outdated roster payloads from overwriting fresher state.
+- Destructive confirmations (delete period, delete category) now render with the danger variant.
+- TourCheck round-link strings are now translated in all 16 locales.
+
 ## 0.3.10 - 2026-10-16
 
 ### Fixed
