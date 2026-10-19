@@ -38,7 +38,11 @@ test('edit-assignment modal exposes Cancel shift via the secondary slot', () => 
 	const src = read('js/roster.js');
 	assert.match(src, /secondaryLabel:\s*t\('dutycheck', 'Cancel shift'\)/, 'edit modal must offer Cancel shift');
 	assert.match(src, /secondaryDanger:\s*true/, 'cancel-shift is destructive — danger styling');
-	assert.match(src, /onSecondary:\s*\(\) => cancelAssignmentRow\(assignment, triggerEl\)/, 'secondary must reuse cancelAssignmentRow');
+	assert.match(src, /cancelAssignmentRow\(assignment, triggerEl\)/, 'secondary must reuse cancelAssignmentRow');
+	// openModal is a singleton — the confirm replaces the edit modal, so an
+	// aborted cancel must re-open the form with the unsaved edits restored.
+	assert.match(src, /snapshotAssignmentFormEdits\(\)/, 'edits must be snapshotted before the confirm replaces the modal');
+	assert.match(src, /openAssignmentEditModal\(assignment, triggerEl\);\s*restoreAssignmentFormEdits\(edits\)/, 'abort must re-open the edit modal and restore the edits');
 });
 
 test('cancelAssignmentRow reports success so the modal can close', () => {

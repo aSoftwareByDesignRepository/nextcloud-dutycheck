@@ -45,6 +45,29 @@ function modalPrimary(modal) {
 }
 
 /**
+ * Permanent destructive-clarity probe (learned regression
+ * dc-vis-destructive-confirm-missing-danger-variant): a destructive
+ * confirmDialog primary must carry .danger AND paint the resolved danger
+ * fill — a missing `danger: true` leaves NC primary blue and fails this
+ * leg instead of silently regressing a third site.
+ * @param {import('@playwright/test').Locator} modal
+ */
+async function expectDangerPrimary(modal) {
+	const primary = modalPrimary(modal)
+	await expect(primary).toBeVisible()
+	await expect(primary).toHaveClass(/\bdanger\b/)
+	const { bg, dangerBg } = await primary.evaluate((btn) => {
+		const probe = document.createElement('div')
+		probe.style.backgroundColor = 'var(--dc-danger-fill, var(--color-element-error, #ba1b1b))'
+		document.body.appendChild(probe)
+		const resolved = getComputedStyle(probe).backgroundColor
+		probe.remove()
+		return { bg: getComputedStyle(btn).backgroundColor, dangerBg: resolved }
+	})
+	expect(bg).toBe(dangerBg)
+}
+
+/**
  * Shared roster page stubs for shipping promptReason surfaces in roster.js.
  * @param {import('@playwright/test').Page} page
  * @param {{ period: object, employees?: object[], locations?: object[], assignments?: object[], conflicts?: object[], openClaims?: object[] }} opts
@@ -271,6 +294,130 @@ test.describe('atlas employee filters + swap dismiss', () => {
 		await dialog.locator('button[type="submit"][value="cancel"]').click()
 		await expect(dialog).toBeHidden()
 		expect(swapPosts).toBe(0)
+	})
+
+	const WITHDRAW_ROW = {
+		id: 90002,
+		dutyDate: '2099-01-16',
+		startTime: '08:00:00',
+		endTime: '16:00:00',
+		breakMinutes: 30,
+		locationName: 'Atlas Withdraw Lab',
+		acknowledgedAt: null,
+		note: '',
+	}
+	const WITHDRAW_SWAP = { id: 980002, assignmentId: 90002, status: 'open' }
+
+	/**
+	 * My-roster stub with one roster row carrying an open swap request, so the
+	 * swap cell renders .dc-swap-withdraw-btn. state.swaps backs the GET and is
+	 * mutated by the withdraw hook so the confirm leg re-reads a durable
+	 * postcondition (withdraw button gone, request button back).
+	 * @param {import('@playwright/test').Page} page
+	 * @param {{ swaps: object[], onWithdraw?: Function }} state
+	 */
+	async function stubMyRosterWithSwap(page, state) {
+		await page.route(/\/apps\/dutycheck\/api\/my\/roster(\?|$)/, async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({ ok: true, data: [{ ...WITHDRAW_ROW }] }),
+			})
+		})
+		// No end anchor: /my/swaps/{id}/withdraw must be caught too.
+		await page.route(/\/apps\/dutycheck\/api\/my\/swaps/, async (route) => {
+			const req = route.request()
+			if (req.method() === 'GET' && /\/my\/swaps(\?|$)/.test(req.url())) {
+				await route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify({ ok: true, data: state.swaps }),
+				})
+				return
+			}
+			if (req.method() === 'POST' && /\/my\/swaps\/\d+\/withdraw/.test(req.url())) {
+				if (typeof state.onWithdraw === 'function') {
+					await state.onWithdraw(route)
+					return
+				}
+			}
+			await route.fallback()
+		})
+	}
+
+	/** @param {import('@playwright/test').Page} page */
+	async function openMyRoster(page) {
+		await page.goto('/apps/dutycheck/my-roster', { waitUntil: 'domcontentloaded' })
+		await assertNotServerUpdater(page)
+		await ensureDesktopShell(page)
+		await page.waitForSelector('#dc-my-roster-table-body', { timeout: 30_000 })
+		await expect(page.locator('.dc-swap-withdraw-btn')).toHaveCount(1, { timeout: 15_000 })
+	}
+
+	test('withdraw swap confirm open → cancel keeps request, no withdraw POST', async ({ page }) => {
+		test.skip(!process.env.NC_EMPLOYEE_USER, 'Requires NC_EMPLOYEE_* credentials')
+		await login(page, credsFromEnv('EMPLOYEE'))
+		const state = { swaps: [{ ...WITHDRAW_SWAP }] }
+		let withdrawPosts = 0
+		page.on('request', (req) => {
+			if (req.method() === 'POST' && /\/my\/swaps\/\d+\/withdraw/.test(req.url())) {
+				withdrawPosts += 1
+			}
+		})
+		await stubMyRosterWithSwap(page, state)
+		await openMyRoster(page)
+
+		await page.locator('.dc-swap-withdraw-btn').first().click()
+		const modal = dcModal(page)
+		await expect(modal).toBeVisible({ timeout: 8_000 })
+		await expectDangerPrimary(modal)
+		await expect(modalCancel(modal)).toBeVisible()
+		await craftShot(page, 'swap-withdraw-open')
+		await modalCancel(modal).click()
+		await expect(dcModal(page)).toHaveCount(0)
+
+		expect(withdrawPosts).toBe(0)
+		// Request survives an aborted withdraw.
+		await expect(page.locator('.dc-swap-withdraw-btn')).toHaveCount(1)
+		await page.unrouteAll({ behavior: 'ignoreErrors' })
+	})
+
+	test('withdraw swap confirm → withdraw POST fires, request gone after refetch', async ({ page }) => {
+		test.skip(!process.env.NC_EMPLOYEE_USER, 'Requires NC_EMPLOYEE_* credentials')
+		await login(page, credsFromEnv('EMPLOYEE'))
+		const state = {
+			swaps: [{ ...WITHDRAW_SWAP }],
+			onWithdraw: async (route) => {
+				state.swaps = []
+				await route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify({ ok: true, data: {} }),
+				})
+			},
+		}
+		const withdrawUrls = []
+		page.on('request', (req) => {
+			if (req.method() === 'POST' && /\/my\/swaps\/\d+\/withdraw/.test(req.url())) {
+				withdrawUrls.push(req.url())
+			}
+		})
+		await stubMyRosterWithSwap(page, state)
+		await openMyRoster(page)
+
+		await page.locator('.dc-swap-withdraw-btn').first().click()
+		const modal = dcModal(page)
+		await expect(modal).toBeVisible({ timeout: 8_000 })
+		await expectDangerPrimary(modal)
+		await modalPrimary(modal).click()
+
+		await expect.poll(() => withdrawUrls.length, { timeout: 10_000 }).toBe(1)
+		expect(withdrawUrls[0]).toMatch(new RegExp(`/apps/dutycheck/api/my/swaps/${WITHDRAW_SWAP.id}/withdraw`))
+		// Durable postcondition: refetched swaps list is empty, so the row now
+		// offers Request swap instead of Withdraw.
+		await expect(page.locator('.dc-swap-withdraw-btn')).toHaveCount(0, { timeout: 15_000 })
+		await expect(page.locator('.dc-swap-request-btn')).toHaveCount(1)
+		await page.unrouteAll({ behavior: 'ignoreErrors' })
 	})
 })
 
@@ -839,6 +986,7 @@ test.describe('atlas shipping dialog inventory 3.5.10', () => {
 		const empModal = dcModal(page)
 		await expect(empModal).toBeVisible({ timeout: 8_000 })
 		await expect(empModal).toContainText(/Deactivate employee|Beschäftigte|deaktivieren/i)
+		await expectDangerPrimary(empModal)
 		await craftShot(page, 'employee-deactivate-open')
 		await modalCancel(empModal).click()
 		await expect(dcModal(page)).toHaveCount(0)
@@ -851,6 +999,7 @@ test.describe('atlas shipping dialog inventory 3.5.10', () => {
 		const locModal = dcModal(page)
 		await expect(locModal).toBeVisible({ timeout: 8_000 })
 		await expect(locModal).toContainText(/Deactivate location|Standort deaktivieren/i)
+		await expectDangerPrimary(locModal)
 		await craftShot(page, 'location-deactivate-open')
 		await modalCancel(locModal).click()
 		await expect(dcModal(page)).toHaveCount(0)
@@ -916,6 +1065,7 @@ test.describe('atlas shipping dialog inventory 3.5.10', () => {
 		const modal = dcModal(page)
 		await expect(modal).toBeVisible({ timeout: 8_000 })
 		await expect(modal).toContainText(/Remove legacy|Legacy.*entfernen|legacy DutyCheck absences/i)
+		await expectDangerPrimary(modal)
 		await craftShot(page, 'integration-purge-open')
 		await modalCancel(modal).click()
 		await expect(dcModal(page)).toHaveCount(0)
@@ -1141,7 +1291,7 @@ test.describe('atlas shipping dialog inventory 3.5.10', () => {
 		await page.unrouteAll({ behavior: 'ignoreErrors' })
 	})
 
-	test('cancel assignment window.confirm dismiss without cancel POST', async ({ page }) => {
+	test('cancel shift confirm open → cancel keeps assignment, no cancel POST fired', async ({ page }) => {
 		test.skip(plannerCredsCandidates().length === 0, 'Requires planner credentials')
 		const period = {
 			id: 960011,
@@ -1264,12 +1414,19 @@ test.describe('atlas shipping dialog inventory 3.5.10', () => {
 		await expect(page.locator('#dc-roster-list-panel')).toBeVisible({ timeout: 10_000 })
 		const cancelBtn = page.locator('#dc-roster-list-panel .dc-assignment-cancel-btn').first()
 		await expect(cancelBtn).toBeVisible({ timeout: 15_000 })
-		page.once('dialog', async (dialog) => {
-			expect(dialog.message()).toMatch(/Cancel this shift|Diese Schicht stornieren/i)
-			await dialog.dismiss()
-		})
 		await cancelBtn.click({ force: true })
-		await expect.poll(() => cancelPosts).toBe(0)
+		// confirmDialog renders a non-native .dc-modal (components.js openModal) —
+		// page.once('dialog') can never see it. Drive the dc-modal directly.
+		const modal = dcModal(page)
+		await expect(modal).toBeVisible({ timeout: 8_000 })
+		await expectDangerPrimary(modal)
+		await expect(modalCancel(modal)).toBeVisible()
+		await craftShot(page, 'cancel-shift-open')
+		await modalCancel(modal).click()
+		await expect(dcModal(page)).toHaveCount(0)
+		expect(cancelPosts).toBe(0)
+		// Row survives an aborted cancel.
+		await expect(page.locator('#dc-roster-list-panel .dc-assignment-cancel-btn')).toHaveCount(1)
 		await page.unrouteAll({ behavior: 'ignoreErrors' })
 	})
 
@@ -2004,6 +2161,940 @@ test.describe('atlas shipping dialog inventory 3.5.10', () => {
 		await modalPrimary(modal).click()
 		await expect.poll(() => approvePosts).toBeGreaterThan(postsBeforeConfirm)
 		expect(approveBodies.some((b) => /acknowledgements\[|conflictType/.test(b))).toBe(true)
+		await page.unrouteAll({ behavior: 'ignoreErrors' })
+	})
+})
+
+/**
+ * Atlas POLICY ≥3.5.17 — executed UI legs for the two confirmDialog surfaces
+ * shipped in 607d7d4 (period-delete + period-overlap "Create anyway").
+ * Closes dc-crit3517-period-dialog-matrix-gap (dialog_matrix_proof_gap):
+ * each dialog gets open → cancel (no mutate, state unchanged) AND
+ * open → confirm (mutation fires, durable postcondition on refetch), plus the
+ * PERIOD_NOT_DELETABLE → friendly-copy mapping row.
+ */
+test.describe('atlas period delete + overlap dialogs 3.5.17', () => {
+	test.beforeEach(async ({ page }) => {
+		await ensureDesktopShell(page)
+	})
+
+	const OPEN_PERIOD = {
+		id: 930001,
+		status: 'open',
+		startDate: '2099-04-01',
+		endDate: '2099-04-30',
+		name: 'Atlas delete lab',
+		publishedAt: null,
+	}
+	const OVERLAP_PERIOD = {
+		id: 930002,
+		status: 'open',
+		startDate: '2099-04-10',
+		endDate: '2099-04-20',
+		name: 'Atlas overlap lab',
+		publishedAt: null,
+	}
+
+	/**
+	 * Periods-page API stub. state.periods backs the GET list and is mutated by
+	 * the onDelete/onPost hooks so every leg re-reads a durable postcondition
+	 * (row gone / row added) instead of trusting a 2xx alone.
+	 * @param {import('@playwright/test').Page} page
+	 * @param {{ periods: object[], onDelete?: Function, onPost?: Function }} state
+	 */
+	async function stubPeriodsApi(page, state) {
+		await page.route('**/apps/dutycheck/api/periods**', async (route) => {
+			const req = route.request()
+			const url = req.url()
+			const method = req.method()
+			/** @param {number} status @param {object} body */
+			const json = (status, body) => route.fulfill({
+				status,
+				contentType: 'application/json',
+				body: JSON.stringify(body),
+			})
+			if (method === 'GET' && /\/api\/periods(?:\?|$)/.test(url)) {
+				return json(200, { ok: true, data: { periods: state.periods } })
+			}
+			if (method === 'GET' && /\/api\/periods\/\d+\/publish-readiness/.test(url)) {
+				return json(200, {
+					ok: true,
+					data: {
+						canPublish: true,
+						hardConflicts: 0,
+						softConflicts: 0,
+						unacknowledgedSoftConflicts: 0,
+						integrationPublishStale: false,
+						integrationStale: false,
+					},
+				})
+			}
+			if (method === 'GET' && /\/api\/periods\/\d+\/(snapshots|audit|acknowledge-stats)/.test(url)) {
+				return json(200, {
+					ok: true,
+					data: /acknowledge-stats/.test(url)
+						? { total: 0, acknowledged: 0, percent: 0 }
+						: [],
+				})
+			}
+			if (method === 'DELETE' && /\/api\/periods\/\d+/.test(url)) {
+				if (typeof state.onDelete === 'function') {
+					return state.onDelete(route, json)
+				}
+				return json(200, { ok: true, data: {} })
+			}
+			if (method === 'POST' && /\/api\/periods(?:\?|$)/.test(url)) {
+				if (typeof state.onPost === 'function') {
+					return state.onPost(route, json)
+				}
+				return json(200, { ok: true, data: {} })
+			}
+			return route.fallback()
+		})
+	}
+
+	/** @param {import('@playwright/test').Page} page */
+	async function openPeriodsPage(page) {
+		await page.goto('/apps/dutycheck/periods', { waitUntil: 'domcontentloaded' })
+		await assertNotServerUpdater(page)
+		await page.waitForSelector('#dc-periods-table-body .dc-period-select', { timeout: 30_000 })
+		await ensureDesktopShell(page)
+	}
+
+	test('period delete dialog open → cancel keeps row, no DELETE fired', async ({ page }) => {
+		test.skip(plannerCredsCandidates().length === 0, 'Requires planner credentials')
+		const state = { periods: [{ ...OPEN_PERIOD }] }
+		let deletes = 0
+		page.on('request', (req) => {
+			if (req.method() === 'DELETE' && /\/apps\/dutycheck\/api\/periods\/\d+/.test(req.url())) {
+				deletes += 1
+			}
+		})
+		await stubPeriodsApi(page, state)
+		await openPeriodsPage(page)
+
+		await expect(page.locator('#dc-periods-table-body .dc-period-delete-btn')).toHaveCount(1)
+		await page.locator('#dc-periods-table-body .dc-period-delete-btn').first().click()
+		const modal = dcModal(page)
+		await expect(modal).toBeVisible({ timeout: 8_000 })
+		// Structural proof the destructive copy rendered: danger primary + cancel.
+		await expectDangerPrimary(modal)
+		await expect(modalCancel(modal)).toBeVisible()
+		await craftShot(page, 'period-delete-open')
+		await modalCancel(modal).click()
+		await expect(dcModal(page)).toHaveCount(0)
+
+		expect(deletes).toBe(0)
+		// Row survives — the period list was never mutated.
+		await expect(page.locator('#dc-periods-table-body .dc-period-delete-btn')).toHaveCount(1)
+		await expect(page.locator('#dc-periods-table-body .dc-period-select')).toHaveCount(1)
+		await page.unrouteAll({ behavior: 'ignoreErrors' })
+	})
+
+	test('period delete dialog confirm → DELETE fired, row gone after refetch', async ({ page }) => {
+		test.skip(plannerCredsCandidates().length === 0, 'Requires planner credentials')
+		const state = {
+			periods: [{ ...OPEN_PERIOD }],
+			onDelete: (route, json) => {
+				state.periods = []
+				return json(200, { ok: true, data: {} })
+			},
+		}
+		const deleteUrls = []
+		page.on('request', (req) => {
+			if (req.method() === 'DELETE' && /\/apps\/dutycheck\/api\/periods\/\d+/.test(req.url())) {
+				deleteUrls.push(req.url())
+			}
+		})
+		await stubPeriodsApi(page, state)
+		await openPeriodsPage(page)
+
+		await page.locator('#dc-periods-table-body .dc-period-delete-btn').first().click()
+		const modal = dcModal(page)
+		await expect(modal).toBeVisible({ timeout: 8_000 })
+		await expectDangerPrimary(modal)
+		await modalPrimary(modal).click()
+
+		await expect.poll(() => deleteUrls.length, { timeout: 10_000 }).toBe(1)
+		expect(deleteUrls[0]).toMatch(new RegExp(`/apps/dutycheck/api/periods/${OPEN_PERIOD.id}`))
+		// Durable postcondition: the refetched list no longer renders the row.
+		await expect(page.locator('#dc-periods-table-body .dc-period-delete-btn')).toHaveCount(0)
+		await expect(page.locator('#dc-periods-table-body .dc-period-select')).toHaveCount(0)
+		await expect(page.locator('#dc-period-empty-callout')).toBeVisible()
+		await page.unrouteAll({ behavior: 'ignoreErrors' })
+	})
+
+	test('period delete 409 PERIOD_NOT_DELETABLE → friendly mapped copy, row alive', async ({ page }) => {
+		test.skip(plannerCredsCandidates().length === 0, 'Requires planner credentials')
+		const state = {
+			periods: [{ ...OPEN_PERIOD }],
+			onDelete: (route, json) => json(409, {
+				ok: false,
+				error: {
+					code: 'PERIOD_NOT_DELETABLE',
+					message: 'raw server detail must not surface',
+				},
+			}),
+		}
+		let deletes = 0
+		page.on('request', (req) => {
+			if (req.method() === 'DELETE' && /\/apps\/dutycheck\/api\/periods\/\d+/.test(req.url())) {
+				deletes += 1
+			}
+		})
+		await stubPeriodsApi(page, state)
+		await openPeriodsPage(page)
+
+		await page.locator('#dc-periods-table-body .dc-period-delete-btn').first().click()
+		const modal = dcModal(page)
+		await expect(modal).toBeVisible({ timeout: 8_000 })
+		await expectDangerPrimary(modal)
+		await modalPrimary(modal).click()
+
+		await expect.poll(() => deletes, { timeout: 10_000 }).toBe(1)
+		// role=alert error toast carries the code-mapped copy (EN or DE fixture
+		// locale), never the raw server detail string.
+		const toast = page.locator('.dc-toast--error[role="alert"]')
+		await expect(toast).toBeVisible({ timeout: 10_000 })
+		await expect(toast).toContainText(/Only empty, unpublished periods can be deleted|unveröffentlichte Zeiträume/i)
+		await expect(toast).not.toContainText('raw server detail')
+		await expect(page.locator('#dc-alert-region')).toContainText(/Only empty, unpublished periods|unveröffentlichte Zeiträume/i)
+		// Row alive — a rejected delete must not clobber the list.
+		await expect(page.locator('#dc-periods-table-body .dc-period-delete-btn')).toHaveCount(1)
+		await expect(page.locator('#dc-periods-table-body .dc-period-select')).toHaveCount(1)
+		await page.unrouteAll({ behavior: 'ignoreErrors' })
+	})
+
+	test('period create overlap → cancel fires single POST, no row added', async ({ page }) => {
+		test.skip(plannerCredsCandidates().length === 0, 'Requires planner credentials')
+		const state = {
+			periods: [{ ...OPEN_PERIOD }],
+			onPost: (route, json) => json(409, {
+				ok: false,
+				error: {
+					code: 'PERIOD_OVERLAP',
+					message: 'overlap',
+					overlaps: [{ startDate: OPEN_PERIOD.startDate, endDate: OPEN_PERIOD.endDate }],
+				},
+			}),
+		}
+		const postBodies = []
+		page.on('request', (req) => {
+			if (req.method() === 'POST' && /\/apps\/dutycheck\/api\/periods(?:\?|$)/.test(req.url())) {
+				postBodies.push(req.postData() || '')
+			}
+		})
+		await stubPeriodsApi(page, state)
+		await openPeriodsPage(page)
+
+		await page.locator('#dc-period-start').fill(OVERLAP_PERIOD.startDate)
+		await page.locator('#dc-period-end').fill(OVERLAP_PERIOD.endDate)
+		await page.locator('#dc-period-form .dc-form-actions button[type="submit"]').click()
+
+		const modal = dcModal(page)
+		await expect(modal).toBeVisible({ timeout: 8_000 })
+		await expect(modal).toContainText(/Period overlaps|überschneidet sich/i)
+		await craftShot(page, 'period-overlap-confirm-open')
+		await modalCancel(modal).click()
+		await expect(dcModal(page)).toHaveCount(0)
+
+		// Informed-consent gate: cancelling must not resubmit (no allowOverlap
+		// second POST) and must not produce a row.
+		expect(postBodies).toHaveLength(1)
+		expect(postBodies[0]).not.toMatch(/allowOverlap/)
+		await expect(page.locator('#dc-periods-table-body .dc-period-select')).toHaveCount(1)
+		await page.unrouteAll({ behavior: 'ignoreErrors' })
+	})
+
+	test('period create overlap → Create anyway resubmits with allowOverlap, row added', async ({ page }) => {
+		test.skip(plannerCredsCandidates().length === 0, 'Requires planner credentials')
+		const state = {
+			periods: [{ ...OPEN_PERIOD }],
+			onPost: (route, json) => {
+				const body = route.request().postData() || ''
+				if (/allowOverlap=(1|true)/.test(body)) {
+					state.periods = [...state.periods, { ...OVERLAP_PERIOD }]
+					return json(200, { ok: true, data: { period: OVERLAP_PERIOD } })
+				}
+				return json(409, {
+					ok: false,
+					error: {
+						code: 'PERIOD_OVERLAP',
+						message: 'overlap',
+						overlaps: [{ startDate: OPEN_PERIOD.startDate, endDate: OPEN_PERIOD.endDate }],
+					},
+				})
+			},
+		}
+		const postBodies = []
+		page.on('request', (req) => {
+			if (req.method() === 'POST' && /\/apps\/dutycheck\/api\/periods(?:\?|$)/.test(req.url())) {
+				postBodies.push(req.postData() || '')
+			}
+		})
+		await stubPeriodsApi(page, state)
+		await openPeriodsPage(page)
+
+		await page.locator('#dc-period-start').fill(OVERLAP_PERIOD.startDate)
+		await page.locator('#dc-period-end').fill(OVERLAP_PERIOD.endDate)
+		await page.locator('#dc-period-form .dc-form-actions button[type="submit"]').click()
+
+		const modal = dcModal(page)
+		await expect(modal).toBeVisible({ timeout: 8_000 })
+		await expect(modal).toContainText(/Period overlaps|überschneidet sich/i)
+		await modalPrimary(modal).click()
+
+		// The bypass flag is the whole point of this dialog: first POST must
+		// lack it, the post-consent resubmit must carry allowOverlap=true.
+		await expect.poll(() => postBodies.length, { timeout: 10_000 }).toBe(2)
+		expect(postBodies[0]).not.toMatch(/allowOverlap/)
+		expect(postBodies[1]).toMatch(/allowOverlap=(1|true)/)
+		// Durable postcondition: refetched list renders the created row.
+		await expect(page.locator('#dc-periods-table-body .dc-period-select')).toHaveCount(2)
+		await page.unrouteAll({ behavior: 'ignoreErrors' })
+	})
+})
+
+/**
+ * Atlas POLICY ≥3.5.17 — class sweep closeout for
+ * dc-crit3518-dialog-matrix-sweep-gap (dialog_matrix_proof_gap, sweep:
+ * required). Executed open→cancel + open→confirm legs for every confirmDialog/
+ * openModal surface that was missing ui-matrix rows: cancel-shift (list entry),
+ * open-shift delete, pattern delete, standby-category delete (+ IN_USE error
+ * mapping), suggest-fill apply, and conflict-thresholds apply-to-open. The
+ * swap-withdraw legs live in the employee describe above; the modal-secondary
+ * cancel-shift leg lives in patterns-settings-regression.spec.js.
+ */
+test.describe('atlas destructive dialog sweep 3.5.18', () => {
+	test.beforeEach(async ({ page }) => {
+		await ensureDesktopShell(page)
+	})
+
+	const SWEEP_PERIOD = {
+		id: 960013,
+		status: 'open',
+		startDate: '2026-09-01',
+		endDate: '2026-09-30',
+		name: 'Atlas sweep',
+	}
+	const SWEEP_ASSIGNMENT = {
+		id: 960503,
+		employeeId: 960103,
+		employeeName: 'Atlas Sweep Emp',
+		locationId: 960203,
+		locationName: 'Atlas Sweep Loc',
+		dutyDate: '2026-09-16',
+		startTime: '08:00:00',
+		endTime: '16:00:00',
+		breakMinutes: 30,
+		status: 'planned',
+		note: '',
+	}
+
+	/**
+	 * Roster page stubs for the sweep legs. Reuses stubRosterPage and adds the
+	 * ensure-calendar-month stub (gridMonthClamp anchor — without it the
+	 * fixture month is clamped away) plus hooks for the destructive endpoints
+	 * under test.
+	 * @param {import('@playwright/test').Page} page
+	 * @param {{ assignments?: object[], onCancelPost?: Function }} opts
+	 */
+	async function stubSweepRoster(page, opts = {}) {
+		const assignments = 'assignments' in opts ? opts.assignments : [SWEEP_ASSIGNMENT]
+		await page.route('**/apps/dutycheck/api/periods/ensure-calendar-month**', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					ok: true,
+					data: { period: SWEEP_PERIOD, created: false, writable: true, yearMonth: '2026-09' },
+				}),
+			})
+		})
+		await stubRosterPage(page, {
+			period: SWEEP_PERIOD,
+			employees: [{ id: 960103, displayName: 'Atlas Sweep Emp', active: true }],
+			locations: [{ id: 960203, name: 'Atlas Sweep Loc' }],
+			assignments,
+		})
+		await page.route('**/apps/dutycheck/api/assignments/*/cancel**', async (route) => {
+			if (typeof opts.onCancelPost === 'function') {
+				return opts.onCancelPost(route)
+			}
+			await route.fulfill({
+				status: 500,
+				contentType: 'application/json',
+				body: JSON.stringify({ ok: false, error: { message: 'sweep cancel stub' } }),
+			})
+		})
+	}
+
+	/** @param {import('@playwright/test').Page} page */
+	async function openRosterListView(page) {
+		await page.goto('/apps/dutycheck/roster', { waitUntil: 'domcontentloaded' })
+		await assertNotServerUpdater(page)
+		await ensureDesktopShell(page)
+		await page.locator('#dc-roster-view-list').click()
+		await expect(page.locator('#dc-roster-list-panel')).toBeVisible({ timeout: 10_000 })
+		await expect(
+			page.locator('#dc-roster-list-panel .dc-assignment-cancel-btn'),
+		).toHaveCount(1, { timeout: 15_000 })
+	}
+
+	test('cancel shift confirm → cancel POST fires, assignment gone after re-render', async ({ page }) => {
+		test.skip(plannerCredsCandidates().length === 0, 'Requires planner credentials')
+		const cancelledRoster = {
+			ok: true,
+			data: {
+				employees: [{ id: 960103, displayName: 'Atlas Sweep Emp', active: true }],
+				periods: [SWEEP_PERIOD],
+				selectedPeriodId: SWEEP_PERIOD.id,
+				selectedPeriodStatus: 'open',
+				calendarYearMonth: '2026-09',
+				defaultBreakMinutes: 30,
+				canCreateAssignments: true,
+				locations: [{ id: 960203, name: 'Atlas Sweep Loc' }],
+				assignments: [],
+				conflicts: [],
+				absenceBlocks: [],
+			},
+		}
+		const cancelUrls = []
+		page.on('request', (req) => {
+			if (req.method() === 'POST' && /\/assignments\/\d+\/cancel/.test(req.url())) {
+				cancelUrls.push(req.url())
+			}
+		})
+		await stubSweepRoster(page, {
+			onCancelPost: (route) => route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify(cancelledRoster),
+			}),
+		})
+		await openRosterListView(page)
+
+		await page.locator('#dc-roster-list-panel .dc-assignment-cancel-btn').first().click({ force: true })
+		const modal = dcModal(page)
+		await expect(modal).toBeVisible({ timeout: 8_000 })
+		await expectDangerPrimary(modal)
+		await modalPrimary(modal).click()
+
+		await expect.poll(() => cancelUrls.length, { timeout: 10_000 }).toBe(1)
+		expect(cancelUrls[0]).toMatch(new RegExp(`/apps/dutycheck/api/assignments/${SWEEP_ASSIGNMENT.id}/cancel`))
+		// Durable postcondition: render(response.data) no longer carries the
+		// assignment — the cancel affordance is gone from the re-rendered list.
+		await expect(page.locator('#dc-roster-list-panel .dc-assignment-cancel-btn')).toHaveCount(0)
+		await page.unrouteAll({ behavior: 'ignoreErrors' })
+	})
+
+	/**
+	 * Open-shift list stub. GET backs #dc-open-shift-list and is mutated by the
+	 * DELETE hook so the confirm leg re-reads an empty list (durable
+	 * postcondition), not just a 2xx.
+	 * @param {import('@playwright/test').Page} page
+	 * @param {{ openShifts: object[], onDelete?: Function }} state
+	 */
+	async function stubOpenShifts(page, state) {
+		await page.route('**/apps/dutycheck/api/open-shifts**', async (route) => {
+			const req = route.request()
+			const url = req.url()
+			if (/\/open-shifts\/pending/.test(url)) {
+				return route.fallback()
+			}
+			if (req.method() === 'GET') {
+				return route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify({ ok: true, data: state.openShifts }),
+				})
+			}
+			if (req.method() === 'DELETE' && /\/open-shifts\/\d+/.test(url)) {
+				if (typeof state.onDelete === 'function') {
+					return state.onDelete(route)
+				}
+				return route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify({ ok: true, data: {} }),
+				})
+			}
+			return route.fallback()
+		})
+	}
+
+	const SWEEP_OPEN_SHIFT = {
+		id: 960701,
+		dutyDate: '2026-09-17',
+		locationId: 960203,
+		locationName: 'Atlas Sweep Loc',
+		startTime: '08:00:00',
+		endTime: '16:00:00',
+	}
+
+	test('open shift delete confirm open → cancel keeps row, no DELETE fired', async ({ page }) => {
+		test.skip(plannerCredsCandidates().length === 0, 'Requires planner credentials')
+		const state = { openShifts: [{ ...SWEEP_OPEN_SHIFT }] }
+		let deletes = 0
+		page.on('request', (req) => {
+			if (req.method() === 'DELETE' && /\/open-shifts\/\d+/.test(req.url())) {
+				deletes += 1
+			}
+		})
+		await stubSweepRoster(page, { assignments: [] })
+		await stubOpenShifts(page, state)
+		await page.goto('/apps/dutycheck/roster', { waitUntil: 'domcontentloaded' })
+		await assertNotServerUpdater(page)
+		await ensureDesktopShell(page)
+		await expect(page.locator('#dc-open-shift-list .dc-conflicts__item')).toHaveCount(1, { timeout: 15_000 })
+
+		await page.locator('#dc-open-shift-list .dc-conflicts__item .button.danger').first().click()
+		const modal = dcModal(page)
+		await expect(modal).toBeVisible({ timeout: 8_000 })
+		await expectDangerPrimary(modal)
+		await expect(modalCancel(modal)).toBeVisible()
+		await craftShot(page, 'open-shift-delete-open')
+		await modalCancel(modal).click()
+		await expect(dcModal(page)).toHaveCount(0)
+
+		expect(deletes).toBe(0)
+		await expect(page.locator('#dc-open-shift-list .dc-conflicts__item')).toHaveCount(1)
+		await page.unrouteAll({ behavior: 'ignoreErrors' })
+	})
+
+	test('open shift delete confirm → DELETE fired, list empties after refetch', async ({ page }) => {
+		test.skip(plannerCredsCandidates().length === 0, 'Requires planner credentials')
+		const state = {
+			openShifts: [{ ...SWEEP_OPEN_SHIFT }],
+			onDelete: (route) => {
+				state.openShifts = []
+				return route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify({ ok: true, data: {} }),
+				})
+			},
+		}
+		const deleteUrls = []
+		page.on('request', (req) => {
+			if (req.method() === 'DELETE' && /\/open-shifts\/\d+/.test(req.url())) {
+				deleteUrls.push(req.url())
+			}
+		})
+		await stubSweepRoster(page, { assignments: [] })
+		await stubOpenShifts(page, state)
+		await page.goto('/apps/dutycheck/roster', { waitUntil: 'domcontentloaded' })
+		await assertNotServerUpdater(page)
+		await ensureDesktopShell(page)
+		await expect(page.locator('#dc-open-shift-list .dc-conflicts__item')).toHaveCount(1, { timeout: 15_000 })
+
+		await page.locator('#dc-open-shift-list .dc-conflicts__item .button.danger').first().click()
+		const modal = dcModal(page)
+		await expect(modal).toBeVisible({ timeout: 8_000 })
+		await expectDangerPrimary(modal)
+		await modalPrimary(modal).click()
+
+		await expect.poll(() => deleteUrls.length, { timeout: 10_000 }).toBe(1)
+		expect(deleteUrls[0]).toMatch(new RegExp(`/apps/dutycheck/api/open-shifts/${SWEEP_OPEN_SHIFT.id}`))
+		// Durable postcondition: loadOpenShiftList re-fetches and paints the
+		// empty state.
+		await expect(page.locator('#dc-open-shift-list .dc-conflicts__item')).toHaveCount(0)
+		await expect(page.locator('#dc-open-shift-empty')).toBeVisible()
+		await page.unrouteAll({ behavior: 'ignoreErrors' })
+	})
+
+	test('pattern delete confirm open → cancel keeps item, no deactivate POST', async ({ page }) => {
+		test.skip(plannerCredsCandidates().length === 0, 'Requires planner credentials')
+		const pattern = {
+			id: 970003,
+			name: 'Atlas Sweep Pattern',
+			cycleWeeks: 2,
+			anchorType: 'iso_week_parity',
+			weekDays: [],
+		}
+		let deactivatePosts = 0
+		page.on('request', (req) => {
+			if (req.method() === 'POST' && /\/rotation-patterns\/\d+\/deactivate/.test(req.url())) {
+				deactivatePosts += 1
+			}
+		})
+		await page.route('**/apps/dutycheck/api/rotation-patterns**', async (route) => {
+			if (route.request().method() === 'GET') {
+				return route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify({
+						ok: true,
+						data: {
+							patterns: [pattern],
+							allowedCycleWeeks: [1, 2, 3, 4],
+							rotationPatternsEnabled: true,
+						},
+					}),
+				})
+			}
+			return route.fallback()
+		})
+		await page.goto('/apps/dutycheck/patterns', { waitUntil: 'domcontentloaded' })
+		await assertNotServerUpdater(page)
+		await ensureDesktopShell(page)
+		await expect(page.locator('#dc-patterns-list .dc-patterns__item')).toHaveCount(1, { timeout: 15_000 })
+
+		await page.locator('#dc-patterns-list .dc-patterns__item-actions button.danger').first().click()
+		const modal = dcModal(page)
+		await expect(modal).toBeVisible({ timeout: 8_000 })
+		await expectDangerPrimary(modal)
+		await expect(modalCancel(modal)).toBeVisible()
+		await craftShot(page, 'pattern-delete-open')
+		await modalCancel(modal).click()
+		await expect(dcModal(page)).toHaveCount(0)
+
+		expect(deactivatePosts).toBe(0)
+		// Item survives an aborted delete.
+		await expect(page.locator('#dc-patterns-list .dc-patterns__item')).toHaveCount(1)
+		await page.unrouteAll({ behavior: 'ignoreErrors' })
+	})
+
+	const SWEEP_CATEGORY = {
+		id: 970001,
+		label: 'Atlas Sweep Cat',
+		color: '#336699',
+		active: true,
+		defaultResponseTimeMinutes: 60,
+	}
+
+	/**
+	 * Dienst-team page stubs: self-service settings with standbyEnabled so
+	 * syncStandbyVisibility loads the categories list; the GET is backed by
+	 * state.cats which the DELETE hook mutates for durable postconditions.
+	 * @param {import('@playwright/test').Page} page
+	 * @param {{ cats: object[], onDelete?: Function }} state
+	 */
+	async function stubStandbyCategories(page, state) {
+		await page.route('**/apps/dutycheck/api/self-service/settings**', async (route) => {
+			if (route.request().method() === 'GET') {
+				return route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify({ ok: true, data: { standbyEnabled: true } }),
+				})
+			}
+			return route.fallback()
+		})
+		await page.route('**/apps/dutycheck/api/standby/categories**', async (route) => {
+			const req = route.request()
+			if (req.method() === 'GET') {
+				return route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify({ ok: true, data: { categories: state.cats } }),
+				})
+			}
+			if (req.method() === 'DELETE' && /\/standby\/categories\/\d+/.test(req.url())) {
+				if (typeof state.onDelete === 'function') {
+					return state.onDelete(route)
+				}
+				return route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify({ ok: true, data: {} }),
+				})
+			}
+			return route.fallback()
+		})
+	}
+
+	/** @param {import('@playwright/test').Page} page */
+	async function openDienstTeamWithCategory(page) {
+		await page.goto('/apps/dutycheck/settings/dienst-team', { waitUntil: 'domcontentloaded' })
+		await assertNotServerUpdater(page)
+		await ensureDesktopShell(page)
+		await expect(
+			page.locator('#dc-dt-standby-cats-list .dc-standby-cats__item'),
+		).toHaveCount(1, { timeout: 15_000 })
+	}
+
+	test('standby category delete confirm open → cancel keeps row, no DELETE fired', async ({ page }) => {
+		test.skip(plannerCredsCandidates().length === 0, 'Requires planner credentials')
+		const state = { cats: [{ ...SWEEP_CATEGORY }] }
+		let deletes = 0
+		page.on('request', (req) => {
+			if (req.method() === 'DELETE' && /\/standby\/categories\/\d+/.test(req.url())) {
+				deletes += 1
+			}
+		})
+		await stubStandbyCategories(page, state)
+		await openDienstTeamWithCategory(page)
+
+		await page.locator('#dc-dt-standby-cats-list .dc-standby-cats__action--danger').first().click()
+		const modal = dcModal(page)
+		await expect(modal).toBeVisible({ timeout: 8_000 })
+		await expectDangerPrimary(modal)
+		await expect(modalCancel(modal)).toBeVisible()
+		await craftShot(page, 'standby-category-delete-open')
+		await modalCancel(modal).click()
+		await expect(dcModal(page)).toHaveCount(0)
+
+		expect(deletes).toBe(0)
+		await expect(page.locator('#dc-dt-standby-cats-list .dc-standby-cats__item')).toHaveCount(1)
+		await page.unrouteAll({ behavior: 'ignoreErrors' })
+	})
+
+	test('standby category delete confirm → DELETE fired, item gone after refetch', async ({ page }) => {
+		test.skip(plannerCredsCandidates().length === 0, 'Requires planner credentials')
+		const state = {
+			cats: [{ ...SWEEP_CATEGORY }],
+			onDelete: (route) => {
+				state.cats = []
+				return route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify({ ok: true, data: {} }),
+				})
+			},
+		}
+		const deleteUrls = []
+		page.on('request', (req) => {
+			if (req.method() === 'DELETE' && /\/standby\/categories\/\d+/.test(req.url())) {
+				deleteUrls.push(req.url())
+			}
+		})
+		await stubStandbyCategories(page, state)
+		await openDienstTeamWithCategory(page)
+
+		await page.locator('#dc-dt-standby-cats-list .dc-standby-cats__action--danger').first().click()
+		const modal = dcModal(page)
+		await expect(modal).toBeVisible({ timeout: 8_000 })
+		await expectDangerPrimary(modal)
+		await modalPrimary(modal).click()
+
+		await expect.poll(() => deleteUrls.length, { timeout: 10_000 }).toBe(1)
+		expect(deleteUrls[0]).toMatch(new RegExp(`/apps/dutycheck/api/standby/categories/${SWEEP_CATEGORY.id}`))
+		// Durable postcondition: loadStandbyCategories re-fetches and paints the
+		// empty item.
+		await expect(page.locator('#dc-dt-standby-cats-list .dc-standby-cats__item')).toHaveCount(0)
+		await expect(page.locator('#dc-dt-standby-cats-list .dc-standby-cats__empty')).toHaveCount(1)
+		await page.unrouteAll({ behavior: 'ignoreErrors' })
+	})
+
+	test('standby category delete 409 STANDBY_CATEGORY_IN_USE → mapped copy, row alive', async ({ page }) => {
+		test.skip(plannerCredsCandidates().length === 0, 'Requires planner credentials')
+		const state = {
+			cats: [{ ...SWEEP_CATEGORY }],
+			onDelete: (route) => route.fulfill({
+				status: 409,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					ok: false,
+					error: {
+						code: 'STANDBY_CATEGORY_IN_USE',
+						message: 'raw server detail must not surface',
+					},
+				}),
+			}),
+		}
+		let deletes = 0
+		page.on('request', (req) => {
+			if (req.method() === 'DELETE' && /\/standby\/categories\/\d+/.test(req.url())) {
+				deletes += 1
+			}
+		})
+		await stubStandbyCategories(page, state)
+		await openDienstTeamWithCategory(page)
+
+		await page.locator('#dc-dt-standby-cats-list .dc-standby-cats__action--danger').first().click()
+		const modal = dcModal(page)
+		await expect(modal).toBeVisible({ timeout: 8_000 })
+		await expectDangerPrimary(modal)
+		await modalPrimary(modal).click()
+
+		await expect.poll(() => deletes, { timeout: 10_000 }).toBe(1)
+		// The status region carries the code-mapped copy (EN or DE fixture
+		// locale), never the raw server detail string, and is painted as an
+		// error (.dc-roster-flash--error).
+		const status = page.locator('#dc-dt-standby-cats-status')
+		await expect(status).toBeVisible({ timeout: 10_000 })
+		await expect(status).toHaveClass(/dc-roster-flash--error/)
+		await expect(status).toContainText(/still used by on-call duties|Rufbereitschaften verwendet/i)
+		await expect(status).not.toContainText('raw server detail')
+		// Row alive — a rejected delete must not clobber the list.
+		await expect(page.locator('#dc-dt-standby-cats-list .dc-standby-cats__item')).toHaveCount(1)
+		await page.unrouteAll({ behavior: 'ignoreErrors' })
+	})
+
+	test('suggest fill preview → apply fires suggest-confirm and refetches roster', async ({ page }) => {
+		test.skip(plannerCredsCandidates().length === 0, 'Requires planner credentials')
+		let rosterGets = 0
+		page.on('request', (req) => {
+			if (req.method() === 'GET' && /\/apps\/dutycheck\/api\/roster(\?|$)/.test(req.url())) {
+				rosterGets += 1
+			}
+		})
+		await stubSweepRoster(page, { assignments: [] })
+		await page.route('**/apps/dutycheck/api/periods/*/suggest-preview**', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					ok: true,
+					data: {
+						created: 2,
+						skippedExisting: 0,
+						skippedAbsence: 1,
+						skippedBlackout: 0,
+						skippedNoPattern: 0,
+						skippedNoLocation: 0,
+					},
+				}),
+			})
+		})
+		await page.route('**/apps/dutycheck/api/periods/*/suggest-confirm**', async (route) => {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({ ok: true, data: { created: 2, skippedWrite: 0 } }),
+			})
+		})
+		const confirmPosts = []
+		page.on('request', (req) => {
+			if (req.method() === 'POST' && /suggest-confirm/.test(req.url())) {
+				confirmPosts.push(req.url())
+			}
+		})
+
+		await page.goto('/apps/dutycheck/roster', { waitUntil: 'domcontentloaded' })
+		await assertNotServerUpdater(page)
+		await ensureDesktopShell(page)
+		await page.waitForSelector('#dc-roster-suggest-fill', { timeout: 30_000 })
+		await expect(async () => {
+			await page.locator('#dc-roster-suggest-fill').click()
+			await expect(dcModal(page)).toBeVisible({ timeout: 2_000 })
+		}).toPass({ timeout: 25_000 })
+		const modal = dcModal(page)
+		await expect(modal).toContainText(/Suggest fill preview|Vorschlag|Would create|würde/i)
+		const rosterGetsBeforeApply = rosterGets
+		await modalPrimary(modal).click()
+
+		// Apply must fire the commit leg exactly once, then the roster is
+		// re-fetched (loadRoster) — the durable postcondition.
+		await expect.poll(() => confirmPosts.length, { timeout: 10_000 }).toBe(1)
+		expect(confirmPosts[0]).toMatch(new RegExp(`/apps/dutycheck/api/periods/${SWEEP_PERIOD.id}/suggest-confirm`))
+		await expect.poll(() => rosterGets, { timeout: 10_000 }).toBeGreaterThan(rosterGetsBeforeApply)
+		await expect(dcModal(page)).toHaveCount(0)
+		await page.unrouteAll({ behavior: 'ignoreErrors' })
+	})
+
+	/**
+	 * Conflict-policy stub: GET returns outdated open periods so the apply
+	 * button renders; apply-open is hookable per leg.
+	 * @param {import('@playwright/test').Page} page
+	 * @param {{ onApply?: Function }} state
+	 */
+	async function stubConflictPolicy(page, state) {
+		await page.route('**/apps/dutycheck/api/admin/conflict-policy**', async (route) => {
+			const req = route.request()
+			if (req.method() === 'POST' && /conflict-policy\/apply-open/.test(req.url())) {
+				if (typeof state.onApply === 'function') {
+					return state.onApply(route)
+				}
+				return route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify({ ok: true, data: { updated: 0 } }),
+				})
+			}
+			if (req.method() === 'GET' && /conflict-policy(?:\?|$)/.test(req.url())) {
+				return route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: JSON.stringify({
+						ok: true,
+						data: {
+							minRestMinutes: 660,
+							maxDailyHard: 600,
+							maxPeriodSoft: 2880,
+							maxPeriodHard: 3600,
+							maxConsecutiveDays: 6,
+							openPeriods: { schemaReady: true, openCount: 3, outdatedCount: 2 },
+						},
+					}),
+				})
+			}
+			return route.fallback()
+		})
+	}
+
+	/** @param {import('@playwright/test').Page} page */
+	async function openConflictsWithApply(page) {
+		await page.goto('/apps/dutycheck/settings/conflicts', { waitUntil: 'domcontentloaded' })
+		await assertNotServerUpdater(page)
+		await ensureDesktopShell(page)
+		await expect(page.locator('#dc-conflict-apply-open')).toBeVisible({ timeout: 15_000 })
+	}
+
+	test('conflict thresholds apply confirm open → cancel, no apply-open POST', async ({ page }) => {
+		test.skip(plannerCredsCandidates().length === 0, 'Requires planner credentials')
+		let applyPosts = 0
+		page.on('request', (req) => {
+			if (req.method() === 'POST' && /conflict-policy\/apply-open/.test(req.url())) {
+				applyPosts += 1
+			}
+		})
+		await stubConflictPolicy(page, {})
+		await openConflictsWithApply(page)
+
+		await page.locator('#dc-conflict-apply-open').click()
+		const modal = dcModal(page)
+		await expect(modal).toBeVisible({ timeout: 8_000 })
+		await expect(modalPrimary(modal)).toBeVisible()
+		await expect(modalCancel(modal)).toBeVisible()
+		await craftShot(page, 'conflict-apply-open')
+		await modalCancel(modal).click()
+		await expect(dcModal(page)).toHaveCount(0)
+
+		expect(applyPosts).toBe(0)
+		// The apply affordance stays offered after an aborted apply.
+		await expect(page.locator('#dc-conflict-apply-open')).toBeVisible()
+		await page.unrouteAll({ behavior: 'ignoreErrors' })
+	})
+
+	test('conflict thresholds apply confirm → apply-open POST fires, callout settles', async ({ page }) => {
+		test.skip(plannerCredsCandidates().length === 0, 'Requires planner credentials')
+		const applyUrls = []
+		page.on('request', (req) => {
+			if (req.method() === 'POST' && /conflict-policy\/apply-open/.test(req.url())) {
+				applyUrls.push(req.url())
+			}
+		})
+		await stubConflictPolicy(page, {
+			onApply: (route) => route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					ok: true,
+					data: {
+						updated: 2,
+						conflictsRefreshed: 2,
+						conflictsDirtyRemaining: 0,
+						openCount: 3,
+						outdatedCount: 0,
+					},
+				}),
+			}),
+		})
+		await openConflictsWithApply(page)
+
+		await page.locator('#dc-conflict-apply-open').click()
+		const modal = dcModal(page)
+		await expect(modal).toBeVisible({ timeout: 8_000 })
+		await modalPrimary(modal).click()
+
+		await expect.poll(() => applyUrls.length, { timeout: 10_000 }).toBe(1)
+		expect(applyUrls[0]).toMatch(/\/apps\/dutycheck\/api\/admin\/conflict-policy\/apply-open/)
+		// Durable postcondition: the response reports outdatedCount 0, so the
+		// apply callout is withdrawn and the status line carries the outcome.
+		await expect(page.locator('#dc-conflict-apply-actions')).toBeHidden({ timeout: 10_000 })
+		await expect(page.locator('#dc-conflict-policy-status')).toContainText(/\S/)
 		await page.unrouteAll({ behavior: 'ignoreErrors' })
 	})
 })

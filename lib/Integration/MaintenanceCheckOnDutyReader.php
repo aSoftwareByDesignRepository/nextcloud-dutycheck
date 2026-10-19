@@ -38,10 +38,12 @@ class MaintenanceCheckOnDutyReader
 			return false;
 		}
 		try {
-			// F17: compatible consumers — MaintenanceCheck pickers and the
-			// TourCheck planner chip read the same feed.
+			// Compatible consumers — MaintenanceCheck pickers, the TourCheck
+			// planner chip, and the CareCheck duty roster (F12) read the
+			// same feed.
 			return $this->appManager->isEnabledForUser('maintenancecheck')
-				|| $this->appManager->isEnabledForUser('tourcheck');
+				|| $this->appManager->isEnabledForUser('tourcheck')
+				|| $this->appManager->isEnabledForUser('carecheck');
 		} catch (Throwable) {
 			return false;
 		}

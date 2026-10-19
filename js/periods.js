@@ -698,6 +698,7 @@
 				.replace('{start}', start).replace('{end}', end),
 			confirmLabel: t('dutycheck', 'Delete'),
 			cancelLabel: t('dutycheck', 'Cancel'),
+			danger: true,
 		});
 		if (!ok) return;
 		try {

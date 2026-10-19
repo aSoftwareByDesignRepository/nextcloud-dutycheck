@@ -2699,7 +2699,19 @@
 			// (0.3.4 customer report — a manually entered shift looked undeletable).
 			secondaryLabel: t('dutycheck', 'Cancel shift'),
 			secondaryDanger: true,
-			onSecondary: () => cancelAssignmentRow(assignment, triggerEl),
+			onSecondary: async () => {
+				// confirmDialog opens a dc-modal and openModal is a singleton —
+				// the confirm REPLACES this edit modal. An aborted cancel must
+				// hand the user their edit form back, unsaved edits included.
+				const edits = snapshotAssignmentFormEdits();
+				const cancelled = await cancelAssignmentRow(assignment, triggerEl);
+				if (cancelled) {
+					return true;
+				}
+				await openAssignmentEditModal(assignment, triggerEl);
+				restoreAssignmentFormEdits(edits);
+				return false;
+			},
 			render: () => panel,
 			onSubmit: async () => performAssignmentSave(),
 			onClose: () => {
@@ -2717,10 +2729,39 @@
 		syncAssignmentModalPrimary(instance);
 	}
 
+	function snapshotAssignmentFormEdits() {
+		const form = document.getElementById('dc-assignment-form');
+		return form ? new FormData(form) : null;
+	}
+
+	function restoreAssignmentFormEdits(snapshot) {
+		const form = document.getElementById('dc-assignment-form');
+		if (!form || !snapshot) {
+			return;
+		}
+		Array.from(form.elements).forEach((el) => {
+			const name = el.getAttribute('name');
+			if (!name || el.type === 'hidden') {
+				return;
+			}
+			if (el.type === 'radio') {
+				el.checked = snapshot.get(name) === el.value;
+				return;
+			}
+			const value = snapshot.get(name);
+			if (value != null) {
+				el.value = String(value);
+			}
+		});
+		syncAssignmentKindUi();
+		refreshAssignmentFormEligibility();
+	}
+
 	/**
 	 * Cancel (delete) an assignment after confirmation. Returns true when the
 	 * shift was cancelled — callers inside the edit modal close on true; false
-	 * means aborted/failed and the modal stays open.
+	 * means aborted/failed (the onSecondary wrapper re-opens the edit modal so
+	 * unsaved edits survive an aborted cancel).
 	 */
 	async function cancelAssignmentRow(assignment, triggerEl) {
 		if (!assignment?.id || !canAddAssignment()) {

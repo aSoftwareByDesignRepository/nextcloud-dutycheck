@@ -921,6 +921,48 @@ async function phaseStates(browser) {
 	if (!terr.checks.emptyHidden) { terr.status = 'fail'; (terr.fails = terr.fails || []).push('#dc-today-empty fabricated empty state on fetch error') }
 	record(terr)
 	await tctx.close()
+
+	// toast-narrow (toast_text_link_overlap_narrow_viewport): error toast text,
+	// feedback mailto link and 44px close must not intersect or overflow at 320.
+	const toastCtx = await browser.newContext({ baseURL: BASE, storageState: await loginState(browser, 'planner'), viewport: { width: 320, height: 640 } })
+	const top = await toastCtx.newPage()
+	await top.goto(`${BASE}/apps/dutycheck/today`, { waitUntil: 'domcontentloaded' })
+	await settle(top)
+	await top.evaluate(() => {
+		window.DutyCheckMessaging.announce('The duty period could not be published because several assignments overlap with existing entries.', 'error')
+	})
+	await top.waitForSelector('.dc-toast--error a[href^="mailto:"]', { timeout: 10000 }).catch(() => {})
+	const tnCell = { id: 'toast-narrow-no-overlap', checks: {}, status: 'ok' }
+	tnCell.checks.geom = await top.evaluate(() => {
+		const box = (el) => el ? { x: el.x, y: el.y, w: el.width, h: el.height, r: el.right, b: el.bottom } : null
+		const toast = document.querySelector('.dc-toast--error')
+		const text = toast?.querySelector('.dc-toast__text')
+		const link = toast?.querySelector('a[href^="mailto:"]')
+		const close = toast?.querySelector('.dc-toast__close')
+		const R = (el) => el ? box(el.getBoundingClientRect()) : null
+		const intersect = (a, b2) => a && b2 && a.x < b2.r && b2.x < a.r && a.y < b2.b && b2.y < a.b
+		return {
+			toast: R(toast), text: R(text), link: R(link), close: R(close),
+			linkInsideText: !!(text && link && link.closest('.dc-toast__text')),
+			textClose: intersect(R(text), R(close)),
+			linkClose: intersect(R(link), R(close)),
+			// text hugging a wrapped link row: the link paints inside the text
+			// flow — flag only when it overflows the toast box itself
+			linkOutsideToast: !!(link && toast && (link.getBoundingClientRect().right > toast.getBoundingClientRect().right + 1 || link.getBoundingClientRect().bottom > toast.getBoundingClientRect().bottom + 1)),
+		}
+	})
+	await snap(top, 'state__toast-narrow-320')
+	const g = tnCell.checks.geom
+	if (!g?.toast || !g?.text || !g?.close) { tnCell.status = 'fail'; tnCell.fails = ['error toast (or its text/close) not rendered'] }
+	else {
+		if (!g.link) { tnCell.status = 'fail'; tnCell.fails = ['no feedback mailto link on error toast'] }
+		if (g.textClose || g.linkClose) { tnCell.status = 'fail'; (tnCell.fails = tnCell.fails || []).push(`overlap text/close=${g.textClose} link/close=${g.linkClose}`) }
+		if (g.linkOutsideToast) { tnCell.status = 'fail'; (tnCell.fails = tnCell.fails || []).push('mailto link overflows the toast box') }
+		if (g.toast.r > 320 + 1 || g.toast.x < -1) { tnCell.status = 'fail'; (tnCell.fails = tnCell.fails || []).push(`toast overflows 320 viewport: x=${g.toast.x} r=${g.toast.r}`) }
+		if (g.text.w < 60) { tnCell.status = 'fail'; (tnCell.fails = tnCell.fails || []).push(`text column crushed to ${g.text.w}px`) }
+	}
+	record(tnCell)
+	await toastCtx.close()
 }
 
 /* ───────────────────────────── main ───────────────────────────── */

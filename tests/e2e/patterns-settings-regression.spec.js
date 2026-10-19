@@ -154,7 +154,7 @@ test.describe('DutyCheck 0.3.4 customer-report regressions', () => {
 		}
 	})
 
-	test('edit-assignment modal offers Cancel shift (delete parity)', async ({ page }) => {
+	test('edit-assignment modal Cancel shift asks via dc-modal; dismiss keeps edits + no cancel POST', async ({ page }) => {
 		await loginWithFallback(page, plannerCredsCandidates())
 		await page.goto('/apps/dutycheck/roster', { waitUntil: 'domcontentloaded' })
 		await assertNotServerUpdater(page)
@@ -176,11 +176,24 @@ test.describe('DutyCheck 0.3.4 customer-report regressions', () => {
 			let periodId = 0
 			let dutyDate = ''
 			const errs = []
-			// PERIOD_RANGE_EXISTS: periods cannot overlap — walk forward in
-			// 7-day steps until a free week is found.
-			for (let offset = 60; offset <= 60 + 7 * 20 && !periodId; offset += 7) {
-				const start = new Date()
-				start.setDate(start.getDate() + offset - start.getDay())
+			// PERIOD_RANGE_EXISTS: periods cannot overlap. Shared farm instances
+			// accumulate dense period ranges, so first jump past the latest
+			// existing endDate, then keep walking forward in 7-day steps.
+			let base = new Date()
+			try {
+				const list = await api.get('/apps/dutycheck/api/periods')
+				const rows = list?.data?.periods || list?.data || []
+				const maxEnd = rows.reduce((acc, p) => {
+					const t = Date.parse(String(p?.endDate || ''))
+					return Number.isFinite(t) && t > acc ? t : acc
+				}, 0)
+				if (maxEnd > 0) {
+					base = new Date(maxEnd + 24 * 3600 * 1000)
+				}
+			} catch { /* fall back to the plain forward walk */ }
+			for (let offset = 0; offset <= 7 * 52 && !periodId; offset += 7) {
+				const start = new Date(base)
+				start.setDate(start.getDate() + offset + (7 - ((start.getDay() + 6) % 7)) % 7)
 				const end = new Date(start)
 				end.setDate(end.getDate() + 6)
 				const p = await api.post('/apps/dutycheck/api/periods', { startDate: fmt(start), endDate: fmt(end) }).catch((e) => { errs.push(`${fmt(start)}:${e?.code || e?.message}`); return null })
@@ -251,17 +264,33 @@ test.describe('DutyCheck 0.3.4 customer-report regressions', () => {
 			.toBeVisible({ timeout: 10_000 })
 		await cell.click()
 
-		const modal = page.locator('.dc-modal')
+		let cancelPosts = 0
+		page.on('request', (req) => {
+			if (req.method() === 'POST' && /\/assignments\/\d+\/cancel/.test(req.url())) {
+				cancelPosts += 1
+			}
+		})
+
+		const modal = page.locator('.dc-modal').first()
 		await expect(modal).toBeVisible({ timeout: 10_000 })
 		const cancelShift = modal.locator('.dc-modal__secondary.danger')
 		await expect(cancelShift, 'edit modal must expose a danger Cancel shift action').toBeVisible()
 
-		// Pressing it must ask first (native confirm) — dismiss and the modal
-		// must stay open so unsaved edits survive an aborted delete.
-		page.once('dialog', (dialog) => void dialog.dismiss())
+		// Unsaved edits must survive an aborted delete.
+		await modal.locator('#dc-assignment-note').fill('atlas unsaved edit')
+
+		// Pressing it must ask first — C.confirmDialog renders a non-native
+		// .dc-modal that REPLACES the edit modal (openModal is a singleton;
+		// page.once('dialog') can never see it). Cancelling must hand the
+		// edit form back, unsaved edits included.
 		await cancelShift.click()
-		await page.waitForTimeout(400)
-		await expect(modal, 'aborted delete must keep the edit modal open').toBeVisible()
+		const confirmModal = page.locator('.dc-modal__dialog:not(.dc-modal__dialog--roster-assignment)').first()
+		await expect(confirmModal, 'Cancel shift must open the dc-modal confirm').toBeVisible({ timeout: 10_000 })
+		await confirmModal.locator('.dc-modal__actions .button:not(.primary)').first().click()
+		const reopened = page.locator('.dc-modal .dc-modal__dialog--roster-assignment')
+		await expect(reopened, 'aborted cancel must re-open the edit modal').toBeVisible({ timeout: 10_000 })
+		await expect(reopened.locator('#dc-assignment-note')).toHaveValue('atlas unsaved edit')
+		expect(cancelPosts).toBe(0)
 		await page.keyboard.press('Escape')
 	})
 

@@ -98,13 +98,13 @@ class TckRoundLinkIntegrationTest extends TestCase
 
 		// Scheduled round → no conflict, dirty flag untouched.
 		self::assertSame(1, $this->roster->markConflictsDirtyForTckRound($roundId));
-		$this->roster->drainDirtyOpenPeriodConflicts(20);
+		$this->drainFixturePeriod();
 		self::assertNull($this->roundMissedConflictRow());
 
 		// Round missed → event path marks dirty → drain materializes.
 		$this->setRoundStatus($roundId, 'missed');
 		self::assertSame(1, $this->roster->markConflictsDirtyForTckRound($roundId));
-		$this->roster->drainDirtyOpenPeriodConflicts(20);
+		$this->drainFixturePeriod();
 		$row = $this->roundMissedConflictRow();
 		self::assertNotNull($row, 'missed round must surface as round_missed conflict');
 		self::assertSame(0, (int) $row['is_resolved']);
@@ -114,13 +114,13 @@ class TckRoundLinkIntegrationTest extends TestCase
 
 		// Double drain must not duplicate the row.
 		$this->roster->markConflictsDirtyForTckRound($roundId);
-		$this->roster->drainDirtyOpenPeriodConflicts(20);
+		$this->drainFixturePeriod();
 		self::assertSame(1, $this->countRoundMissedRows());
 
 		// Round corrected/completed → next drain auto-resolves the gap.
 		$this->setRoundStatus($roundId, 'completed');
 		$this->roster->markConflictsDirtyForTckRound($roundId);
-		$this->roster->drainDirtyOpenPeriodConflicts(20);
+		$this->drainFixturePeriod();
 		$row = $this->roundMissedConflictRow();
 		self::assertNotNull($row);
 		self::assertSame(1, (int) $row['is_resolved']);
@@ -207,7 +207,7 @@ class TckRoundLinkIntegrationTest extends TestCase
 		$assignment = $data['assignments'][0];
 		$this->assignmentIds[] = (int) $assignment['id'];
 		self::assertSame(99999999, (int) $assignment['tckRoundId']);
-		$this->roster->drainDirtyOpenPeriodConflicts(20);
+		$this->drainFixturePeriod();
 		self::assertSame(0, $this->countRoundMissedRows());
 	}
 
@@ -274,6 +274,27 @@ class TckRoundLinkIntegrationTest extends TestCase
 		$this->assignmentIds[] = (int) $assignment['id'];
 		self::assertSame($this->tckRoundIds[0], (int) ($assignment['tckRoundId'] ?? 0));
 		return $assignment;
+	}
+
+	/**
+	 * Shared-instance safe drain: the dirty queue is drained oldest-first
+	 * under a per-call budget, so sibling lanes' dirty periods can starve
+	 * this fixture. Loop until OUR period's flag clears (bounded — a
+	 * stuck flag still fails the test via the assertions).
+	 */
+	private function drainFixturePeriod(): void
+	{
+		for ($i = 0; $i < 50; $i++) {
+			$qb = $this->db->getQueryBuilder();
+			$qb->select('conflicts_dirty')->from('dc_periods')
+				->where($qb->expr()->eq('id', $qb->createNamedParameter($this->periodId, IQueryBuilder::PARAM_INT)));
+			if ((int) $qb->executeQuery()->fetchOne() !== 1) {
+				return;
+			}
+			if ($this->roster->drainDirtyOpenPeriodConflicts(200) === 0) {
+				return;
+			}
+		}
 	}
 
 	private function setRoundStatus(int $roundId, string $status): void

@@ -41,3 +41,4 @@ jobs:
       - run: php tests/Mutation/run-roster-virtualization-mutations.php
       - run: php tests/Mutation/run-first-paint-mutations.php
       - run: php tests/Mutation/run-l10n-catalog-mutations.php
+      - run: php tests/Mutation/run-tck-round-link-mutations.php

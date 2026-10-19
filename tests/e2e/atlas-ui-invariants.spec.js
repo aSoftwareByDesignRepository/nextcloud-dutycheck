@@ -31,9 +31,9 @@ const {
 } = require('../../../_shared/e2e/atlas-ui-invariants.js')
 
 const CONTENT = '#dc-main-content'
-// `0` prefix keeps fixture rows inside the first paint window of the
-// name-ordered virtualized locations table ("Showing rows 1–15 of N"), so
-// DOM-text assertions can actually see them instead of passing vacuously.
+// `0` prefix sorts fixture rows near the top of the name-ordered list —
+// but deactivated residue accumulates (no DELETE route), so DOM-text
+// assertions must also scroll the row's window into view (see helper).
 const STAMP = `0dcinv-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`
 const TZ = 'Europe/Berlin'
 
@@ -79,6 +79,28 @@ async function gotoLocationsReady(page) {
 	await gotoApp(page, '/locations')
 	// the skeleton tr exists during load() — wait for a real/empty/error row
 	await page.waitForSelector('#dc-locations-table-body tr:not(.dc-table__loading-row)', { timeout: 30_000 })
+}
+
+/**
+ * The locations tbody is virtualized — only the visible ~15-row window is
+ * painted ("Showing rows 1–15 of N"). A row outside the window is absent
+ * from the DOM, so text/injection assertions would pass vacuously.
+ * Scrolls the wrap so the named row's window renders; returns its index
+ * in the catalog (or -1 when the row is not in the data at all).
+ */
+async function scrollLocationIntoView(page, name) {
+	return page.evaluate(async (n) => {
+		const res = await window.DutyCheckApi.get('/apps/dutycheck/api/locations')
+		const list = (res && res.data) || []
+		const idx = list.findIndex((r) => String((r && r.name) || '') === n)
+		if (idx < 0) return -1
+		const wrap = document.getElementById('dc-locations-table-wrap')
+		if (wrap) {
+			const rh = (window.DutyCheckVirtualWindow && window.DutyCheckVirtualWindow.DEFAULT_ROW_HEIGHT) || 44
+			wrap.scrollTop = Math.max(0, (idx - 2) * rh)
+		}
+		return idx
+	}, name)
 }
 
 test.describe('DutyCheck UI invariants (atlas-ui-invariants)', () => {
@@ -166,7 +188,10 @@ test.describe('DutyCheck UI invariants (atlas-ui-invariants)', () => {
 		const id = await createLocation(page, name)
 		try {
 			expect(id, 'location create via API').toBeTruthy()
-			await gotoApp(page, '/locations')
+			await gotoLocationsReady(page)
+			// virtualization: the payload only exercises the DOM if its row paints
+			expect(await scrollLocationIntoView(page, name), 'xss row in list data').toBeGreaterThanOrEqual(0)
+			await expect(page.locator(CONTENT)).toContainText('<img src="x"', { timeout: 10_000 })
 			await assertNoInjection(page)
 		} finally {
 			if (id) await deactivateLocation(page, id)
@@ -184,7 +209,11 @@ test.describe('DutyCheck UI invariants (atlas-ui-invariants)', () => {
 			await assertSurfaceFresh(page, {
 				content: CONTENT,
 				mutate: async () => {},
-				visit: async () => { await page.reload({ waitUntil: 'domcontentloaded' }) },
+				visit: async () => {
+					await page.reload({ waitUntil: 'domcontentloaded' })
+					await page.waitForSelector('#dc-locations-table-body tr:not(.dc-table__loading-row)', { timeout: 30_000 })
+					expect(await scrollLocationIntoView(page, name), 'created location in list data').toBeGreaterThanOrEqual(0)
+				},
 				expect: { present: name },
 			})
 			const upd = await dcApi(page, `/apps/dutycheck/api/locations/${id}`, {
@@ -194,7 +223,11 @@ test.describe('DutyCheck UI invariants (atlas-ui-invariants)', () => {
 			await assertSurfaceFresh(page, {
 				content: CONTENT,
 				mutate: async () => {},
-				visit: async () => { await page.reload({ waitUntil: 'domcontentloaded' }) },
+				visit: async () => {
+					await page.reload({ waitUntil: 'domcontentloaded' })
+					await page.waitForSelector('#dc-locations-table-body tr:not(.dc-table__loading-row)', { timeout: 30_000 })
+					expect(await scrollLocationIntoView(page, renamed), 'renamed location in list data').toBeGreaterThanOrEqual(0)
+				},
 				expect: { present: renamed, absent: name },
 			})
 		} finally {

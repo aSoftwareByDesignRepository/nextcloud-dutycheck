@@ -965,7 +965,7 @@ body,
 	font-weight: 700;
 	padding-inline: var(--dc-space-5);
 }
-@media (max-width: 480px) {
+@media (max-width: 479.98px) {
 	.dc-setup-checklist__body .button.primary {
 		width: 100%;
 		justify-content: center;
@@ -2186,6 +2186,11 @@ button.dc-license-modal__confirm-danger:hover {
 	font-weight: 700;
 	color: var(--color-main-text, #1d1d1d);
 }
+/* Same for every text-style action on the selected tint (Delete etc.). */
+#app-content .dc-table tbody tr.is-selected .button--text,
+#app-content .dc-table tbody tr[aria-selected='true'] .button--text {
+	color: var(--color-main-text, #1d1d1d);
+}
 .dc-table .dc-row-actions {
 	display: flex;
 	gap: var(--dc-space-2);
@@ -2562,9 +2567,19 @@ button.dc-license-modal__confirm-danger:hover {
 	border-radius: var(--dc-radius-sm);
 	box-shadow: var(--dc-shadow-sm);
 	display: flex;
+	flex-wrap: wrap;
 	gap: var(--dc-space-2);
 	align-items: center;
 	color: var(--color-main-text, #1d1d1d);
+}
+.dc-toast__text {
+	color: inherit;
+	/* basis:auto so an over-wide message wraps onto its own line at narrow
+	   viewports instead of crushing beside the nowrap feedback link +
+	   44px close button (toast_text_link_overlap_narrow_viewport). */
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow-wrap: anywhere;
 }
 .dc-toast--success { border-inline-start-color: var(--color-element-success, var(--color-success-text, var(--color-success, #46ba61))); }
 .dc-toast--info { border-inline-start-color: var(--color-primary-element, #0082c9); }
@@ -3636,7 +3651,7 @@ form.dc-form-grid[aria-busy='true'] .button {
 	border: 0;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
 	.dc-support-us__options {
 		grid-template-columns: 1fr;
 	}
@@ -3821,7 +3836,7 @@ form.dc-form-grid[aria-busy='true'] .button {
 	outline: 3px solid color-mix(in srgb, var(--color-primary-element, #0082c9) 60%, transparent);
 	outline-offset: 2px;
 }
-@media (max-width: 640px) {
+@media (max-width: 639.98px) {
 	.dc-settings-nav {
 		flex-direction: column;
 	}
@@ -4709,7 +4724,7 @@ textarea {
 	gap: 0.15rem;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639.98px) {
 	.dc-today__filters {
 		grid-template-columns: 1fr;
 	}
@@ -4907,7 +4922,7 @@ textarea {
 	flex: 1 1 0;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639.98px) {
 	.dc-today__date-shortcuts {
 		flex-wrap: wrap;
 	}
@@ -5080,7 +5095,7 @@ textarea {
 	font-size: 0.95rem;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 639.98px) {
 	.dc-my-team__row {
 		grid-template-columns: 1fr;
 	}
@@ -5219,7 +5234,7 @@ textarea {
 	margin-top: 0.25rem;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 899.98px) {
 	.dc-patterns__list {
 		grid-template-columns: 1fr;
 	}
@@ -5408,7 +5423,7 @@ textarea {
 	color: var(--color-error-text, var(--color-error, #cc4646));
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
 	.dc-patterns__item {
 		flex-direction: column;
 		align-items: stretch;

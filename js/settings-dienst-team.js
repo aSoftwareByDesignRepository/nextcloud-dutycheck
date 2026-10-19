@@ -261,6 +261,7 @@
 			body: t('dutycheck', 'Really delete “{name}”? On-call duties that use it keep their label.').replace('{name}', String(cat.label || '')),
 			confirmLabel: t('dutycheck', 'Delete'),
 			cancelLabel: t('dutycheck', 'Cancel'),
+			danger: true,
 		});
 		if (!ok) return;
 		try {

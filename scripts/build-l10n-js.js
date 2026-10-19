@@ -18,13 +18,16 @@ function buildJs(lang) {
 	const translations = data.translations || {};
 	const lines = ['OC.L10N.register(', `    "${APP_ID}",`, '    {'];
 	const entries = Object.entries(translations);
+	// PHP json_encode parity: escape `/` so the emitted bytes match the
+	// json_encode needle in L10nCatalogIntegrityTest (byte-identical sync).
+	const enc = (s) => JSON.stringify(s).replace(/\//g, '\\/');
 	entries.forEach(([key, value], i) => {
 		const comma = i < entries.length - 1 ? ',' : '';
 		if (Array.isArray(value)) {
-			const parts = value.map((v) => JSON.stringify(v)).join(', ');
-			lines.push(`    ${JSON.stringify(key)} : [${parts}]${comma}`);
+			const parts = value.map((v) => enc(v)).join(',');
+			lines.push(`    ${enc(key)} : [${parts}]${comma}`);
 		} else {
-			lines.push(`    ${JSON.stringify(key)} : ${JSON.stringify(value)}${comma}`);
+			lines.push(`    ${enc(key)} : ${enc(value)}${comma}`);
 		}
 	});
 	lines.push('});');

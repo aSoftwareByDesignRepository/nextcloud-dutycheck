@@ -46,6 +46,7 @@
 		toast.className = 'dc-toast dc-toast--' + k;
 		toast.setAttribute('role', k === 'error' ? 'alert' : 'status');
 		const text = document.createElement('span');
+		text.className = 'dc-toast__text';
 		text.textContent = String(message);
 		const close = document.createElement('button');
 		close.type = 'button';
