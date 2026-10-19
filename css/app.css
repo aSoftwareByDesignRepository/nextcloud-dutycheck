@@ -362,7 +362,7 @@ body,
 	height: 48px;
 	border-radius: var(--dc-radius-md);
 	background: var(--dc-tint-info);
-	color: var(--color-primary-element, #0082c9);
+	color: var(--dc-accent-ink, var(--color-primary-element, #0082c9));
 }
 .dc-page-header__icon-svg {
 	width: 24px;
@@ -637,7 +637,7 @@ body,
 	text-transform: none;
 }
 .dc-hint-link {
-	color: var(--color-primary-element, #00679e);
+	color: var(--dc-accent-ink, var(--color-primary-element, #00679e));
 	font-weight: 600;
 	text-decoration: underline;
 	text-underline-offset: 2px;
@@ -1001,7 +1001,7 @@ body,
 }
 .dc-empty--quickstart .dc-section__header h2::before {
 	content: "★";
-	color: var(--color-primary-element, #1976d2);
+	color: var(--dc-accent-ink, var(--color-primary-element, #1976d2));
 	font-size: 0.85em;
 	line-height: 1;
 }
@@ -1966,7 +1966,7 @@ label.dc-checkbox {
 	padding: var(--dc-space-2) var(--dc-space-3);
 	border: 0;
 	background: transparent;
-	color: var(--color-primary-element, var(--color-main-text));
+	color: var(--dc-accent-ink, var(--color-primary-element, var(--color-main-text)));
 	text-decoration: underline;
 	text-underline-offset: 2px;
 	font-weight: 500;
@@ -2294,7 +2294,7 @@ button.dc-license-modal__confirm-danger:hover {
 	height: 36px;
 	border-radius: var(--dc-radius-md);
 	background: var(--dc-tint-info);
-	color: var(--color-primary-element, #0082c9);
+	color: var(--dc-accent-ink, var(--color-primary-element, #0082c9));
 	flex-shrink: 0;
 }
 .dc-nav__brand-icon svg { width: 22px; height: 22px; }
@@ -2376,7 +2376,7 @@ button.dc-license-modal__confirm-danger:hover {
 	font-weight: 600;
 }
 .dc-nav__item.is-active .dc-nav__icon {
-	color: var(--color-primary-element, #0082c9);
+	color: var(--dc-accent-ink, var(--color-primary-element, #0082c9));
 }
 /* Muted hints fail AA on the primary tint pill — use main text on active. */
 .dc-nav__item.is-active .dc-nav__hint {
@@ -2637,7 +2637,7 @@ button.dc-license-modal__confirm-danger:hover {
 }
 .dc-ical-steps__list li::marker {
 	font-weight: 700;
-	color: var(--color-primary-element, #0082c9);
+	color: var(--dc-accent-ink, var(--color-primary-element, #0082c9));
 }
 .dc-callout__hint--tight {
 	margin: 0;
@@ -3258,7 +3258,7 @@ form.dc-form-grid[aria-busy='true'] .button {
 	height: 48px;
 	border-radius: var(--dc-radius-md);
 	background: var(--dc-tint-info);
-	color: var(--color-primary-element, #0082c9);
+	color: var(--dc-accent-ink, var(--color-primary-element, #0082c9));
 }
 .dc-print-header__icon {
 	width: 28px;
@@ -3366,7 +3366,7 @@ form.dc-form-grid[aria-busy='true'] .button {
 	display: flex;
 	justify-content: center;
 	margin-bottom: var(--dc-space-3);
-	color: var(--color-primary-element, #0082c9);
+	color: var(--dc-accent-ink, var(--color-primary-element, #0082c9));
 }
 .dc-print-error__message {
 	font-size: var(--dc-fs-md);
@@ -5803,7 +5803,7 @@ tr.dc-my-roster__row--standby > td {
 	font-weight: 780;
 	letter-spacing: 0.12em;
 	text-transform: uppercase;
-	color: var(--color-primary-element, #0073ad);
+	color: var(--dc-accent-ink, var(--color-primary-element, #0073ad));
 }
 /* Access gate state — flat family panel. */
 .dc-access-gate {

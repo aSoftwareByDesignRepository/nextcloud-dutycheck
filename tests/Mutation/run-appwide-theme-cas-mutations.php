@@ -68,8 +68,8 @@ $mutations = [
 	],
 	'button_text_collapses_hit_target' => [
 		'file' => $css,
-		'from' => "\tmin-height: 44px;\n\tmin-width: 44px;\n\tpadding: var(--dc-space-2) var(--dc-space-3);\n\tborder: 0;\n\tbackground: transparent;\n\tcolor: var(--color-primary-element, var(--color-main-text));",
-		'to' => "\tmin-height: 0;\n\tmin-width: 0;\n\tpadding: 0;\n\tborder: 0;\n\tbackground: transparent;\n\tcolor: var(--color-primary-element, var(--color-main-text));",
+		'from' => "\tmin-height: 44px;\n\tmin-width: 44px;\n\tpadding: var(--dc-space-2) var(--dc-space-3);\n\tborder: 0;\n\tbackground: transparent;\n\tcolor: var(--dc-accent-ink, var(--color-primary-element, var(--color-main-text)));",
+		'to' => "\tmin-height: 0;\n\tmin-width: 0;\n\tpadding: 0;\n\tborder: 0;\n\tbackground: transparent;\n\tcolor: var(--dc-accent-ink, var(--color-primary-element, var(--color-main-text)));",
 	],
 	'entity_focus_ring_removed' => [
 		'file' => $css,
