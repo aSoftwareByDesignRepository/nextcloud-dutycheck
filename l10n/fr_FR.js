@@ -1440,9 +1440,9 @@ OC.L10N.register(
 	"Opened {month} for planning. It overlaps {count} existing period(s)." : "{month} ouvert à la planification. Il chevauche {count} période(s) existante(s).",
 	"Linked TourCheck round was missed" : "La ronde TourCheck associée a été manquée",
 	"Link this shift to a security round. A missed round then shows up under Planning checks." : "Associez ce poste à une ronde de sécurité. Une ronde manquée apparaît alors sous Contrôles de planification.",
-	"No linked round" : "No linked round",
-	"Round" : "Round",
-	"TourCheck round (optional)" : "TourCheck round (optional)",
+	"No linked round" : "Aucune ronde liée",
+	"Round" : "Ronde",
+	"TourCheck round (optional)" : "Ronde TourCheck (facultatif)",
 	"linked" : "linked"
 	},
 	"nplurals=2; plural=(n > 1);"

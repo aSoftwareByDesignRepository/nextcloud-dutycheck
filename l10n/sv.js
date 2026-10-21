@@ -1440,9 +1440,9 @@ OC.L10N.register(
 	"Opened {month} for planning. It overlaps {count} existing period(s)." : "{month} öppnad för planering. Den överlappar {count} befintliga period(er).",
 	"Linked TourCheck round was missed" : "Den länkade TourCheck-ronden utfördes inte",
 	"Link this shift to a security round. A missed round then shows up under Planning checks." : "Länka detta skift till en säkerhetsrond. En rond som inte utförs visas sedan under Planeringskontroller.",
-	"No linked round" : "No linked round",
-	"Round" : "Round",
-	"TourCheck round (optional)" : "TourCheck round (optional)",
+	"No linked round" : "Ingen länkad rond",
+	"Round" : "Rond",
+	"TourCheck round (optional)" : "TourCheck-rond (valfri)",
 	"linked" : "linked"
 	},
 	"nplurals=2; plural=(n != 1);"

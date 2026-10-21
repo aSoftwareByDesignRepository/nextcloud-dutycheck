@@ -1440,9 +1440,9 @@ OC.L10N.register(
 	"Opened {month} for planning. It overlaps {count} existing period(s)." : "{month} åbnet til planlægning. Den overlapper {count} eksisterende periode(r).",
 	"Linked TourCheck round was missed" : "Den tilknyttede TourCheck-runde blev forpasset",
 	"Link this shift to a security round. A missed round then shows up under Planning checks." : "Knyt dette skift til en sikkerhedsrunde. En forpasset runde vises derefter under Planlægningskontroller.",
-	"No linked round" : "No linked round",
-	"Round" : "Round",
-	"TourCheck round (optional)" : "TourCheck round (optional)",
+	"No linked round" : "Ingen tilknyttet runde",
+	"Round" : "Runde",
+	"TourCheck round (optional)" : "TourCheck-runde (valgfri)",
 	"linked" : "linked"
 	},
 	"nplurals=2; plural=(n != 1);"

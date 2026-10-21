@@ -748,7 +748,7 @@
 		"Open periods keep the caps from when they were created.": "I periodi aperti conservano i limiti fissati al momento della creazione.",
 		"Open periods keep the caps from when they were created. Saving updates the default for new periods.": "I periodi aperti mantengono i limiti impostati alla creazione. Il salvataggio aggiorna il valore predefinito per i nuovi periodi.",
 		"Open periods still use older limits": "I periodi aperti usano ancora i limiti precedenti",
-		"Open pool (anyone can claim)": "Piscina aperta (chiunque può rivendicare)",
+		"Open pool (anyone can claim)": "Pool aperto (chiunque può prenderlo)",
 		"Open printable view": "Apri la visualizzazione stampabile",
 		"Open roster": "Apri il planning",
 		"Open shift deleted.": "Turno aperto eliminato.",
@@ -1440,9 +1440,9 @@
 		"Opened {month} for planning. It overlaps {count} existing period(s).": "{month} aperto per la pianificazione. Si sovrappone a {count} periodo/i esistente/i.",
 		"Linked TourCheck round was missed": "Il giro TourCheck associato non è stato effettuato",
 		"Link this shift to a security round. A missed round then shows up under Planning checks.": "Collega questo turno a un giro di sicurezza. Un giro non effettuato compare poi in Verifiche di pianificazione.",
-		"No linked round": "No linked round",
-		"Round": "Round",
-		"TourCheck round (optional)": "TourCheck round (optional)",
+		"No linked round": "Nessun giro collegato",
+		"Round": "Giro",
+		"TourCheck round (optional)": "Giro TourCheck (facoltativo)",
 		"linked": "linked"
 	}
 }

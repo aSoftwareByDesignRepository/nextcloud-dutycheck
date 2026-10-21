@@ -748,7 +748,7 @@ OC.L10N.register(
 	"Open periods keep the caps from when they were created." : "Åpne perioder beholder grensene fra da de ble opprettet.",
 	"Open periods keep the caps from when they were created. Saving updates the default for new periods." : "Åpne perioder beholder grensene fra da de ble opprettet. Når du lagrer, oppdateres standarden for nye perioder.",
 	"Open periods still use older limits" : "Åpne perioder bruker fortsatt eldre grenser",
-	"Open pool (anyone can claim)" : "Åpent basseng (alle kan kreve)",
+	"Open pool (anyone can claim)" : "Åpen pool (alle kan kreve)",
 	"Open printable view" : "Åpne utskriftsvisning",
 	"Open roster" : "Åpne vaktlisten",
 	"Open shift deleted." : "Åpen vakt slettet.",
@@ -1440,9 +1440,9 @@ OC.L10N.register(
 	"Opened {month} for planning. It overlaps {count} existing period(s)." : "{month} åpnet for planlegging. Den overlapper {count} eksisterende periode(r).",
 	"Linked TourCheck round was missed" : "Den tilknyttede TourCheck-runden ble ikke gjennomført",
 	"Link this shift to a security round. A missed round then shows up under Planning checks." : "Koble dette skiftet til en sikkerhetsrunde. En runde som ikke gjennomføres vises da under Planleggingssjekker.",
-	"No linked round" : "No linked round",
-	"Round" : "Round",
-	"TourCheck round (optional)" : "TourCheck round (optional)",
+	"No linked round" : "Ingen tilknyttet runde",
+	"Round" : "Runde",
+	"TourCheck round (optional)" : "TourCheck-runde (valgfri)",
 	"linked" : "linked"
 	},
 	"nplurals=2; plural=(n != 1);"

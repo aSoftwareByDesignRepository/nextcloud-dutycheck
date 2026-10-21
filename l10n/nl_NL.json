@@ -1440,9 +1440,9 @@
 		"Opened {month} for planning. It overlaps {count} existing period(s).": "{month} geopend voor planning. Het overlapt {count} bestaande periode(n).",
 		"Linked TourCheck round was missed": "De gekoppelde TourCheck-ronde is gemist",
 		"Link this shift to a security round. A missed round then shows up under Planning checks.": "Koppel deze dienst aan een veiligheidsronde. Een gemiste ronde verschijnt dan onder Controles plannen.",
-		"No linked round": "No linked round",
-		"Round": "Round",
-		"TourCheck round (optional)": "TourCheck round (optional)",
+		"No linked round": "Geen gekoppelde ronde",
+		"Round": "Ronde",
+		"TourCheck round (optional)": "TourCheck-ronde (optioneel)",
 		"linked": "linked"
 	}
 }

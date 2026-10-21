@@ -748,7 +748,7 @@ OC.L10N.register(
 	"Open periods keep the caps from when they were created." : "Los períodos abiertos conservan los límites del momento en que se crearon.",
 	"Open periods keep the caps from when they were created. Saving updates the default for new periods." : "Los períodos abiertos conservan los límites de su creación. Guardar actualiza el valor predeterminado para períodos nuevos.",
 	"Open periods still use older limits" : "Los períodos abiertos aún usan límites antiguos",
-	"Open pool (anyone can claim)" : "Piscina abierta (cualquiera puede reclamar)",
+	"Open pool (anyone can claim)" : "Grupo abierto (cualquiera puede tomarlo)",
 	"Open printable view" : "Abrir vista imprimible",
 	"Open roster" : "Abrir cuadro de turnos",
 	"Open shift deleted." : "Turno abierto eliminado.",
@@ -1440,9 +1440,9 @@ OC.L10N.register(
 	"Opened {month} for planning. It overlaps {count} existing period(s)." : "{month} abierto para planificación. Se solapa con {count} período(s) existente(s).",
 	"Linked TourCheck round was missed" : "La ronda TourCheck vinculada no se realizó",
 	"Link this shift to a security round. A missed round then shows up under Planning checks." : "Vincula este turno a una ronda de seguridad. Una ronda no realizada aparece después en Controles de planificación.",
-	"No linked round" : "No linked round",
-	"Round" : "Round",
-	"TourCheck round (optional)" : "TourCheck round (optional)",
+	"No linked round" : "Sin ronda vinculada",
+	"Round" : "Ronda",
+	"TourCheck round (optional)" : "Ronda TourCheck (opcional)",
 	"linked" : "linked"
 	},
 	"nplurals=2; plural=(n != 1);"
