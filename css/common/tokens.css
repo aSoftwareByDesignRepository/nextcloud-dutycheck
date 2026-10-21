@@ -43,3 +43,14 @@ body {
 	--dc-color-tint-warning: color-mix(in srgb, var(--color-warning-text, var(--color-warning, #c98600)) 22%, var(--color-main-background, #fff));
 	--dc-color-tint-critical: color-mix(in srgb, var(--color-error-text, var(--color-error, #cc4646)) 18%, var(--color-main-background, #fff));
 }
+
+/* Accent ink for text-on-surface: --color-primary-element as text drops below
+   WCAG AA (~4.3:1) on dark themes — blend toward main-text there. */
+body {
+	--dc-accent-ink: var(--color-primary-element);
+}
+
+body[data-theme-dark],
+body[data-theme-dark-highcontrast] {
+	--dc-accent-ink: color-mix(in srgb, var(--color-primary-element) 70%, var(--color-main-text));
+}
