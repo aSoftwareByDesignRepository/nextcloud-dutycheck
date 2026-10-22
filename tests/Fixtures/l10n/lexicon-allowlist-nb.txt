@@ -1,0 +1,12 @@
+# nb target-lexicon allowlist — dutycheck, reviewed 2026-10-22
+# Legit Norwegian Bokmål vocabulary the flat nb_NO wordlist misses or
+# that shares an identical spelling with a donor language (da/sv).
+# Markers certify reviewed exceptions, not donor-laundering.
+deaktiver # shared — nb imperative of "deaktivere"; da infinitive has the same spelling
+fre # abbrev — nb weekday abbreviation Friday (man–søn)
+ons # abbrev — nb weekday abbreviation Wednesday
+søn # abbrev — nb weekday abbreviation Sunday
+url # abbrev — URL, standard loanword in nb UI text
+integritetshash # shared — nb compound integritet+hash; same spelling in da but valid nb
+kalenderfeed # loanword — accepted loanword compound in nb UI usage
+kalenderfeeden # loanword — definite singular of kalenderfeed

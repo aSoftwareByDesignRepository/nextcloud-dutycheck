@@ -2898,7 +2898,7 @@ button:focus-visible,
  * 768px — Nextcloud tablet: restore multi-column forms, data tables, and
  * page chrome (matches pre-mobile-first layout from 720px upward).
  */
-@media (min-width: 768px) {
+@media (min-width: 769px) {
 	#app-content.dc-app #app-content-wrapper.dc-shell,
 	.dc-shell {
 		padding: var(--dc-space-5) var(--dc-space-5) var(--dc-space-7);
@@ -3339,7 +3339,7 @@ form.dc-form-grid[aria-busy='true'] .button {
 	display: none;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 769px) {
 	#dc-assignments-table-wrap {
 		border-radius: var(--dc-radius-sm);
 		background: var(--dc-bg-card);
@@ -3651,7 +3651,7 @@ form.dc-form-grid[aria-busy='true'] .button {
 	border: 0;
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 768.98px) {
 	.dc-support-us__options {
 		grid-template-columns: 1fr;
 	}
@@ -4402,7 +4402,7 @@ form.dc-form-grid[aria-busy='true'] .button {
 		max-height: min(65dvh, 28rem);
 	}
 }
-@media (min-width: 768px) {
+@media (min-width: 769px) {
 	.dc-roster-list-scroller .dc-table thead {
 		position: sticky;
 		top: 0;
@@ -5423,7 +5423,7 @@ textarea {
 	color: var(--color-error-text, var(--color-error, #cc4646));
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 768.98px) {
 	.dc-patterns__item {
 		flex-direction: column;
 		align-items: stretch;

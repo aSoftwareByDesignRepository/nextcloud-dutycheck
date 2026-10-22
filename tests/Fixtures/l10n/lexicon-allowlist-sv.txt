@@ -1,0 +1,10 @@
+# sv target-lexicon allowlist — dutycheck, reviewed 2026-10-22
+# Legit Swedish vocabulary the flat sv_SE wordlist misses or that
+# shares an identical spelling with a donor language (da/nb).
+# Markers certify reviewed exceptions, not donor-laundering.
+fre # abbrev — sv weekday abbreviation Friday (mån–sön)
+tis # abbrev — sv weekday abbreviation Tuesday
+ons # abbrev — sv weekday abbreviation Wednesday
+url # abbrev — URL, standard loanword in sv UI text
+datan # shared — sv definite singular of "data"
+integritetshash # shared — sv compound integritet+hash; same spelling in da but valid sv
