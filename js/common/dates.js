@@ -39,6 +39,14 @@
 		}, options || {}));
 	}
 
+	function repaintDateChrome(input) {
+		return D.repaintDateChrome(input, tr('Choose date'));
+	}
+
+	function repaintTemporalChrome(root) {
+		return D.repaintTemporalChrome(root, { pickerLabel: tr('Choose date') });
+	}
+
 	/**
 	 * Compact planner column header (weekday short + day number).
 	 * Weekend/today flags use the duty calendar day (noon-UTC anchor).
@@ -149,5 +157,7 @@
 		rosterDayColumnMin,
 		formatRelativeMinutes: D.formatRelativeMinutes,
 		applyLocaleToTemporalInputs,
+		repaintDateChrome,
+		repaintTemporalChrome,
 	};
 })();
