@@ -66,6 +66,9 @@ class MaintenanceCheckOnDutyReader
 				->leftJoin('a', 'dc_employees', 'e', 'a.employee_id = e.id')
 				->leftJoin('a', 'dc_locations', 'l', 'a.location_id = l.id')
 				->where($qb->expr()->eq('a.duty_date', $qb->createNamedParameter($day)))
+				// Stale published assignments of deactivated employees must not
+				// report as on-duty (2026-10-22 inactive-entity leak class).
+				->andWhere($qb->expr()->eq('e.active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)))
 				->andWhere($qb->expr()->in('p.status', $qb->createNamedParameter(['published', 'closed'], IQueryBuilder::PARAM_STR_ARRAY)));
 			if (SchemaProbe::hasColumn($this->db, 'dc_assignments', 'status')) {
 				$qb->andWhere($qb->expr()->orX(

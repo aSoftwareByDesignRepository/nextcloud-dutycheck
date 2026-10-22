@@ -139,6 +139,10 @@ class PublishNotificationService
 			->from('dc_assignments', 'a')
 			->innerJoin('a', 'dc_employees', 'e', 'a.employee_id = e.id')
 			->where($qb->expr()->eq('a.period_id', $qb->createNamedParameter($periodId, IQueryBuilder::PARAM_INT)))
+			// Deactivated employees never get notified — they left or are
+			// dormant, and stale assignment rows must not fan out to them
+			// (customer report 2026-10-22).
+			->andWhere($qb->expr()->eq('e.active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)))
 			->andWhere($qb->expr()->isNotNull('e.linked_user_id'));
 		if (SchemaProbe::hasColumn($this->db, 'dc_assignments', 'status')) {
 			$qb->andWhere($qb->expr()->orX(

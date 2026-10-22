@@ -3982,6 +3982,21 @@
 			const period = selectedPeriodFromState();
 			const date = document.getElementById('dc-os-date');
 			if (date && period?.startDate) date.value = String(period.startDate);
+			const brk = document.getElementById('dc-os-break');
+			if (brk) {
+				brk.value = String(resolveBreakPrefill().minutes);
+				if (state.planningDefaultsFresh !== true) {
+					// Defaults may still be in flight (form opened before the
+					// roster load landed) — refresh, then re-apply only while
+					// the field still shows the untouched prefill.
+					const captured = brk.value;
+					void refreshPlanningDefaultFromServer().then(() => {
+						if (brk.value === captured) {
+							brk.value = String(resolveBreakPrefill().minutes);
+						}
+					});
+				}
+			}
 		});
 		document.getElementById('dc-os-save')?.addEventListener('click', async () => {
 			const period = selectedPeriodFromState();
@@ -3996,7 +4011,7 @@
 					dutyDate: String(document.getElementById('dc-os-date')?.value || ''),
 					startTime: String(document.getElementById('dc-os-start')?.value || ''),
 					endTime: String(document.getElementById('dc-os-end')?.value || ''),
-					breakMinutes: 0,
+					breakMinutes: clampBreakMinutes(Number(document.getElementById('dc-os-break')?.value || 0)),
 				});
 				Msg.announce(t('dutycheck', 'Open shift posted.'), 'success');
 				if (form) form.hidden = true;

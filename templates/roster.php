@@ -270,6 +270,10 @@ foreach (\OCA\DutyCheck\Service\RosterService::rosterApiConflictMessageKeys() as
 			<label class="dc-field__label" for="dc-os-end"><?php p($l->t('End')); ?></label>
 			<input id="dc-os-end" type="time" class="dc-input dc-input--time-24h" step="60" lang="en-GB">
 		</div>
+		<div class="dc-field">
+			<label class="dc-field__label" for="dc-os-break"><?php p($l->t('Break (min)')); ?></label>
+			<input id="dc-os-break" type="number" class="dc-input dc-input--num" min="0" max="720" step="5" inputmode="numeric">
+		</div>
 		<div class="dc-form-actions">
 			<button type="button" class="button primary" id="dc-os-save"><?php p($l->t('Save open shift')); ?></button>
 		</div>

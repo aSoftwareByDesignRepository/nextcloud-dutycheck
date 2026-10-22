@@ -27,6 +27,7 @@ class OpenShiftService
 		private readonly RosterService $roster,
 		private readonly ?CompanyService $companies = null,
 		private readonly ?SelfServiceSettingsService $settings = null,
+		private readonly ?PlanningDefaultsService $planningDefaults = null,
 	) {
 	}
 
@@ -41,7 +42,13 @@ class OpenShiftService
 		$dutyDate = (string) ($payload['dutyDate'] ?? '');
 		$start = (string) ($payload['startTime'] ?? '');
 		$end = (string) ($payload['endTime'] ?? '');
-		$break = max(0, (int) ($payload['breakMinutes'] ?? 0));
+		// Absent breakMinutes inherits the organisation default — a silent 0
+		// is the same "global break ignored" defect class as the assignment
+		// create path (2026-10-22). Strict parse: an explicit value must be
+		// a number, not whatever (int) makes of it.
+		$break = array_key_exists('breakMinutes', $payload)
+			? PlanningDefaultsService::parseAssignmentBreakMinutes($payload['breakMinutes'])
+			: ($this->planningDefaults?->getDefaultBreakMinutes() ?? 0);
 		$templateId = isset($payload['templateId']) ? (int) $payload['templateId'] : null;
 		if ($periodId <= 0 || $locationId <= 0) {
 			throw new \InvalidArgumentException('OPEN_SHIFT_INVALID');

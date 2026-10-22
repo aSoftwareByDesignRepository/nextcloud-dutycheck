@@ -1158,6 +1158,10 @@
 				const res = await Api.get('/apps/dutycheck/api/locations');
 				const rows = Array.isArray(res?.data) ? res.data : [];
 				for (const row of rows) {
+					// The catalog legitimately serves inactive rows for admin
+					// surfaces — the template write path requires active=1, so
+					// offering them would be a guaranteed LOCATION_NOT_FOUND.
+					if (row.active === false) continue;
 					const opt = document.createElement('option');
 					opt.value = String(row.id);
 					opt.textContent = row.name || `#${row.id}`;

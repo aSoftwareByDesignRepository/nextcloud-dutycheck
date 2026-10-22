@@ -79,6 +79,7 @@ final class RotationPatternService
 			$payload['weekDays'] ?? $payload['week_days'] ?? null,
 			$cycleWeeks,
 		);
+		$this->assertWeekDayReferences($weekDays, $companyId);
 		$contractAvg = $this->optionalInt($payload['contractAvgMinutes'] ?? $payload['contract_avg_minutes'] ?? null);
 
 		$this->assertNameUnique($companyId, $name, null);
@@ -186,6 +187,9 @@ final class RotationPatternService
 		$weekDays = $replaceDays
 			? $this->normalizeWeekDaysPayload($weekDaysPayload, $cycleWeeks)
 			: null;
+		if ($weekDays !== null) {
+			$this->assertWeekDayReferences($weekDays, $companyId);
+		}
 
 		$now = $this->now();
 		$this->db->beginTransaction();
@@ -679,6 +683,58 @@ final class RotationPatternService
 	}
 
 	/**
+	 * Reference validation for working-day foreign keys — the DB has no FKs,
+	 * so a location/template id the payload names must exist in the pattern's
+	 * company or the write stores a permanently dangling reference
+	 * (api-security §7). Existence only, NOT active: a deactivated
+	 * location/template must not lock the pattern out of unrelated edits —
+	 * suggest resolution is fail-closed on inactive refs at runtime.
+	 *
+	 * @param list<array{isWorking:bool,shiftTemplateId:?int,locationId:?int}> $weekDays
+	 * @throws \InvalidArgumentException LOCATION_NOT_FOUND|TEMPLATE_NOT_FOUND
+	 */
+	private function assertWeekDayReferences(array $weekDays, int $companyId): void
+	{
+		$locIds = [];
+		$tplIds = [];
+		foreach ($weekDays as $day) {
+			if (!$day['isWorking']) {
+				continue;
+			}
+			if ($day['locationId'] !== null) {
+				$locIds[$day['locationId']] = true;
+			}
+			if ($day['shiftTemplateId'] !== null) {
+				$tplIds[$day['shiftTemplateId']] = true;
+			}
+		}
+		if ($locIds !== [] && SchemaProbe::tableExists($this->db, 'dc_locations')) {
+			$qb = $this->db->getQueryBuilder();
+			$qb->select('id')->from('dc_locations')
+				->where($qb->expr()->in('id', $qb->createNamedParameter(array_map('intval', array_keys($locIds)), IQueryBuilder::PARAM_INT_ARRAY)));
+			if (SchemaProbe::hasColumn($this->db, 'dc_locations', 'company_id')) {
+				$qb->andWhere($qb->expr()->eq('company_id', $qb->createNamedParameter($companyId, IQueryBuilder::PARAM_INT)));
+			}
+			$found = array_map('intval', array_column($qb->executeQuery()->fetchAll(), 'id'));
+			if (array_diff(array_keys($locIds), $found) !== []) {
+				throw new \InvalidArgumentException('LOCATION_NOT_FOUND');
+			}
+		}
+		if ($tplIds !== [] && SchemaProbe::tableExists($this->db, 'dc_shift_templates')) {
+			$qb = $this->db->getQueryBuilder();
+			$qb->select('id')->from('dc_shift_templates')
+				->where($qb->expr()->in('id', $qb->createNamedParameter(array_map('intval', array_keys($tplIds)), IQueryBuilder::PARAM_INT_ARRAY)));
+			if (SchemaProbe::hasColumn($this->db, 'dc_shift_templates', 'company_id')) {
+				$qb->andWhere($qb->expr()->eq('company_id', $qb->createNamedParameter($companyId, IQueryBuilder::PARAM_INT)));
+			}
+			$found = array_map('intval', array_column($qb->executeQuery()->fetchAll(), 'id'));
+			if (array_diff(array_keys($tplIds), $found) !== []) {
+				throw new \InvalidArgumentException('TEMPLATE_NOT_FOUND');
+			}
+		}
+	}
+
+	/**
 	 * @param list<array{
 	 *   weekIndex:int,dow:int,isWorking:bool,netMinutes:int,
 	 *   shiftTemplateId:?int,startLocal:?string,endLocal:?string,breakMinutes:int,locationId:?int
@@ -853,6 +909,11 @@ final class RotationPatternService
 	{
 		$this->companies->assertRowCompany($actor, 'dc_employees', $employeeId, 'EMPLOYEE_NOT_FOUND');
 		$row = $this->employeeRow($employeeId);
+		// Deactivated employees cannot take on new pattern assignments —
+		// same active requirement as RosterService::assertEmployeeExists.
+		if ((int) ($row['active'] ?? 0) !== 1) {
+			throw new \InvalidArgumentException('EMPLOYEE_NOT_FOUND');
+		}
 		$multi = $this->companies->isMultiCompanyActive()
 			&& SchemaProbe::hasColumn($this->db, 'dc_employees', 'company_id');
 		// Existence-blind: an employee in another company is invisible to the
@@ -877,8 +938,11 @@ final class RotationPatternService
 		$multi = $this->companies->isMultiCompanyActive()
 			&& SchemaProbe::hasColumn($this->db, 'dc_employees', 'company_id');
 		$qb = $this->db->getQueryBuilder();
-		$qb->select($multi ? 'company_id' : 'id')->from('dc_employees')
+		$qb->select('id', 'active')->from('dc_employees')
 			->where($qb->expr()->eq('id', $qb->createNamedParameter($employeeId, IQueryBuilder::PARAM_INT)));
+		if ($multi) {
+			$qb->addSelect('company_id');
+		}
 		$row = $qb->executeQuery()->fetch();
 		if ($row === false) {
 			throw new \InvalidArgumentException('EMPLOYEE_NOT_FOUND');

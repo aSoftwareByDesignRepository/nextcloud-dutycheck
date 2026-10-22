@@ -447,11 +447,16 @@ class RosterApiController extends Controller
 				'dutyDate' => $params['dutyDate'] ?? null,
 				'startTime' => $params['startTime'] ?? null,
 				'endTime' => $params['endTime'] ?? null,
-				'breakMinutes' => $params['breakMinutes'] ?? null,
 				'note' => $params['note'] ?? null,
 				'kind' => $params['kind'] ?? null,
 				'acknowledgements' => ApiMutationParams::acknowledgements($this->request),
 			];
+			// breakMinutes only when the client actually sent it — an injected
+			// null key would suppress the organisation default the service
+			// resolves for absent values (2026-10-22 default-inherit fix).
+			if (array_key_exists('breakMinutes', $params)) {
+				$createPayload['breakMinutes'] = $params['breakMinutes'];
+			}
 			// Standby fields only when the client actually sent them — an injected
 			// null key would suppress the category's default response-time fill.
 			// tckRoundId likewise: absent must not clear/force the soft link.
@@ -500,11 +505,17 @@ class RosterApiController extends Controller
 				'dutyDate' => $params['dutyDate'] ?? null,
 				'startTime' => $params['startTime'] ?? null,
 				'endTime' => $params['endTime'] ?? null,
-				'breakMinutes' => $params['breakMinutes'] ?? null,
 				'note' => $params['note'] ?? null,
 				'expectedVersion' => $params['expectedVersion'] ?? ($params['version'] ?? null),
 				'acknowledgements' => ApiMutationParams::acknowledgements($this->request),
 			];
+			// breakMinutes only when the client actually sent it — an injected
+			// null key made every partial update parse(null)→0 and silently
+			// wipe the stored break (editor_field_missing_wipes_value at API
+			// level). Absent must keep the row's value.
+			if (array_key_exists('breakMinutes', $params)) {
+				$updatePayload['breakMinutes'] = $params['breakMinutes'];
+			}
 			// Standby fields only when the client actually sent them — an absent
 			// `kind` must not reset a standby row's slot identity or wipe metadata.
 			foreach (['kind', 'standbyCategoryId', 'responseTimeMinutes', 'tckRoundId'] as $standbyField) {

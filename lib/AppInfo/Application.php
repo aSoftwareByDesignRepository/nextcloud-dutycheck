@@ -328,6 +328,7 @@ class Application extends App implements IBootstrap
 				$c->query(PeriodLockService::class),
 				$c->query(AvailabilityBlackoutService::class),
 				$c->query(ApiRateLimitService::class),
+				$c->query(PlanningDefaultsService::class),
 			);
 		});
 		$context->registerService(ShiftPreferenceService::class, function ($c): ShiftPreferenceService {
@@ -401,6 +402,7 @@ class Application extends App implements IBootstrap
 				$c->query(RosterService::class),
 				$c->query(\OCA\DutyCheck\Service\CompanyService::class),
 				$c->query(SelfServiceSettingsService::class),
+				$c->query(PlanningDefaultsService::class),
 			);
 		});
 		$context->registerService(PlannerLocationScopeService::class, function ($c): PlannerLocationScopeService {

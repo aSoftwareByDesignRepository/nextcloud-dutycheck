@@ -233,6 +233,24 @@ class PushQuietHoursService
 			->executeStatement();
 	}
 
+	/**
+	 * Delivery-time recipient check: the uid must still resolve to an
+	 * active, linked employee. Fail closed — no employee row means the
+	 * link was removed and the notification is stale.
+	 */
+	private function recipientIsActiveEmployee(string $uid): bool
+	{
+		if ($uid === '' || !SchemaProbe::tableExists($this->db, 'dc_employees')) {
+			return false;
+		}
+		$qb = $this->db->getQueryBuilder();
+		$qb->select($qb->func()->count('*', 'cnt'))
+			->from('dc_employees')
+			->where($qb->expr()->eq('linked_user_id', $qb->createNamedParameter($uid)))
+			->andWhere($qb->expr()->eq('active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)));
+		return (int) $qb->executeQuery()->fetchOne() > 0;
+	}
+
 	/** Delete oldest undelivered rows for a user. Returns number deleted. */
 	private function shedOldestPending(string $userId, int $count): int
 	{
@@ -287,6 +305,17 @@ class PushQuietHoursService
 		}
 
 		$attempts = $priorAttempts + 1;
+		// Enqueue-time filters cannot see a later deactivation/unlink: a uid
+		// that no longer maps to an active employee must not be notified
+		// (same "deactivated employees get plan mails" defect, quiet path).
+		if (!$this->recipientIsActiveEmployee((string) $row['user_id'])) {
+			$drop = $this->db->getQueryBuilder();
+			$drop->delete('dc_push_quiet_queue')
+				->where($drop->expr()->eq('id', $drop->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
+				->executeStatement();
+			return false;
+		}
+
 		// Claim attempt without marking delivered — only stamp delivered_at after notify succeeds.
 		$cas = $this->db->getQueryBuilder();
 		$affected = $cas->update('dc_push_quiet_queue')

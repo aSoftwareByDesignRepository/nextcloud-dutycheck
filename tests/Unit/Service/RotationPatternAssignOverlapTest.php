@@ -147,8 +147,9 @@ final class RotationPatternAssignOverlapTest extends TestCase
 
 	private function employeeRowQb(): IQueryBuilder
 	{
-		// assertEmployeeInCompany existence probe (single-company path selects id).
-		return $this->qb($this->result(['id' => 5]));
+		// assertEmployeeInCompany existence probe — active employee, single-
+		// company path selects id+active (company_id only in multi-company).
+		return $this->qb($this->result(['id' => 5, 'active' => 1]));
 	}
 
 	public function testAssignSucceedsWhenOnlyOverlapPointsAtInactivePattern(): void

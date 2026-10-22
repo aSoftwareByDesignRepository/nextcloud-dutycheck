@@ -161,6 +161,83 @@ final class PublishNotificationServiceTest extends TestCase
 		self::assertSame(['alice', 'bob'], $notified);
 	}
 
+	public function testRecipientQueryFiltersToActiveEmployees(): void
+	{
+		$periodResult = $this->createMock(IResult::class);
+		$periodResult->method('fetch')->willReturn([
+			'start_date' => '2099-01-06',
+			'end_date' => '2099-01-12',
+		]);
+		$recipResult = $this->createMock(IResult::class);
+		$recipResult->method('fetchAll')->willReturn([]);
+
+		$eqCalls = [];
+		$expr = new class($eqCalls) {
+			/** @var list<array{0:mixed,1:mixed}> */
+			public array $eqCalls;
+			public function __construct(array &$calls)
+			{
+				$this->eqCalls = &$calls;
+			}
+			public function eq($a, $b)
+			{
+				$this->eqCalls[] = [$a, $b];
+				return 'eq';
+			}
+			public function isNotNull(...$a)
+			{
+				return 'nn';
+			}
+			public function orX(...$a)
+			{
+				return 'or';
+			}
+			public function neq(...$a)
+			{
+				return 'neq';
+			}
+			public function isNull(...$a)
+			{
+				return 'null';
+			}
+		};
+
+		$qbPeriod = $this->createMock(IQueryBuilder::class);
+		$qbPeriod->method('select')->willReturnSelf();
+		$qbPeriod->method('from')->willReturnSelf();
+		$qbPeriod->method('where')->willReturnSelf();
+		$qbPeriod->method('expr')->willReturn($expr);
+		$qbPeriod->method('createNamedParameter')->willReturn('p');
+		$qbPeriod->method('executeQuery')->willReturn($periodResult);
+
+		$qbRecip = $this->createMock(IQueryBuilder::class);
+		$qbRecip->method('selectDistinct')->willReturnSelf();
+		$qbRecip->method('from')->willReturnSelf();
+		$qbRecip->method('innerJoin')->willReturnSelf();
+		$qbRecip->method('where')->willReturnSelf();
+		$qbRecip->method('andWhere')->willReturnSelf();
+		$qbRecip->method('expr')->willReturn($expr);
+		$qbRecip->method('createNamedParameter')->willReturn('p');
+		$qbRecip->method('executeQuery')->willReturn($recipResult);
+
+		$db = $this->createMock(IDBConnection::class);
+		$db->method('getQueryBuilder')->willReturnOnConsecutiveCalls($qbPeriod, $qbRecip);
+
+		$svc = new PublishNotificationService(
+			$db,
+			$this->createMock(INotificationManager::class),
+			$this->createMock(IActivityManager::class),
+			$this->createMock(IURLGenerator::class),
+			$this->createMock(IFactory::class),
+			$this->createMock(LoggerInterface::class),
+		);
+		$svc->notifyPeriodPublished(42, 'planner1');
+
+		// Deactivated employees must be excluded at the query level
+		// (2026-10-22 report: leavers still got "roster published").
+		self::assertContains(['e.active', 'p'], $expr->eqCalls);
+	}
+
 	public function testMissingPeriodFallsBackToIdLabelWithoutThrowing(): void
 	{
 		$periodResult = $this->createMock(IResult::class);

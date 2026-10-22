@@ -1108,11 +1108,16 @@ class RosterService
 		$endTime = (string) ($payload['endTime'] ?? '');
 		$kind = AssignmentKind::normalize($payload['kind'] ?? null);
 		$tckRoundId = self::parseNullableIntRef($payload['tckRoundId'] ?? null, 'TCK_ROUND_ID_INVALID');
-		$breakMinutes = PlanningDefaultsService::parseAssignmentBreakMinutes($payload['breakMinutes'] ?? null);
+		$isStandby = AssignmentKind::isStandby($kind);
+		// Absent breakMinutes inherits the organisation default (explicit 0
+		// still means "no break"); standby never carries a break
+		// (STANDBY_BREAK_FORBIDDEN below) so it must not inherit one.
+		$breakMinutes = array_key_exists('breakMinutes', $payload)
+			? PlanningDefaultsService::parseAssignmentBreakMinutes($payload['breakMinutes'])
+			: ($isStandby ? 0 : ($this->planningDefaults?->getDefaultBreakMinutes() ?? 0));
 		$note = trim((string) ($payload['note'] ?? ''));
 		$acknowledgements = is_array($payload['acknowledgements'] ?? null) ? $payload['acknowledgements'] : [];
 		$pendingBlackoutOverride = null;
-		$isStandby = AssignmentKind::isStandby($kind);
 
 		if ($periodId <= 0) {
 			throw new \InvalidArgumentException('PERIOD_ID_REQUIRED');

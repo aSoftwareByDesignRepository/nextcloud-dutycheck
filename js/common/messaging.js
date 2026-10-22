@@ -234,7 +234,11 @@
 			return;
 		}
 		if (status === 404) {
-			announce(t('dutycheck', 'The server could not find this DutyCheck action. Reload the page; if it keeps happening, ask an administrator to update DutyCheck to the latest version.'), 'error');
+			// Entity 404s carry a stable error.code (LOCATION_NOT_FOUND, …) —
+			// show the mapped message, not the version-mismatch hint meant
+			// for genuinely missing routes (customer report 2026-10-22: an
+			// unavailable location toasted "update DutyCheck").
+			announce(friendly || t('dutycheck', 'The server could not find this DutyCheck action. Reload the page; if it keeps happening, ask an administrator to update DutyCheck to the latest version.'), 'error');
 			return;
 		}
 		if (status === 503 || code === 'SCHEMA_NOT_READY') {

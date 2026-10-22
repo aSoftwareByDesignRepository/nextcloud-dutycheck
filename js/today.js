@@ -49,7 +49,10 @@
 		const sel = document.getElementById('dc-today-location');
 		if (!sel) return;
 		const res = await Api.get('/apps/dutycheck/api/locations');
-		const list = Array.isArray(res?.data) ? res.data : (res?.data?.locations || []);
+		const catalog = Array.isArray(res?.data) ? res.data : (res?.data?.locations || []);
+		// The catalog also returns deactivated locations (the admin screen
+		// needs them) — the board 404s on them, so they are not pickable.
+		const list = catalog.filter((loc) => loc && loc.active !== false);
 		sel.replaceChildren();
 		if (!list.length) {
 			sel.appendChild(create('option', { value: '', text: t('dutycheck', 'No locations') }));
@@ -161,7 +164,14 @@
 			// A failed or disabled load is not an empty day — renderShifts([])
 			// unhides the "nobody scheduled" panel, which would fabricate state.
 			document.getElementById('dc-today-empty')?.setAttribute('hidden', '');
-			if (code === 'TODAY_BOARD_DISABLED') {
+			if (code === 'LOCATION_NOT_FOUND') {
+				// Deactivated/rescinded location (the remembered pick can go
+				// stale): drop it, refresh the options, and let the status
+				// strip own the message — no generic "update the app" toast.
+				try { window.localStorage.removeItem(STORAGE_KEY); } catch (_) {}
+				await loadLocations();
+				setStatus(t('dutycheck', 'This location is no longer available. Pick another one.'), 'error');
+			} else if (code === 'TODAY_BOARD_DISABLED') {
 				// The warning callout owns this message — the strip stays quiet.
 				const disabled = document.getElementById('dc-today-disabled');
 				const text = document.getElementById('dc-today-disabled-text');

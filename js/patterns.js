@@ -18,7 +18,11 @@
 		enabled: true,
 		employees: [],
 		locations: [],
+		defaultBreakMinutes: 0,
 	};
+	// Week-day objects currently loaded into the editor grid — readGrid()
+	// preserves fields the form does not render (e.g. shiftTemplateId).
+	let editorDayMap = new Map();
 
 	function root() {
 		return document.getElementById('dc-patterns-page');
@@ -69,6 +73,7 @@
 	function buildGrid(container, cycleWeeks, weekDays) {
 		container.replaceChildren();
 		const map = indexWeekDays(weekDays);
+		editorDayMap = map;
 		for (let w = 0; w < cycleWeeks; w++) {
 			const weekTitle = msg('label-week', 'Week {n}').replace('{n}', String(w + 1));
 			const week = create('fieldset', { class: 'dc-patterns__week' }, [
@@ -138,11 +143,22 @@
 				});
 				end.disabled = !day.isWorking;
 				cell.appendChild(end);
+				cell.appendChild(create('label', {
+					class: 'dc-field__label', attrs: { for: idBase + '-break' }, text: msg('label-break'),
+				}));
+				const breakInput = create('input', {
+					type: 'number', id: idBase + '-break',
+					class: 'dc-input dc-input--num dc-patterns__break',
+					attrs: { min: '0', max: '720', step: '5', value: String(day.breakMinutes || 0) },
+				});
+				breakInput.disabled = !day.isWorking;
+				cell.appendChild(breakInput);
 				workInput.addEventListener('change', () => {
 					const on = !!workInput.checked;
 					net.disabled = !on;
 					start.disabled = !on;
 					end.disabled = !on;
+					breakInput.disabled = !on;
 				});
 				table.appendChild(cell);
 			});
@@ -158,16 +174,20 @@
 		for (let w = 0; w < cycleWeeks; w++) {
 			for (const d of DOW) {
 				const cell = container.querySelector('[data-week="' + w + '"][data-dow="' + d + '"]');
+				const prev = editorDayMap.get(dayKey(w, d)) || {};
 				const isWorking = !!cell?.querySelector('.dc-patterns__is-working')?.checked;
 				const start = cell?.querySelector('.dc-patterns__start')?.value || '';
 				const end = cell?.querySelector('.dc-patterns__end')?.value || '';
 				const net = Number(cell?.querySelector('.dc-patterns__net')?.value || 0);
+				const breakRaw = Number(cell?.querySelector('.dc-patterns__break')?.value || 0);
 				out.push({
 					weekIndex: w, dow: d, isWorking,
 					netMinutes: isWorking ? Math.max(0, net) : 0,
 					startLocal: isWorking && start ? start : null,
 					endLocal: isWorking && end ? end : null,
-					breakMinutes: 0, shiftTemplateId: null,
+					breakMinutes: isWorking ? Math.max(0, Math.min(720, Math.round(breakRaw))) : 0,
+					// The form has no template picker — keep an API-set link.
+					shiftTemplateId: prev.shiftTemplateId ?? null,
 					locationId: isWorking ? locId : null,
 				});
 			}
@@ -263,8 +283,23 @@
 		return null;
 	}
 
+	async function ensurePlanningDefaults() {
+		if (state.planningDefaultsFetched) return;
+		try {
+			const res = await Api.get('/apps/dutycheck/api/admin/planning-defaults');
+			const minutes = Number(res?.planning?.defaultBreakMinutes);
+			if (Number.isFinite(minutes) && minutes >= 0) {
+				state.defaultBreakMinutes = Math.min(720, Math.round(minutes));
+			}
+		} catch (_) {
+			/* The hint degrades to the generic inherit rule below. */
+		}
+		state.planningDefaultsFetched = true;
+	}
+
 	async function openEditor(existing) {
 		await ensureLocations();
+		await ensurePlanningDefaults();
 		const isNew = !existing || !existing.id;
 		let cycleWeeks = Number((existing && existing.cycleWeeks) || state.allowedCycleWeeks[0] || 2);
 		if (!state.allowedCycleWeeks.includes(cycleWeeks)) {
@@ -339,6 +374,13 @@
 					}),
 					create('input', { type: 'text', id: 'dc-pat-reason', class: 'dc-input', attrs: { maxlength: '200' } }),
 				]));
+				// Break 0 means "inherit the organisation default at fill time" —
+				// say so where the planner sets the value, incl. the live number.
+				const breakHintText = state.defaultBreakMinutes > 0
+					? t('dutycheck', 'Break 0 inherits the organisation default ({n} min).')
+						.replace('{n}', String(state.defaultBreakMinutes))
+					: t('dutycheck', 'Break 0 inherits the organisation default.');
+				wrap.appendChild(create('p', { class: 'dc-field__hint', text: breakHintText }));
 				const gridHost = create('div', { class: 'dc-patterns__grid-host', id: 'dc-pat-grid-host' });
 				wrap.appendChild(gridHost);
 				buildGrid(gridHost, cycleWeeks, draftWeekDays);

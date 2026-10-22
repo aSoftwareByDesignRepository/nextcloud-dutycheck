@@ -75,7 +75,8 @@ class LateChangeNotificationService
 	{
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('linked_user_id')->from('dc_employees')
-			->where($qb->expr()->eq('id', $qb->createNamedParameter($employeeId, IQueryBuilder::PARAM_INT)));
+			->where($qb->expr()->eq('id', $qb->createNamedParameter($employeeId, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->eq('active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)));
 		$row = $qb->executeQuery()->fetch();
 		if ($row === false) {
 			return null;

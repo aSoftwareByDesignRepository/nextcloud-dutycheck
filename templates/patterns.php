@@ -28,7 +28,8 @@ $dienstUrl = (string) ($urls['dienstTeamSettings'] ?? ($urls['settings'] ?? '#')
 	data-label-working="<?php p($l->t('Working')); ?>"
 	data-label-net="<?php p($l->t('Net minutes')); ?>"
 	data-label-start="<?php p($l->t('Start')); ?>"
-	data-label-end="<?php p($l->t('End')); ?>">
+	data-label-end="<?php p($l->t('End')); ?>"
+	data-label-break="<?php p($l->t('Break (min)')); ?>">
 	<header class="dc-section__header">
 		<div>
 			<h2 id="dc-patterns-title"><?php p($l->t('Rotation patterns')); ?></h2>

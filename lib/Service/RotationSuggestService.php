@@ -52,6 +52,7 @@ final class RotationSuggestService
 		private readonly PeriodLockService $locks,
 		private readonly ?AvailabilityBlackoutService $blackouts = null,
 		private readonly ?ApiRateLimitService $rateLimits = null,
+		private readonly ?PlanningDefaultsService $planningDefaults = null,
 	) {
 	}
 
@@ -612,7 +613,9 @@ final class RotationSuggestService
 			? (int) $weekDay['shiftTemplateId']
 			: null;
 
-		if (($start === null || $end === null) && $templateId !== null && $templateId > 0) {
+		// A linked template supplies per-field defaults; an explicit week-day
+		// value always wins over the template's.
+		if ($templateId !== null && $templateId > 0) {
 			if (!array_key_exists($templateId, $templateCache)) {
 				$templateCache[$templateId] = $this->loadTemplate($templateId);
 			}
@@ -623,14 +626,21 @@ final class RotationSuggestService
 				if ($break <= 0) {
 					$break = $tpl['breakMinutes'];
 				}
-				if ($locationId === null) {
-					$locationId = $tpl['locationId'];
-				}
+				$locationId ??= $tpl['locationId'];
 			}
 		}
 
 		if (!is_string($start) || !is_string($end) || $start === '' || $end === '' || $start === $end) {
 			return null;
+		}
+
+		// A day without its own break inherits the organisation default — the
+		// same fallback the manual assignment form prefills. Without it every
+		// >6h cell dies on break_too_short in simulateWriteSkips() even though
+		// the planner configured the default (customer report 2026-10-22:
+		// "Pause global gesetzt" → preview created 0 of 20).
+		if ($break <= 0) {
+			$break = $this->planningDefaults?->getDefaultBreakMinutes() ?? 0;
 		}
 
 		return [
@@ -653,6 +663,10 @@ final class RotationSuggestService
 		$qb->select('start_time', 'end_time', 'break_minutes', 'location_id')
 			->from('dc_shift_templates')
 			->where($qb->expr()->eq('id', $qb->createNamedParameter($templateId, IQueryBuilder::PARAM_INT)))
+			// A deactivated template must stop driving linked pattern days —
+			// otherwise deactivation never reaches planning (same class as the
+			// inactive-employee notification leak, 2026-10-22).
+			->andWhere($qb->expr()->eq('active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)))
 			->setMaxResults(1);
 		$row = $qb->executeQuery()->fetch();
 		if ($row === false) {
