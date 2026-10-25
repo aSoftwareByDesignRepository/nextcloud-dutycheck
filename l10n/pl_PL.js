@@ -1441,7 +1441,7 @@ OC.L10N.register(
 	"{n} min response" : "reakcja {n} min",
 	"{n} must-fix issues before publish." : "{n} problemów do poprawy przed publikacją.",
 	"{n} people on duty." : "{n} osób na służbie.",
-	"{n} published shifts" : "{n} opublikował zmiany",
+	"{n} published shifts" : "{n} opublikowane zmiany",
 	"{n}-week cycle" : "Cykl {n}-tygodniowy",
 	"{outdated} of {open} open period(s) still use older caps. Apply to refresh them." : "{outdated} z {open} otwartych okresów nadal używa starszych limitów. Zastosuj, aby je odświeżyć.",
 	"{title}: {have} of {need} staff ({time})" : "{title}: {have} z {need} osób ({time})",
