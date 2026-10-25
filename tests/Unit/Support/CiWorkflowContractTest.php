@@ -20,8 +20,13 @@ final class CiWorkflowContractTest extends TestCase
 	{
 		$yml = (string) file_get_contents($this->appRoot() . '/.github/workflows/ci.yml');
 		self::assertNotSame('', $yml);
-		self::assertStringContainsString('phpunit -c phpunit.xml --testsuite unit', $yml);
-		self::assertStringContainsString('phpunit -c phpunit.xml --testsuite integration', $yml);
+		self::assertStringContainsString('phpunit --testsuite unit', $yml);
+		// The integration suite needs a real Nextcloud bootstrap (container
+		// resolution via \OCP\Server::get); under the GitHub shim it would
+		// error rather than skip, so it must never run there — the workflow
+		// must instead document the docker path where it does run.
+		self::assertStringNotContainsString('--testsuite integration', $yml);
+		self::assertStringContainsString('composer test:docker', $yml);
 		self::assertStringContainsString('node --test tests/js/*.test.mjs', $yml);
 		self::assertStringContainsString('run-hardening-followup-mutations.php', $yml);
 		self::assertStringContainsString('run-roster-virtualization-mutations.php', $yml);
