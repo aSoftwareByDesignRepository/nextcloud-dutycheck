@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.3.13 - 2026-10-25
+
+### Fixed
+
+- repair doubled da swap tokens + strip injected zero-width spaces
+- date-chrome overlay repaints on programmatic .value / form.reset()
+- media-boundary inverse-trap migration + l10n pt/nb repairs
+- org-default break inherit + inactive-entity gating + dangling-ref validation
+- --dc-accent-ink token + check-dates createElementNS glyph — shared-pack resync leftover
+- dark-theme accent-ink token + e2e user-state reset
+
+### Changed
+
+- refresh roster month-grid evidence capture from rerun battery
+- l10n: format normalization + linked-status translations + regional syncs
+- assert intro substitutes %s, never literal (shared pack re-sync)
+- l10n: translate TourCheck round labels; fix 'swimming pool' mistranslations
+- normalize tarball modes + host-side signature audit (GH #47)
+
 ## 0.3.12 - 2026-10-19
 
 ### Added
