@@ -1448,6 +1448,5 @@ OC.L10N.register(
 	"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page." : "{unlinked} af {total} aktive medarbejdere har ingen linket Nextcloud-konto — fravær for dem forbliver i DutyCheck, indtil konti linkes på siden Medarbejdere.",
 	"{used} of {total} seats used" : "{used} af {total} brugte sæder",
 	"“Must fix” issues block publishing." : "\"Skal rettes\"-problemer blokerer offentliggørelse."
-	},
-	"nplurals=2; plural=(n != 1);"
+	}
 );

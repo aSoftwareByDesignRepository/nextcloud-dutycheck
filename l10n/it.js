@@ -131,7 +131,7 @@ OC.L10N.register(
 	"Also enable in ArbeitszeitCheck → Integration" : "Abilita anche in ArbeitszeitCheck → Integrazione",
 	"Also used as the hard calendar-week total. Hard = must fix before publishing. Defaults (~60 h) fit a week; raise them for a full month." : "Usato anche come totale rigido della settimana civile. Rigido = da correggere prima della pubblicazione. I valori predefiniti (~60 h) vanno bene per una settimana; aumentarli per un mese intero.",
 	"Also used as the soft calendar-week total (Mon–Sun). Soft = confirm with a short reason." : "Usato anche come totale flessibile della settimana civile (lun.–dom.). Flessibile = confermare con una breve motivazione.",
-	"Always add at least one user or group to the allowlist before enabling the restriction toggle. Otherwise the app locks itself — including you, until a system admin re-opens it." : "Aggiungi sempre almeno un utente o un gruppo alla lista consentita prima di attivare\/disattivare la restrizione. Altrimenti l'app si blocca da sola, incluso te, finché un amministratore di sistema non la riapre.",
+	"Always add at least one user or group to the allowlist before enabling the restriction toggle. Otherwise the app locks itself — including you, until a system admin re-opens it." : "Aggiunga sempre almeno un utente o un gruppo alla lista consentita prima di attivare la restrizione. In caso contrario l'app si blocca — anche per l'amministratore — finché un amministratore di sistema non la riapre.",
 	"An administrator must run “Update apps” or `php occ upgrade` on the server. Until then, DutyCheck cannot save data." : "Un amministratore deve eseguire \"Aggiorna app\" o `php occ upgrade` sul server. Fino ad allora, DutyCheck non può salvare i dati.",
 	"An employee with that display name already exists." : "Esiste già un dipendente con quel nome visualizzato.",
 	"An immutable roster picture taken on publish or close, with an integrity hash." : "Un’istantanea immutabile della pianificazione turni alla pubblicazione o chiusura, con hash di integrità.",
@@ -1357,7 +1357,7 @@ OC.L10N.register(
 	"Wish saved." : "Desiderio salvato.",
 	"Wishes" : "Desideri",
 	"Wishes (Früh \/ Spät)" : "Desideri (Früh \/ Spät)",
-	"Wishes and cannot-work days are not enabled for your company yet." : "Desideri e giorni di indisponibilità non sono ancora abilitati per la vostra organizzazione.",
+	"Wishes and cannot-work days are not enabled for your company yet." : "I desideri e i giorni di indisponibilità non sono ancora abilitati per l'organizzazione.",
 	"With only the Default company, everyone with planner access sees all employees, locations, and periods — same as before multi-company." : "Con solo l'azienda predefinita, chiunque abbia accesso al pianificatore vede tutti i dipendenti, le sedi e i periodi, come prima per la multiazienda.",
 	"Withdraw request" : "Annulla richiesta",
 	"Withdraw swap request" : "Annulla richiesta di scambio",
@@ -1448,6 +1448,5 @@ OC.L10N.register(
 	"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page." : "{unlinked} dei {total} dipendenti attivi non hanno un account Nextcloud collegato: le loro assenze rimangono in DutyCheck finché gli account non vengono collegati nella pagina Dipendenti.",
 	"{used} of {total} seats used" : "{used} di {total} posti utilizzati",
 	"“Must fix” issues block publishing." : "I problemi “Da correggere obbligatoriamente” bloccano la pubblicazione."
-	},
-	"nplurals=2; plural=(n != 1);"
+	}
 );

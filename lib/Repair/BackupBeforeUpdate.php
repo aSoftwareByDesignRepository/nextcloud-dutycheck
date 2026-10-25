@@ -6,7 +6,7 @@ declare(strict_types=1);
  * Pre-migration repair step: snapshot DutyCheck data before schema migrations run.
  *
  * Registered under {@see info.xml} `<repair-steps><pre-migration>` so every
- * `occ app:update projectcheck` and app reinstall over an existing version creates
+ * `occ app:update dutycheck` and app reinstall over an existing version creates
  * a recoverable backup before migrations mutate the database.
  *
  * @copyright Copyright (c) 2026, Nextcloud GmbH

@@ -1,6 +1,6 @@
-# Unit + JS + l10n + hardening mutations. Integration PHPUnit skips without a
-# Nextcloud bootstrap (composer test:docker / docker compose exec). Playwright
-# e2e needs NC_* / E2E_* secrets and is not run here.
+# Unit + JS + l10n + hardening mutations. Integration PHPUnit needs a Nextcloud
+# bootstrap and only runs via composer test:docker / docker compose exec.
+# Playwright e2e needs NC_* / E2E_* secrets and is not run here.
 name: CI
 
 on:
@@ -31,8 +31,7 @@ jobs:
       - run: composer validate --no-check-publish
       - run: composer install --no-interaction --prefer-dist
       - run: find lib tests templates -name '*.php' -print0 | xargs -0 -n1 -P4 php -l
-      - run: php vendor/bin/phpunit -c phpunit.xml --testsuite unit --colors=always
-      - run: php vendor/bin/phpunit -c phpunit.xml --testsuite integration --colors=always
+      - run: php vendor/bin/phpunit --testsuite unit --colors=always
       - run: node --test tests/js/*.test.mjs
       - run: php scripts/check-l10n-runtime.php --all
       - run: php scripts/check-l10n-parity.php

@@ -10,7 +10,7 @@ use OCA\DutyCheck\Exception\ConflictAckRequiredException;
 use OCA\DutyCheck\Exception\IntegrationLegacyConflictException;
 use OCA\DutyCheck\Db\SchemaProbe;
 use OCA\DutyCheck\Integration\ArbeitszeitCheckTypeMapper;
-use OCA\DutyCheck\Repair\UninstallDropTables;
+use OCA\DutyCheck\Repair\SchemaTableCatalog;
 use OCA\DutyCheck\Integration\IArbeitszeitCheckIntegration;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
@@ -173,7 +173,7 @@ class RosterService
 		if ($this->schemaReadyCache !== null) {
 			return $this->schemaReadyCache;
 		}
-		foreach (UninstallDropTables::TABLES as $table) {
+		foreach (SchemaTableCatalog::EXPECTED_TABLES as $table) {
 			if (!SchemaProbe::tableExists($this->db, $table)) {
 				return $this->schemaReadyCache = false;
 			}

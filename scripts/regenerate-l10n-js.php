@@ -10,31 +10,11 @@ declare(strict_types=1);
  */
 
 $base = __DIR__ . '/../l10n';
-$locales = array (
-  0 => 'en',
-  1 => 'de',
-  2 => 'fr',
-  3 => 'es',
-  4 => 'da',
-  5 => 'nl',
-  6 => 'it',
-  7 => 'pl',
-  8 => 'sv',
-  9 => 'nb',
-  10 => 'pt',
-  // Regional variants mirror their base catalog (kept in sync by
-  // sync-l10n-from-runtime.php).
-  11 => 'pt_BR',
-  12 => 'da_DK',
-  13 => 'de_DE',
-  14 => 'es_ES',
-  15 => 'fr_FR',
-  16 => 'it_IT',
-  17 => 'nb_NO',
-  18 => 'nl_NL',
-  19 => 'pl_PL',
-  20 => 'sv_SE',
-);
+$locales = [];
+foreach (glob($base . '/*.json') ?: [] as $jsonFile) {
+	$locales[] = basename($jsonFile, '.json');
+}
+sort($locales);
 
 foreach ($locales as $lang) {
 	$jsonPath = $base . '/' . $lang . '.json';
