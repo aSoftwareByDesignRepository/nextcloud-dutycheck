@@ -3421,7 +3421,7 @@
 		} catch (err) {
 			const code = String(err?.code || err?.payload?.error?.code || '');
 			if (code === 'ROTATION_DISABLED') {
-				Msg.announce(t('dutycheck', 'Turn on Muster in Duty & team settings first.'), 'warning');
+				Msg.announce(t('dutycheck', 'Turn on Patterns in Duty & team settings first.'), 'warning');
 			} else if (code === 'SUGGEST_LOCATION_REQUIRED') {
 				Msg.announce(
 					t('dutycheck', 'Suggest fill needs a location. Set a default location on pattern working days, or filter the roster by location.'),

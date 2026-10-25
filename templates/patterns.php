@@ -12,7 +12,7 @@ $dienstUrl = (string) ($urls['dienstTeamSettings'] ?? ($urls['settings'] ?? '#')
 <section class="dc-card dc-section dc-patterns" id="dc-patterns-page"
 	aria-labelledby="dc-patterns-title"
 	data-settings-url="<?php p($dienstUrl); ?>"
-	data-msg-disabled="<?php p($l->t('Patterns are off. Turn on Muster in Duty & team settings first.')); ?>"
+	data-msg-disabled="<?php p($l->t('Patterns are off. Turn on Patterns in Duty & team settings first.')); ?>"
 	data-msg-empty="<?php p($l->t('No patterns yet. Create one for a person or role.')); ?>"
 	data-msg-saved="<?php p($l->t('Pattern saved.')); ?>"
 	data-msg-assigned="<?php p($l->t('Pattern assigned.')); ?>"

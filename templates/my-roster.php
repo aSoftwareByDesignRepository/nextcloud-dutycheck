@@ -153,7 +153,7 @@ $myAbsencesUrl = (string) ($urls['myAbsences'] ?? '#');
 	hidden
 	data-msg-loading="<?php p($l->t('Loading team week…')); ?>"
 	data-msg-empty="<?php p($l->t('No published colleagues at this location this week.')); ?>"
-	data-msg-disabled="<?php p($l->t('Team week is turned off. Ask your planner to enable Kollegenplan.')); ?>"
+	data-msg-disabled="<?php p($l->t('Team week is turned off. Ask your planner to enable Colleague roster.')); ?>"
 	data-msg-no-loc="<?php p($l->t('Work a published shift at a location first — then you can see colleagues there.')); ?>"
 	data-msg-error="<?php p($l->t('Could not load team week.')); ?>">
 	<header class="dc-section__header">
