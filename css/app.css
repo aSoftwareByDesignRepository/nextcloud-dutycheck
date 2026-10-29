@@ -4554,7 +4554,8 @@ textarea {
 	font-size: var(--dc-fs-sm, 0.875rem);
 	line-height: var(--dc-line-base, 1.45);
 	white-space: normal;
-	overflow-wrap: anywhere;
+	/* Menu labels keep normal word breaks — anywhere tears mid-word. */
+	overflow-wrap: break-word;
 }
 
 .dc-nav-footer__menu-item:hover {
