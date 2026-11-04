@@ -203,6 +203,7 @@ class Application extends App implements IBootstrap
 			return new \OCA\DutyCheck\Service\CompanyService(
 				$c->query(\OCP\IDBConnection::class),
 				$c->query(\OCP\IUserManager::class),
+				$c->query(\Psr\Log\LoggerInterface::class),
 			);
 		});
 		$context->registerService(ShiftTemplateService::class, function ($c): ShiftTemplateService {
@@ -315,6 +316,7 @@ class Application extends App implements IBootstrap
 				$c->query(SelfServiceSettingsService::class),
 				$c->query(RotationAnchorService::class),
 				$c->query(PeriodLockService::class),
+				$c->query(\Psr\Log\LoggerInterface::class),
 			);
 		});
 		$context->registerService(RotationSuggestService::class, function ($c): RotationSuggestService {
@@ -329,6 +331,7 @@ class Application extends App implements IBootstrap
 				$c->query(AvailabilityBlackoutService::class),
 				$c->query(ApiRateLimitService::class),
 				$c->query(PlanningDefaultsService::class),
+				$c->query(\Psr\Log\LoggerInterface::class),
 			);
 		});
 		$context->registerService(ShiftPreferenceService::class, function ($c): ShiftPreferenceService {

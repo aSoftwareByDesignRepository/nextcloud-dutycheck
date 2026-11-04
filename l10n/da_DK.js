@@ -1167,7 +1167,7 @@ OC.L10N.register(
 	"Swap" : "Byt",
 	"Swap approval" : "Godkendelse af byt",
 	"Swap approved." : "Bytte godkendt.",
-	"Swap dialog is not available." : "Swap-dialogen er ikke tilgængelig.",
+	"Swap dialog is not available." : "Byttedialogen er ikke tilgængelig.",
 	"Swap rejected." : "Bytte afvist.",
 	"Swap request sent to planners." : "Bytteanmodning sendt til planlæggere.",
 	"Swap request withdrawn." : "Bytteanmodning trukket tilbage.",

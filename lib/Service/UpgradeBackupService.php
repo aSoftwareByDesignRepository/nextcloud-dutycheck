@@ -412,7 +412,13 @@ class UpgradeBackupService
 	{
 		try {
 			$this->getSnapshotFolder($snapshotId)->delete();
-		} catch (\Throwable) {
+		} catch (\Throwable $e) {
+			// best-effort: pruning an old snapshot must never fail the
+			// backup/restore flow — a stale folder just lingers.
+			$this->logger->warning('DutyCheck: could not delete upgrade backup snapshot folder', [
+				'folder' => $snapshotId,
+				'exception' => $e,
+			]);
 		}
 	}
 
@@ -615,9 +621,11 @@ class UpgradeBackupService
 
 		$destPath = $this->getAppDataPath($folderName);
 		try {
-			$this->rootFolder->get($destPath)->delete();
+			$existing = $this->rootFolder->get($destPath);
 		} catch (NotFoundException) {
+			$existing = null;
 		}
+		$existing?->delete();
 
 		try {
 			$source = $snapshotFolder->get($folderName);

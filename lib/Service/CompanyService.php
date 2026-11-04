@@ -7,6 +7,7 @@ namespace OCA\DutyCheck\Service;
 use OCA\DutyCheck\Db\SchemaProbe;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
+use Psr\Log\LoggerInterface;
 
 /**
  * Wave C1 — multi-company foundation.
@@ -36,6 +37,7 @@ class CompanyService
 	public function __construct(
 		private readonly IDBConnection $db,
 		private readonly ?\OCP\IUserManager $userManager = null,
+		private readonly ?LoggerInterface $logger = null,
 	) {
 	}
 
@@ -87,8 +89,15 @@ class CompanyService
 				'active' => $ins->createNamedParameter(1, IQueryBuilder::PARAM_INT),
 				'created_at' => $ins->createNamedParameter($now),
 			])->executeStatement();
-		} catch (\Throwable) {
-			// Concurrent seed — ignore unique violations.
+		} catch (\Throwable $e) {
+			// Concurrent seed — only unique violations may be ignored;
+			// anything else must surface (a silent return would fake success).
+			if (!$this->isUniqueConstraintViolation($e)) {
+				throw $e;
+			}
+			$this->logger?->debug('DutyCheck: default company already seeded concurrently', [
+				'exception' => $e,
+			]);
 		}
 		return self::DEFAULT_COMPANY_ID;
 	}
@@ -357,10 +366,37 @@ class CompanyService
 				'user_id' => $qb->createNamedParameter($userId),
 				'role' => $qb->createNamedParameter($role),
 			])->executeStatement();
-		} catch (\Throwable) {
-			// unique — already member
+		} catch (\Throwable $e) {
+			// unique — already member; other failures must surface.
+			if (!$this->isUniqueConstraintViolation($e)) {
+				throw $e;
+			}
+			$this->logger?->debug('DutyCheck: member insert hit unique constraint (already member)', [
+				'companyId' => $companyId,
+				'exception' => $e,
+			]);
 		}
 		unset($this->companyIdsByUser[$userId]);
+	}
+
+	private function isUniqueConstraintViolation(\Throwable $e): bool
+	{
+		$chain = $e;
+		for ($i = 0; $i < 8 && $chain !== null; $i++) {
+			$code = (string) $chain->getCode();
+			if ($code === '23000' || $code === '23505') {
+				return true;
+			}
+			$msg = strtolower($chain->getMessage());
+			if (str_contains($msg, 'duplicate')
+				|| str_contains($msg, 'unique constraint')
+				|| str_contains($msg, 'integrity constraint')) {
+				return true;
+			}
+			$prev = $chain->getPrevious();
+			$chain = $prev instanceof \Throwable ? $prev : null;
+		}
+		return false;
 	}
 
 	private function forgetCompanyAccessCaches(): void

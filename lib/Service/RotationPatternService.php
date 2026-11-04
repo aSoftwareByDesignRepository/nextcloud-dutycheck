@@ -8,6 +8,7 @@ use OCA\DutyCheck\Db\SchemaProbe;
 use OCA\DutyCheck\Http\ApiMutationParams;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
+use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
@@ -24,6 +25,7 @@ final class RotationPatternService
 		private readonly SelfServiceSettingsService $settings,
 		private readonly RotationAnchorService $anchors,
 		private readonly ?PeriodLockService $locks = null,
+		private readonly ?LoggerInterface $logger = null,
 	) {
 	}
 
@@ -969,8 +971,13 @@ final class RotationPatternService
 				'payload_json' => $qb->createNamedParameter(json_encode($payload, JSON_THROW_ON_ERROR)),
 				'created_at' => $qb->createNamedParameter($this->now()),
 			])->executeStatement();
-		} catch (Throwable) {
-			// Audit must never block the primary write.
+		} catch (Throwable $e) {
+			// Non-fatal: audit must never block the primary write — but not silently.
+			$this->logger?->warning('DutyCheck: could not write period audit row', [
+				'action' => $action,
+				'periodId' => $periodId,
+				'exception' => $e,
+			]);
 		}
 	}
 

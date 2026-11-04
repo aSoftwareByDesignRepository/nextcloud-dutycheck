@@ -36,6 +36,9 @@ final class StandbyCategoryServiceTest extends TestCase
 
 	protected function tearDown(): void
 	{
+		// dc_standby_categories is only ever named inside mocked SchemaProbe
+		// caches in this suite — no live rows exist to delete; resetting the
+		// probe caches restores full pre-test state.
 		SchemaProbe::resetCache();
 	}
 

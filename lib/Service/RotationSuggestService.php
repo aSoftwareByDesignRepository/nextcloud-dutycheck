@@ -9,6 +9,7 @@ use OCA\DutyCheck\Db\SchemaProbe;
 use OCA\DutyCheck\Exception\ConflictAckRequiredException;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
+use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
@@ -53,6 +54,7 @@ final class RotationSuggestService
 		private readonly ?AvailabilityBlackoutService $blackouts = null,
 		private readonly ?ApiRateLimitService $rateLimits = null,
 		private readonly ?PlanningDefaultsService $planningDefaults = null,
+		private readonly ?LoggerInterface $logger = null,
 	) {
 	}
 
@@ -848,8 +850,14 @@ final class RotationSuggestService
 					(new DateTimeImmutable('now'))->format('Y-m-d H:i:s'),
 				),
 			])->executeStatement();
-		} catch (Throwable) {
-			// Non-fatal.
+		} catch (Throwable $e) {
+			// Non-fatal — audit must never block the primary write, but the
+			// failure must not be silent.
+			$this->logger?->warning('DutyCheck: could not write period audit row', [
+				'action' => $action,
+				'periodId' => $periodId,
+				'exception' => $e,
+			]);
 		}
 	}
 }

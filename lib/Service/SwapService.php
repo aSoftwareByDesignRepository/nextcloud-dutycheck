@@ -610,8 +610,12 @@ class SwapService
 				$revert->where($revert->expr()->eq('id', $revert->createNamedParameter($swapId, IQueryBuilder::PARAM_INT)))
 					->andWhere($revert->expr()->eq('status', $revert->createNamedParameter($finalStatus)))
 					->executeStatement();
-			} catch (\Throwable) {
+			} catch (\Throwable $revertError) {
 				// Best-effort; original error is what callers need.
+				$this->logger?->warning('DutyCheck: could not revert swap status after failed apply', [
+					'swapId' => $swapId,
+					'exception' => $revertError,
+				]);
 			}
 			throw $e;
 		}
