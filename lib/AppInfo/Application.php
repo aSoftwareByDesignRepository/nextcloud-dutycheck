@@ -351,6 +351,7 @@ class Application extends App implements IBootstrap
 				$c->query(SelfServiceSettingsService::class),
 				$c->query(PeriodLockService::class),
 				$c->query(PlannerLocationScopeService::class),
+				$c->query(IFactory::class),
 			);
 		});
 		$context->registerService(PeerRosterService::class, function ($c): PeerRosterService {

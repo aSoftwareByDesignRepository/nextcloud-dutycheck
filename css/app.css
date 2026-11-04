@@ -1254,7 +1254,7 @@ body,
 	padding: var(--dc-space-2) var(--dc-space-3);
 	border-radius: var(--dc-radius-sm);
 	border: 1px solid var(--dc-border-strong);
-	background: var(--dc-bg-card);
+	background-color: var(--dc-bg-card);
 	color: var(--color-main-text, #1d1d1d);
 	font: inherit;
 	box-sizing: border-box;

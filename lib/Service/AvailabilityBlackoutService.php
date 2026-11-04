@@ -6,9 +6,12 @@ namespace OCA\DutyCheck\Service;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use OCA\DutyCheck\AppInfo\Application;
 use OCA\DutyCheck\Db\SchemaProbe;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
+use OCP\IL10N;
+use OCP\L10N\IFactory;
 
 /**
  * Hard availability blackouts (“kann nicht”). Never auto-cancels published assignments.
@@ -26,6 +29,7 @@ final class AvailabilityBlackoutService
 		private readonly SelfServiceSettingsService $settings,
 		private readonly ?PeriodLockService $locks = null,
 		private readonly ?PlannerLocationScopeService $plannerScope = null,
+		private readonly ?IFactory $l10nFactory = null,
 	) {
 	}
 
@@ -58,7 +62,8 @@ final class AvailabilityBlackoutService
 			->andWhere($qb->expr()->gt('end_at', $qb->createNamedParameter($fromAt)))
 			->orderBy('start_at', 'ASC')
 			->addOrderBy('id', 'ASC');
-		return array_map([$this, 'normalize'], $qb->executeQuery()->fetchAll());
+		$l = $this->l10n();
+		return array_map(fn (array $row): array => $this->normalize($row, $l), $qb->executeQuery()->fetchAll());
 	}
 
 	/**
@@ -285,7 +290,7 @@ final class AvailabilityBlackoutService
 			if ($rowLoc !== null && $locationId === null) {
 				continue;
 			}
-			return $this->normalize($row);
+			return $this->normalize($row, $this->l10n());
 		}
 		return null;
 	}
@@ -513,7 +518,7 @@ final class AvailabilityBlackoutService
 				->executeStatement();
 		}
 
-		return $this->normalize($this->getRawById($mergedId));
+		return $this->normalize($this->getRawById($mergedId), $this->l10n());
 	}
 
 	private function locationScopesCompatible(?int $a, ?int $b): bool
@@ -582,8 +587,9 @@ final class AvailabilityBlackoutService
 	 * @param array<string,mixed> $row
 	 * @return array<string,mixed>
 	 */
-	private function normalize(array $row): array
+	private function normalize(array $row, ?IL10N $l = null): array
 	{
+		$labelEnum = (string) $row['label_enum'];
 		return [
 			'id' => (int) $row['id'],
 			'companyId' => (int) $row['company_id'],
@@ -591,11 +597,29 @@ final class AvailabilityBlackoutService
 			'locationId' => $row['location_id'] !== null ? (int) $row['location_id'] : null,
 			'startAt' => (string) $row['start_at'],
 			'endAt' => (string) $row['end_at'],
-			'labelEnum' => (string) $row['label_enum'],
+			'labelEnum' => $labelEnum,
+			'label' => $this->labelFor($labelEnum, $l),
 			'createdBy' => (string) $row['created_by'],
 			'createdAt' => (string) $row['created_at'],
 			'updatedAt' => (string) $row['updated_at'],
 		];
+	}
+
+	private function l10n(): ?IL10N
+	{
+		return $this->l10nFactory?->get(Application::APP_ID);
+	}
+
+	private function labelFor(string $labelEnum, ?IL10N $l): string
+	{
+		if ($l === null) {
+			return $labelEnum;
+		}
+		return match ($labelEnum) {
+			'personal' => $l->t('Personal'),
+			'care' => $l->t('Care'),
+			default => $l->t('Other'),
+		};
 	}
 
 	private function parseUtcDateTime(string $raw): DateTimeImmutable
