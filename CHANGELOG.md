@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.3.14 - 2026-11-06
+
+### Fixed
+
+- availability blackout API labels render translated display text (were raw enum values)
+- native select chevron no longer paints over option text (background longhand)
+- settings nav menu labels wrap long compound words (overflow-wrap: break-word)
+- feature off-state hints name the real feature labels
+- l10n: label-in-name repairs, doubled tokens, Polish '{n} published shifts' past-tense verb, Italian quiet-hours labels
+- l10n JS emitter emits CSP-safe catalogs
+- swallowed-write hardening in roster services
+- IconCatalog::has() so the footer icon candidate guard resolves catalog members
+
+### Changed
+
+- shared feedback-nav-footer partial synced to family canonical
+- refreshed App Store screenshots from clean marketing captures
+
 ## 0.3.13 - 2026-10-25
 
 ### Fixed
@@ -699,25 +717,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Nextcloud compatibility: `max-version` aligned to 33 (latest stable server).
-
-## [0.3.14] — 2026-11-05
-
-### Fixed
-
-- da/fino a)
-- runs
-- break-word)
-- '{n} published shifts' past-tense verb + CSP-safe l10n js emitter
-- hints
-
-### Changed
-
-- fix(api+design-system): translated blackout labels + select chevron longhand
-- fix(l10n+services): label-in-name repairs, doubled tokens, swallowed-write hardening
-- canonical
-- Refresh App Store screenshots from clean marketing captures
-- leg
-- — atlas-farm artifacts, docs and l10n batch 2026-10-25
 
 ## [0.1.4] - 2026-05-10
 
