@@ -1210,6 +1210,11 @@ class RosterApiController extends Controller
 				if ($user === null) {
 					continue;
 				}
+				// Shift assignment never offers deactivated accounts — they
+				// cannot sign in or work a shift.
+				if (method_exists($user, 'isEnabled') && !$user->isEnabled()) {
+					continue;
+				}
 				$uid = (string) $user->getUID();
 				if ($uid === '') {
 					continue;
