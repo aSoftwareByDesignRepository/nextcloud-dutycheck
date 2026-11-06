@@ -700,6 +700,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Nextcloud compatibility: `max-version` aligned to 33 (latest stable server).
 
+## [0.3.14] — 2026-11-05
+
+### Fixed
+
+- da/fino a)
+- runs
+- break-word)
+- '{n} published shifts' past-tense verb + CSP-safe l10n js emitter
+- hints
+
+### Changed
+
+- fix(api+design-system): translated blackout labels + select chevron longhand
+- fix(l10n+services): label-in-name repairs, doubled tokens, swallowed-write hardening
+- canonical
+- Refresh App Store screenshots from clean marketing captures
+- leg
+- — atlas-farm artifacts, docs and l10n batch 2026-10-25
+
 ## [0.1.4] - 2026-05-10
 
 - Initial public packaging: App Store metadata (`info.xml`), `LICENSE`, release `Makefile`, and documentation.
