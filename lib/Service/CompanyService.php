@@ -270,8 +270,13 @@ class CompanyService
 				'active' => $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT),
 				'created_at' => $qb->createNamedParameter($now),
 			])->executeStatement();
-		} catch (\Throwable) {
-			throw new \InvalidArgumentException('COMPANY_NAME_TAKEN');
+		} catch (\Throwable $e) {
+			// Only a dc_co_name_uq collision means "name taken" — never mask a
+			// generic DB failure as a name conflict.
+			if (!$this->isUniqueConstraintViolation($e)) {
+				throw $e;
+			}
+			throw new \InvalidArgumentException('COMPANY_NAME_TAKEN', 0, $e);
 		}
 		$id = (int) $qb->getLastInsertId();
 		$this->forgetCompanyAccessCaches();

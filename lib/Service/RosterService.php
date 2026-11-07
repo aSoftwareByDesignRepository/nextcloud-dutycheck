@@ -2491,7 +2491,16 @@ class RosterService
 				IQueryBuilder::PARAM_INT,
 			);
 		}
-		$qb->insert('dc_employees')->values($values)->executeStatement();
+		try {
+			$qb->insert('dc_employees')->values($values)->executeStatement();
+		} catch (Throwable $e) {
+			// dc_emp_uidx covers linked_user_id only — a concurrent create with
+			// the same linked account raced past assertLinkedUserUnique.
+			if ($this->isUniqueConstraintViolation($e)) {
+				throw new \InvalidArgumentException('LINKED_USER_EXISTS');
+			}
+			throw $e;
+		}
 
 		return $this->listEmployeeCatalog($actorUserId);
 	}
@@ -2521,8 +2530,17 @@ class RosterService
 			->set('display_name', $qb->createNamedParameter($displayName))
 			->set('linked_user_id', $qb->createNamedParameter($linkedUserId))
 			->set('active', $qb->createNamedParameter($active, IQueryBuilder::PARAM_INT))
-			->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
-			->executeStatement();
+			->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
+		try {
+			$qb->executeStatement();
+		} catch (Throwable $e) {
+			// Same linked account was attached to another employee between
+			// assertLinkedUserUnique and this write.
+			if ($this->isUniqueConstraintViolation($e)) {
+				throw new \InvalidArgumentException('LINKED_USER_EXISTS');
+			}
+			throw $e;
+		}
 
 		return $this->listEmployeeCatalog($actorUserId);
 	}
@@ -4996,14 +5014,23 @@ class RosterService
 		$existing = $this->readUserPreference($userId, $prefKey);
 		$qb = $this->db->getQueryBuilder();
 		if ($existing === null) {
-			$qb->insert('dc_user_preferences')
-				->values([
-					'user_id' => $qb->createNamedParameter($userId),
-					'pref_key' => $qb->createNamedParameter($prefKey),
-					'value_json' => $qb->createNamedParameter($valueJson),
-					'updated_at' => $qb->createNamedParameter($this->now()),
-				])->executeStatement();
-			return;
+			try {
+				$qb->insert('dc_user_preferences')
+					->values([
+						'user_id' => $qb->createNamedParameter($userId),
+						'pref_key' => $qb->createNamedParameter($prefKey),
+						'value_json' => $qb->createNamedParameter($valueJson),
+						'updated_at' => $qb->createNamedParameter($this->now()),
+					])->executeStatement();
+				return;
+			} catch (Throwable $e) {
+				// Another writer stored the (user_id, pref_key) row between our
+				// read and this insert — fall through to the update path.
+				if (!$this->isUniqueConstraintViolation($e)) {
+					throw $e;
+				}
+				$qb = $this->db->getQueryBuilder();
+			}
 		}
 		$qb->update('dc_user_preferences')
 			->set('value_json', $qb->createNamedParameter($valueJson))
@@ -5387,6 +5414,12 @@ class RosterService
 		}
 	}
 
+	// unique-conflict:ok — the create/update/cancel assignment writers guard
+	// dc_asg_skey_uidx inside NESTED try/catch spans that already check
+	// isUniqueConstraintViolation (insert, CAS update, swap-repoint); the
+	// cancel write only ever sets a per-id derived slot_key, so it cannot
+	// collide. The farm scanner only reads top-level try spans — see
+	// adjudications/dutycheck/unique_index_write_no_conflict_path.md.
 	private function isUniqueConstraintViolation(Throwable $e): bool
 	{
 		$chain = $e;

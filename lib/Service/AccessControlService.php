@@ -377,7 +377,20 @@ class AccessControlService
 				'role' => $ins->createNamedParameter($role),
 				'created_at' => $ins->createNamedParameter(gmdate('Y-m-d H:i:s')),
 			]);
-		$ins->executeStatement();
+		try {
+			$ins->executeStatement();
+		} catch (\Throwable $e) {
+			if (!$this->isUniqueConstraintViolation($e)) {
+				throw $e;
+			}
+			// A concurrent assign won the (user_id) unique slot between our
+			// delete and this insert — upsert our role onto their row.
+			$upd = $this->db->getQueryBuilder();
+			$upd->update('dc_user_roles')
+				->set('role', $upd->createNamedParameter($role))
+				->where($upd->expr()->eq('user_id', $upd->createNamedParameter($userId)))
+				->executeStatement();
+		}
 
 		$this->forgetUserAuthCaches($userId);
 		return $this->listDutyRoleAssignments();
@@ -437,6 +450,8 @@ class AccessControlService
 		);
 
 		if ($this->db->tableExists('dc_employees')) {
+			// unique-conflict:ok — SETs the dc_emp_uidx column to NULL; NULLs are
+			// never equal in a unique index, so unlink cannot collide.
 			$qb = $this->db->getQueryBuilder();
 			$qb->update('dc_employees')
 				->set('linked_user_id', $qb->createNamedParameter(null))
@@ -575,6 +590,26 @@ class AccessControlService
 			}
 		}
 		return $this->jsonIdListCache[$key] = array_values(array_unique($out));
+	}
+
+	private function isUniqueConstraintViolation(\Throwable $e): bool
+	{
+		$chain = $e;
+		for ($i = 0; $i < 8 && $chain !== null; $i++) {
+			$code = (string) $chain->getCode();
+			if ($code === '23000' || $code === '23505') {
+				return true;
+			}
+			$msg = strtolower($chain->getMessage());
+			if (str_contains($msg, 'duplicate')
+				|| str_contains($msg, 'unique constraint')
+				|| str_contains($msg, 'integrity constraint')) {
+				return true;
+			}
+			$prev = $chain->getPrevious();
+			$chain = $prev instanceof \Throwable ? $prev : null;
+		}
+		return false;
 	}
 
 	private function forgetUserAuthCaches(string $userId): void

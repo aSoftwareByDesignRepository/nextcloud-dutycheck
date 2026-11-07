@@ -98,6 +98,11 @@ class QualificationService
 		try {
 			$qb->insert('dc_qualifications')->values($values)->executeStatement();
 		} catch (\Throwable $e) {
+			// Only a dc_qual_name_uq collision means "name exists" — never mask
+			// a generic DB failure as a name conflict.
+			if (!$this->isUniqueConstraintViolation($e)) {
+				throw $e;
+			}
 			throw new \InvalidArgumentException('QUALIFICATION_NAME_EXISTS', 0, $e);
 		}
 		$id = (int) $qb->getLastInsertId();
@@ -125,6 +130,9 @@ class QualificationService
 				->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
 				->executeStatement();
 		} catch (\Throwable $e) {
+			if (!$this->isUniqueConstraintViolation($e)) {
+				throw $e;
+			}
 			throw new \InvalidArgumentException('QUALIFICATION_NAME_EXISTS', 0, $e);
 		}
 		if ($affected !== 1) {
@@ -206,12 +214,26 @@ class QualificationService
 			return;
 		}
 		$qb = $this->db->getQueryBuilder();
-		$qb->insert('dc_emp_quals')->values([
-			'employee_id' => $qb->createNamedParameter($employeeId, IQueryBuilder::PARAM_INT),
-			'qualification_id' => $qb->createNamedParameter($qualificationId, IQueryBuilder::PARAM_INT),
-			'expires_on' => $qb->createNamedParameter($expiresOn),
-			'created_at' => $qb->createNamedParameter($now),
-		])->executeStatement();
+		try {
+			$qb->insert('dc_emp_quals')->values([
+				'employee_id' => $qb->createNamedParameter($employeeId, IQueryBuilder::PARAM_INT),
+				'qualification_id' => $qb->createNamedParameter($qualificationId, IQueryBuilder::PARAM_INT),
+				'expires_on' => $qb->createNamedParameter($expiresOn),
+				'created_at' => $qb->createNamedParameter($now),
+			])->executeStatement();
+		} catch (\Throwable $e) {
+			// Concurrent attach wrote the (employee_id, qualification_id) pair
+			// between our lookup and this insert — refresh expires_on on it.
+			if (!$this->isUniqueConstraintViolation($e)) {
+				throw $e;
+			}
+			$upd = $this->db->getQueryBuilder();
+			$upd->update('dc_emp_quals')
+				->set('expires_on', $upd->createNamedParameter($expiresOn))
+				->where($upd->expr()->eq('employee_id', $upd->createNamedParameter($employeeId, IQueryBuilder::PARAM_INT)))
+				->andWhere($upd->expr()->eq('qualification_id', $upd->createNamedParameter($qualificationId, IQueryBuilder::PARAM_INT)))
+				->executeStatement();
+		}
 	}
 
 	public function detachFromEmployee(int $employeeId, int $qualificationId, ?string $actorUserId = null): void
@@ -254,11 +276,19 @@ class QualificationService
 			return;
 		}
 		$qb = $this->db->getQueryBuilder();
-		$qb->insert('dc_loc_quals')->values([
-			'location_id' => $qb->createNamedParameter($locationId, IQueryBuilder::PARAM_INT),
-			'qualification_id' => $qb->createNamedParameter($qualificationId, IQueryBuilder::PARAM_INT),
-			'required' => $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT),
-		])->executeStatement();
+		try {
+			$qb->insert('dc_loc_quals')->values([
+				'location_id' => $qb->createNamedParameter($locationId, IQueryBuilder::PARAM_INT),
+				'qualification_id' => $qb->createNamedParameter($qualificationId, IQueryBuilder::PARAM_INT),
+				'required' => $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT),
+			])->executeStatement();
+		} catch (\Throwable $e) {
+			// Concurrent require wrote the same (location_id, qualification_id)
+			// pair between our existence check and this insert — idempotent.
+			if (!$this->isUniqueConstraintViolation($e)) {
+				throw $e;
+			}
+		}
 	}
 
 	/**
@@ -421,5 +451,25 @@ class QualificationService
 		if ($qb->executeQuery()->fetchOne() === false) {
 			throw new \InvalidArgumentException($notFoundCode);
 		}
+	}
+
+	private function isUniqueConstraintViolation(\Throwable $e): bool
+	{
+		$chain = $e;
+		for ($i = 0; $i < 8 && $chain !== null; $i++) {
+			$code = (string) $chain->getCode();
+			if ($code === '23000' || $code === '23505') {
+				return true;
+			}
+			$msg = strtolower($chain->getMessage());
+			if (str_contains($msg, 'duplicate')
+				|| str_contains($msg, 'unique constraint')
+				|| str_contains($msg, 'integrity constraint')) {
+				return true;
+			}
+			$prev = $chain->getPrevious();
+			$chain = $prev instanceof \Throwable ? $prev : null;
+		}
+		return false;
 	}
 }

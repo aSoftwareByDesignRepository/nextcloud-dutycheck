@@ -141,8 +141,7 @@ class PushQuietHoursService
 			return true;
 		} catch (Throwable $e) {
 			// Unique (user_id, payload_hash) → already deferred.
-			$msg = strtolower($e->getMessage());
-			if (str_contains($msg, 'unique') || str_contains($msg, 'duplicate')) {
+			if ($this->isUniqueConstraintViolation($e)) {
 				return true;
 			}
 			$this->logger?->warning('DutyCheck quiet enqueue failed; caller should send now', [
@@ -412,5 +411,25 @@ class PushQuietHoursService
 			return 0;
 		}
 		return ((int) $m[1]) * 60 + (int) $m[2];
+	}
+
+	private function isUniqueConstraintViolation(Throwable $e): bool
+	{
+		$chain = $e;
+		for ($i = 0; $i < 8 && $chain !== null; $i++) {
+			$code = (string) $chain->getCode();
+			if ($code === '23000' || $code === '23505') {
+				return true;
+			}
+			$msg = strtolower($chain->getMessage());
+			if (str_contains($msg, 'duplicate')
+				|| str_contains($msg, 'unique constraint')
+				|| str_contains($msg, 'integrity constraint')) {
+				return true;
+			}
+			$prev = $chain->getPrevious();
+			$chain = $prev instanceof Throwable ? $prev : null;
+		}
+		return false;
 	}
 }

@@ -761,7 +761,18 @@ final class RotationPatternService
 				'end_local' => $qb->createNamedParameter($day['endLocal']),
 				'break_minutes' => $qb->createNamedParameter($day['breakMinutes'], IQueryBuilder::PARAM_INT),
 				'location_id' => $qb->createNamedParameter($day['locationId'], IQueryBuilder::PARAM_INT),
-			])->executeStatement();
+			]);
+			try {
+				$qb->executeStatement();
+			} catch (Throwable $e) {
+				// A concurrent pattern write re-inserted the same
+				// (pattern_id, week_index, dow) row after our delete — the
+				// transaction wrapper rolls our partial write back.
+				if ($this->isUniqueConstraintViolation($e)) {
+					throw new \InvalidArgumentException('ROTATION_PATTERN_WRITE_CONFLICT', 0, $e);
+				}
+				throw $e;
+			}
 		}
 	}
 
@@ -1038,6 +1049,12 @@ final class RotationPatternService
 		return (new \DateTimeImmutable('now'))->format('Y-m-d H:i:s');
 	}
 
+	// unique-conflict:ok — the rotation-assignment insert already sits in a
+	// nested isUniqueConstraintViolation-guarded try (ASSIGNMENT_OVERLAP map),
+	// and the retire-rename update only ever writes a per-id derived
+	// 'name #id' under an is_active=0 CAS — neither can collide. The farm
+	// scanner only reads top-level try spans — see
+	// adjudications/dutycheck/unique_index_write_no_conflict_path.md.
 	private function isUniqueConstraintViolation(Throwable $e): bool
 	{
 		$chain = $e;

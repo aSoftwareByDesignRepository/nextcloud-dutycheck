@@ -92,7 +92,36 @@ class PlannerLocationScopeService
 			$ins->insert('dc_planner_locs')->values([
 				'user_id' => $ins->createNamedParameter($userId),
 				'location_id' => $ins->createNamedParameter($locationId, IQueryBuilder::PARAM_INT),
-			])->executeStatement();
+			]);
+			try {
+				$ins->executeStatement();
+			} catch (\Throwable $e) {
+				// Concurrent scope write stored the same (user_id, location_id)
+				// pair between our delete and this insert — already correct.
+				if (!$this->isUniqueConstraintViolation($e)) {
+					throw $e;
+				}
+			}
 		}
+	}
+
+	private function isUniqueConstraintViolation(\Throwable $e): bool
+	{
+		$chain = $e;
+		for ($i = 0; $i < 8 && $chain !== null; $i++) {
+			$code = (string) $chain->getCode();
+			if ($code === '23000' || $code === '23505') {
+				return true;
+			}
+			$msg = strtolower($chain->getMessage());
+			if (str_contains($msg, 'duplicate')
+				|| str_contains($msg, 'unique constraint')
+				|| str_contains($msg, 'integrity constraint')) {
+				return true;
+			}
+			$prev = $chain->getPrevious();
+			$chain = $prev instanceof \Throwable ? $prev : null;
+		}
+		return false;
 	}
 }
