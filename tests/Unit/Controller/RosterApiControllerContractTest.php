@@ -16,6 +16,7 @@ use OCP\AppFramework\Http\DataDisplayResponse;
 use OCP\AppFramework\Http\DataDownloadResponse;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\ICacheFactory;
 use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IRequest;
@@ -49,6 +50,7 @@ class RosterApiControllerContractTest extends TestCase
 			$this->createMock(PlanningDefaultsService::class),
 			$this->createMock(IConfig::class),
 			$this->createMock(ITimeFactory::class),
+			$this->createMock(ICacheFactory::class),
 		);
 		$this->access->method('currentUserId')->willReturn('planner-1');
 	}
@@ -298,6 +300,7 @@ class RosterApiControllerContractTest extends TestCase
 			$this->createMock(PlanningDefaultsService::class),
 			$this->createMock(IConfig::class),
 			$this->createMock(ITimeFactory::class),
+			$this->createMock(ICacheFactory::class),
 		);
 
 		$response = $controller->exportRosterCsv();
@@ -343,6 +346,7 @@ class RosterApiControllerContractTest extends TestCase
 			$this->createMock(PlanningDefaultsService::class),
 			$this->createMock(IConfig::class),
 			$this->createMock(ITimeFactory::class),
+			$this->createMock(ICacheFactory::class),
 		);
 
 		$response = $controller->createMyAbsence();
@@ -428,6 +432,7 @@ class RosterApiControllerContractTest extends TestCase
 			$this->createMock(PlanningDefaultsService::class),
 			$this->createMock(IConfig::class),
 			$this->createMock(ITimeFactory::class),
+			$this->createMock(ICacheFactory::class),
 		);
 
 		$response = $controller->directoryUsers();
@@ -514,6 +519,7 @@ class RosterApiControllerContractTest extends TestCase
 			$this->createMock(PlanningDefaultsService::class),
 			$this->createMock(IConfig::class),
 			$this->createMock(ITimeFactory::class),
+			$this->createMock(ICacheFactory::class),
 		);
 
 		$response = $controller->directoryUsers();

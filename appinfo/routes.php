@@ -257,6 +257,6 @@ return [
 		['name' => 'rosterApi#rotateMyIcalToken', 'url' => '/api/me/ical-token/rotate', 'verb' => 'POST'],
 		['name' => 'rosterApi#publicIcal', 'url' => '/api/ical/{employeeId}', 'verb' => 'GET',
 			'requirements' => ['employeeId' => '\d+']],
+		['name' => 'rosterApi#widgetSnapshot', 'url' => '/api/widget-snapshot', 'verb' => 'GET'],
 	],
-		['name' => 'rosterApiController#widgetSnapshot', 'url' => '/api/widget-snapshot', 'verb' => 'GET'],
 ];

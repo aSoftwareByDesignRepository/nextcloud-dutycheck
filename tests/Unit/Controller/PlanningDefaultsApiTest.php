@@ -12,6 +12,7 @@ use OCA\DutyCheck\Service\PlanningDefaultsService;
 use OCA\DutyCheck\Service\RosterCsvFormatter;
 use OCA\DutyCheck\Service\RosterService;
 use OCP\AppFramework\Http;
+use OCP\ICacheFactory;
 use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IRequest;
@@ -84,6 +85,7 @@ class PlanningDefaultsApiTest extends TestCase
 			$planning,
 			$this->createMock(IConfig::class),
 			$this->createMock(ITimeFactory::class),
+			$this->createMock(ICacheFactory::class),
 		);
 	}
 }

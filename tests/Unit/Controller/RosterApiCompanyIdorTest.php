@@ -12,6 +12,7 @@ use OCA\DutyCheck\Service\RosterCsvFormatter;
 use OCA\DutyCheck\Service\RosterService;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\ICacheFactory;
 use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IRequest;
@@ -73,6 +74,7 @@ final class RosterApiCompanyIdorTest extends TestCase
 			$this->createMock(PlanningDefaultsService::class),
 			$this->createMock(IConfig::class),
 			$this->createMock(ITimeFactory::class),
+			$this->createMock(ICacheFactory::class),
 		);
 
 		$response = $controller->exportRosterCsv();
@@ -156,6 +158,7 @@ final class RosterApiCompanyIdorTest extends TestCase
 			$this->createMock(PlanningDefaultsService::class),
 			$this->createMock(IConfig::class),
 			$this->createMock(ITimeFactory::class),
+			$this->createMock(ICacheFactory::class),
 		);
 		return [$controller, $roster, $access];
 	}

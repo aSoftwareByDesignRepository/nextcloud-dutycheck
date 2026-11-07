@@ -30,8 +30,8 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\DataResponse;
-use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\ICacheFactory;
 use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IRequest;
@@ -52,6 +52,7 @@ class RosterApiController extends Controller
 		private PlanningDefaultsService $planningDefaults,
 		private IConfig $config,
 		private ITimeFactory $timeFactory,
+		private ICacheFactory $cacheFactory,
 		private ?ShiftTemplateService $templates = null,
 		private ?ConflictPolicyService $conflictPolicy = null,
 		private ?QualificationService $qualifications = null,
@@ -2034,29 +2035,49 @@ class RosterApiController extends Controller
 
 	/**
 	 * Compact widget snapshot (SPEC NH-P2): ONE document per sync — the same
-	 * data the app currently assembles, wrapped with serverNow so countdown
-	 * widgets can correct device-clock skew (MH-P18). Cached 60 s per user
-	 * (NFR: widget endpoint must be a single query-family, cached >=60 s).
+	 * per-employee data the app currently assembles via /api/my/roster, wrapped
+	 * with serverNow so countdown widgets can correct device-clock skew
+	 * (MH-P18). Cached 60 s per user+window (NFR: widget endpoint must be a
+	 * single query-family, cached >=60 s). Shift-only: standby rows never
+	 * render on the widget face.
 	 */
 	#[NoAdminRequired]
-	public function widgetSnapshot(): JSONResponse
+	public function widgetSnapshot(): DataResponse
 	{
-		$uid = \OCP\Server::get(\OCP\IUserSession::class)->getUser()?->getUID();
-		if ($uid === null) {
-			return new JSONResponse(['error' => 'unauthenticated'], 401);
+		try {
+			$userId = $this->access->currentUserId();
+			$this->access->requireEmployee($userId);
+			$from = $this->request->getParam('from');
+			$to = $this->request->getParam('to');
+			$fromIso = is_string($from) && trim($from) !== '' ? trim($from) : null;
+			$toIso = is_string($to) && trim($to) !== '' ? trim($to) : null;
+			if ($fromIso === null && $toIso === null) {
+				// Widget horizon tops out at 30 days (d7/d14/d30 manifest options);
+				// the consumer narrows the window client-side to its own config.
+				$today = $this->timeFactory->getDateTime('today');
+				$fromIso = $today->format('Y-m-d');
+				$toIso = $today->modify('+30 days')->format('Y-m-d');
+			}
+			$cache = $this->cacheFactory->createDistributed('dutycheck_wsnap');
+			$key = $userId . '|' . ($fromIso ?? '') . '|' . ($toIso ?? '');
+			$hit = $cache->get($key);
+			if (is_array($hit)) {
+				return new DataResponse($hit);
+			}
+			$payload = [
+				'ok' => true,
+				'data' => [
+					'assignments' => $this->roster->myRoster($userId, $fromIso, $toIso, false),
+					'serverNow' => $this->timeFactory
+						->getDateTime('now', new \DateTimeZone('UTC'))
+						->format(\DateTimeInterface::ATOM),
+				],
+			];
+			$cache->set($key, $payload, 60);
+			return new DataResponse($payload);
+		} catch (Throwable $e) {
+			return ApiJsonErrorResponse::fromThrowable($e);
 		}
-		$cache = \OCP\Server::get(\OCP\ICacheFactory::class)->createDistributed('dutycheck_wsnap');
-		$key = $uid . '';
-		if (($hit = $cache->get($key)) !== null) {
-			return new JSONResponse($hit);
-		}
-		$status = $this->roster()->getData();
-		$payload = [
-			'status' => $status,
-			'serverNow' => (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format(\DateTimeInterface::ATOM),
-		];
-		$cache->set($key, $payload, 60);
-		return new JSONResponse($payload);
 	}
 
 }
