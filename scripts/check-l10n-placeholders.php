@@ -14,6 +14,11 @@ declare(strict_types=1);
  * Exit 0 = OK, 1 = mismatch printed to STDERR.
  */
 
+if (PHP_SAPI !== 'cli') {
+	fwrite(STDERR, "CLI only\n");
+	exit(1);
+}
+
 $base = __DIR__ . '/../l10n';
 
 /**

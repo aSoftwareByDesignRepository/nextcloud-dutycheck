@@ -9,6 +9,11 @@ declare(strict_types=1);
  * Every finding must be proven by a FAIL line or explicit PROVEN.
  */
 
+if (PHP_SAPI !== 'cli') {
+	fwrite(STDERR, "CLI only\n");
+	exit(1);
+}
+
 require '/var/www/html/lib/base.php';
 
 use OCA\DutyCheck\AppInfo\Application;

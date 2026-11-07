@@ -78,6 +78,6 @@ test('rolling month navigator ensures periods without manual Zeitraum creation',
 	expect(options).toBeGreaterThan(0)
 
 	await page.locator('#dc-roster-grid-wrap').screenshot({
-		path: 'docs/atlas/evidence/screenshots/web/roster-rolling-month.png',
+		path: '/home/alex/Development/nextcloud-dev/documentation/dutycheck/qa-report/atlas/evidence/screenshots/web/roster-rolling-month.png',
 	})
 })

@@ -14,7 +14,7 @@ declare(strict_types=1);
  *   docker exec -u www-data nextcloud-app php /var/www/html/custom_apps/dutycheck/scripts/seed-store-demo.php --user=dc_atlas_planner
  */
 
-if (php_sapi_name() !== 'cli') {
+if (PHP_SAPI !== 'cli') {
 	fwrite(STDERR, "CLI only\n");
 	exit(1);
 }

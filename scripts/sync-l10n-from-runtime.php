@@ -16,6 +16,11 @@ declare(strict_types=1);
  *   php scripts/sync-l10n-from-runtime.php --dry-run
  */
 
+if (PHP_SAPI !== 'cli') {
+	fwrite(STDERR, "CLI only\n");
+	exit(1);
+}
+
 $appRoot = dirname(__DIR__);
 $dryRun = in_array('--dry-run', $argv ?? [], true);
 $translationsPath = null;

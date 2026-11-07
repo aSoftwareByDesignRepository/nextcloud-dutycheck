@@ -7,7 +7,7 @@ import { mkdirSync, copyFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const outQa = '/home/alex/Development/nextcloud-dev/documentation/dutycheck/qa-report/screenshots/web'
-const outAtlas = '/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/docs/atlas/screenshots/web'
+const outAtlas = '/home/alex/Development/nextcloud-dev/documentation/dutycheck/qa-report/atlas/screenshots/web'
 mkdirSync(outQa, { recursive: true })
 mkdirSync(outAtlas, { recursive: true })
 

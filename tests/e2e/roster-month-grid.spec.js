@@ -242,7 +242,7 @@ test('month period keeps one column per day without overlapping headers', async 
 	expect(geometry.firstLabel).toMatch(/1|01/)
 	expect(geometry.lastLabel).toMatch(/31/)
 
-	const shotDir = 'docs/atlas/evidence/screenshots/web'
+	const shotDir = '/home/alex/Development/nextcloud-dev/documentation/dutycheck/qa-report/atlas/evidence/screenshots/web'
 	await page.locator('#dc-roster-grid-wrap').screenshot({
 		path: `${shotDir}/roster-month-grid.png`,
 	})

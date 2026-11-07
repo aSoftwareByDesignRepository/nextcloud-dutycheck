@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url'
 import { pinGermanForSuite, ensureGermanUi, restorePeerLocale } from './helpers/locale-pin-de.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const outAtlas = '/home/alex/Development/nextcloud-dev/nextcloud/apps/dutycheck/docs/atlas/screenshots/web'
+const outAtlas = '/home/alex/Development/nextcloud-dev/documentation/dutycheck/qa-report/atlas/screenshots/web'
 const outQa = '/home/alex/Development/nextcloud-dev/documentation/dutycheck/qa-report/screenshots/web'
 mkdirSync(outAtlas, { recursive: true })
 mkdirSync(outQa, { recursive: true })

@@ -17,6 +17,11 @@ declare(strict_types=1);
  *   php scripts/check-l10n-runtime.php --all
  */
 
+if (PHP_SAPI !== 'cli') {
+	fwrite(STDERR, "CLI only\n");
+	exit(1);
+}
+
 $appRoot = dirname(__DIR__);
 $scanAll = in_array('--all', $argv ?? [], true);
 $enPath = $appRoot . '/l10n/en.json';

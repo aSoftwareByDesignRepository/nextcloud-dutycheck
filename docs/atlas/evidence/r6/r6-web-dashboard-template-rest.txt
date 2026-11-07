@@ -1,4 +1,0 @@
-PHPUnit 9.6.34 by Sebastian Bergmann and contributors.
-
-Unknown option "--exclude-filter"
-EXIT=1

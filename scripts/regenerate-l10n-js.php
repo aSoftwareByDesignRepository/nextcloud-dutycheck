@@ -14,6 +14,11 @@ declare(strict_types=1);
  * Usage: php scripts/regenerate-l10n-js.php
  */
 
+if (PHP_SAPI !== 'cli') {
+	fwrite(STDERR, "CLI only\n");
+	exit(1);
+}
+
 $base = __DIR__ . '/../l10n';
 $locales = [];
 foreach (glob($base . '/*.json') ?: [] as $jsonFile) {

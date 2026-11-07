@@ -7,6 +7,11 @@ declare(strict_types=1);
  *   php /var/www/html/custom_apps/dutycheck/scripts/_ga_e2e.php
  */
 
+if (PHP_SAPI !== 'cli') {
+	fwrite(STDERR, "CLI only\n");
+	exit(1);
+}
+
 require '/var/www/html/lib/base.php';
 
 use OCA\DutyCheck\AppInfo\Application;

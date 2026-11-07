@@ -16,6 +16,11 @@ declare(strict_types=1);
  *   php scripts/apply-runtime-translations.php --dry-run
  */
 
+if (PHP_SAPI !== 'cli') {
+	fwrite(STDERR, "CLI only\n");
+	exit(1);
+}
+
 $appRoot = dirname(__DIR__);
 $dryRun = in_array('--dry-run', $argv ?? [], true);
 $translationsPath = $appRoot . '/l10n/_runtime_translations.json';
