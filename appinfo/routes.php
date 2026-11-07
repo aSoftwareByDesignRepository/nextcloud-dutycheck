@@ -258,4 +258,5 @@ return [
 		['name' => 'rosterApi#publicIcal', 'url' => '/api/ical/{employeeId}', 'verb' => 'GET',
 			'requirements' => ['employeeId' => '\d+']],
 	],
+		['name' => 'rosterApiController#widgetSnapshot', 'url' => '/api/widget-snapshot', 'verb' => 'GET'],
 ];

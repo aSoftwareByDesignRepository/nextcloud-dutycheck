@@ -30,6 +30,7 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\DataResponse;
+use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IConfig;
 use OCP\IGroupManager;
@@ -2029,6 +2030,33 @@ class RosterApiController extends Controller
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);
 		}
+	}
+
+	/**
+	 * Compact widget snapshot (SPEC NH-P2): ONE document per sync — the same
+	 * data the app currently assembles, wrapped with serverNow so countdown
+	 * widgets can correct device-clock skew (MH-P18). Cached 60 s per user
+	 * (NFR: widget endpoint must be a single query-family, cached >=60 s).
+	 */
+	#[NoAdminRequired]
+	public function widgetSnapshot(): JSONResponse
+	{
+		$uid = \OCP\Server::get(\OCP\IUserSession::class)->getUser()?->getUID();
+		if ($uid === null) {
+			return new JSONResponse(['error' => 'unauthenticated'], 401);
+		}
+		$cache = \OCP\Server::get(\OCP\ICacheFactory::class)->createDistributed('dutycheck_wsnap');
+		$key = $uid . '';
+		if (($hit = $cache->get($key)) !== null) {
+			return new JSONResponse($hit);
+		}
+		$status = $this->roster()->getData();
+		$payload = [
+			'status' => $status,
+			'serverNow' => (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format(\DateTimeInterface::ATOM),
+		];
+		$cache->set($key, $payload, 60);
+		return new JSONResponse($payload);
 	}
 
 }
