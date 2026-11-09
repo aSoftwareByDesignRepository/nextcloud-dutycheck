@@ -14,6 +14,7 @@
 			if (v === undefined || v === null) return;
 			if (k === 'class') el.className = String(v);
 			else if (k === 'text') el.textContent = String(v);
+			else if (k.slice(0, 2) === 'on' && typeof v === 'function') el.addEventListener(k.slice(2).toLowerCase(), v);
 			else if (k === 'attrs') Object.entries(v).forEach(([ak, av]) => {
 				if (av === null || av === undefined || av === false) return;
 				el.setAttribute(ak, av === true ? '' : String(av));

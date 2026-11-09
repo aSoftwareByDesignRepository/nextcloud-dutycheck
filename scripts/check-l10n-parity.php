@@ -22,7 +22,7 @@ if (PHP_SAPI !== 'cli') {
 }
 
 $base = __DIR__ . '/../l10n';
-$localeFiles = ['en', 'de', 'fr', 'es', 'da', 'nl', 'it', 'pl', 'sv', 'nb', 'pt', 'pt_BR'];
+$localeFiles = ['en', 'de', 'fr', 'es', 'da', 'nl', 'it', 'pl', 'sv', 'nb', 'pt', 'pt_BR', 'tr'];
 $catalogs = [];
 
 foreach ($localeFiles as $lang) {
