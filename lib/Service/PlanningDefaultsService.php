@@ -55,6 +55,29 @@ class PlanningDefaultsService
 	}
 
 	/**
+	 * Canonical stored form of KEY_DEFAULT_BREAK_MINUTES — the same
+	 * validation and clamping {@see setFromPayload()} applies, without
+	 * writing. Exposed for the config-transfer hooks so an import stores
+	 * byte-identical values (NN-08).
+	 *
+	 * @throws \InvalidArgumentException DEFAULT_BREAK_MINUTES_REQUIRED|INVALID_DEFAULT_BREAK_MINUTES
+	 */
+	public function normalizeForWrite(mixed $raw): string
+	{
+		if ($raw === null || $raw === '') {
+			throw new \InvalidArgumentException('DEFAULT_BREAK_MINUTES_REQUIRED');
+		}
+		if (is_bool($raw) || is_array($raw) || is_object($raw)) {
+			throw new \InvalidArgumentException('INVALID_DEFAULT_BREAK_MINUTES');
+		}
+		$normalized = is_string($raw) ? trim($raw) : $raw;
+		if (!is_numeric($normalized)) {
+			throw new \InvalidArgumentException('INVALID_DEFAULT_BREAK_MINUTES');
+		}
+		return (string) $this->normalizeBreakMinutes((int) round((float) $normalized));
+	}
+
+	/**
 	 * @return array{defaultBreakMinutes:int}
 	 */
 	public function toApi(): array

@@ -965,7 +965,7 @@ body,
 	font-weight: 700;
 	padding-inline: var(--dc-space-5);
 }
-@media (max-width: 479.98px) {
+@media (max-width: 480px) {
 	.dc-setup-checklist__body .button.primary {
 		width: 100%;
 		justify-content: center;
@@ -2887,8 +2887,11 @@ button:focus-visible,
  *   styles; core #app-navigation uses its own toggle below 1024px.
  */
 
-/* 480px — two summary tiles per row on narrow phones in landscape */
-@media (min-width: 480px) {
+/* >480px — two summary tiles per row on narrow phones in landscape.
+ * Boundary convention: max-width owns the integer edge, min-width starts
+ * 0.02px above it — the synced common/transfer.css @media (max-width: 480px)
+ * owns ≤480 for the transfer dialog (CssMediaBoundaryContractTest). */
+@media (min-width: 480.02px) {
 	.dc-summary-grid {
 		grid-template-columns: 1fr 1fr;
 	}

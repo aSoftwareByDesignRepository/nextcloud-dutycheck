@@ -41,6 +41,7 @@ class PageController extends Controller
 		private IArbeitszeitCheckIntegration $arbeitszeitCheckIntegration,
 		private SettingsSectionCatalog $settingsSections,
 		private LicenseService $licenseService,
+		private \OCA\DutyCheck\ConfigTransfer\TransferReceiptStore $transferReceipts,
 		private ?SelfServiceSettingsService $selfService = null,
 	) {
 		parent::__construct($appName, $request);
@@ -349,6 +350,9 @@ class PageController extends Controller
 				) . '#dutycheck-license',
 			);
 		}
+		if ($section === 'transfer') {
+			$extra['transferLastReceipt'] = $this->transferReceipts->lastReceipt();
+		}
 
 		return $this->page(
 			'settings',
@@ -432,6 +436,13 @@ class PageController extends Controller
 		if ($template === 'settings' && ($extra['settingsSection'] ?? '') === 'dienst-team') {
 			Util::addScript(Application::APP_ID, 'settings-dienst-team');
 		}
+		if ($template === 'settings' && ($extra['settingsSection'] ?? '') === 'transfer') {
+			// Bridge must run AFTER common/api.js + common/messaging.js — it
+			// extends window.DutyCheckApi/DutyCheckMessaging in place.
+			Util::addStyle(Application::APP_ID, 'common/transfer');
+			Util::addScript(Application::APP_ID, 'transfer-bridge');
+			Util::addScript(Application::APP_ID, 'transfer');
+		}
 
 		$isEmployee = $this->access->isEmployee($userId);
 		$hasLinkedEmployee = $this->access->hasActiveLinkedEmployee($userId);
@@ -497,6 +508,7 @@ class PageController extends Controller
 			'isEmployee' => $isEmployee,
 			'hasLinkedEmployee' => $hasLinkedEmployee,
 			'isAppAdmin' => $isAppAdmin,
+			'isSystemAdmin' => $this->access->isSystemAdmin($userId),
 			'isPlannerOrAdmin' => $isPlannerOrAdmin,
 			'companyAccessDenied' => $companyAccessDenied,
 			'role' => $role,

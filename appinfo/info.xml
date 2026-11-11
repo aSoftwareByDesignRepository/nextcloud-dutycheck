@@ -411,6 +411,9 @@ Melhoramos este app com o uso real. Relatórios de bugs, atritos e ideias ajudam
 		<command>OCA\DutyCheck\Command\UpgradeBackupCommand</command>
 		<command>OCA\DutyCheck\Command\ReconcileArbeitszeitCheckMirrorCommand</command>
 		<command>OCA\DutyCheck\Command\SeedMobileDemoCommand</command>
+		<command>OCA\DutyCheck\Command\ConfigExportCommand</command>
+		<command>OCA\DutyCheck\Command\ConfigImportCommand</command>
+		<command>OCA\DutyCheck\Command\ConfigReconcileCommand</command>
 	</commands>
 	<!-- No <navigation> here: the menu entry is registered conditionally in
 	     Application::boot (canUseApp) — a static entry would advertise the

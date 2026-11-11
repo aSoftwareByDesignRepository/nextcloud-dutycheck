@@ -41,6 +41,7 @@ final class SettingsSectionCatalog
 		'integration',
 		'privacy',
 		'license',
+		'transfer',
 		'support',
 	];
 
@@ -68,6 +69,7 @@ final class SettingsSectionCatalog
 		'dc-at-integration' => 'integration',
 		'dc-settings-privacy' => 'privacy',
 		'dutycheck-license' => 'license',
+		'dc-transfer-export-card' => 'transfer',
 		'dc-support-us' => 'support',
 	];
 
@@ -103,6 +105,7 @@ final class SettingsSectionCatalog
 			'integration' => $l->t('ArbeitszeitCheck integration'),
 			'privacy' => $l->t('Privacy & words we use'),
 			'license' => $l->t('Official mobile & terminal licenses'),
+			'transfer' => $l->t('Transfer configuration'),
 			'support' => $l->t('Support & us'),
 			default => $l->t('Settings'),
 		};
@@ -129,6 +132,7 @@ final class SettingsSectionCatalog
 			'integration' => $l->t('Integration'),
 			'privacy' => $l->t('Privacy'),
 			'license' => $l->t('License'),
+			'transfer' => $l->t('Transfer'),
 			'support' => $l->t('Support us'),
 			default => $l->t('Settings'),
 		};
@@ -156,6 +160,7 @@ final class SettingsSectionCatalog
 			'dienst-team' => $l->t('Rotation patterns, colleague plan, swaps, wishes, cannot-work days, and night quiet hours — one place for self-service.'),
 			'integration' => $l->t('Mirror absences from ArbeitszeitCheck for roster conflicts. DutyCheck never writes to ArbeitszeitCheck.'),
 			'privacy' => $l->t('How DutyCheck treats personal data, and the plain-language terms used in this app.'),
+			'transfer' => $l->t('Copy all settings, catalogues and data between a test and a production instance — one encrypted file, dry-run before anything is written.'),
 			default => '',
 		};
 	}

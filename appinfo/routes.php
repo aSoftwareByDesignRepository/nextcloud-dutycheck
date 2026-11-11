@@ -21,8 +21,15 @@ return [
 		// Keep the requirement literal (route files load without the app autoloader).
 		// tests/Unit/Controller/SettingsPagesContractTest pins it to SettingsSectionCatalog::routeRequirement().
 		['name' => 'page#settingsSection', 'url' => '/settings/{section}', 'verb' => 'GET',
-			'requirements' => ['section' => 'access|duty-roles|planning|companies|conflicts|shift-templates|qualifications|planner-scope|operations|dienst-team|integration|privacy|license|support']],
+			'requirements' => ['section' => 'access|duty-roles|planning|companies|conflicts|shift-templates|qualifications|planner-scope|operations|dienst-team|integration|privacy|license|transfer|support']],
 		['name' => 'api#bootstrap', 'url' => '/api/bootstrap', 'verb' => 'GET'],
+
+		// ── Config & data transfer (test → production) ──────────────────
+		['name' => 'transfer_api#status', 'url' => '/api/admin/transfer/status', 'verb' => 'GET'],
+		['name' => 'transfer_api#export', 'url' => '/api/admin/transfer/export', 'verb' => 'POST'],
+		['name' => 'transfer_api#preview', 'url' => '/api/admin/transfer/preview', 'verb' => 'POST'],
+		['name' => 'transfer_api#apply', 'url' => '/api/admin/transfer/apply', 'verb' => 'POST'],
+		['name' => 'transfer_api#reconcile', 'url' => '/api/admin/transfer/reconcile', 'verb' => 'POST'],
 		['name' => 'catalogApi#timezones', 'url' => '/api/catalog/timezones', 'verb' => 'GET'],
 		['name' => 'rosterApi#dashboard', 'url' => '/api/dashboard', 'verb' => 'GET'],
 		['name' => 'rosterApi#roster', 'url' => '/api/roster', 'verb' => 'GET'],

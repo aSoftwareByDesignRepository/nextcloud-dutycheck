@@ -42,6 +42,7 @@ $canAdminApp = !empty($_['isAppAdmin']);
 		'integration' => 'integration.php',
 		'privacy' => 'privacy.php',
 		'license' => 'license.php',
+		'transfer' => 'transfer.php',
 		'support' => 'support.php',
 	];
 	$dcRequestedSection = (string) ($_['settingsSection'] ?? '');

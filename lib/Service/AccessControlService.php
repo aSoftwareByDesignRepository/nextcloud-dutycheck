@@ -317,6 +317,45 @@ class AccessControlService
 	}
 
 	/**
+	 * Canonical stored form for one access-door appconfig key — the same
+	 * normalisation {@see saveAppPolicy()} applies, exposed for the config
+	 * transfer hooks so an import writes byte-identical values (NN-08).
+	 *
+	 * @throws \InvalidArgumentException INVALID_ACCESS_RESTRICTION|INVALID_ID_LIST|UNKNOWN_SETTING
+	 */
+	public function normalizeForWrite(string $key, string $value): string
+	{
+		return match ($key) {
+			self::KEY_ACCESS_RESTRICTION => in_array($value, ['0', '1'], true)
+				? $value
+				: throw new \InvalidArgumentException('INVALID_ACCESS_RESTRICTION'),
+			self::KEY_APP_ADMINS,
+			self::KEY_ACCESS_ALLOWED_USER_IDS,
+			self::KEY_ACCESS_ALLOWED_GROUP_IDS => $this->normalizeIdListValue($value),
+			default => throw new \InvalidArgumentException('UNKNOWN_SETTING'),
+		};
+	}
+
+	/**
+	 * Same canonical form {@see saveAppPolicy()} stores: JSON list of
+	 * non-empty unique string ids.
+	 */
+	private function normalizeIdListValue(string $value): string
+	{
+		$list = json_decode($value, true, 64, JSON_THROW_ON_ERROR);
+		if (!is_array($list) || !array_is_list($list)) {
+			throw new \InvalidArgumentException('INVALID_ID_LIST');
+		}
+		$clean = [];
+		foreach ($list as $id) {
+			if (is_string($id) && $id !== '') {
+				$clean[] = $id;
+			}
+		}
+		return json_encode(array_values(array_unique($clean)), JSON_THROW_ON_ERROR);
+	}
+
+	/**
 	 * @return list<array{userId:string,displayName:string,role:string,createdAt:string}>
 	 */
 	public function listDutyRoleAssignments(): array

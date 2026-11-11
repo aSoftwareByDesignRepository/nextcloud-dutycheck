@@ -440,6 +440,62 @@ class Application extends App implements IBootstrap
 				$c->query(CsrfTokenValidator::class),
 			);
 		});
+
+		// ── Config & data transfer (test → production) ──────────────────
+		$context->registerService(\OCA\DutyCheck\ConfigTransfer\TransferManifest::class, fn () => new \OCA\DutyCheck\ConfigTransfer\TransferManifest());
+		$context->registerService(\OCA\DutyCheck\ConfigTransfer\TransferHooks::class, function ($c): \OCA\DutyCheck\ConfigTransfer\TransferHooks {
+			return new \OCA\DutyCheck\ConfigTransfer\TransferHooks(
+				$c->query(AccessControlService::class),
+				$c->query(PlanningDefaultsService::class),
+				$c->query(UpgradeBackupService::class),
+				$c->query(\OCP\IUserManager::class),
+				$c->query(\OCP\IGroupManager::class),
+				$c->query(\Psr\Log\LoggerInterface::class),
+			);
+		});
+		$context->registerService(\OCA\DutyCheck\ConfigTransfer\TransferPendingStore::class, fn ($c) => new \OCA\DutyCheck\ConfigTransfer\TransferPendingStore($c->query(IRootFolder::class), $c->query(\OCP\IConfig::class), 'dutycheck'));
+		$context->registerService(\OCA\DutyCheck\ConfigTransfer\TransferReceiptStore::class, fn ($c) => new \OCA\DutyCheck\ConfigTransfer\TransferReceiptStore($c->query(\OCP\IConfig::class), 'dutycheck'));
+		$context->registerService(\OCA\DutyCheck\ConfigTransfer\TransferService::class, function ($c): \OCA\DutyCheck\ConfigTransfer\TransferService {
+			return new \OCA\DutyCheck\ConfigTransfer\TransferService(
+				$c->query(\OCP\IDBConnection::class),
+				$c->query(\OCP\IConfig::class),
+				$c->query(\OCP\IUserManager::class),
+				$c->query(\OCP\IGroupManager::class),
+				$c->query(IRootFolder::class),
+				$c->query(IAppManager::class),
+				$c->query(ILockingProvider::class),
+				$c->query(\OCP\IURLGenerator::class),
+				$c->query(\Psr\Log\LoggerInterface::class),
+				$c->query(\OCA\DutyCheck\ConfigTransfer\TransferManifest::class),
+				$c->query(\OCA\DutyCheck\ConfigTransfer\TransferHooks::class),
+				$c->query(\OCA\DutyCheck\ConfigTransfer\TransferPendingStore::class),
+				$c->query(\OCA\DutyCheck\ConfigTransfer\TransferReceiptStore::class),
+				'dutycheck',
+				$c->query(\OCP\IAppConfig::class),
+			);
+		});
+		$context->registerService(\OCA\DutyCheck\BackgroundJob\TransferApplyJob::class, function ($c): \OCA\DutyCheck\BackgroundJob\TransferApplyJob {
+			return new \OCA\DutyCheck\BackgroundJob\TransferApplyJob(
+				$c->query(\OCP\AppFramework\Utility\ITimeFactory::class),
+				$c->query(\OCA\DutyCheck\ConfigTransfer\TransferService::class),
+				$c->query(ILockingProvider::class),
+				$c->query(\OCP\BackgroundJob\IJobList::class),
+				$c->query(\Psr\Log\LoggerInterface::class),
+			);
+		});
+		$context->registerService(\OCA\DutyCheck\Controller\TransferApiController::class, function ($c): \OCA\DutyCheck\Controller\TransferApiController {
+			return new \OCA\DutyCheck\Controller\TransferApiController(
+				'dutycheck',
+				$c->query(\OCP\IRequest::class),
+				$c->query(\OCA\DutyCheck\ConfigTransfer\TransferHooks::class),
+				$c->query(\OCA\DutyCheck\ConfigTransfer\TransferService::class),
+				$c->query(\OCP\BackgroundJob\IJobList::class),
+				$c->query(\OCP\Security\Bruteforce\IThrottler::class),
+				$c->query(\OCP\IGroupManager::class),
+				$c->query(\OCP\IUserSession::class),
+			);
+		});
+
 		$context->registerMiddleware(AppAccessMiddleware::class);
 		$context->registerMiddleware(ClientLicenseMiddleware::class);
 		$context->registerMiddleware(SessionCsrfMiddleware::class);

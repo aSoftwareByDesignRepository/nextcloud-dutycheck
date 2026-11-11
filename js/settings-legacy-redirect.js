@@ -32,6 +32,7 @@
 		'dc-at-integration': 'integration',
 		'dc-settings-privacy': 'privacy',
 		'dutycheck-license': 'license',
+		'dc-transfer-export-card': 'transfer',
 		'dc-support-us': 'support',
 	});
 

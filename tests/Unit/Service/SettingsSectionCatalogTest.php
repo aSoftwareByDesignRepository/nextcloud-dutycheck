@@ -47,7 +47,7 @@ final class SettingsSectionCatalogTest extends TestCase
 	{
 		$sections = SettingsSectionCatalog::SECTIONS;
 		self::assertSame($sections, array_values(array_unique($sections)), 'Section slugs must be unique');
-		self::assertCount(14, $sections);
+		self::assertCount(15, $sections);
 		foreach ($sections as $section) {
 			self::assertMatchesRegularExpression(
 				'/^[a-z]+(-[a-z]+)*$/',
@@ -144,6 +144,7 @@ final class SettingsSectionCatalogTest extends TestCase
 			'integration' => 'T:ArbeitszeitCheck integration',
 			'privacy' => 'T:Privacy & words we use',
 			'license' => 'T:Official mobile & terminal licenses',
+			'transfer' => 'T:Transfer configuration',
 			'support' => 'T:Support & us',
 		];
 		self::assertSame(array_keys($expected), SettingsSectionCatalog::SECTIONS, 'Label pinning must cover the catalog in order');
@@ -169,6 +170,7 @@ final class SettingsSectionCatalogTest extends TestCase
 			'integration' => 'T:Integration',
 			'privacy' => 'T:Privacy',
 			'license' => 'T:License',
+			'transfer' => 'T:Transfer',
 			'support' => 'T:Support us',
 		];
 		self::assertSame(array_keys($expected), SettingsSectionCatalog::SECTIONS, 'Nav-label pinning must cover the catalog in order');
@@ -211,6 +213,7 @@ final class SettingsSectionCatalogTest extends TestCase
 			'dienst-team' => 'one place for self-service',
 			'integration' => 'never writes to ArbeitszeitCheck',
 			'privacy' => 'plain-language terms',
+			'transfer' => 'one encrypted file',
 		];
 		$seen = [];
 		foreach ($fingerprints as $section => $fingerprint) {
