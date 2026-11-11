@@ -27,13 +27,16 @@
 		return j && Object.prototype.hasOwnProperty.call(j, 'data') ? j.data : j;
 	}
 	function url(path) {
+		if (typeof path === 'string' && path.charAt(0) === '/' && path.indexOf('/apps/') !== 0) {
+			path = '/apps/dutycheck' + path;
+		}
 		if (base && typeof base.url === 'function') {
 			return base.url(path);
 		}
 		if (base && typeof base.resolveAppPath === 'function') {
 			return base.resolveAppPath(path);
 		}
-		return (window.OC && OC.generateUrl) ? OC.generateUrl('/apps/dutycheck' + path) : path;
+		return (window.OC && OC.generateUrl) ? OC.generateUrl(path) : path;
 	}
 	window.DutyCheckApi = Object.assign({}, base, {
 		url,
