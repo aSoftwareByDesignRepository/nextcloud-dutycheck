@@ -531,7 +531,7 @@
 		"How quickly the person must react when called. Leave empty if not agreed.": "被呼叫时需要在多久内响应。未约定可留空。",
 		"How to add a duty assignment without breaking labour rules or double-booking anyone.": "如何在不违反劳动法规、不重复排人的情况下添加值班分配。",
 		"ISO week parity": "ISO 周奇偶性",
-		"If Save asks you to confirm, a planning rule was triggered (for example less than 11 hours rest between shifts). You can review issues in": "If Save asks you to confirm, a planning rule was triggered (for example less than 11 hours rest between shifts). You can review issues in",
+		"If Save asks you to confirm, a planning rule was triggered (for example less than 11 hours rest between shifts). You can review issues in": "如果保存时要求确认，说明触发了排班规则（例如班次间休息不足 11 小时）。您可以在网格旁的面板中查看问题。",
 		"If a request is rejected or cancelled, the planner adds a written reason next to the status — so you know what to do next.": "如果请求被拒绝或取消，排班员会在状态旁附上书面原因——让您知道下一步怎么做。",
 		"If you believe this is a mistake, contact your DutyCheck administrator and ask to be granted a planner or employee role.": "如果您认为这是误操作，请联系 DutyCheck 管理员，申请排班员或员工角色。",
 		"If your organisation restricts DutyCheck, ask an administrator to add you to the allowed users or groups in Settings.": "如果您的组织限制了 DutyCheck，请让管理员在“设置”中把您加入允许的用户或组。",
