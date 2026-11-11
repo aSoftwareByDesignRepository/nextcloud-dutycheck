@@ -22,7 +22,7 @@ if (PHP_SAPI !== 'cli') {
 }
 
 $base = __DIR__ . '/../l10n';
-$localeFiles = ['en', 'de', 'fr', 'es', 'da', 'nl', 'it', 'pl', 'sv', 'nb', 'pt', 'pt_BR', 'tr'];
+$localeFiles = ['en', 'de', 'fr', 'es', 'da', 'nl', 'it', 'pl', 'sv', 'nb', 'pt', 'pt_BR', 'tr', 'zh_CN'];
 $catalogs = [];
 
 foreach ($localeFiles as $lang) {
@@ -70,5 +70,5 @@ if (!$ok) {
 	exit(1);
 }
 
-echo 'l10n parity OK (' . count($enKeys) . " keys, en/de/fr/es/da/nl/it/pl/sv/nb/pt_BR).\n";
+echo 'l10n parity OK (' . count($enKeys) . ' keys, ' . implode('/', $localeFiles) . ").\n";
 exit(0);
