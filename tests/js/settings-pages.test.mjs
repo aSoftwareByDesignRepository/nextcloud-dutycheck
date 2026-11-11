@@ -38,6 +38,7 @@ const SECTION_URLS = Object.freeze({
 	integration: '/apps/dutycheck/settings/integration',
 	privacy: '/apps/dutycheck/settings/privacy',
 	license: '/apps/dutycheck/settings/license',
+	transfer: '/apps/dutycheck/settings/transfer',
 	support: '/apps/dutycheck/settings/support',
 });
 

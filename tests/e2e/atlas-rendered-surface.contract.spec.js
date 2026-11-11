@@ -56,6 +56,7 @@ const PAGES = [
 	{ name: 'settings-integration', url: '/apps/dutycheck/settings/integration' },
 	{ name: 'settings-privacy', url: '/apps/dutycheck/settings/privacy' },
 	{ name: 'settings-license', url: '/apps/dutycheck/settings/license' },
+	{ name: 'settings-transfer', url: '/apps/dutycheck/settings/transfer' },
 	{ name: 'settings-support', url: '/apps/dutycheck/settings/support' },
 ]
 

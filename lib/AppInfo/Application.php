@@ -453,7 +453,7 @@ class Application extends App implements IBootstrap
 				$c->query(\Psr\Log\LoggerInterface::class),
 			);
 		});
-		$context->registerService(\OCA\DutyCheck\ConfigTransfer\TransferPendingStore::class, fn ($c) => new \OCA\DutyCheck\ConfigTransfer\TransferPendingStore($c->query(IRootFolder::class), $c->query(\OCP\IConfig::class), 'dutycheck'));
+		$context->registerService(\OCA\DutyCheck\ConfigTransfer\TransferPendingStore::class, fn ($c) => new \OCA\DutyCheck\ConfigTransfer\TransferPendingStore($c->query(IRootFolder::class), $c->query(\OCP\IConfig::class), 'dutycheck', $c->query(\Psr\Log\LoggerInterface::class)));
 		$context->registerService(\OCA\DutyCheck\ConfigTransfer\TransferReceiptStore::class, fn ($c) => new \OCA\DutyCheck\ConfigTransfer\TransferReceiptStore($c->query(\OCP\IConfig::class), 'dutycheck'));
 		$context->registerService(\OCA\DutyCheck\ConfigTransfer\TransferService::class, function ($c): \OCA\DutyCheck\ConfigTransfer\TransferService {
 			return new \OCA\DutyCheck\ConfigTransfer\TransferService(
