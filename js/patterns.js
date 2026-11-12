@@ -38,6 +38,74 @@
 		return msg(keys[d], String(d));
 	}
 
+	function pad2(n) {
+		return String(n).padStart(2, '0');
+	}
+
+	function isoDateStr(d) {
+		return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+	}
+
+	function utcDateStr(d) {
+		return d.getUTCFullYear() + '-' + pad2(d.getUTCMonth() + 1) + '-' + pad2(d.getUTCDate());
+	}
+
+	function parseDateValue(v) {
+		const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(v || '').trim());
+		return m ? new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]))) : null;
+	}
+
+	// ISO-8601: week 1 is the week containing the year's first Thursday.
+	function isoWeekNumber(dUtc) {
+		const t = new Date(dUtc.getTime());
+		const day = t.getUTCDay() || 7;
+		t.setUTCDate(t.getUTCDate() + 4 - day);
+		const yearStart = Date.UTC(t.getUTCFullYear(), 0, 1);
+		return Math.floor((t.getTime() - yearStart) / 604800000) + 1;
+	}
+
+	// Monday of ISO week `week` (1..53) in `year`, as a UTC-midnight Date.
+	function isoMondayOfWeek(year, week) {
+		const jan4 = new Date(Date.UTC(year, 0, 4));
+		const dow = jan4.getUTCDay() || 7;
+		return new Date(jan4.getTime() + ((1 - dow) + (week - 1) * 7) * 86400000);
+	}
+
+	function nextMondayIso() {
+		const d = new Date();
+		d.setDate(d.getDate() + (((8 - d.getDay()) % 7) || 7));
+		return isoDateStr(d);
+	}
+
+	// The ISO-week residue the server falls back to when the column is null
+	// (RotationAnchorService: odd KW → week 0 for biweekly, else residue 0).
+	function defaultIsoResidue(cycleWeeks) {
+		return Number(cycleWeeks) === 2 ? 1 : 0;
+	}
+
+	function setFieldError(input, errEl, message) {
+		if (errEl) {
+			errEl.textContent = message;
+			errEl.hidden = false;
+		}
+		if (input) {
+			input.setAttribute('aria-invalid', 'true');
+			if (errEl && errEl.id) input.setAttribute('aria-describedby', errEl.id);
+			input.focus();
+		}
+	}
+
+	function clearFieldError(input, errEl) {
+		if (input) {
+			input.removeAttribute('aria-invalid');
+			input.removeAttribute('aria-describedby');
+		}
+		if (errEl) {
+			errEl.textContent = '';
+			errEl.hidden = true;
+		}
+	}
+
 	function setStatus(text, kind) {
 		const el = document.getElementById('dc-patterns-status');
 		if (!el) return;
@@ -342,6 +410,123 @@
 					create('label', { class: 'dc-field__label', attrs: { for: 'dc-pat-anchor' }, text: t('dutycheck', 'Anchor type') }),
 					anchorSelect,
 				]));
+				// Anchor detail fields — the select alone used to submit
+				// anchorType:'fixed_date' with no anchorDate, which the server
+				// rightly rejected (INVALID_ANCHOR_DATE → generic form toast).
+				const anchorDateInput = create('input', {
+					type: 'date', id: 'dc-pat-anchor-date', class: 'dc-input dc-input--date',
+				});
+				const anchorDateError = create('p', {
+					class: 'dc-field__error', attrs: { hidden: true, id: 'dc-pat-anchor-date-error' },
+				});
+				anchorDateInput.addEventListener('input', () => clearFieldError(anchorDateInput, anchorDateError));
+				const anchorDateField = create('div', { class: 'dc-field' }, [
+					create('label', {
+						class: 'dc-field__label', attrs: { for: 'dc-pat-anchor-date' },
+						text: t('dutycheck', 'Week A starts in the week of'),
+					}),
+					anchorDateInput,
+					create('p', {
+						class: 'dc-field__hint',
+						text: t('dutycheck', 'Cycle week A begins on the Monday of the week containing this date.'),
+					}),
+					anchorDateError,
+				]);
+				anchorDateInput.value = (existing && existing.anchorDate) || nextMondayIso();
+
+				const anchorRefInput = create('input', {
+					type: 'date', id: 'dc-pat-anchor-ref', class: 'dc-input dc-input--date',
+				});
+				const anchorRefError = create('p', {
+					class: 'dc-field__error', attrs: { hidden: true, id: 'dc-pat-anchor-ref-error' },
+				});
+				anchorRefInput.addEventListener('input', () => clearFieldError(anchorRefInput, anchorRefError));
+				const anchorRefHint = create('p', { class: 'dc-field__hint' });
+				const anchorRefField = create('div', { class: 'dc-field' }, [
+					create('label', {
+						class: 'dc-field__label', attrs: { for: 'dc-pat-anchor-ref' },
+						text: t('dutycheck', 'A day inside week A'),
+					}),
+					anchorRefInput,
+					anchorRefHint,
+					anchorRefError,
+				]);
+				const exIsoIdx = existing && existing.anchorIsoWeekIndex !== null && existing.anchorIsoWeekIndex !== undefined
+					? Number(existing.anchorIsoWeekIndex)
+					: null;
+				const prefillResidue = exIsoIdx === null
+					? defaultIsoResidue(cycleWeeks)
+					: ((exIsoIdx % cycleWeeks) + cycleWeeks) % cycleWeeks;
+				anchorRefInput.value = utcDateStr(isoMondayOfWeek(
+					new Date().getFullYear(),
+					prefillResidue === 0 ? cycleWeeks : prefillResidue,
+				));
+
+				const updateRefHint = () => {
+					const n = Number(weekSelect.value || cycleWeeks) || 1;
+					const d = parseDateValue(anchorRefInput.value);
+					if (!d) {
+						anchorRefHint.textContent = t('dutycheck', 'Pick any day that falls inside the first week of the cycle.');
+						return;
+					}
+					if (n <= 1) {
+						anchorRefHint.textContent = t('dutycheck', 'Every week is week A in a one-week cycle.');
+						return;
+					}
+					const r = ((isoWeekNumber(d) % n) + n) % n;
+					if (n === 2) {
+						anchorRefHint.textContent = r === 1
+							? t('dutycheck', 'Week A falls on odd calendar weeks (KW 1, 3, 5, …).')
+							: t('dutycheck', 'Week A falls on even calendar weeks (KW 2, 4, 6, …).');
+						return;
+					}
+					anchorRefHint.textContent = t('dutycheck', 'Week A is every {n}th week (ISO week mod {n} = {r}).')
+						.replaceAll('{n}', String(n)).replace('{r}', String(r));
+				};
+				anchorRefInput.addEventListener('input', updateRefHint);
+				weekSelect.addEventListener('change', updateRefHint);
+
+				let anchorEffField = null;
+				let anchorEffInput = null;
+				let anchorEffError = null;
+				if (!isNew) {
+					anchorEffInput = create('input', {
+						type: 'date', id: 'dc-pat-anchor-eff', class: 'dc-input dc-input--date',
+						attrs: { min: isoDateStr(new Date()) },
+					});
+					anchorEffError = create('p', {
+						class: 'dc-field__error', attrs: { hidden: true, id: 'dc-pat-anchor-eff-error' },
+					});
+					anchorEffInput.addEventListener('input', () => clearFieldError(anchorEffInput, anchorEffError));
+					anchorEffInput.value = (existing && existing.anchorEffectiveFrom) || '';
+					anchorEffField = create('div', { class: 'dc-field' }, [
+						create('label', {
+							class: 'dc-field__label', attrs: { for: 'dc-pat-anchor-eff' },
+							text: t('dutycheck', 'Apply the anchor from'),
+						}),
+						anchorEffInput,
+						create('p', {
+							class: 'dc-field__hint',
+							text: t('dutycheck', 'Dates before this keep the previous week rhythm. Leave empty to apply from today.'),
+						}),
+						anchorEffError,
+					]);
+				}
+
+				const syncAnchorFields = () => {
+					const fixed = anchorSelect.value === 'fixed_date';
+					anchorDateField.hidden = !fixed;
+					anchorRefField.hidden = fixed || Number(weekSelect.value || cycleWeeks) <= 1;
+					if (anchorEffField) anchorEffField.hidden = !fixed;
+					anchorDateInput.required = fixed;
+				};
+				anchorSelect.addEventListener('change', syncAnchorFields);
+				weekSelect.addEventListener('change', syncAnchorFields);
+				updateRefHint();
+				syncAnchorFields();
+				wrap.appendChild(anchorDateField);
+				wrap.appendChild(anchorRefField);
+				if (anchorEffField) wrap.appendChild(anchorEffField);
 				const locSelect = create('select', {
 					id: 'dc-pat-location', class: 'dc-input', attrs: { required: '' },
 				});
@@ -367,12 +552,24 @@
 					}),
 					locSelect,
 				]));
+				const reasonInput = create('input', {
+					type: 'text', id: 'dc-pat-reason', class: 'dc-input', attrs: { maxlength: '200' },
+				});
+				const reasonError = create('p', {
+					class: 'dc-field__error', attrs: { hidden: true, id: 'dc-pat-reason-error' },
+				});
+				reasonInput.addEventListener('input', () => clearFieldError(reasonInput, reasonError));
 				wrap.appendChild(create('div', { class: 'dc-field dc-field--full' }, [
 					create('label', {
 						class: 'dc-field__label', attrs: { for: 'dc-pat-reason' },
 						text: t('dutycheck', 'Reason for change (if editing)'),
 					}),
-					create('input', { type: 'text', id: 'dc-pat-reason', class: 'dc-input', attrs: { maxlength: '200' } }),
+					reasonInput,
+					create('p', {
+						class: 'dc-field__hint',
+						text: t('dutycheck', 'Required when the week rhythm changes (min. 10 characters) — it is written to the audit trail.'),
+					}),
+					reasonError,
 				]));
 				// Break 0 means "inherit the organisation default at fill time" —
 				// say so where the planner sets the value, incl. the live number.
@@ -398,7 +595,7 @@
 				}
 				const weeks = Number(document.getElementById('dc-pat-weeks')?.value || 2);
 				const anchorType = String(document.getElementById('dc-pat-anchor')?.value || 'iso_week_parity');
-				const reason = String(document.getElementById('dc-pat-reason')?.value || '').trim();
+				const reason = String(reasonInput?.value || '').trim();
 				const defaultLocationId = Number(document.getElementById('dc-pat-location')?.value || 0);
 				const weekDays = readGrid(document.getElementById('dc-pat-grid-host'), weeks, defaultLocationId || null);
 				const hasWorking = weekDays.some((d) => d.isWorking);
@@ -413,7 +610,67 @@
 						return false;
 					}
 				}
+				let anchorIsoWeekIndex = null;
+				let anchorDate = null;
+				let anchorEffectiveFrom = null;
+				if (anchorType === 'fixed_date') {
+					anchorDate = String(anchorDateInput.value || '').trim() || null;
+					if (!anchorDate) {
+						setFieldError(anchorDateInput, anchorDateError,
+							t('dutycheck', 'Pick the week in which cycle week A starts.'));
+						return false;
+					}
+					if (!isNew && anchorEffInput) {
+						anchorEffectiveFrom = String(anchorEffInput.value || '').trim() || null;
+					}
+				} else if (weeks > 1) {
+					const ref = parseDateValue(anchorRefInput.value);
+					if (ref) {
+						const residue = ((isoWeekNumber(ref) % weeks) + weeks) % weeks;
+						const exEffective = exIsoIdx === null
+							? defaultIsoResidue(weeks)
+							: ((exIsoIdx % weeks) + weeks) % weeks;
+						// Omit when it matches the effective stored residue —
+						// otherwise null→int reads as an anchor change to the
+						// server and it demands a change reason for nothing.
+						if (residue !== exEffective) {
+							anchorIsoWeekIndex = residue;
+						}
+					}
+				}
+				// Mirror RotationPatternService::anchorFieldsChanged: the
+				// server compares type/iso/date against the stored row and
+				// demands a ≥10-char reason on any difference — surface that
+				// here instead of bouncing off a generic 422 toast.
+				const exAnchorType = (existing && existing.anchorType) || 'iso_week_parity';
+				const exAnchorDate = existing && existing.anchorDate ? String(existing.anchorDate) : null;
+				const serverIso = anchorIsoWeekIndex !== null ? anchorIsoWeekIndex : exIsoIdx;
+				const serverDate = anchorDate !== null ? anchorDate : exAnchorDate;
+				const anchorChanged = !isNew
+					&& (exAnchorType !== anchorType || exIsoIdx !== serverIso || exAnchorDate !== serverDate);
+				// Server checks ANCHOR_EFFECTIVE_IN_PAST only when the anchor
+				// itself changed — an untouched stored date must not block
+				// unrelated edits like a rename.
+				if (anchorChanged && anchorEffectiveFrom && anchorEffectiveFrom < isoDateStr(new Date())) {
+					setFieldError(anchorEffInput, anchorEffError,
+						t('dutycheck', 'The apply-from date cannot be in the past.'));
+					return false;
+				}
+				if (anchorChanged && reason.length < 10) {
+					setFieldError(reasonInput, reasonError, t('dutycheck',
+						'Explain the rhythm change in at least 10 characters — it is written to the audit trail.'));
+					return false;
+				}
 				const payload = { name, cycleWeeks: weeks, anchorType, weekDays };
+				if (anchorIsoWeekIndex !== null) payload.anchorIsoWeekIndex = anchorIsoWeekIndex;
+				if (anchorDate !== null) payload.anchorDate = anchorDate;
+				// '' is an explicit reset server-side (normalize treats '' as
+				// null → anchor change defaults to today). Omitting the key
+				// keeps the stored value — a stored past date would otherwise
+				// trip ANCHOR_EFFECTIVE_IN_PAST when the anchor changes.
+				if (anchorEffectiveFrom !== null || (!isNew && anchorType === 'fixed_date')) {
+					payload.anchorEffectiveFrom = anchorEffectiveFrom || '';
+				}
 				if (!isNew && reason) {
 					payload.anchorChangeReason = reason;
 					payload.changeReason = reason;

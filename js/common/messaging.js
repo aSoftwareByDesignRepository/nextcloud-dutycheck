@@ -88,6 +88,16 @@
 				return t('dutycheck', 'This pattern is deactivated and can no longer be used.');
 			case 'CYCLE_WEEKS_UNSUPPORTED':
 				return t('dutycheck', 'This cycle length is not allowed. Check the rotation settings.');
+			case 'ROTATION_DISABLED':
+				return t('dutycheck', 'Rotation patterns are switched off for this company. Enable them in the DutyCheck settings first.');
+			case 'INVALID_ANCHOR_TYPE':
+				return t('dutycheck', 'This anchor type is not supported. Reload the page and try again.');
+			case 'INVALID_ANCHOR_DATE':
+				return t('dutycheck', 'A fixed start date needs a valid date for the first cycle week.');
+			case 'ANCHOR_EFFECTIVE_IN_PAST':
+				return t('dutycheck', 'The apply-from date cannot be in the past — earlier dates keep the previous week rhythm.');
+			case 'WEEK_DAYS_REQUIRED_FOR_CYCLE_CHANGE':
+				return t('dutycheck', 'Changing the cycle length needs the full week grid. Reload the pattern and save again.');
 			case 'INVALID_LINKED_USER':
 				return t('dutycheck', 'The selected user could not be linked. Pick another account.');
 			case 'LINKED_USER_EXISTS':
