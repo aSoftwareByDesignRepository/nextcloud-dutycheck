@@ -76,3 +76,15 @@ test('anchor error codes map to friendly messages', () => {
 		assert.ok(messaging.includes(`case '${code}'`), `messaging.js misses ${code}`);
 	}
 });
+
+test('submit-referenced editor handles live in openEditor scope, not render()', () => {
+	// Regression guard: the 2026-11-12 delta declared these as `const` inside
+	// render(), which made them invisible to the sibling onSubmit closure —
+	// every Save threw ReferenceError("reasonInput is not defined") and the
+	// modal swallowed it into the generic toast. Hoisted `let`/`const` in
+	// openEditor scope is the fix; render() only assigns.
+	const editorHead = src.slice(src.indexOf('async function openEditor'), src.indexOf('render: () =>'));
+	for (const name of ['reasonInput', 'reasonError', 'anchorDateInput', 'anchorDateError', 'anchorRefInput', 'anchorEffInput', 'anchorEffError', 'exIsoIdx']) {
+		assert.match(editorHead, new RegExp(`\\b(let|const)\\s+${name}\\b`), `${name} must be declared in openEditor scope so onSubmit can see it`);
+	}
+});

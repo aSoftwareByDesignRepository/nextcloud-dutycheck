@@ -375,6 +375,18 @@
 		}
 		const draftWeekDays = (existing && existing.weekDays) || emptyWeekDays(cycleWeeks);
 		const preselectedLoc = preselectLocationId(existing);
+		// Field handles shared between render() and onSubmit — const inside
+		// render() would be invisible to the sibling onSubmit closure.
+		const exIsoIdx = existing && existing.anchorIsoWeekIndex !== null && existing.anchorIsoWeekIndex !== undefined
+			? Number(existing.anchorIsoWeekIndex)
+			: null;
+		let anchorDateInput = null;
+		let anchorDateError = null;
+		let anchorRefInput = null;
+		let anchorEffInput = null;
+		let anchorEffError = null;
+		let reasonInput = null;
+		let reasonError = null;
 
 		C.openModal({
 			title: isNew ? t('dutycheck', 'New pattern') : t('dutycheck', 'Edit pattern'),
@@ -413,10 +425,10 @@
 				// Anchor detail fields — the select alone used to submit
 				// anchorType:'fixed_date' with no anchorDate, which the server
 				// rightly rejected (INVALID_ANCHOR_DATE → generic form toast).
-				const anchorDateInput = create('input', {
+				anchorDateInput = create('input', {
 					type: 'date', id: 'dc-pat-anchor-date', class: 'dc-input dc-input--date',
 				});
-				const anchorDateError = create('p', {
+				anchorDateError = create('p', {
 					class: 'dc-field__error', attrs: { hidden: true, id: 'dc-pat-anchor-date-error' },
 				});
 				anchorDateInput.addEventListener('input', () => clearFieldError(anchorDateInput, anchorDateError));
@@ -434,7 +446,7 @@
 				]);
 				anchorDateInput.value = (existing && existing.anchorDate) || nextMondayIso();
 
-				const anchorRefInput = create('input', {
+				anchorRefInput = create('input', {
 					type: 'date', id: 'dc-pat-anchor-ref', class: 'dc-input dc-input--date',
 				});
 				const anchorRefError = create('p', {
@@ -451,9 +463,6 @@
 					anchorRefHint,
 					anchorRefError,
 				]);
-				const exIsoIdx = existing && existing.anchorIsoWeekIndex !== null && existing.anchorIsoWeekIndex !== undefined
-					? Number(existing.anchorIsoWeekIndex)
-					: null;
 				const prefillResidue = exIsoIdx === null
 					? defaultIsoResidue(cycleWeeks)
 					: ((exIsoIdx % cycleWeeks) + cycleWeeks) % cycleWeeks;
@@ -487,8 +496,6 @@
 				weekSelect.addEventListener('change', updateRefHint);
 
 				let anchorEffField = null;
-				let anchorEffInput = null;
-				let anchorEffError = null;
 				if (!isNew) {
 					anchorEffInput = create('input', {
 						type: 'date', id: 'dc-pat-anchor-eff', class: 'dc-input dc-input--date',
@@ -552,10 +559,10 @@
 					}),
 					locSelect,
 				]));
-				const reasonInput = create('input', {
+				reasonInput = create('input', {
 					type: 'text', id: 'dc-pat-reason', class: 'dc-input', attrs: { maxlength: '200' },
 				});
-				const reasonError = create('p', {
+				reasonError = create('p', {
 					class: 'dc-field__error', attrs: { hidden: true, id: 'dc-pat-reason-error' },
 				});
 				reasonInput.addEventListener('input', () => clearFieldError(reasonInput, reasonError));
