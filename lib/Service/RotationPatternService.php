@@ -174,6 +174,23 @@ final class RotationPatternService
 			if ($anchor['anchorEffectiveFrom'] < $today) {
 				throw new \InvalidArgumentException('ANCHOR_EFFECTIVE_IN_PAST');
 			}
+		} else {
+			// Forward-only also holds when only effective_from moves: a solo
+			// anchorEffectiveFrom write must not backdate the activation point,
+			// and on fixed_date it must not clear it either — both would
+			// re-anchor already-past weeks (re-sending the stored value is
+			// not a move and stays legal).
+			$exEffective = $existing['anchor_effective_from'] !== null
+				? (string) $existing['anchor_effective_from'] : null;
+			if ($anchor['anchorEffectiveFrom'] !== $exEffective) {
+				$today = (new \DateTimeImmutable('today'))->format('Y-m-d');
+				$rewritesPast = $anchor['anchorEffectiveFrom'] === null
+					? $anchor['anchorType'] === self::ANCHOR_FIXED_DATE
+					: $anchor['anchorEffectiveFrom'] < $today;
+				if ($rewritesPast) {
+					throw new \InvalidArgumentException('ANCHOR_EFFECTIVE_IN_PAST');
+				}
+			}
 		}
 
 		if ($name !== (string) $existing['name']) {
