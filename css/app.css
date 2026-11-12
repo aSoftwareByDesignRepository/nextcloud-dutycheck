@@ -2346,6 +2346,38 @@ dialog .dc-btn--danger:active,
 	color: var(--dc-danger-on-fill, var(--color-primary-element-text, #fff)) !important;
 }
 
+/* ── Overlay close-control armor ───────────────────────────────────
+ * Same mechanism as the variant armor above: <button
+ * class="dc-modal__close"> renders inside the body-mounted .dc-modal
+ * backdrop and <button class="dc-toast__close"> inside the body-mounted
+ * .dc-toasts stack (both appended to document.body, outside
+ * #app-content.dc-app), so the scope list cannot reach them and the
+ * bare (0,1,0) class rules lose to core's button repaint (width:130px /
+ * pale fill / border / padding / margin-inline-start:0). The
+ * overlay-scoped selectors pin every repainted property !important
+ * (overlay_toast_button_armor_gap; donor shape: whistlecheck
+ * .wc-toasts button.wc-toast__close). */
+.dc-modal button.dc-modal__close {
+	width: auto !important;
+	margin: 0 !important;
+	padding: var(--dc-space-2) !important;
+	background: transparent !important;
+	border: 0 !important;
+	min-width: 44px;
+	min-height: 44px;
+}
+.dc-toasts button.dc-toast__close,
+#dc-toasts button.dc-toast__close {
+	width: auto !important;
+	margin: 0 !important;
+	margin-inline-start: auto !important;
+	padding: var(--dc-space-2) !important;
+	background: transparent !important;
+	border: 0 !important;
+	min-width: 44px;
+	min-height: 44px;
+}
+
 /* ── Forced-colors affordance (WCAG 1.4.11) ────────────────────────
  * Under forced-colors:active every fill collapses and the inherited
  * transparent border leaves CTA/ghost variants as bare text. Pin a

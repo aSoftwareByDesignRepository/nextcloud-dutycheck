@@ -68,6 +68,53 @@ async function expectDangerPrimary(modal) {
 }
 
 /**
+ * overlay_toast_button_armor_gap (2026-11-12 family sweep): the
+ * body-mounted overlay close controls (<button class="dc-modal__close">
+ * inside the .dc-modal backdrop, <button class="dc-toast__close"> inside
+ * #dc-toasts) live outside #app-content.dc-app, so NC core's native
+ * button repaint (width:130px + pale fill + border at 0-1-1,
+ * margin-inline-start:0 at 0-2-1) must not reach them. Assert the
+ * painted geometry is the declared transparent ~44px icon-close docked
+ * at the host's inline-end on one row — not the collapsed ~128px pale
+ * core-skin block. RED on the pre-armor css, GREEN with it.
+ * @param {import('@playwright/test').Locator} close
+ * @param {string} hostSelector — closest() host the close docks inside
+ */
+async function expectOverlayCloseArmored(close, hostSelector) {
+	await expect(close).toBeVisible()
+	const m = await close.evaluate((el, sel) => {
+		const r = el.getBoundingClientRect()
+		const cs = getComputedStyle(el)
+		const host = el.closest(sel).getBoundingClientRect()
+		return {
+			x: r.x, w: r.width, h: r.height,
+			bottom: r.y + r.height,
+			hostX: host.x, hostW: host.width, hostBottom: host.y + host.height,
+			bg: cs.backgroundColor, bw: cs.borderWidth,
+			dir: cs.direction,
+		}
+	}, hostSelector)
+	expect(m.bg, 'close keeps transparent background (no pale core skin)')
+		.toBe('rgba(0, 0, 0, 0)')
+	expect(m.bw, 'close keeps border:0').toBe('0px')
+	expect(m.w, 'close ≈44px — core width:130px repaint would blow it out')
+		.toBeLessThanOrEqual(56)
+	expect(m.w).toBeGreaterThanOrEqual(40)
+	expect(m.h).toBeGreaterThanOrEqual(40)
+	expect(m.h).toBeLessThanOrEqual(64)
+	// inline-end dock + single row: glyph sits in the host's trailing half
+	// (leading half under rtl) and inside its height — the collapsed block
+	// wrapped to a second row instead.
+	const center = m.x + m.w / 2
+	const dockedEnd = m.dir === 'rtl'
+		? center < m.hostX + m.hostW / 2
+		: center > m.hostX + m.hostW / 2
+	expect(dockedEnd, 'close docks at the host inline-end').toBe(true)
+	expect(m.bottom, 'close stays on the host row (no wrap)')
+		.toBeLessThanOrEqual(m.hostBottom + 1)
+}
+
+/**
  * Shared roster page stubs for shipping promptReason surfaces in roster.js.
  * @param {import('@playwright/test').Page} page
  * @param {{ period: object, employees?: object[], locations?: object[], assignments?: object[], conflicts?: object[], openClaims?: object[] }} opts
@@ -2349,6 +2396,7 @@ test.describe('atlas period delete + overlap dialogs 3.5.17', () => {
 		const modal = dcModal(page)
 		await expect(modal).toBeVisible({ timeout: 8_000 })
 		await expectDangerPrimary(modal)
+		await expectOverlayCloseArmored(modal.locator('.dc-modal__close'), '.dc-modal__dialog')
 		await modalPrimary(modal).click()
 
 		await expect.poll(() => deletes, { timeout: 10_000 }).toBe(1)
@@ -2356,6 +2404,7 @@ test.describe('atlas period delete + overlap dialogs 3.5.17', () => {
 		// locale), never the raw server detail string.
 		const toast = page.locator('.dc-toast--error[role="alert"]')
 		await expect(toast).toBeVisible({ timeout: 10_000 })
+		await expectOverlayCloseArmored(toast.locator('.dc-toast__close'), '.dc-toast')
 		await expect(toast).toContainText(/Only empty, unpublished periods can be deleted|unveröffentlichte Zeiträume/i)
 		await expect(toast).not.toContainText('raw server detail')
 		await expect(page.locator('#dc-alert-region')).toContainText(/Only empty, unpublished periods|unveröffentlichte Zeiträume/i)
