@@ -486,7 +486,7 @@ OC.L10N.register(
 	"Enter both dates in the format the input expects." : "Voer beide datums in het formaat in dat de invoer verwacht.",
 	"Enter break minutes between 0 and 720." : "Voer pauzeminuten in tussen 0 en 720.",
 	"Every published shift assigned to you in the selected range. If anything looks wrong, contact your planner before the shift starts." : "Elke gepubliceerde dienst die aan u is toegewezen in het geselecteerde bereik. Als er iets mis lijkt te zijn, neem dan vóór aanvang van de dienst contact op met uw planner.",
-	"Every week is week A in a one-week cycle." : "In een cyclus van één week is elke week week A.",
+	"Every week is week A in a one-week cycle." : "Elke week is cyclusweek A in een cyclus van één week.",
 	"Every working day needs start and end times." : "Elke werkdag heeft begin- en eindtijd nodig.",
 	"Everyone here is linked to a Nextcloud account — add or change their absences in ArbeitszeitCheck. The table below still shows what you need for the roster." : "Iedereen hier is gekoppeld aan een Nextcloud-account — voeg afwezigheden toe of wijzig ze in ArbeitszeitCheck. In onderstaande tabel staat nog wat u nodig heeft voor het rooster.",
 	"Everything you send stays \"Pending\" until reviewed. For a single day off, use the same date twice." : "Alles wat u verzendt, blijft 'In behandeling' totdat het wordt beoordeeld. Voor een enkele vrije dag gebruikt u twee keer dezelfde datum.",
