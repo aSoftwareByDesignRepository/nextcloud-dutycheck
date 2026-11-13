@@ -5,6 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 0.3.15 - 2026-11-13
+
+### Fixed
+
+- sync config-transfer pack — element-qualified mobile full-bleed dialog
+- reword nl one-week-cycle msgid to clear doubled-token gate
+- hoist editor field handles out of render() scope
+- close solo anchorEffectiveFrom forward-only bypass
+- drop shipped _runtime_translations scratch files, de-collide nl EN-FRAG runs
+- anchor-date rotation patterns + ISO week handling, dialog centering
+- armor body-mounted overlay close controls against core repaint
+- sync config-transfer pack — schema cache, file-input specificity, sheet clip
+- .dc-btn variant armor + 21 runtime msgids + bridge path fix
+- sync config-transfer pack — positional t() interpolation
+- pack re-render — closed-dialog re-hide + markQueued job-state seeding
+- synced-pack hardening — preflight env gate, no parseability oracle, logged cleanup, Escape arming
+- zh_CN placeholder order, Bereitschaft label refs, parity roster
+- pt snapshot deps follow the Instantâneo label
+- tr placeholder order + Bereitschaft label reference
+- register widget-snapshot inside routes + employee-scope the payload
+- reason-checked unique-violation catches on UNIQUE-indexed writes
+- close tarball dev-artifact leaks — PHP_SAPI guards + audit-tree relocation
+- shift-assignment user search skips deactivated accounts
+
+### Added
+
+- config & data transfer — encrypted test→prod pack
+- widget-snapshot endpoint
+
+### Changed
+
+- transfer pack-sync render proof harness (sheet clip, file input, dialog footer)
+- pack re-sync — replace-confirm token width (cramped_form_controls)
+- l10n: zh-Hant/zh_TW catalog + locale wiring
+- l10n: fix truncated zh_CN string
+- l10n: complete zh_CN coverage
+- l10n: add zh_CN catalog
+- l10n: complete translations across the app language set
+- translation updates + js sync
+- rewrite malformed 0.3.14 release notes
+
 ## 0.3.14 - 2026-11-06
 
 ### Fixed
