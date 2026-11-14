@@ -1178,7 +1178,7 @@ OC.L10N.register(
 	"Search timezones (e.g. Europe\/Berlin or Moscow)" : "Tijdzones zoeken (bijvoorbeeld Europa\/Berlijn of Moskou)",
 	"Search users to assign planner role…" : "Gebruikers zoeken om de plannerrol toe te wijzen...",
 	"Searching…" : "Zoeken…",
-	"Seat assigned." : "Seat toegewezen.",
+	"Seat assigned." : "Plaats toegewezen.",
 	"Seat removed." : "Plaats verwijderd.",
 	"Secrets are never included." : "Geheimen worden nooit meegenomen.",
 	"Secrets not transferred" : "Geheimen niet overgedragen",
