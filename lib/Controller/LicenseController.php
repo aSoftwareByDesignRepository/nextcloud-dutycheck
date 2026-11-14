@@ -87,7 +87,7 @@ class LicenseController extends Controller
 			$uid = $this->requireAppAdmin();
 			$result = $this->license->assignSeat($uid, $this->request->getParam('userId'));
 			return new JSONResponse(
-				$result['seat'],
+				['ok' => true, 'seat' => $result['seat'], 'created' => !empty($result['created'])],
 				$result['created'] ? Http::STATUS_CREATED : Http::STATUS_OK,
 			);
 		} catch (LicenseException $e) {
@@ -109,9 +109,22 @@ class LicenseController extends Controller
 
 	/**
 	 * Directory search for seat assignment (app admins only).
-	 * Returns `{ ok: true, items: [...] }` — the contract license-settings.js expects.
+	 * Returns `{ ok: true, items: [...] }` — the contract the shared license page expects.
 	 */
-	#[NoAdminRequired]
+		#[NoAdminRequired]
+	public function removeSeatPost(): JSONResponse
+	{
+		try {
+			$this->requireAppAdmin();
+			$uid = (string)$this->request->getParam('userId', '');
+			$this->license->removeSeat($uid);
+			return new JSONResponse(['ok' => true, 'deleted' => true]);
+		} catch (LicenseException $e) {
+			return $this->fromLicenseException($e);
+		}
+	}
+
+#[NoAdminRequired]
 	public function searchUsers(): JSONResponse
 	{
 		try {

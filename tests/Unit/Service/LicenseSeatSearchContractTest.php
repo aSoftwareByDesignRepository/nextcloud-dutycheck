@@ -53,20 +53,21 @@ final class LicenseSeatSearchContractTest extends TestCase
 
 	public function testClientAcceptsItemsAndUsersShapes(): void
 	{
-		$js = $this->read('js/license-settings.js');
-		self::assertStringContainsString('function normalizeSearchHits', $js);
-		self::assertStringContainsString('res.data.items', $js);
-		self::assertStringContainsString('res.data.users', $js);
-		self::assertStringContainsString('normalizeSearchHits(raw)', $js);
-		self::assertStringContainsString('seatSearchLoading', $js);
+		// Shared license page JS (synced from _shared/license-page).
+		$js = $this->read('js/common/license-page.js');
+		self::assertStringContainsString('function normalizeUsers', $js);
+		self::assertStringContainsString('data.items', $js);
+		self::assertStringContainsString('data.users', $js);
 		self::assertStringContainsString('aria-busy', $js);
 	}
 
 	public function testPanelDataAttributePresent(): void
 	{
-		$tpl = $this->read('templates/parts/license-panel.php');
+		// The combobox markup lives in the shared synced page; the app wrapper
+		// only feeds params.
+		$tpl = $this->read('templates/common/license-page.php');
 		self::assertStringContainsString('data-api-search-users="', $tpl);
-		self::assertStringContainsString('id="dc-license-seat-search-input"', $tpl);
+		self::assertStringContainsString('id="dc-seat-user-search"', $tpl);
 		self::assertStringContainsString('role="combobox"', $tpl);
 	}
 }

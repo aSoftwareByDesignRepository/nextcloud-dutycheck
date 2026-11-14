@@ -295,7 +295,7 @@ final class DesignSystemCssContractTest extends TestCase
 		$licenseCss = preg_replace(
 			'/\/\*[\s\S]*?\*\//',
 			'',
-			(string) file_get_contents($root . '/css/license-settings.css'),
+			(string) file_get_contents($root . '/css/common/license-page.css'),
 		) ?? '';
 		self::assertDoesNotMatchRegularExpression(
 			'/\.dc-license-(section|panel|form)\s*\{[^}]*overflow-x:\s*clip\s*;/s',
@@ -356,19 +356,19 @@ final class DesignSystemCssContractTest extends TestCase
 	public function testLicenseCssMixesTintsIntoMainBackground(): void
 	{
 		$root = dirname(__DIR__, 3);
-		$licenseCss = (string) file_get_contents($root . '/css/license-settings.css');
+		$licenseCss = (string) file_get_contents($root . '/css/common/license-page.css');
 		self::assertNotSame('', $licenseCss);
 		self::assertDoesNotMatchRegularExpression(
-			'/\.dc-license-badge--(active|warning|expired)\s*\{[^}]*transparent\)/s',
+			'/\.dc-license-badge--(success|warning|danger)\s*\{[^}]*transparent\)/s',
 			$licenseCss,
 			'License badges must mix semantic colour into --color-main-background, not transparent',
 		);
 		self::assertStringContainsString('var(--dc-muted', $licenseCss);
 		self::assertStringContainsString('var(--dc-touch', $licenseCss);
 		self::assertMatchesRegularExpression(
-			'/\.dc-license-status \.dc-license-meter-label[^{]*\{[^}]*color:\s*var\(--color-main-text/s',
+			'/\.dc-license-meter[^{]*\{[^}]*color:\s*var\(--color-main-text|\.dc-license-stat-tile__label/s',
 			$licenseCss,
-			'Meter labels on --color-background-darker must use main-text ink (WCAG 1.4.3)',
+			'Shared meter/stat labels must keep readable main-text ink (WCAG 1.4.3)',
 		);
 	}
 

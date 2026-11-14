@@ -337,8 +337,8 @@ class PageController extends Controller
 		];
 		if ($section === 'license') {
 			$extra = array_merge($extra, $this->licenseSettingsExtras());
-			Util::addStyle(Application::APP_ID, 'license-settings');
-			Util::addScript(Application::APP_ID, 'license-settings');
+			Util::addStyle(Application::APP_ID, 'common/license-page');
+			Util::addScript(Application::APP_ID, 'common/license-page');
 		}
 		if ($section === 'support') {
 			$extra['supportUsLinks'] = new SupportUsLinks(

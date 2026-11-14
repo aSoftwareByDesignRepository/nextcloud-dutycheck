@@ -64,7 +64,7 @@ $mutations = [
 		'to' => "['name' => 'license#searchPeople', 'url' => '/api/license/search/users', 'verb' => 'GET'],",
 	],
 	'revert-client-to-items-only' => [
-		'file' => 'js/license-settings.js',
+		'file' => 'js/common/license-page.js',
 		'suite' => 'js',
 		'from' => 'renderSuggestions(normalizeSearchHits(raw), null);',
 		'to' => 'renderSuggestions(Array.isArray(res.data.items) ? res.data.items : [], null);',

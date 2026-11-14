@@ -167,6 +167,7 @@ return [
 		['name' => 'license#seats', 'url' => '/api/license/seats', 'verb' => 'GET'],
 		['name' => 'license#assignSeat', 'url' => '/api/license/seats', 'verb' => 'POST'],
 		['name' => 'license#removeSeat', 'url' => '/api/license/seats/{uid}', 'verb' => 'DELETE'],
+		['name' => 'license#removeSeatPost', 'url' => '/api/license/seats/remove', 'verb' => 'POST'],
 		['name' => 'license#searchUsers', 'url' => '/api/license/search/users', 'verb' => 'GET'],
 		['name' => 'mobile#bootstrap', 'url' => '/api/mobile/bootstrap', 'verb' => 'GET'],
 		['name' => 'mobile#myRoster', 'url' => '/api/mobile/my/roster', 'verb' => 'GET'],

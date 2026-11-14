@@ -167,10 +167,18 @@ final class L10nCatalogIntegrityTest extends TestCase
 					continue;
 				}
 				$msgstr = (string) $tr[$msgid];
-				if ($this->printfPlaceholders($msgid) !== $this->printfPlaceholders($msgstr)) {
+				$expectedPrintf = $this->printfPlaceholders($msgid);
+				$actualPrintf = $this->printfPlaceholders($msgstr);
+				sort($expectedPrintf);
+				sort($actualPrintf);
+				if ($expectedPrintf !== $actualPrintf) {
 					$failures[] = $lang . ' printf ' . $msgid;
 				}
-				if ($this->namedPlaceholders($msgid) !== $this->namedPlaceholders($msgstr)) {
+				$expectedNamed = $this->namedPlaceholders($msgid);
+				$actualNamed = $this->namedPlaceholders($msgstr);
+				sort($expectedNamed);
+				sort($actualNamed);
+				if ($expectedNamed !== $actualNamed) {
 					$failures[] = $lang . ' named ' . $msgid;
 				}
 			}

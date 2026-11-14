@@ -1,0 +1,732 @@
+/*
+ * Check family — canonical license page (canonical source in _shared/license-page).
+ * SYNCED FILE — never edit the in-app copy; edit the source and re-run
+ * sync_license_page.py. dc is substituted with the app prefix at sync time.
+ *
+ * Self-contained: every class lives under .dc-license-page so the block looks
+ * identical whether it is a standalone admin page or a settings section.
+ * Token vars (--dc-*) fall back to the canonical values so the page renders
+ * correctly even in apps without a full token block.
+ *
+ * Design: ArbeitszeitCheck admin-license page (the family reference).
+ *
+ * @license AGPL-3.0-or-later
+ */
+
+.dc-license-page {
+	display: flex;
+	flex-direction: column;
+	gap: var(--dc-space-5, 1.25rem);
+	width: 100%;
+	max-width: none;
+	min-width: 0;
+}
+
+/* ── Screen-reader-only + live regions ───────────────────────── */
+.dc-license-sr-only,
+.dc-license-page .dc-license-sr-only {
+	position: absolute !important;
+	width: 1px !important;
+	height: 1px !important;
+	padding: 0 !important;
+	margin: -1px !important;
+	overflow: hidden !important;
+	clip: rect(0, 0, 0, 0) !important;
+	white-space: nowrap !important;
+	border: 0 !important;
+}
+
+/* ── Visible feedback banner ─────────────────────────────────── */
+.dc-license-feedback {
+	margin: 0;
+	padding: var(--dc-space-3, 0.75rem) var(--dc-space-4, 1rem);
+	border-radius: var(--dc-radius-sm, 8px);
+	border: 1px solid var(--color-border);
+	font-size: var(--dc-fs-sm, 0.875rem);
+	line-height: var(--dc-line-base, 1.5);
+}
+
+.dc-license-feedback--success {
+	border-color: var(--color-success-text, var(--color-success));
+	background: color-mix(in srgb, var(--color-success-text, var(--color-success)) 12%, var(--color-main-background));
+	color: var(--color-main-text);
+}
+
+.dc-license-feedback--error {
+	border-color: var(--color-error-text, var(--color-error));
+	background: color-mix(in srgb, var(--color-error-text, var(--color-error)) 12%, var(--color-main-background));
+	color: var(--color-main-text);
+}
+
+/* ── Callouts ────────────────────────────────────────────────── */
+.dc-license-callout {
+	display: flex;
+	gap: var(--dc-space-3, 0.75rem);
+	margin: 0;
+	padding: var(--dc-space-4, 1rem);
+	border: 1px solid var(--color-border);
+	border-inline-start: 4px solid var(--color-primary-element);
+	border-radius: var(--dc-radius-md, 10px);
+	background: var(--color-main-background);
+}
+
+.dc-license-callout--info {
+	border-inline-start-color: var(--color-primary-element);
+	background: color-mix(in srgb, var(--color-primary-element) 7%, var(--color-main-background));
+}
+
+.dc-license-callout--warning {
+	border-inline-start-color: var(--color-warning-text, var(--color-warning));
+	background: color-mix(in srgb, var(--color-warning-text, var(--color-warning)) 12%, var(--color-main-background));
+}
+
+.dc-license-callout--danger {
+	border-inline-start-color: var(--color-error-text, var(--color-error));
+	background: color-mix(in srgb, var(--color-error-text, var(--color-error)) 10%, var(--color-main-background));
+}
+
+.dc-license-callout__title {
+	margin: 0 0 var(--dc-space-1, 0.25rem);
+	font-size: var(--dc-fs-md, 1rem);
+	font-weight: 600;
+}
+
+.dc-license-callout__text {
+	margin: 0;
+	line-height: var(--dc-line-base, 1.5);
+}
+
+.dc-license-callout__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--dc-space-3, 0.75rem);
+	margin-top: var(--dc-space-3, 0.75rem);
+}
+
+/* ── Stat tiles (design-system §3.5) ─────────────────────────── */
+.dc-license-stat-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(11rem, 100%), 1fr));
+	gap: var(--dc-space-3, 0.75rem);
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	min-width: 0;
+	list-style: none;
+}
+
+.dc-license-stat-tile {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	justify-content: flex-start;
+	gap: 0.25rem;
+	min-height: 6.5rem;
+	min-width: 0;
+	margin: 0;
+	padding: var(--dc-space-4, 1rem);
+	border: 1px solid var(--color-border);
+	border-inline-start: 3px solid var(--color-border-maxcontrast, var(--color-border));
+	border-radius: var(--dc-radius-md, 10px);
+	background: var(--color-main-background);
+	text-align: left;
+	color: inherit;
+}
+
+.dc-license-stat-tile--primary { border-inline-start-color: var(--color-primary-element); }
+.dc-license-stat-tile--success { border-inline-start-color: var(--color-success-text, var(--color-success)); }
+.dc-license-stat-tile--warning { border-inline-start-color: var(--color-warning-text, var(--color-warning)); }
+.dc-license-stat-tile--neutral { border-inline-start-color: var(--color-border); }
+
+.dc-license-stat-tile__label {
+	margin: 0;
+	font-size: var(--dc-fs-xs, 0.8125rem);
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--dc-muted, var(--color-text-maxcontrast));
+}
+
+.dc-license-stat-tile__value {
+	margin: 0;
+	font-size: clamp(1.25rem, 2vw, 1.6rem);
+	font-weight: 700;
+	line-height: var(--dc-line-tight, 1.2);
+	font-variant-numeric: tabular-nums;
+	overflow-wrap: anywhere;
+}
+
+.dc-license-stat-tile__sep {
+	margin-inline: 0.15em;
+	font-weight: 500;
+	color: var(--dc-muted, var(--color-text-maxcontrast));
+}
+
+.dc-license-stat-tile__meta {
+	margin: 0;
+	font-size: var(--dc-fs-xs, 0.8125rem);
+	line-height: 1.4;
+	color: var(--dc-muted, var(--color-text-maxcontrast));
+}
+
+.dc-license-stat__meta-label { font-weight: 600; }
+
+/* Usage meter */
+.dc-license-meter {
+	height: 0.375rem;
+	border-radius: 999px;
+	background: color-mix(in srgb, var(--color-main-text) 8%, transparent);
+	overflow: hidden;
+	margin-top: auto;
+}
+
+.dc-license-meter__fill {
+	height: 100%;
+	border-radius: inherit;
+	background: var(--color-primary-element);
+	transition: width 0.25s ease;
+}
+
+.dc-license-meter__fill--full {
+	background: var(--color-warning-text, var(--color-warning));
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.dc-license-meter__fill { transition: none; }
+}
+
+/* ── Badges ──────────────────────────────────────────────────── */
+.dc-license-badge {
+	display: inline-block;
+	padding: 0.25rem 0.65rem;
+	border-radius: 999px;
+	font-size: var(--dc-fs-xs, 0.8125rem);
+	font-weight: 600;
+	line-height: 1.3;
+}
+
+.dc-license-badge--success {
+	background: color-mix(in srgb, var(--color-success-text, var(--color-success)) 18%, var(--color-main-background));
+	color: var(--color-success-text, var(--color-success));
+}
+
+.dc-license-badge--warning {
+	background: color-mix(in srgb, var(--color-warning-text, var(--color-warning)) 22%, var(--color-main-background));
+	color: var(--color-warning-text, var(--color-warning));
+}
+
+/* ── Section cards ───────────────────────────────────────────── */
+.dc-license-card {
+	margin: 0;
+	border: 1px solid var(--color-border);
+	border-radius: var(--dc-radius-md, 12px);
+	background: var(--color-main-background);
+	min-width: 0;
+}
+
+.dc-license-card__header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: var(--dc-space-3, 0.75rem);
+	padding: var(--dc-space-4, 1rem) var(--dc-space-4, 1rem) 0;
+}
+
+.dc-license-card__title {
+	margin: 0;
+	font-size: var(--dc-fs-lg, 1.125rem);
+	font-weight: 700;
+}
+
+.dc-license-card__lead {
+	margin: var(--dc-space-1, 0.25rem) 0 0;
+	font-size: var(--dc-fs-sm, 0.875rem);
+	line-height: var(--dc-line-base, 1.5);
+	color: var(--dc-muted, var(--color-text-maxcontrast));
+}
+
+.dc-license-card__header-actions {
+	flex: 0 0 auto;
+}
+
+.dc-license-card__body {
+	padding: var(--dc-space-4, 1rem);
+}
+
+/* ── Buttons ─────────────────────────────────────────────────── */
+.dc-license-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.4em;
+	min-height: var(--dc-touch, 44px);
+	min-width: 44px;
+	padding: 0.5rem 1rem;
+	border: 2px solid transparent;
+	border-radius: var(--dc-radius-sm, 8px);
+	font: inherit;
+	font-weight: 600;
+	text-decoration: none;
+	cursor: pointer;
+	box-sizing: border-box;
+}
+
+.dc-license-btn--primary {
+	background: var(--color-primary-element);
+	color: var(--color-primary-element-text, var(--color-primary-text));
+	border-color: var(--color-primary-element);
+}
+
+.dc-license-btn--secondary {
+	background: var(--color-main-background);
+	color: var(--color-main-text);
+	border-color: var(--color-border-maxcontrast, var(--color-border));
+}
+
+.dc-license-btn--danger {
+	background: var(--color-element-error, var(--color-error));
+	color: var(--color-primary-element-text, var(--color-primary-text));
+	border-color: var(--color-element-error, var(--color-error));
+}
+
+.dc-license-btn--sm {
+	min-height: var(--dc-touch, 44px);
+	padding: 0.375rem 0.875rem;
+	font-size: var(--dc-fs-sm, 0.875rem);
+}
+
+.dc-license-btn:hover { filter: brightness(0.95); }
+
+.dc-license-btn:focus-visible {
+	outline: 3px solid color-mix(in srgb, var(--color-primary-element) 55%, transparent);
+	outline-offset: 2px;
+}
+
+.dc-license-btn--danger:hover,
+.dc-license-btn--danger:focus-visible {
+	filter: brightness(0.92);
+	outline: 3px solid color-mix(in srgb, var(--color-element-error, var(--color-error)) 55%, transparent);
+	outline-offset: 2px;
+}
+
+.dc-license-btn:disabled,
+.dc-license-btn[aria-disabled='true'] {
+	opacity: 0.55;
+	cursor: not-allowed;
+}
+
+.dc-license-btn--icon {
+	padding: 0.5rem;
+}
+
+.dc-license-btn--icon svg {
+	width: 1.125rem;
+	height: 1.125rem;
+	display: block;
+}
+
+/* ── Form elements ───────────────────────────────────────────── */
+.dc-license-field__label {
+	display: block;
+	margin: 0 0 var(--dc-space-2, 0.5rem);
+	font-weight: 600;
+	font-size: var(--dc-fs-sm, 0.875rem);
+}
+
+.dc-license-field__hint {
+	margin: var(--dc-space-2, 0.5rem) 0 0;
+	font-size: var(--dc-fs-sm, 0.875rem);
+	line-height: var(--dc-line-base, 1.5);
+	color: var(--dc-muted, var(--color-text-maxcontrast));
+}
+
+.dc-license-input,
+.dc-license-page .dc-license-input {
+	width: 100%;
+	box-sizing: border-box;
+	padding: var(--dc-space-3, 0.75rem);
+	border: 2px solid var(--color-border-maxcontrast, var(--color-border));
+	border-radius: var(--dc-radius-sm, 8px);
+	background: var(--color-main-background);
+	color: var(--color-main-text);
+	font: inherit;
+}
+
+.dc-license-input:focus-visible {
+	outline: 3px solid color-mix(in srgb, var(--color-primary-element) 55%, transparent);
+	outline-offset: 2px;
+	border-color: var(--color-primary-element);
+}
+
+.dc-license-input:disabled,
+.dc-license-input[aria-disabled='true'] {
+	opacity: 0.55;
+	cursor: not-allowed;
+}
+
+.dc-license-key-input {
+	min-height: 6rem;
+	font-family: var(--font-face-monospace, ui-monospace, monospace);
+	font-size: var(--dc-fs-sm, 0.875rem);
+	line-height: 1.45;
+	resize: vertical;
+}
+
+.dc-license-instance-box {
+	margin-top: var(--dc-space-4, 1rem);
+	padding: var(--dc-space-4, 1rem);
+	border: 1px solid var(--color-border);
+	border-radius: var(--dc-radius-sm, 8px);
+	background: color-mix(in srgb, var(--color-primary-element) 6%, var(--color-main-background));
+}
+
+.dc-license-instance-box .dc-license-field__label { margin-bottom: 0; }
+
+.dc-license-instance-id {
+	display: block;
+	margin-top: var(--dc-space-2, 0.5rem);
+	padding: var(--dc-space-2, 0.5rem) var(--dc-space-3, 0.75rem);
+	font-family: var(--font-face-monospace, ui-monospace, monospace);
+	font-size: var(--dc-fs-sm, 0.875rem);
+	word-break: break-all;
+	background: var(--color-main-background);
+	border-radius: var(--dc-radius-sm, 8px);
+	border: 1px solid var(--color-border);
+}
+
+.dc-license-form__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--dc-space-3, 0.75rem);
+	margin-top: var(--dc-space-4, 1rem);
+}
+
+/* ── Current license details ─────────────────────────────────── */
+.dc-license-status {
+	margin-top: var(--dc-space-5, 1.25rem);
+	padding-top: var(--dc-space-5, 1.25rem);
+	border-top: 1px solid var(--color-border);
+}
+
+/* Neutralise Nextcloud core server.css definition-list styling. */
+.dc-license-status__grid dt,
+.dc-license-status__grid dd {
+	display: block;
+	width: auto;
+	padding: 0;
+	text-align: start;
+	white-space: normal;
+}
+
+.dc-license-status__title {
+	font-size: var(--dc-fs-md, 1rem);
+	font-weight: 600;
+	margin: 0 0 var(--dc-space-3, 0.75rem);
+}
+
+.dc-license-status__grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+	gap: var(--dc-space-4, 1rem);
+	margin: 0;
+}
+
+.dc-license-status__item dt {
+	font-size: var(--dc-fs-xs, 0.8125rem);
+	font-weight: 600;
+	color: var(--dc-muted, var(--color-text-maxcontrast));
+	margin: 0 0 var(--dc-space-1, 0.25rem);
+}
+
+.dc-license-status__item dd {
+	margin: 0;
+	font-size: var(--dc-fs-md, 1rem);
+	word-break: break-word;
+}
+
+.dc-license-status__purchase {
+	margin: var(--dc-space-4, 1rem) 0 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--dc-space-3, 0.75rem);
+}
+
+.dc-license-expiry-callout { margin-top: var(--dc-space-4, 1rem); }
+.dc-license-no-key-callout { margin-bottom: 0; }
+
+/* ── Seat picker combobox ────────────────────────────────────── */
+.dc-license-seat-picker { margin-bottom: var(--dc-space-5, 1.25rem); }
+
+.dc-license-search-wrap {
+	position: relative;
+	max-width: 32rem;
+}
+
+.dc-license-search-input { width: 100%; }
+
+.dc-license-seat-count {
+	margin: var(--dc-space-2, 0.5rem) 0 0;
+	font-size: var(--dc-fs-sm, 0.875rem);
+	font-weight: 600;
+}
+
+.dc-license-seats-full-hint {
+	color: var(--color-warning-text, var(--color-warning));
+	font-weight: 500;
+}
+
+.dc-license-assign-btn { margin-top: var(--dc-space-3, 0.75rem); }
+
+.dc-license-batch-result { margin-top: var(--dc-space-3, 0.75rem); }
+
+.dc-seat-search-results {
+	list-style: none;
+	position: absolute;
+	z-index: 20;
+	left: 0;
+	right: 0;
+	margin: var(--dc-space-1, 0.25rem) 0 0;
+	padding: 0;
+	border: 2px solid var(--color-border);
+	border-radius: var(--dc-radius-sm, 8px);
+	background: var(--color-main-background);
+	max-height: 14rem;
+	overflow-y: auto;
+	box-shadow: 0 8px 24px color-mix(in srgb, var(--color-main-text) 12%, transparent);
+}
+
+.dc-seat-search-results li { margin: 0; }
+
+.dc-seat-search-results li[role='option'] {
+	display: flex;
+	align-items: center;
+	width: 100%;
+	min-height: var(--dc-touch, 44px);
+	padding: var(--dc-space-3, 0.75rem) var(--dc-space-4, 1rem);
+	color: var(--color-main-text);
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+	box-sizing: border-box;
+}
+
+.dc-seat-search-results li[role='option']:hover {
+	background: var(--color-background-hover);
+}
+
+.dc-seat-search-results li[role='option'][aria-selected='true'],
+.dc-seat-search-results li[role='option'].is-active {
+	background: color-mix(in srgb, var(--color-primary-element) 14%, transparent);
+	box-shadow: inset 3px 0 0 var(--color-primary-element);
+}
+
+.dc-seat-search-results__label {
+	display: flex;
+	align-items: center;
+	gap: var(--dc-space-3, 0.75rem);
+	width: 100%;
+	cursor: pointer;
+}
+
+.dc-seat-search-results__check {
+	width: 1.1rem;
+	height: 1.1rem;
+	margin: 0;
+	flex: 0 0 auto;
+}
+
+.dc-seat-search-results__empty {
+	padding: var(--dc-space-3, 0.75rem) var(--dc-space-4, 1rem);
+	color: var(--dc-muted, var(--color-text-maxcontrast));
+	font-size: var(--dc-fs-sm, 0.875rem);
+}
+
+/* ── Seats / devices tables ──────────────────────────────────── */
+.dc-license-seats-table-wrap { margin-top: var(--dc-space-3, 0.75rem); }
+
+/* Self-contained table styling: NC core server.css sets
+   table { white-space: nowrap; border-collapse: separate }. */
+.dc-license-seats-table {
+	width: 100%;
+	border-collapse: collapse;
+	border-spacing: 0;
+	white-space: normal;
+}
+
+.dc-license-seats-table th,
+.dc-license-seats-table td {
+	padding: var(--dc-space-3, 0.75rem) var(--dc-space-4, 1rem);
+	text-align: start;
+	vertical-align: middle;
+	white-space: normal;
+	overflow-wrap: anywhere;
+	border-bottom: 1px solid var(--color-border);
+}
+
+.dc-license-seats-table thead th {
+	font-weight: 600;
+	font-size: var(--dc-fs-sm, 0.875rem);
+	color: var(--dc-muted, var(--color-text-maxcontrast));
+	background: var(--color-background-dark, var(--color-background-hover));
+}
+
+.dc-license-seats-table tbody tr:last-child td { border-bottom: none; }
+.dc-license-seats-table tbody tr:hover { background: var(--color-background-hover); }
+
+.dc-license-seats-table td.actions-cell {
+	text-align: end;
+	white-space: nowrap;
+}
+
+.dc-license-table-actions {
+	display: inline-flex;
+	gap: var(--dc-space-2, 0.5rem);
+}
+
+.dc-license-user-id {
+	font-size: var(--dc-fs-xs, 0.8125rem);
+	padding: 0.1rem 0.35rem;
+	border-radius: 4px;
+	background: color-mix(in srgb, var(--color-main-text) 6%, transparent);
+}
+
+/* ── Empty states ────────────────────────────────────────────── */
+.dc-license-empty-state {
+	padding: var(--dc-space-5, 1.25rem) var(--dc-space-4, 1rem);
+	text-align: center;
+}
+
+.dc-license-empty-state__title {
+	margin: 0 0 var(--dc-space-1, 0.25rem);
+	font-weight: 600;
+}
+
+.dc-license-empty-state__text {
+	margin: 0;
+	font-size: var(--dc-fs-sm, 0.875rem);
+	color: var(--dc-muted, var(--color-text-maxcontrast));
+}
+
+/* ── Devices card ────────────────────────────────────────────── */
+.dc-license-terminal-summary {
+	margin: 0 0 var(--dc-space-4, 1rem);
+	font-size: var(--dc-fs-md, 1rem);
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+
+.dc-license-terminal-form { margin-bottom: var(--dc-space-4, 1rem); }
+
+.dc-license-terminal-fields {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr));
+	gap: var(--dc-space-4, 1rem);
+}
+
+.dc-license-terminal-field { min-width: 0; }
+
+.dc-license-token-value {
+	display: block;
+	margin: 0 0 var(--dc-space-4, 1rem);
+	padding: var(--dc-space-3, 0.75rem);
+	font-family: var(--font-face-monospace, ui-monospace, monospace);
+	font-size: var(--dc-fs-sm, 0.875rem);
+	word-break: break-all;
+	white-space: pre-wrap;
+	background: color-mix(in srgb, var(--color-main-text) 5%, var(--color-main-background));
+	border: 1px solid var(--color-border);
+	border-radius: var(--dc-radius-sm, 8px);
+	max-height: 10rem;
+	overflow-y: auto;
+}
+
+/* ── Confirmation / token modals ─────────────────────────────── */
+.dc-license-modal::backdrop {
+	background: var(--dc-scrim, color-mix(in srgb, var(--color-main-text) 45%, transparent));
+}
+
+.dc-license-modal {
+	margin: auto;
+	padding: var(--dc-space-5, 1.25rem);
+	max-width: min(28rem, calc(100vw - 2rem));
+	width: 100%;
+	border: 2px solid var(--color-primary-element);
+	border-radius: var(--dc-radius-lg, 12px);
+	background: var(--color-main-background);
+	box-shadow: 0 8px 24px color-mix(in srgb, var(--color-main-text) 12%, transparent);
+	box-sizing: border-box;
+}
+
+.dc-license-modal h3 {
+	margin: 0 0 var(--dc-space-2, 0.5rem);
+	font-size: var(--dc-fs-lg, 1.125rem);
+}
+
+.dc-license-modal__hint {
+	color: var(--dc-muted, var(--color-text-maxcontrast));
+	margin: 0 0 var(--dc-space-4, 1rem);
+	line-height: var(--dc-line-base, 1.5);
+}
+
+.dc-license-modal__actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: var(--dc-space-3, 0.75rem);
+}
+
+body.dc-license-modal-open { overflow: hidden; }
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 480px) {
+	.dc-license-stat-grid { grid-template-columns: 1fr; }
+	.dc-license-status__grid { grid-template-columns: 1fr; }
+
+	.dc-license-form__actions .dc-license-btn,
+	.dc-license-modal__actions .dc-license-btn {
+		flex: 1 1 auto;
+		justify-content: center;
+	}
+}
+
+/* Mobile table → labeled rows (design-system §3.7) */
+@media (max-width: 768.98px) {
+	.dc-license-seats-table thead { display: none; }
+
+	.dc-license-seats-table,
+	.dc-license-seats-table tbody,
+	.dc-license-seats-table tr,
+	.dc-license-seats-table td { display: block; width: 100%; }
+
+	.dc-license-seats-table tr {
+		border: 1px solid var(--color-border);
+		border-radius: var(--dc-radius-sm, 8px);
+		margin-bottom: var(--dc-space-3, 0.75rem);
+		padding: var(--dc-space-2, 0.5rem) 0;
+	}
+
+	.dc-license-seats-table td {
+		border-bottom: none;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: var(--dc-space-3, 0.75rem);
+	}
+
+	.dc-license-seats-table td::before {
+		content: attr(data-label);
+		font-weight: 600;
+		font-size: var(--dc-fs-xs, 0.8125rem);
+		color: var(--dc-muted, var(--color-text-maxcontrast));
+	}
+
+	.dc-license-seats-table td.actions-cell { text-align: start; }
+}
+
+@media (forced-colors: active) {
+	.dc-license-stat-tile,
+	.dc-license-modal,
+	.dc-license-card { border-color: CanvasText; }
+
+	.dc-license-meter__fill { background: Highlight; }
+}

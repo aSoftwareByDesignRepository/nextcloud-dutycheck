@@ -54,7 +54,7 @@ $mutations = [
 		'to' => "\tbox-sizing: border-box;\n\toverflow-x: clip;\n\toverflow: visible;\n}\n/* Shell width modifiers",
 	],
 	'reintroduce-license-section-clip' => [
-		'file' => 'css/license-settings.css',
+		'file' => 'css/common/license-page.css',
 		'from' => ".dc-license-section {\n\tscroll-margin-top: var(--dc-space-4);\n\tmin-width: 0;\n\tmax-width: 100%;\n",
 		'to' => ".dc-license-section {\n\tscroll-margin-top: var(--dc-space-4);\n\tmin-width: 0;\n\tmax-width: 100%;\n\toverflow-x: clip;\n",
 	],
