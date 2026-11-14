@@ -2056,7 +2056,7 @@ button.dc-license-modal__confirm-danger:hover {
  * collapse to the same pale skin (button_variant_specificity_collapse,
  * visual r36: primary "Download encrypted transfer file" ≡ ghost "Show").
  *
- * Canonical fix shape (deskcheck shell-chrome / portalcheck app.css):
+ * Canonical fix shape (deskcheck shell-chrome / kanzleicheck app.css):
  * ONE overlay scope list — app scopes + every body-mounted overlay scope
  * (.dc-modal confirmDialog/openModal, .dc-dialog / dialog / [role=dialog]
  * native + ARIA overlays) — applying !important background/border/color
