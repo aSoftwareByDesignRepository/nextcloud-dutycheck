@@ -246,14 +246,33 @@ final class MobileDemoSeedService
 			$periodId = (int) ($period['id'] ?? 0);
 			$status = (string) ($period['status'] ?? 'open');
 		} catch (Throwable) {
+			// Overlapping periods are rejected — reuse an existing period
+			// covering today, but only one the seed can actually publish:
+			// a real roster period with unresolved hard conflicts must not
+			// be hijacked (it can never publish, and mutating it would
+			// poison real planning data). Fall back to an isolated
+			// overlapping demo period in that case.
 			foreach ($this->roster->listPeriods($adminUserId) as $periodRow) {
 				$start = (string) ($periodRow['startDate'] ?? '');
 				$end = (string) ($periodRow['endDate'] ?? '');
 				if ($start <= $nowIso && $end >= $nowIso) {
-					$periodId = (int) ($periodRow['id'] ?? 0);
-					$status = (string) ($periodRow['status'] ?? 'open');
-					break;
+					$candidateId = (int) ($periodRow['id'] ?? 0);
+					try {
+						$readiness = $this->roster->publishReadiness($candidateId);
+					} catch (Throwable) {
+						continue;
+					}
+					if ((int) ($readiness['hardConflicts'] ?? 1) === 0) {
+						$periodId = $candidateId;
+						$status = (string) ($periodRow['status'] ?? 'open');
+						break;
+					}
 				}
+			}
+			if ($periodId === null || $periodId <= 0) {
+				$period = $this->roster->createPeriod($periodStart, $periodEnd, $adminUserId, true);
+				$periodId = (int) ($period['id'] ?? 0);
+				$status = (string) ($period['status'] ?? 'open');
 			}
 		}
 

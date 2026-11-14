@@ -146,6 +146,13 @@ final class MobileDemoSeedServiceTest extends TestCase
 		$this->roster->method('listPeriods')->willReturn([
 			['id' => 99, 'status' => 'published', 'startDate' => '2020-01-01', 'endDate' => '2099-12-31'],
 		]);
+		// The reuse path only picks periods the seed could publish —
+		// period 99 is conflict-free here.
+		$this->roster->method('publishReadiness')->willReturn([
+			'periodId' => 99,
+			'hardConflicts' => 0,
+			'canPublish' => true,
+		]);
 		$this->roster->method('myRoster')->willReturn([
 			['id' => 88, 'dutyDate' => $shiftDate, 'acknowledged' => false],
 		]);

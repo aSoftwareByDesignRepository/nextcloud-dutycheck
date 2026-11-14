@@ -131,17 +131,14 @@ check('PREFERENCE_BAND_INVALID→422', $map::statusForInvalidArgument('PREFERENC
 // --- DI wiring ---
 $ref = new ReflectionClass($patterns);
 $p = $ref->getProperty('locks');
-$p->setAccessible(true);
 check('RotationPatternService has locks', $p->getValue($patterns) instanceof PeriodLockService);
 
 $refB = new ReflectionClass($blackouts);
 $pb = $refB->getProperty('locks');
-$pb->setAccessible(true);
 check('AvailabilityBlackoutService has locks', $pb->getValue($blackouts) instanceof PeriodLockService);
 
 $refSw = new ReflectionClass($swaps);
 $psw = $refSw->getProperty('locks');
-$psw->setAccessible(true);
 check('SwapService has locks', $psw->getValue($swaps) instanceof PeriodLockService);
 
 check('SETTINGS_CONFLICT→409', $map::statusForInvalidArgument('SETTINGS_CONFLICT') === 409);
@@ -150,7 +147,6 @@ check('SETTINGS_CONFLICT→409', $map::statusForInvalidArgument('SETTINGS_CONFLI
 $prefs = $c->get(\OCA\DutyCheck\Service\ShiftPreferenceService::class);
 $refP = new ReflectionClass($prefs);
 $pp = $refP->getProperty('locks');
-$pp->setAccessible(true);
 check('ShiftPreferenceService has locks', $pp->getValue($prefs) instanceof PeriodLockService);
 
 // --- Settings CAS: second writer loses ---
@@ -164,7 +160,6 @@ $settings->updateForCompany($companyId, ['peerRosterVisibility' => !empty($befor
 // Verify SETTINGS_CONFLICT is thrown when raw mismatches by calling writeStoredCas with wrong expected.
 $refS = new ReflectionClass($settings);
 $cas = $refS->getMethod('writeStoredCas');
-$cas->setAccessible(true);
 $threw = false;
 try {
 	$cas->invoke($settings, $companyId, '{"__stale__":true}', ['peer_roster_visibility' => true]);

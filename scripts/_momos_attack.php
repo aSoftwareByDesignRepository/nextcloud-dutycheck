@@ -155,7 +155,6 @@ $momosCreateFreeAssignment = static function (
 	$period = null;
 	try {
 		$ref = new ReflectionMethod($roster, 'periodById');
-		$ref->setAccessible(true);
 		$period = $ref->invoke($roster, $periodId);
 	} catch (Throwable) {
 		$period = null;

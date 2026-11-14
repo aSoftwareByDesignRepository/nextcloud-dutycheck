@@ -585,7 +585,6 @@ $forcePublish = static function (int $periodId, string $label) use ($roster, $ac
 	try {
 		$ref = new ReflectionClass($roster);
 		$method = $ref->getMethod('refreshAndListConflicts');
-		$method->setAccessible(true);
 		$method->invoke($roster, $periodId);
 	} catch (Throwable) {
 		/* ignore */
