@@ -868,7 +868,7 @@
 		"Operations": "Operacje",
 		"Optional labels such as “Night” or “Weekend”, each with a colour and an optional default response time.": "Opcjonalne etykiety, takie jak „Noc“ lub „Weekend“, każda z kolorem i opcjonalnym domyślnym czasem reakcji.",
 		"Optional soft-cap approach notices, on-duty read hook for compatible companion apps, and cold-archive retention for old snapshots (never deletes the latest close snapshot of a still-closed period).": "Opcjonalne powiadomienia o podejściu z miękkim limitem, zaczep do pracy companion i przechowywanie starych migawek w archiwum zimnym (nigdy nie usuwa najnowszego zamknięcia migawki z wciąż zamkniętego okresu).",
-		"Organisation license": "Organisation licencja",
+		"Organisation license": "Licencja organizacji",
 		"Other": "Inny",
 		"Over limit": "Przekroczenie limitu",
 		"PII justification (required to enable)": "Uzasadnienie danych osobowych (wymagane do włączenia)",

@@ -1076,7 +1076,7 @@ OC.L10N.register(
 	"Remove linked account" : "Bağlı hesabı kaldır",
 	"Remove member" : "Üyeyi kaldır",
 	"Remove mobile seat" : "Mobil lisansı kaldır",
-	"Remove mobile seat for this person?" : "Bu kişinin mobil koltuğu kaldırılsın mı?",
+	"Remove mobile seat for this person?" : "Bu kişinin mobil lisansı kaldırılsın mı?",
 	"Remove permanently" : "Kalıcı olarak kaldır",
 	"Remove planner role" : "Planlamacı rolünü kaldır",
 	"Remove requirement at {loc}" : "{loc} konumundaki gerekliliği kaldır",
