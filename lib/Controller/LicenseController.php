@@ -108,10 +108,10 @@ class LicenseController extends Controller
 	}
 
 	/**
-	 * Directory search for seat assignment (app admins only).
-	 * Returns `{ ok: true, items: [...] }` — the contract the shared license page expects.
+	 * POST form of removeSeat for clients that cannot send DELETE
+	 * (the shared license page posts {userId} to /api/license/seats/remove).
 	 */
-		#[NoAdminRequired]
+	#[NoAdminRequired]
 	public function removeSeatPost(): JSONResponse
 	{
 		try {
@@ -124,7 +124,11 @@ class LicenseController extends Controller
 		}
 	}
 
-#[NoAdminRequired]
+	/**
+	 * Directory search for seat assignment (app admins only).
+	 * Returns `{ ok: true, items: [...] }` — the contract the shared license page expects.
+	 */
+	#[NoAdminRequired]
 	public function searchUsers(): JSONResponse
 	{
 		try {

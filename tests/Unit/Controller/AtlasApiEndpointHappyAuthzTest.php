@@ -82,7 +82,7 @@ final class AtlasApiEndpointHappyAuthzTest extends TestCase
 			'settingsSection',
 		],
 		LicenseController::class => [
-			'apply', 'assignSeat', 'remove', 'removeSeat', 'show', 'seats', 'searchUsers',
+			'apply', 'assignSeat', 'remove', 'removeSeat', 'removeSeatPost', 'show', 'seats', 'searchUsers',
 		],
 		MobileController::class => [
 			'acceptSwap', 'acknowledgeAssignment', 'claimOpenShift', 'createIcalToken',
@@ -246,7 +246,7 @@ final class AtlasApiEndpointHappyAuthzTest extends TestCase
 	 */
 	public function testLicenseMutateAndSeatAuthzNegativeIs403(): void
 	{
-		foreach (['apply', 'remove', 'assignSeat', 'removeSeat', 'show', 'seats', 'searchUsers'] as $action) {
+		foreach (['apply', 'remove', 'assignSeat', 'removeSeat', 'removeSeatPost', 'show', 'seats', 'searchUsers'] as $action) {
 			$this->byType = [];
 			$ctrl = $this->buildController(LicenseController::class, allow: false, mode: 'authz');
 			$ref = new ReflectionClass(LicenseController::class);

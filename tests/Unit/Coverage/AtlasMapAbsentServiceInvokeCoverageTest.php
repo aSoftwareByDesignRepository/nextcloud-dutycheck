@@ -7,7 +7,6 @@ namespace OCA\DutyCheck\Tests\Unit\Coverage;
 use OCA\DutyCheck\Service\AssignmentSlotKey;
 use OCA\DutyCheck\Service\ConflictPolicyService;
 use OCA\DutyCheck\Service\IconCatalog;
-use OCA\DutyCheck\Service\LicenseUiStrings;
 use OCA\DutyCheck\Service\MobileDemoSeedResult;
 use OCA\DutyCheck\Service\PlanningDefaultsService;
 use OCA\DutyCheck\Service\QualificationService;
@@ -17,7 +16,6 @@ use OCA\DutyCheck\Service\SelfServiceSettingsService;
 use OCA\DutyCheck\Service\SettingsSectionCatalog;
 use OCA\DutyCheck\Service\UpgradeBackupCatalog;
 use OCA\DutyCheck\Service\UpgradeBackupIntegrity;
-use OCP\IL10N;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -37,12 +35,6 @@ final class AtlasMapAbsentServiceInvokeCoverageTest extends TestCase
 		$svg = IconCatalog::render('layout-grid', 'dc-icon');
 		self::assertStringContainsString('<svg', $svg);
 		self::assertSame('', IconCatalog::render('__unknown_icon__'));
-
-		$l10n = $this->createMock(IL10N::class);
-		$l10n->method('t')->willReturnCallback(static fn (string $text): string => $text);
-		$panel = LicenseUiStrings::forPanel($l10n);
-		self::assertArrayHasKey('loading', $panel);
-		self::assertArrayHasKey('saveButton', $panel);
 
 		$result = new MobileDemoSeedResult(
 			'emp',

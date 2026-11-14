@@ -47,11 +47,13 @@ test('periods.js ignores aborted rejections in detail fan-out', () => {
 	assert.match(src, /seq !== detailsSeq/);
 });
 
-test('license-settings.js suppresses network feedback on nav abort', () => {
-	const src = read('js/license-settings.js');
-	assert.match(src, /showNetworkErrorUnlessAbort/);
-	assert.match(src, /isNavOrAbort/);
-	assert.match(src, /aborted:\s*isNavOrAbort\(cause\)/);
+test('license-page.js suppresses network feedback on nav abort', () => {
+	const src = read('js/common/license-page.js');
+	assert.match(src, /function isNavOrAbort/);
+	assert.match(src, /function showNetworkErrorUnlessAbort/);
+	assert.match(src, /e\.name === 'AbortError' \|\| e\.code === 'REQUEST_ABORTED'/);
+	// every network catch must route through the abort-aware wrapper, not a raw toast
+	assert.doesNotMatch(src, /catch \(e\) \{\s*\n\s*showFeedback\(t\('Network error\./);
 });
 
 test('PageController still loads api before messaging/session', () => {

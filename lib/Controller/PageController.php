@@ -9,7 +9,6 @@ use OCA\DutyCheck\Integration\IArbeitszeitCheckIntegration;
 use OCA\DutyCheck\Service\AccessControlService;
 use OCA\DutyCheck\Service\CompanyService;
 use OCA\DutyCheck\Service\LicenseService;
-use OCA\DutyCheck\Service\LicenseUiStrings;
 use OCA\DutyCheck\Service\LocaleFormatService;
 use OCA\DutyCheck\Service\RosterService;
 use OCA\DutyCheck\Service\SelfServiceSettingsService;
@@ -389,7 +388,6 @@ class PageController extends Controller
 		return [
 			'licenseStatus' => $licenseStatus,
 			'licenseSeatsList' => $licenseSeatsList,
-			'licenseI18n' => LicenseUiStrings::forPanel($this->l10n),
 			'licenseApiUrl' => $licenseApiUrl,
 			'licenseClearUrl' => $licenseApiUrl,
 			'licenseSeatsUrl' => $licenseSeatsUrl,

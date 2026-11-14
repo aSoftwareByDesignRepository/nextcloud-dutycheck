@@ -76,7 +76,7 @@ final class SettingsTemplateRenderTest extends TestCase
 	private function licenseVars(): array
 	{
 		return [
-			'licenseI18n' => ['badgeNotConfigured' => 'Not configured'],
+			'i18n' => ['done' => 'Done'],
 			'licenseStatus' => null,
 			'licenseSeatsList' => null,
 			'licenseApiUrl' => 'https://cloud.example/apps/dutycheck/api/license',

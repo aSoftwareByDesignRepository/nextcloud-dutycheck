@@ -72,8 +72,11 @@ test('native swap dialog close falls back to main landmark', () => {
 	assert.match(tail, /dc-main-content/, 'swap dialog close handler must fall back to #dc-main-content');
 });
 
-test('license confirm modal guards trigger focus with isConnected + main fallback', () => {
-	const src = read('js/license-settings.js');
-	assert.match(src, /modalReturnFocusEl\.isConnected/, 'license closeModal must check isConnected');
-	assert.match(src, /getElementById\('dc-main-content'\)/, 'license closeModal must fall back to #dc-main-content');
+test('license-page dialogs guard trigger focus with isConnected + main fallback', () => {
+	const src = read('js/common/license-page.js');
+	assert.match(src, /function restoreFocus/, 'shared license page must centralize focus restore');
+	assert.match(src, /el\.isConnected/, 'restoreFocus must check isConnected before focusing the trigger');
+	assert.match(src, /getElementById\(p \+ '-main-content'\)/, 'restoreFocus must fall back to #{p}-main-content');
+	assert.match(src, /restoreFocus\(modalReturnFocus\)/, 'clear-license modal must route close through restoreFocus');
+	assert.match(src, /restoreFocus\(confirmReturnFocus\)/, 'confirm modal must route close through restoreFocus');
 });
