@@ -165,4 +165,66 @@ final class MobileDemoSeedServiceTest extends TestCase
 		self::assertSame(12, $result->openShiftId);
 		self::assertSame('published', $result->periodStatus);
 	}
+
+	public function testRunDoesNotHijackConflictedPeriod(): void
+	{
+		$admin = $this->createMock(IUser::class);
+		$this->userManager->method('get')->willReturn($admin);
+		$this->license->method('apply');
+		$this->userManager->method('userExists')->willReturn(true);
+		$this->license->method('assignSeat')->willReturn(['created' => false]);
+
+		$shiftDate = (new \DateTimeImmutable('today', new \DateTimeZone('UTC')))->modify('+1 day')->format('Y-m-d');
+
+		$this->roster->method('listEmployeeCatalog')->willReturn([
+			['id' => 7, 'linkedUserId' => 'dc.review.employee', 'displayName' => 'Play Review Employee'],
+		]);
+		$this->roster->method('listLocationCatalog')->willReturn([
+			['id' => 3, 'name' => MobileDemoSeedOptions::DEFAULT_LOCATION_NAME],
+		]);
+
+		// First createPeriod overlaps an existing period and is rejected.
+		// The only covering candidate is conflicted (hardConflicts > 0), so the
+		// seed must not hijack it — the retry carries allowOverlap=true and
+		// returns the isolated demo period 55 instead of real period 99.
+		$createPeriodFlags = [];
+		$this->roster->expects(self::exactly(2))->method('createPeriod')
+			->willReturnCallback(static function (string $s, string $e, string $actor, bool $allowOverlap = false) use (&$createPeriodFlags): array {
+				$createPeriodFlags[] = $allowOverlap;
+				if (count($createPeriodFlags) === 1) {
+					throw new \InvalidArgumentException('DUPLICATE');
+				}
+				return ['id' => 55, 'status' => 'open'];
+			});
+		$this->roster->method('listPeriods')->willReturnOnConsecutiveCalls(
+			// ensureDemoPeriod scan: only the conflicted real period exists yet
+			[['id' => 99, 'status' => 'published', 'startDate' => '2020-01-01', 'endDate' => '2099-12-31']],
+			// ensureDemoPeriodPublished lookup (and any later call): isolated 55 exists
+			[
+				['id' => 99, 'status' => 'published', 'startDate' => '2020-01-01', 'endDate' => '2099-12-31'],
+				['id' => 55, 'status' => 'open', 'startDate' => '2020-01-01', 'endDate' => '2099-12-31'],
+			],
+		);
+		$this->roster->method('publishReadiness')->willReturnCallback(
+			static fn (int $periodId): array => $periodId === 99
+				? ['periodId' => 99, 'hardConflicts' => 2, 'canPublish' => false]
+				: ['periodId' => $periodId, 'hardConflicts' => 0, 'canPublish' => true],
+		);
+		$this->roster->method('myRoster')->willReturn([
+			['id' => 88, 'dutyDate' => $shiftDate, 'acknowledged' => false],
+		]);
+		$this->roster->expects(self::never())->method('createAssignment');
+		$this->openShifts->method('listOpen')->willReturn([['id' => 12]]);
+		$this->roster->expects(self::once())->method('transitionPeriod')
+			->with(55, 'published', 'admin')
+			->willReturn(['id' => 55, 'status' => 'published']);
+
+		$result = $this->service->run(new MobileDemoSeedOptions(licenseWireKey: 'DTY2.demo.key'));
+
+		self::assertSame(55, $result->periodId);
+		self::assertSame([false, true], $createPeriodFlags);
+		self::assertSame(88, $result->assignmentId);
+		self::assertSame(12, $result->openShiftId);
+		self::assertSame('published', $result->periodStatus);
+	}
 }
