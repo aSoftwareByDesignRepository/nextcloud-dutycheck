@@ -678,17 +678,26 @@ async function phaseDialogs(browser) {
 		return true
 	})
 
-	// 7) license remove modal (settings/license) — app-admin surface
+	// 7) license modals (settings/license) — app-admin surface; adopted
+	// _shared/license-page pack dialogs (#dc-license-clear-modal,
+	// #dc-license-confirm-modal; the token modal only opens from device
+	// register/regen flows this app's link-mode page does not render)
 	const actx = await browser.newContext({ baseURL: BASE, storageState: adminState, viewport: { width: 1440, height: 900 } })
 	const ap = await actx.newPage()
 	await ap.goto(`${BASE}/apps/dutycheck/settings/license`, { waitUntil: 'domcontentloaded' })
 	await settle(ap)
-	await probeDialogLifecycle(ap, 'license-remove-modal', async () => {
-		const btn = ap.locator('#dc-license-remove')
+	await probeDialogLifecycle(ap, 'license-clear-modal', async () => {
+		const btn = ap.locator('#dc-license-clear')
 		if (!(await btn.count()) || !(await btn.isVisible().catch(() => false))) return null
 		await btn.click()
 		return true
-	})
+	}, { triggerSelector: '#dc-license-clear' })
+	await probeDialogLifecycle(ap, 'license-seat-confirm-modal', async () => {
+		const btn = ap.locator('.dc-seat-remove').first()
+		if (!(await btn.count()) || !(await btn.isVisible().catch(() => false))) return null
+		await btn.click()
+		return true
+	}, { triggerSelector: '.dc-seat-remove' })
 	await actx.close()
 
 	// 7b) LEARNED-CLASS HUNT: confirm → server mutation → list re-render destroys

@@ -325,6 +325,187 @@
 	display: block;
 }
 
+/* ── Button-variant armor ──────────────────────────────────────
+ * NC core inputs.scss repaints every button:not(.button-vue,
+ * [class^=vs__]) at specificity (0,1,1) with the pale
+ * --color-primary-element-light fill + light-text ink — stronger
+ * than the lone .dc-license-btn--{variant} rules above (0,1,0),
+ * so every variant collapses to the same pale skin
+ * (button_variant_specificity_collapse; dutycheck visual r40:
+ * destructive "Remove license" ≡ secondary "Cancel").
+ *
+ * Canonical fix shape (same as the .dc-btn armor in app
+ * css/app.css): ONE scope list — the pack page root, the app's
+ * content canvas, and every body-mounted overlay scope the pack
+ * <dialog> modals can land under — applying !important fills for
+ * EVERY variant incl. :hover/:focus-visible/:active. A new
+ * overlay is armored by landing on the scope list, never by a
+ * per-dialog-class rule. */
+.dc-license-page .dc-license-btn--primary,
+#app-content .dc-license-btn--primary,
+#app-content-wrapper .dc-license-btn--primary,
+.dc-license-modal .dc-license-btn--primary,
+.dc-modal .dc-license-btn--primary,
+.dc-dialog .dc-license-btn--primary,
+dialog .dc-license-btn--primary,
+[role="dialog"] .dc-license-btn--primary,
+[role="alertdialog"] .dc-license-btn--primary {
+	background: var(--color-primary-element) !important;
+	border-color: var(--color-primary-element) !important;
+	color: var(--color-primary-element-text, var(--color-primary-text)) !important;
+}
+.dc-license-page .dc-license-btn--primary:hover,
+#app-content .dc-license-btn--primary:hover,
+#app-content-wrapper .dc-license-btn--primary:hover,
+.dc-license-modal .dc-license-btn--primary:hover,
+.dc-modal .dc-license-btn--primary:hover,
+.dc-dialog .dc-license-btn--primary:hover,
+dialog .dc-license-btn--primary:hover,
+[role="dialog"] .dc-license-btn--primary:hover,
+[role="alertdialog"] .dc-license-btn--primary:hover {
+	background: var(--color-primary-element-hover, var(--color-primary-element)) !important;
+	border-color: var(--color-primary-element-hover, var(--color-primary-element)) !important;
+	color: var(--color-primary-element-text, var(--color-primary-text)) !important;
+}
+.dc-license-page .dc-license-btn--primary:focus-visible,
+#app-content .dc-license-btn--primary:focus-visible,
+#app-content-wrapper .dc-license-btn--primary:focus-visible,
+.dc-license-modal .dc-license-btn--primary:focus-visible,
+.dc-modal .dc-license-btn--primary:focus-visible,
+.dc-dialog .dc-license-btn--primary:focus-visible,
+dialog .dc-license-btn--primary:focus-visible,
+[role="dialog"] .dc-license-btn--primary:focus-visible,
+[role="alertdialog"] .dc-license-btn--primary:focus-visible {
+	background: var(--color-primary-element-hover, var(--color-primary-element)) !important;
+	border-color: var(--color-primary-element-hover, var(--color-primary-element)) !important;
+	color: var(--color-primary-element-text, var(--color-primary-text)) !important;
+	outline: 3px solid color-mix(in srgb, var(--color-primary-element) 55%, transparent);
+	outline-offset: 2px;
+}
+.dc-license-page .dc-license-btn--primary:active,
+#app-content .dc-license-btn--primary:active,
+#app-content-wrapper .dc-license-btn--primary:active,
+.dc-license-modal .dc-license-btn--primary:active,
+.dc-modal .dc-license-btn--primary:active,
+.dc-dialog .dc-license-btn--primary:active,
+dialog .dc-license-btn--primary:active,
+[role="dialog"] .dc-license-btn--primary:active,
+[role="alertdialog"] .dc-license-btn--primary:active {
+	background: var(--color-primary-element) !important;
+	border-color: var(--color-primary-element) !important;
+	color: var(--color-primary-element-text, var(--color-primary-text)) !important;
+}
+
+.dc-license-page .dc-license-btn--secondary,
+#app-content .dc-license-btn--secondary,
+#app-content-wrapper .dc-license-btn--secondary,
+.dc-license-modal .dc-license-btn--secondary,
+.dc-modal .dc-license-btn--secondary,
+.dc-dialog .dc-license-btn--secondary,
+dialog .dc-license-btn--secondary,
+[role="dialog"] .dc-license-btn--secondary,
+[role="alertdialog"] .dc-license-btn--secondary {
+	background: var(--color-main-background) !important;
+	border-color: var(--color-border-maxcontrast, var(--color-border)) !important;
+	color: var(--color-main-text) !important;
+}
+.dc-license-page .dc-license-btn--secondary:hover,
+#app-content .dc-license-btn--secondary:hover,
+#app-content-wrapper .dc-license-btn--secondary:hover,
+.dc-license-modal .dc-license-btn--secondary:hover,
+.dc-dialog .dc-license-btn--secondary:hover,
+.dc-modal .dc-license-btn--secondary:hover,
+dialog .dc-license-btn--secondary:hover,
+[role="dialog"] .dc-license-btn--secondary:hover,
+[role="alertdialog"] .dc-license-btn--secondary:hover {
+	background: var(--color-background-hover, var(--color-main-background)) !important;
+	border-color: var(--color-border-maxcontrast, var(--color-border)) !important;
+	color: var(--color-main-text) !important;
+}
+.dc-license-page .dc-license-btn--secondary:focus-visible,
+#app-content .dc-license-btn--secondary:focus-visible,
+#app-content-wrapper .dc-license-btn--secondary:focus-visible,
+.dc-license-modal .dc-license-btn--secondary:focus-visible,
+.dc-dialog .dc-license-btn--secondary:focus-visible,
+.dc-modal .dc-license-btn--secondary:focus-visible,
+dialog .dc-license-btn--secondary:focus-visible,
+[role="dialog"] .dc-license-btn--secondary:focus-visible,
+[role="alertdialog"] .dc-license-btn--secondary:focus-visible {
+	background: var(--color-background-hover, var(--color-main-background)) !important;
+	border-color: var(--color-border-maxcontrast, var(--color-border)) !important;
+	color: var(--color-main-text) !important;
+	outline: 3px solid color-mix(in srgb, var(--color-primary-element) 55%, transparent);
+	outline-offset: 2px;
+}
+.dc-license-page .dc-license-btn--secondary:active,
+#app-content .dc-license-btn--secondary:active,
+#app-content-wrapper .dc-license-btn--secondary:active,
+.dc-license-modal .dc-license-btn--secondary:active,
+.dc-dialog .dc-license-btn--secondary:active,
+.dc-modal .dc-license-btn--secondary:active,
+dialog .dc-license-btn--secondary:active,
+[role="dialog"] .dc-license-btn--secondary:active,
+[role="alertdialog"] .dc-license-btn--secondary:active {
+	background: var(--color-main-background) !important;
+	border-color: var(--color-border-maxcontrast, var(--color-border)) !important;
+	color: var(--color-main-text) !important;
+}
+
+.dc-license-page .dc-license-btn--danger,
+#app-content .dc-license-btn--danger,
+#app-content-wrapper .dc-license-btn--danger,
+.dc-license-modal .dc-license-btn--danger,
+.dc-modal .dc-license-btn--danger,
+.dc-dialog .dc-license-btn--danger,
+dialog .dc-license-btn--danger,
+[role="dialog"] .dc-license-btn--danger,
+[role="alertdialog"] .dc-license-btn--danger {
+	background: var(--color-element-error, var(--color-error)) !important;
+	border-color: var(--color-element-error, var(--color-error)) !important;
+	color: var(--color-primary-element-text, var(--color-primary-text)) !important;
+}
+.dc-license-page .dc-license-btn--danger:hover,
+#app-content .dc-license-btn--danger:hover,
+#app-content-wrapper .dc-license-btn--danger:hover,
+.dc-license-modal .dc-license-btn--danger:hover,
+.dc-modal .dc-license-btn--danger:hover,
+.dc-dialog .dc-license-btn--danger:hover,
+dialog .dc-license-btn--danger:hover,
+[role="dialog"] .dc-license-btn--danger:hover,
+[role="alertdialog"] .dc-license-btn--danger:hover {
+	background: var(--color-element-error, var(--color-error)) !important;
+	border-color: var(--color-element-error, var(--color-error)) !important;
+	color: var(--color-primary-element-text, var(--color-primary-text)) !important;
+}
+.dc-license-page .dc-license-btn--danger:focus-visible,
+#app-content .dc-license-btn--danger:focus-visible,
+#app-content-wrapper .dc-license-btn--danger:focus-visible,
+.dc-license-modal .dc-license-btn--danger:focus-visible,
+.dc-modal .dc-license-btn--danger:focus-visible,
+.dc-dialog .dc-license-btn--danger:focus-visible,
+dialog .dc-license-btn--danger:focus-visible,
+[role="dialog"] .dc-license-btn--danger:focus-visible,
+[role="alertdialog"] .dc-license-btn--danger:focus-visible {
+	background: var(--color-element-error, var(--color-error)) !important;
+	border-color: var(--color-element-error, var(--color-error)) !important;
+	color: var(--color-primary-element-text, var(--color-primary-text)) !important;
+	outline: 3px solid color-mix(in srgb, var(--color-element-error, var(--color-error)) 55%, transparent);
+	outline-offset: 2px;
+}
+.dc-license-page .dc-license-btn--danger:active,
+#app-content .dc-license-btn--danger:active,
+#app-content-wrapper .dc-license-btn--danger:active,
+.dc-license-modal .dc-license-btn--danger:active,
+.dc-modal .dc-license-btn--danger:active,
+.dc-dialog .dc-license-btn--danger:active,
+dialog .dc-license-btn--danger:active,
+[role="dialog"] .dc-license-btn--danger:active,
+[role="alertdialog"] .dc-license-btn--danger:active {
+	background: var(--color-element-error, var(--color-error)) !important;
+	border-color: var(--color-element-error, var(--color-error)) !important;
+	color: var(--color-primary-element-text, var(--color-primary-text)) !important;
+}
+
 /* ── Form elements ───────────────────────────────────────────── */
 .dc-license-field__label {
 	display: block;

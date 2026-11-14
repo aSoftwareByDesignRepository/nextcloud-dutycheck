@@ -2,7 +2,7 @@ OC.L10N.register(
 	"dutycheck",
 	{
 	" page first." : "pierwsza strona.",
-	"%1$d of %2$d device slots in use." : "Użyto %1$d z %2$d miejsc na urządzenia.",
+	"%1$d of %2$d device slots in use." : "Użyto %1$d z %2$d miejsc dla urządzeń.",
 	"%1$d of %2$d seats assigned" : "%1$d z %2$d miejsc przypisanych",
 	"%d row(s) need a value on this instance" : "%d wierszy wymaga wartości na tej instancji",
 	"%d row(s) skipped and %d reference(s) unresolved — see the groups below." : "Pominięto %d wierszy i nierozwiązano %d odwołań — zobacz grupy poniżej.",
@@ -131,7 +131,7 @@ OC.L10N.register(
 	"Administrator" : "Administrator",
 	"After approval, open the Roster — overlapping shifts appear as “Must fix” and must be changed or removed before you publish." : "Po zatwierdzeniu otwórz grafik — nakładające się zmiany są oznaczone jako „Wymaga naprawy” i należy je zmienić lub usunąć przed publikacją.",
 	"After you create a second company, planners who are not members of any company see an empty roster. Add them below — they do not fall back to Default." : "Po utworzeniu drugiej firmy planiści bez członkostwa widzą pusty grafik dyżurów. Dodaj ich poniżej — nie wracają do Default.",
-	"All device slots are in use. Revoke a device or upgrade your license." : "Wszystkie miejsca na urządzenia są zajęte. Odwołaj urządzenie albo rozszerz licencję.",
+	"All device slots are in use. Revoke a device or upgrade your license." : "Wszystkie miejsca dla urządzeń są zajęte. Odwołaj urządzenie albo rozszerz licencję.",
 	"All licensed seats are assigned. Remove a seat or upgrade the license." : "Wszystkie licencjonowane miejsca są przypisane. Usuń stanowisko lub uaktualnij licencję.",
 	"All mobile seats are assigned. Remove a user or upgrade your license." : "Wszystkie miejsca mobilne są przypisane. Usuń użytkownika lub uaktualnij licencję.",
 	"All upcoming" : "Wszystkie nadchodzące",
