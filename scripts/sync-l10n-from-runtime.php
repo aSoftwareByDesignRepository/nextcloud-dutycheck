@@ -30,18 +30,17 @@ foreach ($argv ?? [] as $arg) {
 	}
 }
 
-$locales = array (
-  0 => 'en',
-  1 => 'de',
-  2 => 'fr',
-  3 => 'es',
-  4 => 'da',
-  5 => 'nl',
-  6 => 'it',
-  7 => 'pl',
-  8 => 'sv',
-  9 => 'nb',
-);
+// Every shipped catalog gets new msgids — glob so added locales (pt, tr,
+// zh_CN, …) are never silently skipped by a stale literal list.
+$locales = [];
+foreach (glob($appRoot . '/l10n/*.json') ?: [] as $path) {
+	$name = basename($path, '.json');
+	if ($name === '' || $name[0] === '_') {
+		continue;
+	}
+	$locales[] = $name;
+}
+sort($locales);
 $enPath = $appRoot . '/l10n/en.json';
 $en = json_decode((string)file_get_contents($enPath), true, 512, JSON_THROW_ON_ERROR);
 $catalog = $en['translations'] ?? [];
@@ -130,58 +129,12 @@ foreach ($scanDirs as $dir) {
 	}
 }
 
-/** Regional variants mirror their base catalog (de_DE mirrors de, …). */
-$variants = [
-	'da_DK' => 'da',
-	'de_DE' => 'de',
-	'es_ES' => 'es',
-	'fr_FR' => 'fr',
-	'it_IT' => 'it',
-	'nb_NO' => 'nb',
-	'nl_NL' => 'nl',
-	'pl_PL' => 'pl',
-	'sv_SE' => 'sv',
-];
-
-function mirror_variants(string $appRoot, array $variants, bool $dryRun): int {
-	$touched = 0;
-	foreach ($variants as $variant => $baseLang) {
-		$variantPath = $appRoot . '/l10n/' . $variant . '.json';
-		$basePath = $appRoot . '/l10n/' . $baseLang . '.json';
-		if (!is_file($variantPath) || !is_file($basePath)) {
-			continue;
-		}
-		$variantData = json_decode((string)file_get_contents($variantPath), true, 512, JSON_THROW_ON_ERROR);
-		$baseData = json_decode((string)file_get_contents($basePath), true, 512, JSON_THROW_ON_ERROR);
-		$variantTrans = $variantData['translations'] ?? [];
-		$added = 0;
-		foreach (($baseData['translations'] ?? []) as $msgid => $value) {
-			if (!array_key_exists($msgid, $variantTrans)) {
-				$variantTrans[$msgid] = $value;
-				$added++;
-			}
-		}
-		if ($added === 0) {
-			continue;
-		}
-		$touched++;
-		if ($dryRun) {
-			echo "[dry-run] Would mirror {$added} key(s) {$baseLang} -> {$variant}
-";
-			continue;
-		}
-		ksort($variantTrans, SORT_STRING);
-		$variantData['translations'] = $variantTrans;
-		file_put_contents(
-			$variantPath,
-			json_encode($variantData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) . "
-"
-		);
-		echo "Mirrored {$added} key(s) {$baseLang} -> {$variant} (total " . count($variantTrans) . ")
-";
-	}
-	return $touched;
-}
+// No variant mirroring: same-language mirror catalogs (de_DE<-de, nb_NO<-nb, …)
+// were dropped — add-only mirroring never healed divergent cells, so they were
+// pure drift surface (l10n_pack_sync_drift, r42). Nextcloud resolves xx_YY to
+// the shipped xx catalog natively; genuine regional locales (pt_BR, zh_CN,
+// zh_TW) are first-class catalogs synced by the locale loop below, never by
+// base-value copying.
 
 $missing = [];
 foreach (array_keys($found) as $msgid) {
@@ -192,11 +145,7 @@ foreach (array_keys($found) as $msgid) {
 sort($missing);
 
 if ($missing === []) {
-	$mirrored = mirror_variants($appRoot, $variants, $dryRun);
 	echo "No missing runtime strings — l10n catalogs are up to date.\n";
-	if ($mirrored > 0) {
-		echo "Run: php scripts/regenerate-l10n-js.php && php scripts/check-l10n-runtime.php --all && php scripts/check-l10n-parity.php\n";
-	}
 	exit(0);
 }
 
@@ -242,7 +191,5 @@ foreach ($locales as $lang) {
 	file_put_contents($path, $encoded . "\n");
 	echo "Updated {$path} (+ " . count($missing) . " keys, total " . count($trans) . ")\n";
 }
-
-mirror_variants($appRoot, $variants, $dryRun);
 
 echo "Run: php scripts/regenerate-l10n-js.php && php scripts/check-l10n-runtime.php --all && php scripts/check-l10n-parity.php\n";

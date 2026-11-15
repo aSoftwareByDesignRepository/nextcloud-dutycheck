@@ -8,7 +8,7 @@ declare(strict_types=1);
  *
  * sync-l10n-from-runtime.php only inserts *missing* keys (English padding).
  * This script is the SSOT apply path for curated translations that must
- * replace identity leftovers (and then re-mirror regional variants).
+ * replace identity leftovers.
  *
  * Usage (from app root):
  *   php scripts/apply-runtime-translations.php
@@ -39,18 +39,18 @@ if (!is_file($translationsPath)) {
 /** @var array<string, array<string, string>> $overrides */
 $overrides = json_decode((string) file_get_contents($translationsPath), true, 512, JSON_THROW_ON_ERROR);
 
-$allowed = ['de', 'fr', 'es', 'da', 'nl', 'it', 'pl', 'sv', 'nb', 'pt_BR'];
-$variants = [
-	'da_DK' => 'da',
-	'de_DE' => 'de',
-	'es_ES' => 'es',
-	'fr_FR' => 'fr',
-	'it_IT' => 'it',
-	'nb_NO' => 'nb',
-	'nl_NL' => 'nl',
-	'pl_PL' => 'pl',
-	'sv_SE' => 'sv',
-];
+// Every shipped non-en catalog may receive curated overrides — glob so added
+// locales are never silently refused by a stale literal list. Same-language
+// mirror catalogs (de_DE<-de, …) were dropped: NC resolves xx_YY to the
+// shipped xx catalog natively, and add-only mirroring was pure drift surface.
+$allowed = [];
+foreach (glob($appRoot . '/l10n/*.json') ?: [] as $path) {
+	$name = basename($path, '.json');
+	if ($name === '' || $name[0] === '_' || $name === 'en') {
+		continue;
+	}
+	$allowed[] = $name;
+}
 
 /**
  * @return list<string>
@@ -150,45 +150,6 @@ foreach ($pending as $lang => $item) {
 	ksort($item['trans'], SORT_STRING);
 	$item['data']['translations'] = $item['trans'];
 	dcWriteJson($item['path'], $item['data']);
-}
-
-foreach ($variants as $variant => $baseLang) {
-	$variantPath = $appRoot . '/l10n/' . $variant . '.json';
-	$basePath = $appRoot . '/l10n/' . $baseLang . '.json';
-	if (!is_file($variantPath) || !is_file($basePath)) {
-		continue;
-	}
-	if (!isset($overrides[$baseLang]) || !is_array($overrides[$baseLang])) {
-		continue;
-	}
-	$variantData = json_decode((string) file_get_contents($variantPath), true, 512, JSON_THROW_ON_ERROR);
-	$baseData = json_decode((string) file_get_contents($basePath), true, 512, JSON_THROW_ON_ERROR);
-	$variantTrans = $variantData['translations'] ?? [];
-	$baseTrans = $baseData['translations'] ?? [];
-	$changed = 0;
-	foreach (array_keys($overrides[$baseLang]) as $msgid) {
-		if (!array_key_exists($msgid, $baseTrans)) {
-			fwrite(STDERR, "{$baseLang}.json missing key while mirroring {$variant}: {$msgid}\n");
-			exit(1);
-		}
-		if (!array_key_exists($msgid, $variantTrans)) {
-			fwrite(STDERR, "{$variant}.json missing key (run sync first): {$msgid}\n");
-			exit(1);
-		}
-		if ($variantTrans[$msgid] === $baseTrans[$msgid]) {
-			continue;
-		}
-		$variantTrans[$msgid] = $baseTrans[$msgid];
-		$changed++;
-	}
-	echo ($dryRun ? '[dry-run] ' : '') . "{$variant} <- {$baseLang}: {$changed} key(s) updated\n";
-	$totalChanged += $changed;
-	if ($changed === 0 || $dryRun) {
-		continue;
-	}
-	ksort($variantTrans, SORT_STRING);
-	$variantData['translations'] = $variantTrans;
-	dcWriteJson($variantPath, $variantData);
 }
 
 echo "apply-runtime-translations OK ({$totalChanged} replacements" . ($dryRun ? ', dry-run' : '') . ").\n";

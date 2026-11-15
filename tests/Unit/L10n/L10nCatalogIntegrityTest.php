@@ -8,24 +8,23 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Catalog integrity: runtime keys ⊆ en, locale key/order parity, JSON↔JS
- * sync, regional variant keys, placeholders (including pt_BR + variants),
- * and curated status/a11y strings must not ship as English identity leftovers.
+ * sync, no redundant same-language mirror catalogs, placeholders (including
+ * genuine regional locales like pt_BR), and curated status/a11y strings must
+ * not ship as English identity leftovers.
  */
 final class L10nCatalogIntegrityTest extends TestCase
 {
-	private const BASE_LOCALES = ['en', 'de', 'fr', 'es', 'da', 'nl', 'it', 'pl', 'sv', 'nb', 'pt_BR'];
+	private const BASE_LOCALES = ['en', 'de', 'fr', 'es', 'da', 'nl', 'it', 'pl', 'sv', 'nb', 'pt', 'pt_BR', 'tr', 'zh_CN', 'zh_TW'];
 
-	private const VARIANTS = [
-		'da_DK' => 'da',
-		'de_DE' => 'de',
-		'es_ES' => 'es',
-		'fr_FR' => 'fr',
-		'it_IT' => 'it',
-		'nb_NO' => 'nb',
-		'nl_NL' => 'nl',
-		'pl_PL' => 'pl',
-		'sv_SE' => 'sv',
-	];
+	/**
+	 * Region-tagged locales that carry a genuine regional variant and are
+	 * allowed to ship next to (or without) their base catalog. pt_BR differs
+	 * from pt on ~1100 cells; zh_CN/zh_TW are distinct scripts with no zh
+	 * base. Same-language mirrors (de_DE<-de, nb_NO<-nb, …) were dropped in
+	 * r42: add-only mirroring never healed divergent cells, so they were
+	 * pure sync-drift surface — NC resolves xx_YY to the shipped xx catalog.
+	 */
+	private const GENUINE_REGIONAL = ['pt_BR', 'zh_CN', 'zh_TW'];
 
 	/** Visible chrome that must be translated in every non-English locale. */
 	private const MUST_TRANSLATE = [
@@ -127,13 +126,35 @@ final class L10nCatalogIntegrityTest extends TestCase
 		}
 	}
 
-	public function testRegionalVariantsShareKeysWithBase(): void
+	public function testNoRedundantSameLanguageMirrorsShip(): void
 	{
-		foreach (self::VARIANTS as $variant => $base) {
-			$baseKeys = array_keys($this->translations($base));
-			$variantKeys = array_keys($this->translations($variant));
-			self::assertSame($baseKeys, $variantKeys, $variant . '.json keys drifted from ' . $base . '.json');
+		$shipped = $this->shippedCatalogLocales();
+		$failures = [];
+		foreach ($shipped as $lang) {
+			if (!preg_match('/^[a-z]{2,3}_[A-Z]{2}$/', $lang)) {
+				continue;
+			}
+			if (!in_array($lang, self::GENUINE_REGIONAL, true)) {
+				$failures[] = $lang . ' ships but is not a genuine regional locale — drop it; '
+					. 'same-language mirrors only duplicate the base catalog and drift on every sync flip';
+				continue;
+			}
+			$base = strtok($lang, '_');
+			if (in_array($base, $shipped, true)) {
+				$variantTr = $this->translations($lang);
+				$baseTr = $this->translations($base);
+				$diff = 0;
+				foreach ($variantTr as $msgid => $msgstr) {
+					if (($baseTr[$msgid] ?? null) !== $msgstr) {
+						$diff++;
+					}
+				}
+				if ($diff === 0) {
+					$failures[] = $lang . ' is a byte-mirror of ' . $base . ' — pure drift surface, drop it';
+				}
+			}
 		}
+		self::assertSame([], $failures, "Redundant variant catalogs:\n" . implode("\n", $failures));
 	}
 
 	public function testJsonAndJsCatalogsStayInSync(): void
@@ -199,13 +220,6 @@ final class L10nCatalogIntegrityTest extends TestCase
 				if ($tr[$msgid] === $msgid) {
 					$failures[] = $lang . ' identity leftover: ' . $msgid;
 				}
-			}
-		}
-		foreach (self::VARIANTS as $variant => $base) {
-			$tr = $this->translations($variant);
-			$baseTr = $this->translations($base);
-			foreach (self::MUST_TRANSLATE as $msgid) {
-				self::assertSame($baseTr[$msgid], $tr[$msgid], $variant . ' diverged from ' . $base . ' for ' . $msgid);
 			}
 		}
 		self::assertSame([], $failures, "Untranslated visible chrome:\n" . implode("\n", $failures));

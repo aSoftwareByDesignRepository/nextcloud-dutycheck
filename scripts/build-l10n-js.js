@@ -35,10 +35,12 @@ function buildJs(lang) {
 	fs.writeFileSync(path.join(l10nDir, `${lang}.js`), lines.join('\n'));
 }
 
-const langs = [
-	'en', 'de', 'de_DE', 'fr', 'fr_FR', 'es', 'es_ES',
-	'da', 'da_DK', 'nl', 'nl_NL', 'it', 'it_IT', 'pl', 'pl_PL', 'sv', 'sv_SE', 'nb', 'nb_NO',
-];
+// Every shipped catalog gets a .js mirror — glob so added locales are never
+// silently skipped by a stale literal list.
+const langs = fs.readdirSync(l10nDir)
+	.filter(f => f.endsWith('.json') && !f.startsWith('_'))
+	.map(f => f.slice(0, -'.json'.length))
+	.sort();
 for (const lang of langs) {
 	buildJs(lang);
 }
