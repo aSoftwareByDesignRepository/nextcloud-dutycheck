@@ -420,6 +420,7 @@ class RosterApiControllerContractTest extends TestCase
 		$user->method('isEnabled')->willReturn(true);
 		$userManager = $this->createMock(IUserManager::class);
 		$userManager->method('search')->with('pla')->willReturn([$user]);
+		$userManager->method('searchDisplayName')->with('pla')->willReturn([]);
 		$controller = new RosterApiController(
 			'dutycheck',
 			$this->request,
@@ -439,6 +440,92 @@ class RosterApiControllerContractTest extends TestCase
 		self::assertSame(200, $response->getStatus());
 		self::assertTrue($response->getData()['ok']);
 		self::assertCount(1, $response->getData()['users']);
+		self::assertFalse($response->getData()['truncated']);
+	}
+
+	public function testDirectoryUsersMergesDisplayNameMatchesAndDeduplicates(): void
+	{
+		$this->access->method('currentUserId')->willReturn('planner-1');
+		$this->access->method('isAppAdmin')->willReturn(true);
+		$this->request->method('getParam')->willReturnMap([
+			['q', '', 'schmidt'],
+		]);
+		$byUid = $this->createMock(\OCP\IUser::class);
+		$byUid->method('getUID')->willReturn('p.schmidt');
+		$byUid->method('getDisplayName')->willReturn('Petra Schmidt');
+		$byUid->method('isEnabled')->willReturn(true);
+		// Same person resolved again via display-name search — must not render twice.
+		$dup = $this->createMock(\OCP\IUser::class);
+		$dup->method('getUID')->willReturn('p.schmidt');
+		$dup->method('getDisplayName')->willReturn('Petra Schmidt');
+		$dup->method('isEnabled')->willReturn(true);
+		// Display-name-only hit: uid does not contain the query (LDAP-style uid).
+		$byName = $this->createMock(\OCP\IUser::class);
+		$byName->method('getUID')->willReturn('uid-8842');
+		$byName->method('getDisplayName')->willReturn('Sabine Schmidt');
+		$byName->method('isEnabled')->willReturn(true);
+		$userManager = $this->createMock(IUserManager::class);
+		$userManager->method('search')->with('schmidt')->willReturn([$byUid]);
+		$userManager->method('searchDisplayName')->with('schmidt')->willReturn([$dup, $byName]);
+		$controller = new RosterApiController(
+			'dutycheck',
+			$this->request,
+			$this->access,
+			$this->roster,
+			$this->csvFormatter,
+			$userManager,
+			$this->createMock(IGroupManager::class),
+			$this->createMock(IArbeitszeitCheckIntegration::class),
+			$this->createMock(PlanningDefaultsService::class),
+			$this->createMock(IConfig::class),
+			$this->createMock(ITimeFactory::class),
+			$this->createMock(ICacheFactory::class),
+		);
+
+		$response = $controller->directoryUsers();
+		self::assertSame(200, $response->getStatus());
+		$uids = array_column($response->getData()['users'], 'id');
+		self::assertSame(['p.schmidt', 'uid-8842'], $uids);
+		self::assertFalse($response->getData()['truncated']);
+	}
+
+	public function testDirectoryUsersSetsTruncatedWhenCandidatesExceedCap(): void
+	{
+		$this->access->method('currentUserId')->willReturn('admin-1');
+		$this->access->method('isAppAdmin')->willReturn(true);
+		$this->request->method('getParam')->willReturnMap([
+			['q', '', 'mu'],
+		]);
+		$many = [];
+		for ($i = 0; $i < 101; $i++) {
+			$u = $this->createMock(\OCP\IUser::class);
+			$u->method('getUID')->willReturn('u' . $i);
+			$u->method('getDisplayName')->willReturn('User ' . $i);
+			$u->method('isEnabled')->willReturn(true);
+			$many[] = $u;
+		}
+		$userManager = $this->createMock(IUserManager::class);
+		$userManager->method('search')->willReturn($many);
+		$userManager->method('searchDisplayName')->willReturn([]);
+		$controller = new RosterApiController(
+			'dutycheck',
+			$this->request,
+			$this->access,
+			$this->roster,
+			$this->csvFormatter,
+			$userManager,
+			$this->createMock(IGroupManager::class),
+			$this->createMock(IArbeitszeitCheckIntegration::class),
+			$this->createMock(PlanningDefaultsService::class),
+			$this->createMock(IConfig::class),
+			$this->createMock(ITimeFactory::class),
+			$this->createMock(ICacheFactory::class),
+		);
+
+		$response = $controller->directoryUsers();
+		self::assertSame(200, $response->getStatus());
+		self::assertCount(100, $response->getData()['users']);
+		self::assertTrue($response->getData()['truncated']);
 	}
 
 	public function testDirectoryUsersFallsBackToForbiddenWhenNeitherPlannerNorAppAdmin(): void
@@ -507,6 +594,7 @@ class RosterApiControllerContractTest extends TestCase
 		]);
 		$userManager = $this->createMock(IUserManager::class);
 		$userManager->expects(self::never())->method('search');
+		$userManager->expects(self::never())->method('searchDisplayName');
 		$controller = new RosterApiController(
 			'dutycheck',
 			$this->request,
@@ -526,5 +614,6 @@ class RosterApiControllerContractTest extends TestCase
 		self::assertSame(200, $response->getStatus());
 		self::assertTrue($response->getData()['ok']);
 		self::assertSame([], $response->getData()['users']);
+		self::assertFalse($response->getData()['truncated']);
 	}
 }

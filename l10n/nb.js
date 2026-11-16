@@ -745,6 +745,7 @@ OC.L10N.register(
 	"No matches found. Keep typing to refine your search." : "Ingen treff funnet. Fortsett å skrive for å avgrense søket.",
 	"No matching people found." : "Ingen personer funnet.",
 	"No matching timezones. Try a city or region name." : "Ingen samsvarende tidssoner. Prøv et by- eller regionnavn.",
+	"No matching user found. Check the spelling, or enter a display name below to add the person without an account." : "Ingen brukere funnet. Sjekk stavingen – eller skriv inn et visningsnavn nedenfor for å legge til personen uten konto.",
 	"No matching users, or everyone found already has a seat." : "Ingen samsvarende brukere, eller alle funnet har allerede et sete.",
 	"No mobile seats assigned yet." : "Ingen mobilplasser tildelt ennå.",
 	"No one is available on this date (approved leave). Pick another date." : "Ingen er tilgjengelig på denne datoen (godkjent permisjon). Velg en annen dato.",

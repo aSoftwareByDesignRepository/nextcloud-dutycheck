@@ -745,6 +745,7 @@ OC.L10N.register(
 	"No matches found. Keep typing to refine your search." : "Eşleşme bulunamadı. Aramayı daraltmak için yazmaya devam edin.",
 	"No matching people found." : "Eşleşen kişi bulunamadı.",
 	"No matching timezones. Try a city or region name." : "Eşleşen saat dilimi yok. Bir şehir veya bölge adı deneyin.",
+	"No matching user found. Check the spelling, or enter a display name below to add the person without an account." : "Eşleşen kullanıcı bulunamadı. Yazımı kontrol edin – veya kişiyi hesapsız eklemek için aşağıya bir görünen ad girin.",
 	"No matching users, or everyone found already has a seat." : "Eşleşen kullanıcı yok veya bulunan herkesin zaten bir mobil lisansı var.",
 	"No mobile seats assigned yet." : "Henüz mobil lisans atanmadı.",
 	"No one is available on this date (approved leave). Pick another date." : "Bu tarihte uygun kimse yok (onaylı izin). Başka bir tarih seçin.",

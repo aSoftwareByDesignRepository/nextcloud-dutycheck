@@ -745,6 +745,7 @@ OC.L10N.register(
 	"No matches found. Keep typing to refine your search." : "No matches found. Keep typing to refine your search.",
 	"No matching people found." : "No matching people found.",
 	"No matching timezones. Try a city or region name." : "No matching timezones. Try a city or region name.",
+	"No matching user found. Check the spelling, or enter a display name below to add the person without an account." : "No matching user found. Check the spelling, or enter a display name below to add the person without an account.",
 	"No matching users, or everyone found already has a seat." : "No matching users, or everyone found already has a seat.",
 	"No mobile seats assigned yet." : "No mobile seats assigned yet.",
 	"No one is available on this date (approved leave). Pick another date." : "No one is available on this date (approved leave). Pick another date.",

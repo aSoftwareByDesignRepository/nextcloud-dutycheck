@@ -745,6 +745,7 @@ OC.L10N.register(
 	"No matches found. Keep typing to refine your search." : "Aucune correspondance trouvée. Continuez à taper pour affiner votre recherche.",
 	"No matching people found." : "Aucune personne correspondante trouvée.",
 	"No matching timezones. Try a city or region name." : "Aucun fuseau horaire correspondant. Essayez un nom de ville ou de région.",
+	"No matching user found. Check the spelling, or enter a display name below to add the person without an account." : "Aucun utilisateur trouvé. Vérifiez l'orthographe ou saisissez un nom d'affichage ci-dessous pour ajouter la personne sans compte.",
 	"No matching users, or everyone found already has a seat." : "Aucun utilisateur correspondant, ou toutes les personnes trouvées ont déjà un siège.",
 	"No mobile seats assigned yet." : "Aucun poste mobile assigné pour l’instant.",
 	"No one is available on this date (approved leave). Pick another date." : "Personne n'est disponible à cette date (congé autorisé). Choisissez une autre date.",

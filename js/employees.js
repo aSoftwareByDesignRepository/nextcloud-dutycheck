@@ -129,11 +129,32 @@
 		container.appendChild(chip);
 	}
 
-	function renderResults(items, onPick) {
+	function renderEmptyResult(container, text, attrs) {
+		container.appendChild(create('li', {
+			class: 'dc-entity-results__empty',
+			attrs: Object.assign({ 'aria-disabled': 'true' }, attrs || {}),
+			text,
+		}));
+	}
+
+	function renderResults(items, onPick, options) {
+		const opts = options || {};
 		const container = document.getElementById('dc-employee-search-results');
 		if (!container) return;
 		container.replaceChildren();
+		if (opts.status === 'clear') {
+			return;
+		}
+		if (opts.status === 'short') {
+			renderEmptyResult(container, t('dutycheck', 'Type at least 2 characters to search.'));
+			return;
+		}
+		if (opts.status === 'searching') {
+			renderEmptyResult(container, t('dutycheck', 'Searching…'), { 'aria-busy': 'true' });
+			return;
+		}
 		if (!items.length) {
+			renderEmptyResult(container, t('dutycheck', 'No matching user found. Check the spelling, or enter a display name below to add the person without an account.'));
 			return;
 		}
 		for (const item of items) {
@@ -152,6 +173,9 @@
 				pick();
 			});
 			container.appendChild(li);
+		}
+		if (opts.truncated) {
+			renderEmptyResult(container, t('dutycheck', 'Showing the first {count} matches. Keep typing to narrow the list.').replace('{count}', String(items.length)));
 		}
 	}
 
@@ -313,10 +337,13 @@
 		search?.focus();
 	}
 
+	let directoryTruncated = false;
+
 	async function loadDirectoryUsers(query) {
 		const params = query ? { q: query } : {};
 		const response = await Api.get('/apps/dutycheck/api/admin/users', params);
 		const users = Array.isArray(response?.users) ? response.users : [];
+		directoryTruncated = response?.truncated === true;
 		const list = users
 			.filter((user) => user && user.enabled !== false && String(user.id || '') !== '')
 			.map((user) => ({ id: String(user.id), displayName: String(user.displayName || user.id) }))
@@ -354,26 +381,51 @@
 	function wireSearch() {
 		const input = document.getElementById('dc-employee-search');
 		if (!input) return;
+		let searchSeq = 0;
 		const onPick = (item) => {
 			setLinkedUser(item);
 			input.value = '';
-			renderResults([], onPick);
+			renderResults([], onPick, { status: 'clear' });
 		};
 		input.addEventListener('input', () => {
 			if (searchTimer) window.clearTimeout(searchTimer);
+			const q = input.value.trim();
+			const seq = ++searchSeq;
+			if (q.length < 2) {
+				renderResults([], onPick, { status: 'short' });
+				return;
+			}
+			renderResults([], onPick, { status: 'searching' });
 			searchTimer = window.setTimeout(async () => {
-				const q = input.value.trim();
-				if (q.length < 2) {
-					renderResults([], onPick);
-					return;
-				}
 				try {
 					const items = await loadDirectoryUsers(q);
-					renderResults(items, onPick);
+					// A newer keystroke superseded this request — its results
+					// must not overwrite the fresher list.
+					if (seq !== searchSeq) {
+						return;
+					}
+					renderResults(items, onPick, { truncated: directoryTruncated });
 				} catch (err) {
+					if (seq !== searchSeq) {
+						return;
+					}
+					renderResults([], onPick, { status: 'clear' });
 					Msg.handleApiError(err);
 				}
 			}, 240);
+		});
+		input.addEventListener('keydown', (event) => {
+			if (event.key !== 'Enter') {
+				return;
+			}
+			// Enter must never submit the surrounding employee form; with the
+			// results list open it picks the first match like a click.
+			event.preventDefault();
+			const container = document.getElementById('dc-employee-search-results');
+			const first = container?.querySelector('[role="option"]:not([aria-disabled="true"])');
+			if (first) {
+				first.click();
+			}
 		});
 	}
 

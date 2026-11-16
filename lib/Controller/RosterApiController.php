@@ -1203,14 +1203,42 @@ class RosterApiController extends Controller
 			}
 			$query = trim((string) $this->request->getParam('q', ''));
 			if (mb_strlen($query) < 2) {
-				return new DataResponse(['ok' => true, 'users' => []]);
+				return new DataResponse(['ok' => true, 'users' => [], 'truncated' => false]);
 			}
-			$users = $this->userManager->search($query);
-			$rows = [];
-			$count = 0;
-			foreach ($users as $user) {
+			// Merge uid-based and display-name matches: on some backends
+			// (LDAP/SAML) getUsers() only matches the login-name attribute,
+			// so a person whose stored uid does not contain the typed name
+			// would be unfindable. searchDisplayName() covers those.
+			$users = [];
+			$seen = [];
+			foreach ($this->userManager->search($query) as $user) {
 				if ($user === null) {
 					continue;
+				}
+				$seen[(string) $user->getUID()] = true;
+				$users[] = $user;
+			}
+			try {
+				foreach (($this->userManager->searchDisplayName($query) ?: []) as $user) {
+					if ($user === null) {
+						continue;
+					}
+					$uid = (string) $user->getUID();
+					if ($uid === '' || isset($seen[$uid])) {
+						continue;
+					}
+					$seen[$uid] = true;
+					$users[] = $user;
+				}
+			} catch (Throwable) {
+				// A backend without display-name search must not break uid matching.
+			}
+			$rows = [];
+			$truncated = false;
+			foreach ($users as $user) {
+				if (count($rows) >= 100) {
+					$truncated = true;
+					break;
 				}
 				// Shift assignment never offers deactivated accounts — they
 				// cannot sign in or work a shift.
@@ -1226,12 +1254,8 @@ class RosterApiController extends Controller
 					'displayName' => (string) $user->getDisplayName(),
 					'enabled' => method_exists($user, 'isEnabled') ? (bool) $user->isEnabled() : true,
 				];
-				$count++;
-				if ($count >= 100) {
-					break;
-				}
 			}
-			return new DataResponse(['ok' => true, 'users' => $rows]);
+			return new DataResponse(['ok' => true, 'users' => $rows, 'truncated' => $truncated]);
 		} catch (Throwable $e) {
 			return ApiJsonErrorResponse::fromThrowable($e);
 		}
