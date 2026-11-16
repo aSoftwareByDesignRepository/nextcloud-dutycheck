@@ -187,20 +187,47 @@ final class L10nCatalogIntegrityTest extends TestCase
 					$failures[] = $lang . ' missing ' . $msgid;
 					continue;
 				}
-				$msgstr = (string) $tr[$msgid];
-				$expectedPrintf = $this->printfPlaceholders($msgid);
-				$actualPrintf = $this->printfPlaceholders($msgstr);
-				sort($expectedPrintf);
-				sort($actualPrintf);
-				if ($expectedPrintf !== $actualPrintf) {
-					$failures[] = $lang . ' printf ' . $msgid;
+				$msgstr = $tr[$msgid];
+				// Combined plural keys "_sg_::_pl_" carry a [sg, pl(, many)]
+				// cell array — each cell is checked against its own msgid
+				// form; extra cells compare against the plural form.
+				$forms = null;
+				if (str_starts_with($msgid, '_') && str_ends_with($msgid, '_') && str_contains($msgid, '_::_')) {
+					$forms = explode('_::_', substr($msgid, 1, -1));
 				}
-				$expectedNamed = $this->namedPlaceholders($msgid);
-				$actualNamed = $this->namedPlaceholders($msgstr);
-				sort($expectedNamed);
-				sort($actualNamed);
-				if ($expectedNamed !== $actualNamed) {
-					$failures[] = $lang . ' named ' . $msgid;
+				if ($forms === null) {
+					$cells = is_string($msgstr) ? [$msgstr] : null;
+					$cellMsgids = [$msgid];
+				} else {
+					$cells = is_array($msgstr) ? array_values($msgstr) : null;
+					$cellMsgids = [];
+					foreach ($cells ?? [] as $i => $_cell) {
+						$cellMsgids[] = $forms[min($i, count($forms) - 1)];
+					}
+				}
+				if ($cells === null) {
+					$failures[] = $lang . ' value type ' . $msgid;
+					continue;
+				}
+				foreach ($cells as $i => $cell) {
+					if (!is_string($cell)) {
+						$failures[] = $lang . ' cell type ' . $msgid;
+						continue;
+					}
+					$expectedPrintf = $this->printfPlaceholders($cellMsgids[$i]);
+					$actualPrintf = $this->printfPlaceholders($cell);
+					sort($expectedPrintf);
+					sort($actualPrintf);
+					if ($expectedPrintf !== $actualPrintf) {
+						$failures[] = $lang . ' printf ' . $msgid;
+					}
+					$expectedNamed = $this->namedPlaceholders($cellMsgids[$i]);
+					$actualNamed = $this->namedPlaceholders($cell);
+					sort($expectedNamed);
+					sort($actualNamed);
+					if ($expectedNamed !== $actualNamed) {
+						$failures[] = $lang . ' named ' . $msgid;
+					}
 				}
 			}
 		}

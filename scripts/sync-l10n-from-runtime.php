@@ -103,7 +103,17 @@ $scanFiles = function (string $path) use ($patterns, &$found): void {
 	$content = (string)file_get_contents($path);
 	foreach ($patterns as $pattern) {
 		if (preg_match_all($pattern, $content, $matches)) {
-			// n() patterns carry a second capture group (plural msgid).
+			// Two capture groups = n()-style plural pair (sg, pl): the runtime
+			// lookup key is the single combined "_sg_::_pl_" msgid.
+			if (count($matches) === 3) {
+				$pairCount = count($matches[1]);
+				for ($i = 0; $i < $pairCount; $i++) {
+					$sg = stripcslashes($matches[1][$i]);
+					$pl = stripcslashes($matches[2][$i]);
+					$found['_' . $sg . '_::_' . $pl . '_'] = true;
+				}
+				continue;
+			}
 			for ($g = 1; $g < count($matches); $g++) {
 				foreach ($matches[$g] as $raw) {
 					$found[stripcslashes($raw)] = true;
@@ -177,12 +187,17 @@ foreach ($locales as $lang) {
 	$data = json_decode((string)file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
 	$trans = $data['translations'] ?? [];
 	foreach ($missing as $msgid) {
+		// Combined plural keys carry a [sg, pl] cell array, not a string.
+		$pluralPair = null;
+		if (str_starts_with($msgid, '_') && str_ends_with($msgid, '_') && str_contains($msgid, '_::_')) {
+			$pluralPair = explode('_::_', substr($msgid, 1, -1), 2);
+		}
 		if ($lang === 'en') {
-			$trans[$msgid] = $msgid;
+			$trans[$msgid] = $pluralPair ?? $msgid;
 		} elseif (isset($overrides[$lang][$msgid])) {
 			$trans[$msgid] = $overrides[$lang][$msgid];
 		} else {
-			$trans[$msgid] = $msgid;
+			$trans[$msgid] = $pluralPair ?? $msgid;
 		}
 	}
 	ksort($trans, SORT_STRING);

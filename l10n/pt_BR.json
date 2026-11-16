@@ -4,16 +4,10 @@
 		" page first.": "página primeiro.",
 		"%1$d of %2$d device slots in use.": "%1$d de %2$d espaços para dispositivos em uso.",
 		"%1$d of %2$d seats assigned": "%1$d de %2$d assentos atribuídos",
-		"%d row(s) need a value on this instance": "%d linha(s) precisam de um valor nesta instância",
-		"%d row(s) skipped and %d reference(s) unresolved — see the groups below.": "%d linha(s) ignorada(s) e %d referência(s) não resolvida(s) — veja os grupos abaixo.",
 		"%s stays free (AGPL) on your Nextcloud. Bug reports and ideas on GitHub stay welcome — that is free open-source care. If your organisation needs bookable help on an invoice — or official mobile licenses — choose an option below:": "%s permanece grátis (AGPL) no seu Nextcloud. Relatórios de bugs e ideias sobre GitHub são bem-vindos - isso é atendimento gratuito de código aberto. Se sua organização precisar de ajuda reservável em uma fatura — ou licenças móveis oficiais — escolha uma opção abaixo:",
 		"%s stays free (AGPL) on your Nextcloud. Bug reports and ideas on GitHub stay welcome — that is free open-source care. If your organisation needs bookable help on an invoice, choose an option below:": "%s permanece grátis (AGPL) no seu Nextcloud. Relatórios de bugs e ideias sobre GitHub são bem-vindos - isso é atendimento gratuito de código aberto. Se sua organização precisar de ajuda reservável em uma fatura, escolha uma opção abaixo:",
 		"%s stays free (AGPL) on your Nextcloud. GitHub issues for bugs and ideas remain welcome. For bookable help on an invoice — setup, hour packs, commissioned work — or the official mobile app:": "%s permanece grátis (AGPL) no seu Nextcloud. Problemas do GitHub para bugs e ideias continuam bem-vindos. Para ajuda reservável em uma fatura – configuração, pacotes de horas, trabalho comissionado – ou no aplicativo móvel oficial:",
 		"%s stays free (AGPL) on your Nextcloud. GitHub issues for bugs and ideas remain welcome. For bookable help on an invoice — setup, hour packs, or commissioned work:": "%s permanece grátis (AGPL) no seu Nextcloud. Problemas do GitHub para bugs e ideias continuam bem-vindos. Para ajuda reservável em uma fatura – configuração, pacotes de horas ou trabalho comissionado:",
-		"(%d env-bound value(s) emptied)": "(%d valor(es) vinculados à instância esvaziados)",
-		"(%d filtered)": "(%d filtrada(s))",
-		"(%d secret(s) redacted)": "(%d segredo(s) ocultado(s))",
-		"(%d unresolved ref)": "(%d referência(s) não resolvida(s))",
 		"(opens in a new tab)": "(abre em uma nova aba)",
 		"(unknown — skipped)": "(desconhecido — ignorado)",
 		"1 published shift": "1 turno publicado",
@@ -135,8 +129,6 @@
 		"All licensed seats are assigned. Remove a seat or upgrade the license.": "Todos os assentos licenciados são atribuídos. Remova um assento ou atualize a licença.",
 		"All mobile seats are assigned. Remove a user or upgrade your license.": "Todos os assentos móveis são atribuídos. Remova um usuário ou atualize sua licença.",
 		"All upcoming": "Todos os próximos",
-		"All {count} open period(s) already use the saved limits.": "Todos os {count} períodos abertos já usam os limites salvos.",
-		"All {count} open period(s) already use the saved limits. Nothing to apply.": "Todos os {count} períodos abertos já usam os limites salvos. Nada a aplicar.",
 		"All {n} active employees can be scheduled on this date.": "Todos os funcionários ativos do {n} poderão ser agendados nesta data.",
 		"All {total} active employees are linked — absences for them are entered in ArbeitszeitCheck.": "Todos os funcionários ativos {total} estão vinculados — as ausências deles são inseridas em ArbeitszeitCheck.",
 		"All {total} people are on screen.": "Todas as {total} pessoas estão na tela.",
@@ -164,9 +156,6 @@
 		"App policy": "Política de aplicativos",
 		"App policy saved.": "Política de aplicativo salva.",
 		"App policy saved. {n} stale entries were dropped because those users or groups no longer exist.": "Política de aplicativos salva. {n} entradas obsoletas foram descartadas porque esses usuários ou grupos não existem mais.",
-		"Applied saved limits to {count} open period(s).": "Limites salvos aplicados a {count} períodos abertos.",
-		"Applied saved limits to {count} open period(s). Planning checks recalculated for {done}; {left} will finish in the background.": "Limites aplicados a {count} período(s) aberto(s). Verificações recalculadas para {done}; {left} serão concluídos em segundo plano.",
-		"Applied saved limits to {count} open period(s). Planning checks were recalculated.": "Limites salvos aplicados a {count} período(s) aberto(s). As verificações de planejamento foram recalculadas.",
 		"Apply copy": "Aplicar cópia",
 		"Apply import": "Aplicar importação",
 		"Apply range": "Aplicar intervalo",
@@ -192,14 +181,14 @@
 		"Ask for a license": "Peça uma licença",
 		"Ask for a partner offer": "Peça uma oferta de parceiro",
 		"Assign": "Atribuir",
-		"Assign mobile seats to %1$d people? %2$d seats remaining.": "Atribuir lugares móveis a %1$d pessoas? Restam %2$d lugares.",
-		"Assign mobile seats?": "Atribuir lugares móveis?",
+		"Assign mobile seats to %1$d people? %2$d seats remaining.": "Atribuir assentos móveis a %1$d pessoas? Restam %2$d assentos.",
+		"Assign mobile seats?": "Atribuir assentos móveis?",
 		"Assign named seats to Nextcloud accounts. Each assigned person can sign in to the official DutyCheck mobile app.": "Atribua licenças nomeadas às contas Nextcloud. Cada pessoa designada pode entrar no aplicativo móvel oficial DutyCheck.",
 		"Assign pattern": "Atribuir padrão",
 		"Assign planner": "Atribuir planejador",
 		"Assign planner role": "Atribuir função de planejador",
 		"Assign planner roles on Duty roles": "Atribuir funções de planejador em Funções de plantão",
-		"Assign seats": "Atribuir lugares",
+		"Assign seats": "Atribuir assentos",
 		"Assign selected": "Atribuir selecionados",
 		"Assign selected (%n)": "Atribuir selecionados (%n)",
 		"Assign “{name}” from a start date.": "Atribuir “{name}” a partir de uma data de início.",
@@ -328,11 +317,9 @@
 		"Conflict thresholds saved.": "Limites de conflito salvos.",
 		"Conflict thresholds saved. Apply them to open periods below.": "Limites de conflito salvos. Aplique-os aos períodos abertos abaixo.",
 		"Conflict thresholds saved. Planning checks for open periods were recalculated.": "Limites de conflito salvos. As verificações de planejamento dos períodos abertos foram recalculadas.",
-		"Conflict thresholds saved. Planning checks recalculated for {done} period(s); {left} will finish in the background.": "Limites de conflito salvos. Verificações recalculadas para {done} período(s); {left} serão concluídos em segundo plano.",
 		"Conflicts": "Conflitos",
 		"Connect DutyCheck to ArbeitszeitCheck": "Conecte DutyCheck a ArbeitszeitCheck",
 		"Continues into the next day.": "Continua no dia seguinte.",
-		"Copied {created} assignment(s). Conflicts were recomputed.": "Atribuição(ões) {created} copiadas. Os conflitos foram recalculados.",
 		"Copied.": "Copiado.",
 		"Copy": "Cópia",
 		"Copy all settings, catalogues and data between a test and a production instance — one encrypted file, dry-run before anything is written.": "Copie todas as configurações, catálogos e dados entre uma instância de teste e uma de produção — um único arquivo criptografado, simulação antes de qualquer gravação.",
@@ -474,7 +461,6 @@
 		"DutyCheck is unavailable until your Nextcloud account is linked to an active employee record.": "DutyCheck não estará disponível até que sua conta Nextcloud esteja vinculada a um registro de funcionário ativo.",
 		"DutyCheck is unavailable until your Nextcloud account is linked to an employee record. Ask a planner or administrator.": "DutyCheck fica indisponível até que sua conta Nextcloud esteja vinculada a um registro de funcionário. Pergunte a um planejador ou administrador.",
 		"DutyCheck navigation": "DutyCheck navegação",
-		"DutyCheck still has {count} legacy absence record(s) for linked employees. Remove them below before enabling integration.": "DutyCheck ainda possui registro(s) de ausência legado(s) de {count} para funcionários vinculados. Remova-os abaixo antes de ativar a integração.",
 		"Each location has its own timezone (not a global app setting). Defaults to your account timezone when you add a new location.": "Cada local tem seu próprio fuso horário (não é configuração global). Ao adicionar um local, usa-se por padrão o fuso horário da conta.",
 		"Each pattern is an N-week cycle. Assign it to a person with a start date.": "Cada padrão é um ciclo de N semanas. Atribua-o a uma pessoa com data de início.",
 		"Edit": "Editar",
@@ -600,7 +586,6 @@
 		"Integrity hash": "Hash de integridade",
 		"Integrity verification could not be completed. Retry, and review server logs if this persists.": "A verificação de integridade não pôde ser concluída. Tente novamente e revise os logs do servidor se isso persistir.",
 		"Integrity verification failed.": "A verificação de integridade falhou.",
-		"Integrity verified for {n} snapshot(s).": "Integridade verificada para instantâneo(s) {n}.",
 		"Invalid duty role.": "Função de dever inválida.",
 		"Issues marked “Must fix” block publishing. “Confirm to continue” (for example less than 11 hours rest between shifts) needs a short written reason — it is stored in the audit log.": "Problemas marcados como “Deve ser corrigido” bloqueiam a publicação. “Confirmar para continuar” (por exemplo, menos de 11 horas de descanso entre turnos) precisa de um breve motivo por escrito – ele é armazenado no log de auditoria.",
 		"It will be hidden from new assignments. Existing assignments are kept.": "Ele ficará oculto em novas atribuições. As atribuições existentes são mantidas.",
@@ -636,7 +621,6 @@
 		"List prices on our site apply to published Check apps. For this app, ask for an individual partner offer — we invoice only after you accept a quote.": "Preços de tabela no site aplicam-se a apps Check publicados. Para este app, solicite uma oferta individual de parceiro — a fatura só é emitida após aceitar o orçamento.",
 		"Load current scope": "Carregar escopo atual",
 		"Load integration status again": "Carregar o status de integração novamente",
-		"Loaded {n} location(s).": "Locais {n} carregados.",
 		"Loading conflicts...": "Carregando conflitos...",
 		"Loading license status…": "Carregando status da licença…",
 		"Loading planning checks…": "Carregando verificações de planejamento…",
@@ -861,7 +845,6 @@
 		"Open your calendar app and choose something like “Subscribe”, “Add calendar”, or “From URL” (the name differs per app).": "Abra seu aplicativo de calendário e escolha algo como “Inscrever-se”, “Adicionar calendário” ou “De URL” (o nome varia de acordo com o app).",
 		"Open-shift claims need planner approval": "Candidaturas a turnos abertos precisam de aprovação do planejador",
 		"Opened {month} for planning.": "{month} aberto para planejamento.",
-		"Opened {month} for planning. It overlaps {count} existing period(s).": "{month} aberto para planejamento. Ele se sobrepõe a {count} período(s) existente(s).",
 		"Opening DutyCheck is separate from planner or staff access. Without directory restriction, any Nextcloud member can open the app — but they still need a planner role below or an employee catalog link to use roster features.": "A abertura do DutyCheck é separada do acesso do planejador ou da equipe. Sem restrição de diretório, qualquer membro do Nextcloud pode abrir o app – mas ainda precisa de uma função de planejador abaixo ou de um link de catálogo de funcionários para usar os recursos de escalação.",
 		"Opening DutyCheck is separate from planner or staff access. Without directory restriction, any Nextcloud member can open the app — but they still need a planner role on Duty roles or an employee catalog link to use roster features.": "Abrir o DutyCheck é separado do acesso de planejador ou equipe. Sem restrição de diretório, qualquer membro do Nextcloud pode abrir o app — mas ainda é preciso uma função de planejador em Funções de plantão ou um vínculo no catálogo de colaboradores para usar a escala.",
 		"Opens a dialog to create a new shift for the selected open period.": "Abre uma caixa de diálogo para criar um novo turno para o período aberto selecionado.",
@@ -919,7 +902,6 @@
 		"Periods and their lifecycle actions": "Períodos e suas ações de ciclo de vida",
 		"Periods are listed newest first. Closed periods are read-only. Changing the period updates the list below — no full page reload.": "Os períodos são listados mais recentes primeiro. Os períodos fechados são somente leitura. Alterar o período atualiza a lista abaixo – sem recarregar a página inteira.",
 		"Periods are the timeline of your roster. Each period flows through three stages: open, published, closed.": "Os períodos são a linha do tempo da sua escala. Cada período passa por três fases: aberto, publicado, fechado.",
-		"Permanently delete all DutyCheck absence records for employees linked to accounts ({count} row(s)). After integration is enabled, absences are managed in ArbeitszeitCheck. This cannot be undone.": "Exclua permanentemente todos os registros de ausência DutyCheck para funcionários vinculados a contas (linha(s) {count}). Após a integração ser habilitada, as ausências são gerenciadas em ArbeitszeitCheck. Isto não pode ser desfeito.",
 		"Person": "Pessoa",
 		"Personal": "Pessoal",
 		"Phase: %s": "Fase: %s",
@@ -1000,9 +982,8 @@
 		"Privacy & words we use": "Privacidade e palavras que usamos",
 		"Private calendar address": "Endereço de calendário privado",
 		"Provide a reason": "Forneça um motivo",
-		"Provide this ID when ordering a license so the key can be bound to this server.": "Forneça esse ID ao solicitar uma licença para que a chave possa ser vinculada a esse servidor.",
+		"Provide this ID when ordering a license so the key can be bound to this server.": "Forneça esse ID ao fazer um pedido de licença para que a chave possa ser vinculada a esse servidor.",
 		"Prune expired snapshots now": "Remover instantâneos expirados agora",
-		"Pruned {n} expired snapshot(s).": "Instantâneos expirados {n} removidos.",
 		"Publish": "Publicar",
 		"Publish ceremony": "Cerimônia de publicação",
 		"Publish period?": "Período de publicação?",
@@ -1015,7 +996,6 @@
 		"Publishing and closing happen on the Periods page. Use “Add assignment” on this page to plan shifts.": "A publicação e o fechamento acontecem na página Períodos. Use “Adicionar tarefa” nesta página para planejar turnos.",
 		"Publishing blocked": "Publicação bloqueada",
 		"Publishing blocked: ArbeitszeitCheck absences are stale or the sync breaker is open. Sync in Settings, then try again.": "Publicação bloqueada: as ausências ArbeitszeitCheck estão obsoletas ou o disjuntor de sincronização está aberto. Sincronize nas configurações e tente novamente.",
-		"Publishing blocked: {mustFix} “must fix” issue(s) remain": "Publicação bloqueada: {mustFix} problemas “devem ser corrigidos” permanecem",
 		"Publishing creates an immutable snapshot. Re-opening later requires a reason.": "A publicação cria um instantâneo imutável. A reabertura mais tarde requer um motivo.",
 		"Publishing freezes a tamper-evident snapshot and shows the roster to employees. Re-opening later is possible but always recorded with a written reason.": "A publicação congela um instantâneo inviolável e mostra a escala aos funcionários. Reabrir depois é possível, mas sempre registrado com um motivo por escrito.",
 		"Publishing freezes a tamper-evident snapshot for this period.": "A publicação congela um instantâneo à prova de adulteração deste período.",
@@ -1046,7 +1026,6 @@
 		"Ready to freeze the roster": "Pronto para congelar a escala",
 		"Ready to publish": "Pronto para publicar",
 		"Ready to publish — no blocking issues.": "Pronto para publicar — sem bloqueios.",
-		"Ready to publish: {mustFix} must fix · {confirm} confirm to continue ({pending} open)": "Pronto para publicar: {mustFix} deve ser corrigido · {confirm} confirmar para continuar ({pending} aberto)",
 		"Reaktionszeit": "Tempo de resposta",
 		"Really delete “{name}”? On-call duties that use it keep their label.": "Excluir mesmo „{name}“? Os sobreavisos que o usam mantêm seu rótulo.",
 		"Reason (minimum 10 characters)": "Motivo (mínimo 10 caracteres)",
@@ -1085,7 +1064,6 @@
 		"Remove the organisation license and revoke all seats and devices? This cannot be undone.": "Remover a licença da organização e revogar todos os assentos e dispositivos? Esta ação não pode ser desfeita.",
 		"Remove this license?": "Remover esta licença?",
 		"Remove {name}": "Remover {name}",
-		"Removed {count} legacy absence record(s).": "Registro(s) de ausência legado {count} removidos.",
 		"Removed — press “Save app policy” to apply.": "Removido — clique em «Salvar política de aplicativos» para aplicar a alteração.",
 		"Removing…": "Removendo…",
 		"Replace": "Substituir",
@@ -1345,7 +1323,6 @@
 		"The apply-from date cannot be in the past.": "A data de aplicação não pode estar no passado.",
 		"The list below sorts by submission date so the oldest request comes first. Use the filter to focus on a specific employee or type.": "A lista abaixo é classificada por data de envio para que a solicitação mais antiga apareça primeiro. Use o filtro para focar em um funcionário ou tipo específico.",
 		"The name appears on rosters and in audit logs. Adjust it if needed, or type one manually when no account is linked.": "O nome aparece nas escalas e nos registros de auditoria. Ajuste-o se necessário ou digite um manualmente quando nenhuma conta estiver vinculada.",
-		"The new period {start} – {end} overlaps existing period(s): {list}. Create it anyway?": "O novo período {start} – {end} se sobrepõe a períodos existentes: {list}. Criar mesmo assim?",
 		"The official DutyCheck mobile app is available. Assign seats below so staff can sign in.": "O app móvel oficial DutyCheck está disponível. Atribua assentos abaixo para que a equipe possa fazer login.",
 		"The overlapping assignment above ends the day before the new start date.": "A atribuição sobreposta acima termina no dia anterior à nova data de início.",
 		"The preview expired — pick the file and enter the passphrase again.": "A pré-visualização expirou — escolha o arquivo e digite a senha longa novamente.",
@@ -1393,7 +1370,6 @@
 		"This file is older than the last import on this instance.": "Este arquivo é mais antigo que a última importação nesta instância.",
 		"This file was exported from a newer app version. Update this app first.": "Este arquivo foi exportado de uma versão mais recente do app. Atualize o app primeiro.",
 		"This file was exported from this instance.": "Este arquivo foi exportado desta instância.",
-		"This license expires in {days} day(s). Renew soon to avoid an interruption for your mobile seats.": "Esta licença expira em {days} dia(s). Renove logo para evitar interrupção dos seus assentos móveis.",
 		"This list controls the door, not the data.": "Esta lista controla a porta, não os dados.",
 		"This location is no longer available. Pick another one.": "Este local não está mais disponível. Escolha outro.",
 		"This month": "Este mês",
@@ -1502,7 +1478,6 @@
 		"Waiting for server upgrade — ask an administrator.": "Aguardando atualização do servidor – pergunte a um administrador.",
 		"Waiting for the job…": "Aguardando a tarefa…",
 		"Walk through this list each time you prepare a period for publication.": "Percorra esta lista sempre que preparar um período para publicação.",
-		"Warning: %d row(s) will be permanently deleted, then the file data is loaded.": "Aviso: %d linha(s) serão excluídas permanentemente e, em seguida, os dados do arquivo serão carregados.",
 		"We could not check ArbeitszeitCheck just now. Wait a few seconds and try again.": "Não foi possível verificar ArbeitszeitCheck agora. Aguarde alguns segundos e tente novamente.",
 		"Wed": "qua",
 		"Week A falls on even calendar weeks (KW 2, 4, 6, …).": "A semana A cai em semanas civis pares (sem. 2, 4, 6, …).",
@@ -1559,7 +1534,7 @@
 		"You do not have the rights for this action.": "Você não tem permissões para esta ação.",
 		"You have confirmed this on-call duty": "Você confirmou este sobreaviso",
 		"You have confirmed this shift": "Este turno foi confirmado",
-		"You selected %1$d people but only %2$d seats remain. Only free seats will be assigned.": "Selecionou %1$d pessoas mas restam apenas %2$d lugares. Apenas os lugares livres serão atribuídos.",
+		"You selected %1$d people but only %2$d seats remain. Only free seats will be assigned.": "Selecionou %1$d pessoas mas restam apenas %2$d assentos. Apenas os assentos livres serão atribuídos.",
 		"You stay a member of Default so existing rosters remain visible.": "A associação a Default permanece, para que escalas existentes continuem visíveis.",
 		"Your absence requests and statuses": "Suas solicitações e status de ausência",
 		"Your account is not linked to an employee record. Ask a planner to link your Nextcloud account before you can manage absences.": "Sua conta não está vinculada a um registro de funcionário. Peça a um planejador para vincular sua conta Nextcloud antes de poder gerenciar ausências.",
@@ -1585,6 +1560,114 @@
 		"Your time off is managed in ArbeitszeitCheck.": "Seu tempo livre é gerenciado em ArbeitszeitCheck.",
 		"Your time off is managed in ArbeitszeitCheck. This page shows it to your planner. To request time off, use ArbeitszeitCheck.": "Seu tempo livre é gerenciado em ArbeitszeitCheck. Esta página mostra isso ao seu planejador. Para solicitar folga, use ArbeitszeitCheck.",
 		"Your upcoming published duties": "Suas próximas tarefas publicadas",
+		"_(1 env-bound value emptied)_::_(%n env-bound values emptied)_": [
+			"(1 valor vinculado à instância esvaziado)",
+			"(%n valores vinculados à instância esvaziados)"
+		],
+		"_(1 filtered)_::_(%n filtered)_": [
+			"(1 filtrada)",
+			"(%n filtradas)"
+		],
+		"_(1 secret redacted)_::_(%n secrets redacted)_": [
+			"(1 segredo ocultado)",
+			"(%n segredos ocultados)"
+		],
+		"_(1 unresolved ref)_::_(%n unresolved refs)_": [
+			"(1 referência não resolvida)",
+			"(%n referências não resolvidas)"
+		],
+		"_1 of {open} open periods still uses older caps. Apply to refresh it._::_%n of {open} open periods still use older caps. Apply to refresh them._": [
+			"1 de {open} períodos abertos ainda usa limites antigos. Aplique para atualizá-lo.",
+			"%n de {open} períodos abertos ainda usam limites antigos. Aplique para atualizá-los."
+		],
+		"_1 open period already uses the saved limits. Nothing to apply._::_All %n open periods already use the saved limits. Nothing to apply._": [
+			"1 período aberto já usa os limites salvos. Nada a aplicar.",
+			"Todos os %n períodos abertos já usam os limites salvos. Nada a aplicar."
+		],
+		"_1 open period already uses the saved limits._::_All %n open periods already use the saved limits._": [
+			"1 período aberto já usa os limites salvos.",
+			"Todos os %n períodos abertos já usam os limites salvos."
+		],
+		"_1 reference unresolved — see the groups below._::_%n references unresolved — see the groups below._": [
+			"1 referência não resolvida — veja os grupos abaixo.",
+			"%n referências não resolvidas — veja os grupos abaixo."
+		],
+		"_1 row needs a value on this instance_::_%n rows need a value on this instance_": [
+			"1 linha precisa de um valor nesta instância",
+			"%n linhas precisam de um valor nesta instância"
+		],
+		"_1 row skipped._::_%n rows skipped._": [
+			"1 linha ignorada.",
+			"%n linhas ignoradas."
+		],
+		"_Applied saved limits to 1 open period. Planning checks recalculated for {done}; {left} will finish in the background._::_Applied saved limits to %n open periods. Planning checks recalculated for {done}; {left} will finish in the background._": [
+			"Limites aplicados a 1 período aberto. Verificações recalculadas para {done}; {left} serão concluídos em segundo plano.",
+			"Limites aplicados a %n períodos abertos. Verificações recalculadas para {done}; {left} serão concluídos em segundo plano."
+		],
+		"_Applied saved limits to 1 open period. Planning checks were recalculated._::_Applied saved limits to %n open periods. Planning checks were recalculated._": [
+			"Limites salvos aplicados a 1 período aberto. As verificações de planejamento foram recalculadas.",
+			"Limites salvos aplicados a %n períodos abertos. As verificações de planejamento foram recalculadas."
+		],
+		"_Applied saved limits to 1 open period._::_Applied saved limits to %n open periods._": [
+			"Limites salvos aplicados a 1 período aberto.",
+			"Limites salvos aplicados a %n períodos abertos."
+		],
+		"_Conflict thresholds saved. Planning checks recalculated for 1 period; {left} will finish in the background._::_Conflict thresholds saved. Planning checks recalculated for %n periods; {left} will finish in the background._": [
+			"Limites de conflito salvos. Verificações recalculadas para 1 período; {left} serão concluídos em segundo plano.",
+			"Limites de conflito salvos. Verificações recalculadas para %n períodos; {left} serão concluídos em segundo plano."
+		],
+		"_Copied 1 assignment. Conflicts were recomputed._::_Copied %n assignments. Conflicts were recomputed._": [
+			"1 atribuição copiada. Os conflitos foram recalculados.",
+			"%n atribuições copiadas. Os conflitos foram recalculados."
+		],
+		"_DutyCheck still has 1 legacy absence record for linked employees. Remove it below before enabling integration._::_DutyCheck still has %n legacy absence records for linked employees. Remove them below before enabling integration._": [
+			"DutyCheck ainda possui 1 registro de ausência legado para funcionários vinculados. Remova-o abaixo antes de ativar a integração.",
+			"DutyCheck ainda possui %n registros de ausência legado para funcionários vinculados. Remova-os abaixo antes de ativar a integração."
+		],
+		"_Integrity verified for 1 snapshot._::_Integrity verified for %n snapshots._": [
+			"Integridade verificada para 1 instantâneo.",
+			"Integridade verificada para %n instantâneos."
+		],
+		"_Loaded 1 location._::_Loaded %n locations._": [
+			"1 local carregado.",
+			"%n locais carregados."
+		],
+		"_Opened {month} for planning. It overlaps 1 existing period._::_Opened {month} for planning. It overlaps %n existing periods._": [
+			"{month} aberto para planejamento. Ele se sobrepõe a 1 período existente.",
+			"{month} aberto para planejamento. Ele se sobrepõe a %n períodos existentes."
+		],
+		"_Permanently delete all DutyCheck absence records for employees linked to accounts (1 row). After integration is enabled, absences are managed in ArbeitszeitCheck. This cannot be undone._::_Permanently delete all DutyCheck absence records for employees linked to accounts (%n rows). After integration is enabled, absences are managed in ArbeitszeitCheck. This cannot be undone._": [
+			"Excluir permanentemente todos os registros de ausência DutyCheck para funcionários vinculados a contas (1 linha). Depois que a integração for ativada, as ausências serão gerenciadas no ArbeitszeitCheck. Isso não pode ser desfeito.",
+			"Excluir permanentemente todos os registros de ausência DutyCheck para funcionários vinculados a contas (%n linhas). Depois que a integração for ativada, as ausências serão gerenciadas no ArbeitszeitCheck. Isso não pode ser desfeito."
+		],
+		"_Pruned 1 expired snapshot._::_Pruned %n expired snapshots._": [
+			"1 instantâneo expirado removido.",
+			"%n instantâneos expirados removidos."
+		],
+		"_Publishing blocked: 1 “must fix” issue remains_::_Publishing blocked: %n “must fix” issues remain_": [
+			"Publicação bloqueada: 1 problema “deve ser corrigido” permanece",
+			"Publicação bloqueada: %n problemas “devem ser corrigidos” permanecem"
+		],
+		"_Ready to publish: {mustFix} must fix · {confirm} confirm to continue (1 open)_::_Ready to publish: {mustFix} must fix · {confirm} confirm to continue (%n open)_": [
+			"Pronto para publicar: {mustFix} deve ser corrigido · {confirm} confirme para continuar (1 aberto)",
+			"Pronto para publicar: {mustFix} deve ser corrigido · {confirm} confirme para continuar (%n abertos)"
+		],
+		"_Removed 1 legacy absence record._::_Removed %n legacy absence records._": [
+			"1 registro de ausência legado removido.",
+			"%n registros de ausência legado removidos."
+		],
+		"_The new period {start} – {end} overlaps 1 existing period: {list}. Create it anyway?_::_The new period {start} – {end} overlaps %n existing periods: {list}. Create it anyway?_": [
+			"O novo período {start} – {end} se sobrepõe a 1 período existente: {list}. Criar mesmo assim?",
+			"O novo período {start} – {end} se sobrepõe a %n períodos existentes: {list}. Criar mesmo assim?"
+		],
+		"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._": [
+			"Aviso: 1 linha será excluída permanentemente e, em seguida, os dados do arquivo serão carregados.",
+			"Aviso: %n linhas serão excluídas permanentemente e, em seguida, os dados do arquivo serão carregados."
+		],
+		"_{mustFix} must fix · {confirm} confirm to continue (1 open)_::_{mustFix} must fix · {confirm} confirm to continue (%n open)_": [
+			"{mustFix} deve ser corrigido · {confirm} confirme para continuar (1 aberto)",
+			"{mustFix} deve ser corrigido · {confirm} confirme para continuar (%n abertos)"
+		],
 		"add and update; nothing is deleted": "adicionar e atualizar; nada é excluído",
 		"applied": "aplicado",
 		"e.g. Night": "ex.: Noite",
@@ -1618,7 +1701,6 @@
 		"{date} · {times}": "{date} · {times}",
 		"{from} – {to}": "{from} – {to}",
 		"{month} is read-only (published or closed).": "{month} é somente leitura (publicado ou fechado).",
-		"{mustFix} must fix · {confirm} confirm to continue ({pending} open)": "{mustFix} deve ser corrigido · {confirm} confirme para continuar ({pending} aberto)",
 		"{n} cells selected": "{n} células selecionadas",
 		"{n} items need confirmation.": "{n} itens precisam de confirmação.",
 		"{n} min": "{n} minutos",
@@ -1627,7 +1709,6 @@
 		"{n} people on duty.": "{n} pessoas de plantão.",
 		"{n} published shifts": "{n} turnos publicados",
 		"{n}-week cycle": "Ciclo de {n} semanas",
-		"{outdated} of {open} open period(s) still use older caps. Apply to refresh them.": "{outdated} de {open} períodos abertos ainda usam limites antigos. Aplique para atualizá-los.",
 		"{title}: {have} of {need} staff ({time})": "{title}: {have} de {need} pessoas ({time})",
 		"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page.": "{unlinked} dos {total} funcionários ativos não têm conta Nextcloud vinculada — as ausências deles permanecem em DutyCheck até que as contas sejam vinculadas na página Funcionários.",
 		"{used} of {total} seats used": "{used} de {total} assentos usados",

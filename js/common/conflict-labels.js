@@ -5,6 +5,16 @@
 	 * Plain-language labels for planning issues (severity hard/soft in API data).
 	 * Shared by Roster, Dashboard, and Periods so wording stays consistent.
 	 */
+	// Plural-aware translate — window.n resolves the _sg_::_pl_ combined
+	// catalog pair; the fallback keeps unit tests runnable without OC.L10N.
+	function n(singular, plural, count) {
+		const c = Number.isFinite(Number(count)) ? Number(count) : 0;
+		if (typeof window.n === 'function') {
+			return window.n('dutycheck', singular, plural, c);
+		}
+		return String(c === 1 ? singular : plural).replace('%n', String(c));
+	}
+
 	function severityLabel(severity) {
 		const sev = String(severity || 'info');
 		if (sev === 'hard') {
@@ -17,10 +27,10 @@
 	}
 
 	function countsSummary(mustFix, confirm, pendingOpen) {
-		return t('dutycheck', '{mustFix} must fix · {confirm} confirm to continue ({pending} open)')
+		return n('{mustFix} must fix · {confirm} confirm to continue (1 open)',
+			'{mustFix} must fix · {confirm} confirm to continue (%n open)', pendingOpen)
 			.replace('{mustFix}', String(mustFix))
-			.replace('{confirm}', String(confirm))
-			.replace('{pending}', String(pendingOpen));
+			.replace('{confirm}', String(confirm));
 	}
 
 	function pulseTitle(mustFix, pendingConfirm) {
@@ -39,16 +49,16 @@
 		const pending = Number(pendingOpen) || 0;
 		if (canPublish || (hard === 0 && !integrationStale)) {
 			// Never paint “Publishing blocked: 0 …” — zero hard issues means ready copy.
-			return t('dutycheck', 'Ready to publish: {mustFix} must fix · {confirm} confirm to continue ({pending} open)')
+			return n('Ready to publish: {mustFix} must fix · {confirm} confirm to continue (1 open)',
+				'Ready to publish: {mustFix} must fix · {confirm} confirm to continue (%n open)', pending)
 				.replace('{mustFix}', String(hard))
-				.replace('{confirm}', String(soft))
-				.replace('{pending}', String(pending));
+				.replace('{confirm}', String(soft));
 		}
 		if (integrationStale) {
 			return t('dutycheck', 'Publishing blocked: ArbeitszeitCheck absences are stale or the sync breaker is open. Sync in Settings, then try again.');
 		}
-		return t('dutycheck', 'Publishing blocked: {mustFix} “must fix” issue(s) remain')
-			.replace('{mustFix}', String(hard));
+		return n('Publishing blocked: 1 “must fix” issue remains',
+			'Publishing blocked: %n “must fix” issues remain', hard);
 	}
 
 	window.DutyCheckConflictLabels = {

@@ -23,6 +23,15 @@
 			? translate
 			: function (_app, text) { return text; };
 		const t = function (msg) { return tFn('dutycheck', msg); };
+		// Plural-aware translate — window.n resolves the _sg_::_pl_ combined
+		// catalog pair; the fallback keeps unit tests runnable without OC.L10N.
+		const n = function (singular, plural, count) {
+			const c = Number.isFinite(Number(count)) ? Number(count) : 0;
+			if (typeof window !== 'undefined' && typeof window.n === 'function') {
+				return window.n('dutycheck', singular, plural, c);
+			}
+			return String(c === 1 ? singular : plural).replace('%n', String(c));
+		};
 		const info = openPeriods && typeof openPeriods === 'object' ? openPeriods : {};
 		const schemaReady = info.schemaReady !== false;
 		const openCount = Number(info.openCount || 0);
@@ -54,8 +63,8 @@
 			return {
 				tone: 'success',
 				title: t('Open periods already match these limits'),
-				body: t('All {count} open period(s) already use the saved limits. Nothing to apply.')
-					.replace('{count}', String(openCount)),
+				body: n('1 open period already uses the saved limits. Nothing to apply.',
+					'All %n open periods already use the saved limits. Nothing to apply.', openCount),
 				showApply: false,
 				applyEnabled: false,
 				outdatedCount: 0,
@@ -65,8 +74,8 @@
 		return {
 			tone: 'warning',
 			title: t('Open periods still use older limits'),
-			body: t('{outdated} of {open} open period(s) still use older caps. Apply to refresh them.')
-				.replace('{outdated}', String(outdatedCount))
+			body: n('1 of {open} open periods still uses older caps. Apply to refresh it.',
+				'%n of {open} open periods still use older caps. Apply to refresh them.', outdatedCount)
 				.replace('{open}', String(openCount)),
 			showApply: true,
 			applyEnabled: true,

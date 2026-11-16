@@ -93,7 +93,17 @@ $scanFiles = function (string $path) use ($patterns, &$found): void {
 	$content = (string)file_get_contents($path);
 	foreach ($patterns as $pattern) {
 		if (preg_match_all($pattern, $content, $matches)) {
-			// n() patterns carry a second capture group (plural msgid).
+			// Two capture groups = n()-style plural pair (sg, pl): the runtime
+			// lookup key is the single combined "_sg_::_pl_" msgid.
+			if (count($matches) === 3) {
+				$pairCount = count($matches[1]);
+				for ($i = 0; $i < $pairCount; $i++) {
+					$sg = stripcslashes($matches[1][$i]);
+					$pl = stripcslashes($matches[2][$i]);
+					$found['_' . $sg . '_::_' . $pl . '_'] = true;
+				}
+				continue;
+			}
 			for ($g = 1; $g < count($matches); $g++) {
 				foreach ($matches[$g] as $raw) {
 					$msgid = stripcslashes($raw);

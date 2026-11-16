@@ -11,6 +11,16 @@
 		throw new Error('DutyCheck components failed to load');
 	}
 
+	// Plural-aware translate — window.n resolves the _sg_::_pl_ combined
+	// catalog pair; the fallback keeps unit tests runnable without OC.L10N.
+	function n(singular, plural, count) {
+		const c = Number.isFinite(Number(count)) ? Number(count) : 0;
+		if (typeof window.n === 'function') {
+			return window.n('dutycheck', singular, plural, c);
+		}
+		return String(c === 1 ? singular : plural).replace('%n', String(c));
+	}
+
 	const BREAK_STORAGE_KEY = 'dutycheck.roster.lastBreakMinutes';
 
 	const state = {
@@ -785,9 +795,9 @@
 			if (!quiet) {
 				const overlapCount = Array.isArray(ensured?.data?.overlaps) ? ensured.data.overlaps.length : 0;
 				if (created && overlapCount > 0) {
-					setMonthStatus(t('dutycheck', 'Opened {month} for planning. It overlaps {count} existing period(s).')
-						.replace('{month}', D?.formatYearMonth?.(ym) || ym)
-						.replace('{count}', String(overlapCount)), false);
+					setMonthStatus(n('Opened {month} for planning. It overlaps 1 existing period.',
+						'Opened {month} for planning. It overlaps %n existing periods.', overlapCount)
+						.replace('{month}', D?.formatYearMonth?.(ym) || ym), false);
 				} else if (created) {
 					setMonthStatus(t('dutycheck', 'Opened {month} for planning.').replace('{month}', D?.formatYearMonth?.(ym) || ym), false);
 				} else if (!writable) {
@@ -2973,8 +2983,8 @@
 					msg = t('dutycheck', 'Nothing to copy from that period.');
 				}
 			} else {
-				msg = t('dutycheck', 'Copied {created} assignment(s). Conflicts were recomputed.')
-					.replace('{created}', String(created));
+				msg = n('Copied 1 assignment. Conflicts were recomputed.',
+					'Copied %n assignments. Conflicts were recomputed.', created);
 			}
 			if (status) {
 				status.hidden = false;

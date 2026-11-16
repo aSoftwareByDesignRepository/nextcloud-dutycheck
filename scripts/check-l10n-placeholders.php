@@ -97,31 +97,76 @@ foreach ($localeFiles as $lang) {
 $enT = $catalogs['en']['translations'] ?? [];
 $failed = false;
 
+/**
+ * Combined plural keys "_sg_::_pl_" carry a [sg, pl(, many)] value array.
+ * Each cell is checked against its own msgid form; extra cells (e.g. a third
+ * "many" form for nplurals=3 locales) compare against the plural form.
+ *
+ * @return list<string>|null msgid forms, or null for plain msgids
+ */
+function dcPluralForms(string $key): ?array
+{
+	if (!str_starts_with($key, '_') || !str_ends_with($key, '_') || !str_contains($key, '_::_')) {
+		return null;
+	}
+	return explode('_::_', substr($key, 1, -1));
+}
+
 foreach ($enT as $key => $enVal) {
-	$keyPrintf = dcPrintfPlaceholders($key);
-	$keyNamed = dcNamedPlaceholders($key);
+	$forms = dcPluralForms($key);
 
 	foreach ($localeFiles as $lang) {
 		$langT = $catalogs[$lang]['translations'] ?? [];
 		if (!isset($langT[$key])) {
 			continue;
 		}
-		$val = (string) $langT[$key];
+		$raw = $langT[$key];
 
-		$valPrintf = dcPrintfPlaceholders($val);
-		if (!dcPrintfTokensMatch($keyPrintf, $valPrintf)) {
-			$failed = true;
-			fwrite(STDERR, "{$lang}.json printf placeholder mismatch for key: {$key}\n");
-			fwrite(STDERR, '  expected: ' . implode(', ', $keyPrintf) . "\n");
-			fwrite(STDERR, '  got:      ' . implode(', ', $valPrintf) . "\n");
+		if ($forms === null) {
+			if (!is_string($raw)) {
+				$failed = true;
+				fwrite(STDERR, "{$lang}.json array value under non-plural key: {$key}\n");
+				continue;
+			}
+			$cells = [$raw];
+			$cellKeys = [$key];
+		} else {
+			if (!is_array($raw)) {
+				$failed = true;
+				fwrite(STDERR, "{$lang}.json non-array value under plural key: {$key}\n");
+				continue;
+			}
+			$cells = array_values($raw);
+			$cellKeys = [];
+			foreach ($cells as $i => $_cell) {
+				$cellKeys[] = $forms[min($i, count($forms) - 1)];
+			}
 		}
 
-		$valNamed = dcNamedPlaceholders($val);
-		if ($keyNamed !== $valNamed) {
-			$failed = true;
-			fwrite(STDERR, "{$lang}.json named placeholder mismatch for key: {$key}\n");
-			fwrite(STDERR, '  expected: ' . implode(', ', $keyNamed) . "\n");
-			fwrite(STDERR, '  got:      ' . implode(', ', $valNamed) . "\n");
+		foreach ($cells as $i => $val) {
+			if (!is_string($val)) {
+				$failed = true;
+				fwrite(STDERR, "{$lang}.json non-string plural cell for key: {$key}\n");
+				continue;
+			}
+			$keyPrintf = dcPrintfPlaceholders($cellKeys[$i]);
+			$keyNamed = dcNamedPlaceholders($cellKeys[$i]);
+
+			$valPrintf = dcPrintfPlaceholders($val);
+			if (!dcPrintfTokensMatch($keyPrintf, $valPrintf)) {
+				$failed = true;
+				fwrite(STDERR, "{$lang}.json printf placeholder mismatch for key: {$key}\n");
+				fwrite(STDERR, '  expected: ' . implode(', ', $keyPrintf) . "\n");
+				fwrite(STDERR, '  got:      ' . implode(', ', $valPrintf) . "\n");
+			}
+
+			$valNamed = dcNamedPlaceholders($val);
+			if ($keyNamed !== $valNamed) {
+				$failed = true;
+				fwrite(STDERR, "{$lang}.json named placeholder mismatch for key: {$key}\n");
+				fwrite(STDERR, '  expected: ' . implode(', ', $keyNamed) . "\n");
+				fwrite(STDERR, '  got:      ' . implode(', ', $valNamed) . "\n");
+			}
 		}
 	}
 }

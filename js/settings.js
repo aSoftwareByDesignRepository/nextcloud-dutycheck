@@ -9,6 +9,16 @@
 		throw new Error('DutyCheck components failed to load');
 	}
 
+	// Plural-aware translate — window.n resolves the _sg_::_pl_ combined
+	// catalog pair; the fallback keeps unit tests runnable without OC.L10N.
+	function n(singular, plural, count) {
+		const c = Number.isFinite(Number(count)) ? Number(count) : 0;
+		if (typeof window.n === 'function') {
+			return window.n('dutycheck', singular, plural, c);
+		}
+		return String(c === 1 ? singular : plural).replace('%n', String(c));
+	}
+
 	const state = {
 		allowedUsers: [],
 		allowedGroups: [],
@@ -446,7 +456,8 @@
 			bannerMsg = t('dutycheck', 'Legacy DutyCheck absences exist on linked employees. Resolve them before enabling integration ({count} rows).').replace('{count}', String(legacy));
 		} else if (legacy > 0 && !d.intentEnabled) {
 			if (peerOk && !bannerMsg) {
-				bannerMsg = t('dutycheck', 'DutyCheck still has {count} legacy absence record(s) for linked employees. Remove them below before enabling integration.').replace('{count}', String(legacy));
+				bannerMsg = n('DutyCheck still has 1 legacy absence record for linked employees. Remove it below before enabling integration.',
+					'DutyCheck still has %n legacy absence records for linked employees. Remove them below before enabling integration.', legacy);
 			}
 		}
 		if (banner) {
@@ -704,7 +715,8 @@
 			const legacy = Number(purgeBtn.dataset.legacyCount || '0');
 			const ok = await C.confirmDialog({
 				title: t('dutycheck', 'Remove legacy DutyCheck absences'),
-				body: t('dutycheck', 'Permanently delete all DutyCheck absence records for employees linked to accounts ({count} row(s)). After integration is enabled, absences are managed in ArbeitszeitCheck. This cannot be undone.').replace('{count}', String(legacy)),
+				body: n('Permanently delete all DutyCheck absence records for employees linked to accounts (1 row). After integration is enabled, absences are managed in ArbeitszeitCheck. This cannot be undone.',
+					'Permanently delete all DutyCheck absence records for employees linked to accounts (%n rows). After integration is enabled, absences are managed in ArbeitszeitCheck. This cannot be undone.', legacy),
 				confirmLabel: t('dutycheck', 'Remove permanently'),
 				danger: true,
 			});
@@ -712,8 +724,8 @@
 			purgeBtn.disabled = true;
 			try {
 				const res = await Api.post('/apps/dutycheck/api/admin/integration/purge-legacy-absences', {});
-				const n = Number(res?.data?.deleted ?? legacy);
-				Msg.announce(t('dutycheck', 'Removed {count} legacy absence record(s).').replace('{count}', String(n)));
+				const removed = Number(res?.data?.deleted ?? legacy);
+				Msg.announce(n('Removed 1 legacy absence record.', 'Removed %n legacy absence records.', removed));
 				renderAtAdminState(res?.data?.integration || {}, els);
 			} catch (err) {
 				const code = String(err?.payload?.error?.code || '');
@@ -1070,8 +1082,8 @@
 				if (!view.showApply && refreshed > 0 && dirtyLeft <= 0) {
 					msg = t('dutycheck', 'Conflict thresholds saved. Planning checks for open periods were recalculated.');
 				} else if (!view.showApply && dirtyLeft > 0) {
-					msg = t('dutycheck', 'Conflict thresholds saved. Planning checks recalculated for {done} period(s); {left} will finish in the background.')
-						.replace('{done}', String(refreshed))
+					msg = n('Conflict thresholds saved. Planning checks recalculated for 1 period; {left} will finish in the background.',
+						'Conflict thresholds saved. Planning checks recalculated for %n periods; {left} will finish in the background.', refreshed)
 						.replace('{left}', String(dirtyLeft));
 				}
 				if (status) {
@@ -1106,17 +1118,17 @@
 					const dirtyLeft = Number(res?.data?.conflictsDirtyRemaining || 0);
 					let msg = updated === 0
 						? t('dutycheck', 'Open periods already matched the saved limits.')
-						: t('dutycheck', 'Applied saved limits to {count} open period(s).').replace('{count}', String(updated));
+						: n('Applied saved limits to 1 open period.', 'Applied saved limits to %n open periods.', updated);
 					if (dirtyLeft > 0) {
-						msg = t('dutycheck', 'Applied saved limits to {count} open period(s). Planning checks recalculated for {done}; {left} will finish in the background.')
-							.replace('{count}', String(updated))
+						msg = n('Applied saved limits to 1 open period. Planning checks recalculated for {done}; {left} will finish in the background.',
+							'Applied saved limits to %n open periods. Planning checks recalculated for {done}; {left} will finish in the background.', updated)
 							.replace('{done}', String(refreshed))
 							.replace('{left}', String(dirtyLeft));
 					} else if (refreshed > 0) {
 						msg = updated === 0
 							? t('dutycheck', 'Open periods already matched the saved limits. Planning checks were recalculated.')
-							: t('dutycheck', 'Applied saved limits to {count} open period(s). Planning checks were recalculated.')
-								.replace('{count}', String(updated));
+							: n('Applied saved limits to 1 open period. Planning checks were recalculated.',
+								'Applied saved limits to %n open periods. Planning checks were recalculated.', updated);
 					}
 					if (status) {
 						status.hidden = false;
@@ -1665,7 +1677,7 @@
 				const ids = Array.isArray(res?.data?.locationIds) ? res.data.locationIds : [];
 				setCheckedIds(ids);
 				await showStatus(ids.length
-					? t('dutycheck', 'Loaded {n} location(s).').replace('{n}', String(ids.length))
+					? n('Loaded 1 location.', 'Loaded %n locations.', ids.length)
 					: t('dutycheck', 'Unrestricted (all locations).'));
 			} catch (err) {
 				Msg.handleApiError(err);
@@ -1732,7 +1744,7 @@
 			try {
 				const res = await Api.post('/apps/dutycheck/api/admin/snapshots/prune', {});
 				const deleted = Number(res?.data?.deleted ?? 0);
-				const msg = t('dutycheck', 'Pruned {n} expired snapshot(s).').replace('{n}', String(deleted));
+				const msg = n('Pruned 1 expired snapshot.', 'Pruned %n expired snapshots.', deleted);
 				if (status) {
 					status.hidden = false;
 					status.textContent = msg;

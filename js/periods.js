@@ -11,6 +11,16 @@
 		throw new Error('DutyCheck components failed to load');
 	}
 
+	// Plural-aware translate — window.n resolves the _sg_::_pl_ combined
+	// catalog pair; the fallback keeps unit tests runnable without OC.L10N.
+	function n(singular, plural, count) {
+		const c = Number.isFinite(Number(count)) ? Number(count) : 0;
+		if (typeof window.n === 'function') {
+			return window.n('dutycheck', singular, plural, c);
+		}
+		return String(c === 1 ? singular : plural).replace('%n', String(c));
+	}
+
 	const STATUS_ACTIONS = {
 		open: ['published'],
 		published: ['closed'],
@@ -440,7 +450,7 @@
 			const response = await Api.get(`/apps/dutycheck/api/periods/${periodId}/snapshots/verify`);
 			const count = Number(response?.data?.count || 0);
 			if (resultNode) {
-				resultNode.textContent = t('dutycheck', 'Integrity verified for {n} snapshot(s).').replace('{n}', String(count));
+				resultNode.textContent = n('Integrity verified for 1 snapshot.', 'Integrity verified for %n snapshots.', count);
 			}
 			setIntegrityBanner('');
 			Msg.announce(t('dutycheck', 'Snapshot integrity verified.'));
@@ -725,7 +735,9 @@
 			const e = D?.formatDisplayDate(o.endDate) || o.endDate;
 			return `${s} – ${e}`;
 		}).join(', ');
-		return t('dutycheck', 'The new period {start} – {end} overlaps existing period(s): {list}. Create it anyway?')
+		return n('The new period {start} – {end} overlaps 1 existing period: {list}. Create it anyway?',
+			'The new period {start} – {end} overlaps %n existing periods: {list}. Create it anyway?',
+			(overlaps || []).length)
 			.replace('{start}', start).replace('{end}', end).replace('{list}', list);
 	}
 
