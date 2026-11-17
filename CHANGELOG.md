@@ -5,11 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## 0.3.16 - 2026-11-17
+
+### Added
+
+- shared family license page (converged on _shared/license-page)
 
 ### Fixed
 
 - employees page: directory search showed nothing when no user matched — now renders searching / no-matches / keep-typing states, widens matching to display names on all user backends, and flags >100-result truncation
+- license page — variant armor + focus trap, closed-dialog re-hide, drop dead LicenseUiStrings wire
+- l10n — real plural forms replace "(s)" lazy hacks across license/transfer packs; pl / nl / zh license cells canonical
+- demo seed no longer hijacks conflicted real periods
 
 ## 0.3.15 - 2026-11-13
 
