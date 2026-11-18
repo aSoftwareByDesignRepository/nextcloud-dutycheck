@@ -1560,111 +1560,84 @@
 		"Your time off is managed in ArbeitszeitCheck. This page shows it to your planner. To request time off, use ArbeitszeitCheck.": "İzinleriniz ArbeitszeitCheck'te yönetilir. Bu sayfa onu planlamacınıza gösterir. İzin istemek için ArbeitszeitCheck'i kullanın.",
 		"Your upcoming published duties": "Yaklaşan yayınlanmış nöbetleriniz",
 		"_(1 env-bound value emptied)_::_(%n env-bound values emptied)_": [
-			"(1 örneğe bağlı değer boşaltıldı)",
 			"(%n örneğe bağlı değer boşaltıldı)"
 		],
 		"_(1 filtered)_::_(%n filtered)_": [
-			"(1 filtrelendi)",
 			"(%n filtrelendi)"
 		],
 		"_(1 secret redacted)_::_(%n secrets redacted)_": [
-			"(1 sır gizlendi)",
 			"(%n sır gizlendi)"
 		],
 		"_(1 unresolved ref)_::_(%n unresolved refs)_": [
-			"(1 çözümlenemeyen başvuru)",
 			"(%n çözümlenemeyen başvuru)"
 		],
 		"_1 of {open} open periods still uses older caps. Apply to refresh it._::_%n of {open} open periods still use older caps. Apply to refresh them._": [
-			"{open} açık dönemden 1 tanesi hâlâ eski sınırları kullanıyor. Yenilemek için uygulayın.",
 			"{open} açık dönemden %n tanesi hâlâ eski sınırları kullanıyor. Yenilemek için uygulayın."
 		],
 		"_1 open period already uses the saved limits. Nothing to apply._::_All %n open periods already use the saved limits. Nothing to apply._": [
-			"1 açık dönem zaten kaydedilmiş sınırları kullanıyor. Uygulanacak bir şey yok.",
 			"%n açık dönemin tamamı zaten kaydedilmiş sınırları kullanıyor. Uygulanacak bir şey yok."
 		],
 		"_1 open period already uses the saved limits._::_All %n open periods already use the saved limits._": [
-			"1 açık dönem zaten kaydedilmiş sınırları kullanıyor.",
 			"%n açık dönemin tamamı zaten kaydedilmiş sınırları kullanıyor."
 		],
 		"_1 reference unresolved — see the groups below._::_%n references unresolved — see the groups below._": [
-			"1 başvuru çözümlenemedi — aşağıdaki gruplara bakın.",
 			"%n başvuru çözümlenemedi — aşağıdaki gruplara bakın."
 		],
 		"_1 row needs a value on this instance_::_%n rows need a value on this instance_": [
-			"1 satırın bu örnekte bir değere ihtiyacı var",
 			"%n satırın bu örnekte bir değere ihtiyacı var"
 		],
 		"_1 row skipped._::_%n rows skipped._": [
-			"1 satır atlandı.",
 			"%n satır atlandı."
 		],
 		"_Applied saved limits to 1 open period. Planning checks recalculated for {done}; {left} will finish in the background._::_Applied saved limits to %n open periods. Planning checks recalculated for {done}; {left} will finish in the background._": [
-			"Kaydedilmiş sınırlar 1 açık döneme uygulandı. Planlama denetimleri {done} için yeniden hesaplandı; {left} arka planda tamamlanacak.",
 			"Kaydedilmiş sınırlar %n açık döneme uygulandı. Planlama denetimleri {done} için yeniden hesaplandı; {left} arka planda tamamlanacak."
 		],
 		"_Applied saved limits to 1 open period. Planning checks were recalculated._::_Applied saved limits to %n open periods. Planning checks were recalculated._": [
-			"Kaydedilmiş sınırlar 1 açık döneme uygulandı. Planlama denetimleri yeniden hesaplandı.",
 			"Kaydedilmiş sınırlar %n açık döneme uygulandı. Planlama denetimleri yeniden hesaplandı."
 		],
 		"_Applied saved limits to 1 open period._::_Applied saved limits to %n open periods._": [
-			"Kaydedilmiş sınırlar 1 açık döneme uygulandı.",
 			"Kaydedilmiş sınırlar %n açık döneme uygulandı."
 		],
 		"_Conflict thresholds saved. Planning checks recalculated for 1 period; {left} will finish in the background._::_Conflict thresholds saved. Planning checks recalculated for %n periods; {left} will finish in the background._": [
-			"Çakışma eşikleri kaydedildi. Planlama denetimleri 1 dönem için yeniden hesaplandı; {left} arka planda tamamlanacak.",
 			"Çakışma eşikleri kaydedildi. Planlama denetimleri %n dönem için yeniden hesaplandı; {left} arka planda tamamlanacak."
 		],
 		"_Copied 1 assignment. Conflicts were recomputed._::_Copied %n assignments. Conflicts were recomputed._": [
-			"1 atama kopyalandı. Çakışmalar yeniden hesaplandı.",
 			"%n atama kopyalandı. Çakışmalar yeniden hesaplandı."
 		],
 		"_DutyCheck still has 1 legacy absence record for linked employees. Remove it below before enabling integration._::_DutyCheck still has %n legacy absence records for linked employees. Remove them below before enabling integration._": [
-			"DutyCheck'te bağlı çalışanlara ait hâlâ 1 eski devamsızlık kaydı var. Entegrasyonu etkinleştirmeden önce aşağıdan kaldırın.",
 			"DutyCheck'te bağlı çalışanlara ait hâlâ %n eski devamsızlık kaydı var. Entegrasyonu etkinleştirmeden önce aşağıdan kaldırın."
 		],
 		"_Integrity verified for 1 snapshot._::_Integrity verified for %n snapshots._": [
-			"1 anlık görüntü için bütünlük doğrulandı.",
 			"%n anlık görüntü için bütünlük doğrulandı."
 		],
 		"_Loaded 1 location._::_Loaded %n locations._": [
-			"1 konum yüklendi.",
 			"%n konum yüklendi."
 		],
 		"_Opened {month} for planning. It overlaps 1 existing period._::_Opened {month} for planning. It overlaps %n existing periods._": [
-			"{month} planlamaya açıldı. 1 mevcut dönemle çakışıyor.",
 			"{month} planlamaya açıldı. %n mevcut dönemle çakışıyor."
 		],
 		"_Permanently delete all DutyCheck absence records for employees linked to accounts (1 row). After integration is enabled, absences are managed in ArbeitszeitCheck. This cannot be undone._::_Permanently delete all DutyCheck absence records for employees linked to accounts (%n rows). After integration is enabled, absences are managed in ArbeitszeitCheck. This cannot be undone._": [
-			"Hesaplara bağlı çalışanlar için tüm DutyCheck devamsızlık kayıtlarını kalıcı olarak sil (1 satır). Entegrasyon etkinleştirildikten sonra devamsızlıklar ArbeitszeitCheck içinde yönetilir. Bu geri alınamaz.",
 			"Hesaplara bağlı çalışanlar için tüm DutyCheck devamsızlık kayıtlarını kalıcı olarak sil (%n satır). Entegrasyon etkinleştirildikten sonra devamsızlıklar ArbeitszeitCheck içinde yönetilir. Bu geri alınamaz."
 		],
 		"_Pruned 1 expired snapshot._::_Pruned %n expired snapshots._": [
-			"1 süresi dolmuş anlık görüntü temizlendi.",
 			"%n süresi dolmuş anlık görüntü temizlendi."
 		],
 		"_Publishing blocked: 1 “must fix” issue remains_::_Publishing blocked: %n “must fix” issues remain_": [
-			"Yayınlama engellendi: 1 “düzeltilmeli” sorun kaldı",
 			"Yayınlama engellendi: %n “düzeltilmeli” sorun kaldı"
 		],
 		"_Ready to publish: {mustFix} must fix · {confirm} confirm to continue (1 open)_::_Ready to publish: {mustFix} must fix · {confirm} confirm to continue (%n open)_": [
-			"Yayınlanmaya hazır: {mustFix} düzeltilmeli · {confirm} devam etmek için onaylayın (1 açık)",
 			"Yayınlanmaya hazır: {mustFix} düzeltilmeli · {confirm} devam etmek için onaylayın (%n açık)"
 		],
 		"_Removed 1 legacy absence record._::_Removed %n legacy absence records._": [
-			"1 eski devamsızlık kaydı kaldırıldı.",
 			"%n eski devamsızlık kaydı kaldırıldı."
 		],
 		"_The new period {start} – {end} overlaps 1 existing period: {list}. Create it anyway?_::_The new period {start} – {end} overlaps %n existing periods: {list}. Create it anyway?_": [
-			"Yeni dönem {start} – {end}, 1 mevcut dönemle çakışıyor: {list}. Yine de oluşturulsun mu?",
 			"Yeni dönem {start} – {end}, %n mevcut dönemle çakışıyor: {list}. Yine de oluşturulsun mu?"
 		],
 		"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._": [
-			"Uyarı: 1 satır kalıcı olarak silinecek, ardından dosya verileri yüklenecek.",
 			"Uyarı: %n satır kalıcı olarak silinecek, ardından dosya verileri yüklenecek."
 		],
 		"_{mustFix} must fix · {confirm} confirm to continue (1 open)_::_{mustFix} must fix · {confirm} confirm to continue (%n open)_": [
-			"{mustFix} düzeltilmeli · {confirm} devam etmek için onaylayın (1 açık)",
 			"{mustFix} düzeltilmeli · {confirm} devam etmek için onaylayın (%n açık)"
 		],
 		"add and update; nothing is deleted": "ekle ve güncelle; hiçbir şey silinmez",

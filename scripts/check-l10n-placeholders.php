@@ -138,8 +138,12 @@ foreach ($enT as $key => $enVal) {
 			}
 			$cells = array_values($raw);
 			$cellKeys = [];
+			$singleForm = count($cells) === 1;
 			foreach ($cells as $i => $_cell) {
-				$cellKeys[] = $forms[min($i, count($forms) - 1)];
+				// nplurals=1 locales (tr/zh_*) ship one all-count cell selected
+				// for every count — it answers the plural msgid side (the %n
+				// form), never the literal-'1' singular side.
+				$cellKeys[] = $singleForm ? $forms[count($forms) - 1] : $forms[min($i, count($forms) - 1)];
 			}
 		}
 

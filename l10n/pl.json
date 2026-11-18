@@ -1562,18 +1562,22 @@
 		"Your upcoming published duties": "Nadchodzące opublikowane dyżury",
 		"_(1 env-bound value emptied)_::_(%n env-bound values emptied)_": [
 			"(1 opróżniona wartość związana z instancją)",
+			"(%n opróżnione wartości związane z instancją)",
 			"(%n opróżnionych wartości związanych z instancją)"
 		],
 		"_(1 filtered)_::_(%n filtered)_": [
-			"(1 odfiltrowane)",
+			"(1 odfiltrowany)",
+			"(%n odfiltrowane)",
 			"(%n odfiltrowanych)"
 		],
 		"_(1 secret redacted)_::_(%n secrets redacted)_": [
 			"(1 ukryty sekret)",
+			"(%n ukryte sekrety)",
 			"(%n ukrytych sekretów)"
 		],
 		"_(1 unresolved ref)_::_(%n unresolved refs)_": [
 			"(1 nierozwiązane odwołanie)",
+			"(%n nierozwiązane odwołania)",
 			"(%n nierozwiązanych odwołań)"
 		],
 		"_1 of {open} open periods still uses older caps. Apply to refresh it._::_%n of {open} open periods still use older caps. Apply to refresh them._": [
@@ -1593,14 +1597,17 @@
 		],
 		"_1 reference unresolved — see the groups below._::_%n references unresolved — see the groups below._": [
 			"Nierozwiązano 1 odwołanie — zobacz grupy poniżej.",
+			"Nierozwiązano %n odwołania — zobacz grupy poniżej.",
 			"Nierozwiązano %n odwołań — zobacz grupy poniżej."
 		],
 		"_1 row needs a value on this instance_::_%n rows need a value on this instance_": [
 			"1 wiersz wymaga wartości na tej instancji",
+			"%n wiersze wymagają wartości na tej instancji",
 			"%n wierszy wymaga wartości na tej instancji"
 		],
 		"_1 row skipped._::_%n rows skipped._": [
 			"Pominięto 1 wiersz.",
+			"Pominięto %n wiersze.",
 			"Pominięto %n wierszy."
 		],
 		"_Applied saved limits to 1 open period. Planning checks recalculated for {done}; {left} will finish in the background._::_Applied saved limits to %n open periods. Planning checks recalculated for {done}; {left} will finish in the background._": [
@@ -1680,6 +1687,7 @@
 		],
 		"_Warning: 1 row will be permanently deleted, then the file data is loaded._::_Warning: %n rows will be permanently deleted, then the file data is loaded._": [
 			"Ostrzeżenie: 1 wiersz zostanie trwale usunięty, a następnie dane z pliku zostaną wczytane.",
+			"Ostrzeżenie: %n wiersze zostaną trwale usunięte, a następnie dane z pliku zostaną wczytane.",
 			"Ostrzeżenie: %n wierszy zostanie trwale usuniętych, a następnie dane z pliku zostaną wczytane."
 		],
 		"_{mustFix} must fix · {confirm} confirm to continue (1 open)_::_{mustFix} must fix · {confirm} confirm to continue (%n open)_": [
