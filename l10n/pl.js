@@ -1631,6 +1631,14 @@ OC.L10N.register(
 	"{title}: {have} of {need} staff ({time})" : "{title}: {have} z {need} osób ({time})",
 	"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page." : "{unlinked} z {total} aktywnych pracowników nie ma połączonego konta Nextcloud — ich nieobecności pozostają w DutyCheck do czasu połączenia kont na stronie Pracownicy.",
 	"{used} of {total} seats used" : "Zastosowano gniazda {used} z {total}",
-	"“Must fix” issues block publishing." : "Problemy „Wymaga naprawy” blokują publikację."
+	"“Must fix” issues block publishing." : "Problemy „Wymaga naprawy” blokują publikację.",
+	"1 setting" : "1 ustawienie",
+	"%n settings" : "%n ustawienia",
+	"1 row" : "1 wiersz",
+	"%n rows" : "%n wiersze",
+	"_1 row_::_%n rows_" : ["1 wiersz","%n wiersze","%n wierszy"],
+	"_1 setting_::_%n settings_" : ["1 ustawienie","%n ustawienia","%n ustawień"],
+	"This will update %1$s and %2$s — nothing is deleted." : "Spowoduje to aktualizację %1$s i %2$s — nic nie zostanie usunięte.",
+	"Import applied. %1$s and %2$s written." : "Import zastosowany. Zapisano %1$s i %2$s."
 	}
 );

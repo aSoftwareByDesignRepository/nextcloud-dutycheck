@@ -1712,6 +1712,18 @@
 		"{title}: {have} of {need} staff ({time})": "{title}：{have}/{need} 人（{time}）",
 		"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page.": "{unlinked} 名（共 {total} 名在职员工）未关联 Nextcloud 账号——在“员工”页关联账号前，他们的缺勤留在 DutyCheck。",
 		"{used} of {total} seats used": "已用 {used}/{total} 席位",
-		"“Must fix” issues block publishing.": "“必须修复”问题阻止发布。"
+		"“Must fix” issues block publishing.": "“必须修复”问题阻止发布。",
+		"1 setting": "1 项设置",
+		"%n settings": "%n 项设置",
+		"1 row": "1 行",
+		"%n rows": "%n 行",
+		"_1 row_::_%n rows_": [
+			"%n 行"
+		],
+		"_1 setting_::_%n settings_": [
+			"%n 项设置"
+		],
+		"This will update %1$s and %2$s — nothing is deleted.": "这将更新 %1$s 和 %2$s——不会删除任何内容。",
+		"Import applied. %1$s and %2$s written.": "导入已应用。已写入 %1$s 和 %2$s。"
 	}
 }

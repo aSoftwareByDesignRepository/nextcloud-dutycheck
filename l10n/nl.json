@@ -1712,6 +1712,20 @@
 		"{title}: {have} of {need} staff ({time})": "{title}: {have} van {need} medewerkers ({time})",
 		"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page.": "{unlinked} van {total} actieve werknemers hebben geen gekoppeld Nextcloud-account. Afwezigheden voor hen blijven in DutyCheck totdat de accounts zijn gekoppeld op de pagina Werknemers.",
 		"{used} of {total} seats used": "{used} van {total} stoelen gebruikt",
-		"“Must fix” issues block publishing.": "“Moet worden opgelost”-problemen blokkeren publicatie."
+		"“Must fix” issues block publishing.": "“Moet worden opgelost”-problemen blokkeren publicatie.",
+		"1 setting": "1 instelling",
+		"%n settings": "%n instellingen",
+		"1 row": "1 rij",
+		"%n rows": "%n rijen",
+		"_1 row_::_%n rows_": [
+			"1 rij",
+			"%n rijen"
+		],
+		"_1 setting_::_%n settings_": [
+			"1 instelling",
+			"%n instellingen"
+		],
+		"This will update %1$s and %2$s — nothing is deleted.": "Dit werkt %1$s en %2$s bij — er wordt niets verwijderd.",
+		"Import applied. %1$s and %2$s written.": "Import toegepast. %1$s en %2$s geschreven."
 	}
 }

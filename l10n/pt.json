@@ -1712,6 +1712,20 @@
 		"{title}: {have} of {need} staff ({time})": "{title}: {have} de {need} pessoas ({time})",
 		"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page.": "{unlinked} de {total} colaboradores ativos não têm conta Nextcloud ligada — as ausências deles ficam no DutyCheck até as contas serem ligadas na página Colaboradores.",
 		"{used} of {total} seats used": "{used} de {total} lugares usados",
-		"“Must fix” issues block publishing.": "Os problemas «Tem de corrigir» bloqueiam a publicação."
+		"“Must fix” issues block publishing.": "Os problemas «Tem de corrigir» bloqueiam a publicação.",
+		"1 setting": "1 definição",
+		"%n settings": "%n definições",
+		"1 row": "1 linha",
+		"%n rows": "%n linhas",
+		"_1 row_::_%n rows_": [
+			"1 linha",
+			"%n linhas"
+		],
+		"_1 setting_::_%n settings_": [
+			"1 definição",
+			"%n definições"
+		],
+		"This will update %1$s and %2$s — nothing is deleted.": "Isto irá atualizar %1$s e %2$s — nada será eliminado.",
+		"Import applied. %1$s and %2$s written.": "Importação aplicada. %1$s e %2$s escritas."
 	}
 }

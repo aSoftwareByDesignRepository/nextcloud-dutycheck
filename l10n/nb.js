@@ -1631,6 +1631,14 @@ OC.L10N.register(
 	"{title}: {have} of {need} staff ({time})" : "{title}: {have} av {need} ansatte ({time})",
 	"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page." : "{unlinked} av {total} aktive ansatte har ingen koblet Nextcloud-konto – fravær for dem forblir i DutyCheck til kontoer er koblet til på Ansatte-siden.",
 	"{used} of {total} seats used" : "{used} av {total} seter brukt",
-	"“Must fix” issues block publishing." : "“Må rettes”-problemer blokkerer publisering."
+	"“Must fix” issues block publishing." : "“Må rettes”-problemer blokkerer publisering.",
+	"1 setting" : "1 innstilling",
+	"%n settings" : "%n innstillinger",
+	"1 row" : "1 rad",
+	"%n rows" : "%n rader",
+	"_1 row_::_%n rows_" : ["1 rad","%n rader"],
+	"_1 setting_::_%n settings_" : ["1 innstilling","%n innstillinger"],
+	"This will update %1$s and %2$s — nothing is deleted." : "Dette oppdaterer %1$s og %2$s — ingenting slettes.",
+	"Import applied. %1$s and %2$s written." : "Importert. %1$s og %2$s skrevet."
 	}
 );

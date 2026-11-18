@@ -1712,6 +1712,18 @@
 		"{title}: {have} of {need} staff ({time})": "{title}：{have}/{need} 人（{time}）",
 		"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page.": "{unlinked} 名（共 {total} 名在職員工）未關聯 Nextcloud 帳號——在“員工”頁關聯帳號前，他們的缺勤留在 DutyCheck。",
 		"{used} of {total} seats used": "已用 {used}/{total} 席位",
-		"“Must fix” issues block publishing.": "“必須修復”問題阻止釋出。"
+		"“Must fix” issues block publishing.": "“必須修復”問題阻止釋出。",
+		"1 setting": "1 項設定",
+		"%n settings": "%n 項設定",
+		"1 row": "1 列",
+		"%n rows": "%n 列",
+		"_1 row_::_%n rows_": [
+			"%n 列"
+		],
+		"_1 setting_::_%n settings_": [
+			"%n 項設定"
+		],
+		"This will update %1$s and %2$s — nothing is deleted.": "這將更新 %1$s 與 %2$s——不會刪除任何內容。",
+		"Import applied. %1$s and %2$s written.": "匯入已套用。已寫入 %1$s 與 %2$s。"
 	}
 }

@@ -1711,7 +1711,19 @@
 		"{title}: {have} of {need} staff ({time})": "{title}: {have} / {need} personel ({time})",
 		"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page.": "{unlinked} / {total} etkin çalışanın bağlı Nextcloud hesabı yok — hesaplar Çalışanlar sayfasında bağlanana kadar onların devamsızlıkları DutyCheck'te kalır.",
 		"{used} of {total} seats used": "{used} / {total} mobil lisans kullanılıyor",
-		"“Must fix” issues block publishing.": "“Düzeltilmeli” sorunları yayımlamayı engeller."
+		"“Must fix” issues block publishing.": "“Düzeltilmeli” sorunları yayımlamayı engeller.",
+		"1 setting": "1 ayar",
+		"%n settings": "%n ayar",
+		"1 row": "1 satır",
+		"%n rows": "%n satır",
+		"_1 row_::_%n rows_": [
+			"%n satır"
+		],
+		"_1 setting_::_%n settings_": [
+			"%n ayar"
+		],
+		"This will update %1$s and %2$s — nothing is deleted.": "Bu işlem %1$s ve %2$s güncelleyecek — hiçbir şey silinmeyecek.",
+		"Import applied. %1$s and %2$s written.": "İçe aktarma uygulandı. %1$s ve %2$s yazıldı."
 	},
 	"pluralForm": "nplurals=2; plural=(n != 1);"
 }
