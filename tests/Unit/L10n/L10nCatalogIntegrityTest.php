@@ -14,7 +14,7 @@ use PHPUnit\Framework\TestCase;
  */
 final class L10nCatalogIntegrityTest extends TestCase
 {
-	private const BASE_LOCALES = ['en', 'de', 'fr', 'es', 'da', 'nl', 'it', 'pl', 'sv', 'nb', 'pt', 'pt_BR', 'tr', 'zh_CN', 'zh_TW'];
+	private const BASE_LOCALES = ['en', 'de', 'fr', 'es', 'da', 'nl', 'it', 'pl', 'sv', 'nb', 'pt', 'pt_BR', 'tr', 'zh_CN', 'zh_TW', 'ru'];
 
 	/**
 	 * Region-tagged locales that carry a genuine regional variant and are
@@ -24,7 +24,7 @@ final class L10nCatalogIntegrityTest extends TestCase
 	 * r42: add-only mirroring never healed divergent cells, so they were
 	 * pure sync-drift surface — NC resolves xx_YY to the shipped xx catalog.
 	 */
-	private const GENUINE_REGIONAL = ['pt_BR', 'zh_CN', 'zh_TW'];
+	private const GENUINE_REGIONAL = ['pt_BR', 'zh_CN', 'zh_TW', 'ru'];
 
 	/** Visible chrome that must be translated in every non-English locale. */
 	private const MUST_TRANSLATE = [
