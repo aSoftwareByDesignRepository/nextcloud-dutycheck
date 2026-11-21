@@ -1252,7 +1252,7 @@ OC.L10N.register(
 	"Source" : "來源",
 	"Spät" : "晚班",
 	"Staff can see published colleagues at the same location." : "員工可見同一地點已釋出的同事。",
-	"Staff seen: {acked}\/{total} ({pct}%%)" : "員工已確認：{acked}\/{total}（{pct}%%）",
+	"Staff seen: {acked}\/{total} ({pct}%)" : "員工已確認：{acked}\/{total}（{pct}%）",
 	"Stale mirror — run sync or wait for the scheduled job." : "映象已過期——請執行同步或等待定時任務。",
 	"Standby categories" : "待命類別",
 	"Standby category (optional)" : "待命類別（選填）",

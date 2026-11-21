@@ -595,11 +595,10 @@
 			return;
 		}
 		el.hidden = false;
-		el.textContent = t('dutycheck', 'Staff seen: {acked}/{total} ({pct}%%)')
+		el.textContent = t('dutycheck', 'Staff seen: {acked}/{total} ({pct}%)')
 			.replace('{acked}', String(data.acknowledged ?? 0))
 			.replace('{total}', String(data.total ?? 0))
-			.replace('{pct}', String(data.percent ?? 0))
-			.replace(/%%/g, '%');
+			.replace('{pct}', String(data.percent ?? 0));
 		renderPublishCeremony(currentPeriod, currentReadiness, currentAckStats);
 	}
 

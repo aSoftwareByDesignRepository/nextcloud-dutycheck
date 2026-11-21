@@ -2908,11 +2908,10 @@
 		}
 		const pct = total === 0 ? 0 : Math.round((acked / total) * 1000) / 10;
 		el.hidden = false;
-		el.textContent = t('dutycheck', 'Staff seen: {acked}/{total} ({pct}%%)')
+		el.textContent = t('dutycheck', 'Staff seen: {acked}/{total} ({pct}%)')
 			.replace('{acked}', String(acked))
 			.replace('{total}', String(total))
-			.replace('{pct}', String(pct))
-			.replace(/%%/g, '%');
+			.replace('{pct}', String(pct));
 	}
 
 	/**

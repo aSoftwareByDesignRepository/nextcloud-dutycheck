@@ -5211,7 +5211,7 @@ textarea {
 
 .dc-standby-cats__meta {
 	color: var(--color-text-maxcontrast, var(--color-text-lighter));
-	font-size: var(--dc-font-size-small, 0.875em);
+	font-size: var(--dc-fs-sm, 0.875em);
 	margin-inline-start: auto;
 	white-space: nowrap;
 }
@@ -5927,10 +5927,13 @@ body[data-theme-dark-highcontrast] #app-navigation .dc-nav__subtitle {
 
 /* Standby (Rufbereitschaft) — dashed border + phone icon, never colour alone. */
 .dc-roster-grid__cell--standby {
-	border: 2px dashed var(--dc-standby-accent, var(--color-element-warning, var(--color-warning-text, #c98600)));
+	/* Runtime hook: js/roster.js stamps --dc-standby-accent per cell from
+	   standbyCategoryColor (inline setProperty wins over this default). */
+	--dc-standby-accent: var(--dc-color-warning, var(--color-element-warning, var(--color-warning-text, #c98600)));
+	border: 2px dashed var(--dc-standby-accent);
 	background: color-mix(
 		in srgb,
-		var(--dc-standby-accent, var(--color-element-warning, var(--color-warning-text, #c98600))) 8%,
+		var(--dc-standby-accent) 8%,
 		var(--color-main-background, #fff)
 	);
 }

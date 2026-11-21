@@ -1252,7 +1252,7 @@
 		"Source": "来源",
 		"Spät": "晚班",
 		"Staff can see published colleagues at the same location.": "员工可见同一地点已发布的同事。",
-		"Staff seen: {acked}/{total} ({pct}%%)": "员工已确认：{acked}/{total}（{pct}%%）",
+		"Staff seen: {acked}/{total} ({pct}%)": "员工已确认：{acked}/{total}（{pct}%）",
 		"Stale mirror — run sync or wait for the scheduled job.": "镜像已过期——请运行同步或等待定时任务。",
 		"Standby categories": "待命类别",
 		"Standby category (optional)": "待命类别（可选）",

@@ -1252,7 +1252,7 @@
     "Source": "Fonte",
     "Spät": "Sera",
     "Staff can see published colleagues at the same location.": "Il personale vede i colleghi pubblicati nella stessa sede.",
-    "Staff seen: {acked}/{total} ({pct}%%)": "Personale visto: {acked}/{total} ({pct}%%)",
+    "Staff seen: {acked}/{total} ({pct}%)": "Personale visto: {acked}/{total} ({pct}%)",
     "Stale mirror — run sync or wait for the scheduled job.": "Mirror non aggiornato: esegui la sincronizzazione o attendi il processo pianificato.",
     "Standby categories": "Categorie di reperibilità",
     "Standby category (optional)": "Categoria di reperibilità (opzionale)",

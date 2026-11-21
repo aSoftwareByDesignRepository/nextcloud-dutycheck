@@ -1252,7 +1252,7 @@ OC.L10N.register(
 	"Source" : "Kilde",
 	"Spät" : "Sen",
 	"Staff can see published colleagues at the same location." : "Medarbejdere kan se offentliggjorte kolleger på samme lokation.",
-	"Staff seen: {acked}\/{total} ({pct}%%)" : "Personale set: {acked}\/{total} ({pct}%%)",
+	"Staff seen: {acked}\/{total} ({pct}%)" : "Personale set: {acked}\/{total} ({pct}%)",
 	"Stale mirror — run sync or wait for the scheduled job." : "Forældet spejl — kør synkronisering, eller vent på den planlagte opgave.",
 	"Standby categories" : "Beredskabskategorier",
 	"Standby category (optional)" : "Beredskabskategori (valgfrit)",

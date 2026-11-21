@@ -1252,7 +1252,7 @@ OC.L10N.register(
 	"Source" : "Kaynak",
 	"Spät" : "Geç",
 	"Staff can see published colleagues at the same location." : "Personel, aynı konumdaki yayınlanmış ekip arkadaşlarını görebilir.",
-	"Staff seen: {acked}\/{total} ({pct}%%)" : "Gören personel: {acked}\/{total} (%%{pct})",
+	"Staff seen: {acked}\/{total} ({pct}%)" : "Gören personel: {acked}\/{total} (%{pct})",
 	"Stale mirror — run sync or wait for the scheduled job." : "Yansıtma güncel değil — eşitleme çalıştırın veya zamanlanmış görevi bekleyin.",
 	"Standby categories" : "Hazır bekleme kategorileri",
 	"Standby category (optional)" : "Hazır bekleme kategorisi (isteğe bağlı)",

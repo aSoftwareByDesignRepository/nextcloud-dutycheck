@@ -1252,7 +1252,7 @@ OC.L10N.register(
 	"Source" : "Origine",
 	"Spät" : "Soir",
 	"Staff can see published colleagues at the same location." : "Le personnel voit les collègues publiés sur le même site.",
-	"Staff seen: {acked}\/{total} ({pct}%%)" : "Vu par le personnel : {acked}\/{total} ({pct}%%)",
+	"Staff seen: {acked}\/{total} ({pct}%)" : "Vu par le personnel : {acked}\/{total} ({pct}%)",
 	"Stale mirror — run sync or wait for the scheduled job." : "Miroir obsolète : exécutez la synchronisation ou attendez la tâche planifiée.",
 	"Standby categories" : "Catégories d’astreinte",
 	"Standby category (optional)" : "Catégorie d’astreinte (optionnel)",

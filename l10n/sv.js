@@ -1252,7 +1252,7 @@ OC.L10N.register(
 	"Source" : "Källa",
 	"Spät" : "Sen",
 	"Staff can see published colleagues at the same location." : "Personal kan se publicerade kollegor på samma plats.",
-	"Staff seen: {acked}\/{total} ({pct}%%)" : "Sett av personal: {acked}\/{total} ({pct}%%)",
+	"Staff seen: {acked}\/{total} ({pct}%)" : "Sett av personal: {acked}\/{total} ({pct}%)",
 	"Stale mirror — run sync or wait for the scheduled job." : "Inaktuell spegel — kör synkronisering eller vänta på det schemalagda jobbet.",
 	"Standby categories" : "Beredskapskategorier",
 	"Standby category (optional)" : "Beredskapskategori (valfritt)",

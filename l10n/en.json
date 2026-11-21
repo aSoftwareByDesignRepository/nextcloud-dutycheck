@@ -1251,7 +1251,7 @@
 		"Source": "Source",
 		"Spät": "Late",
 		"Staff can see published colleagues at the same location.": "Staff can see published colleagues at the same location.",
-		"Staff seen: {acked}/{total} ({pct}%%)": "Staff seen: {acked}/{total} ({pct}%%)",
+		"Staff seen: {acked}/{total} ({pct}%)": "Staff seen: {acked}/{total} ({pct}%)",
 		"Stale mirror — run sync or wait for the scheduled job.": "Stale mirror — run sync or wait for the scheduled job.",
 		"Standby categories": "Standby categories",
 		"Standby category (optional)": "Standby category (optional)",

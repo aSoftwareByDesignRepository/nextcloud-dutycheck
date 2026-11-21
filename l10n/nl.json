@@ -1252,7 +1252,7 @@
     "Source": "Bron",
     "Spät": "Laat",
     "Staff can see published colleagues at the same location.": "Medewerkers zien gepubliceerde collega's op dezelfde locatie.",
-    "Staff seen: {acked}/{total} ({pct}%%)": "Personeel gezien: {acked}/{total} ({pct}%%)",
+    "Staff seen: {acked}/{total} ({pct}%)": "Personeel gezien: {acked}/{total} ({pct}%)",
     "Stale mirror — run sync or wait for the scheduled job.": "Verouderde spiegel: voer de synchronisatie uit of wacht op de geplande taak.",
     "Standby categories": "Beschikbaarheidscategorieën",
     "Standby category (optional)": "Beschikbaarheidscategorie (optioneel)",
