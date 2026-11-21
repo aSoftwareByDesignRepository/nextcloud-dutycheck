@@ -17,7 +17,7 @@ $lastReceipt = is_array($_['transferLastReceipt'] ?? null) ? $_['transferLastRec
 	<header class="dc-section__header">
 		<div>
 			<h2 id="dc-xfer-export-h"><?php p($l->t('Export configuration')); ?></h2>
-			<p class="dc-section__sub"><?php p($l->t('Download all settings, catalogues and business data as one encrypted file — then import it on your production instance.')); ?></p>
+			<p class="dc-section__sub"><?php p(!empty($_['transferExportBlurb']) ? (string)$_['transferExportBlurb'] : $l->t('Download all settings, catalogues and business data as one encrypted file — then import it on your production instance.')); ?></p>
 		</div>
 	</header>
 	<div class="dc-callout dc-callout--info" role="note">
