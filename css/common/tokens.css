@@ -23,6 +23,8 @@ body {
 		--color-text-maxcontrast,
 		color-mix(in srgb, var(--color-main-text, #1d1d1d) 67%, var(--color-main-background, #fff))
 	);
+	--dc-mono: ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', 'Liberation Mono', Menlo, Consolas, monospace;
+	--dc-muted-on-tint: color-mix(in srgb, var(--color-text-maxcontrast) 55%, var(--color-main-text));
 	--dc-color-primary: var(--color-primary-element, var(--color-primary, #0082c9));
 	--dc-color-success: var(--color-success, #46ba61);
 	--dc-color-warning: var(--color-warning, #c98600);
