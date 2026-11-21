@@ -1613,7 +1613,7 @@ OC.L10N.register(
 	"will be skipped" : "será ignorado",
 	"{acked}\/{total} seen" : "{acked}\/{total} viram",
 	"{action} absence for {name}" : "{action} ausência para {name}",
-	"{available} can be scheduled · {hidden} on approved leave (not in the list)" : "{available} podem ser escalados · {hidden} de folga aprovada (fora da lista)",
+	"{available} can be scheduled · {hidden} on approved leave (not in the list)" : "{available} podem ser escalados · {hidden} de folga aprovada (não estão na lista)",
 	"{count} in {range}." : "{count} em {range}.",
 	"{count}." : "{count}.",
 	"{date} · employee #{emp}" : "{date} · colaborador #{emp}",

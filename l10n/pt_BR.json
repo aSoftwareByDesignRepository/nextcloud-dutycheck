@@ -312,7 +312,7 @@
 		"Confirm you have seen this on-call duty": "Confirme que você viu este sobreaviso",
 		"Confirm you have seen this shift": "Confirmar que este turno foi visto",
 		"Confirmed: {reason}": "Confirmado: {reason}",
-		"Conflict caps cannot be refreshed until the server upgrade finishes.": "Os limites de conflito só podem ser atualizados depois que a atualização do servidor terminar.",
+		"Conflict caps cannot be refreshed until the server upgrade finishes.": "Os limites de conflito não podem ser atualizados até que a atualização do servidor termine.",
 		"Conflict thresholds": "Limiares de conflito",
 		"Conflict thresholds saved.": "Limites de conflito salvos.",
 		"Conflict thresholds saved. Apply them to open periods below.": "Limites de conflito salvos. Aplique-os aos períodos abertos abaixo.",
