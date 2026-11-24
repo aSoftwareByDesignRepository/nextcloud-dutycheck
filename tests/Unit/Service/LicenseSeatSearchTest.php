@@ -17,7 +17,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Seat directory search must return the license-panel `items` contract and
- * merge uid + display-name hits (same shape as InvoiceCheck / TicketCheck).
+ * merge uid + display-name hits (same shape as the invoicing app / TicketCheck).
  */
 final class LicenseSeatSearchTest extends TestCase
 {

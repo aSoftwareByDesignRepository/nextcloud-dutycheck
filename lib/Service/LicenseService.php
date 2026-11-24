@@ -328,7 +328,7 @@ class LicenseService
 	/**
 	 * Directory search for the license seat picker.
 	 *
-	 * Contract matches InvoiceCheck / ProjectCheck / TicketCheck license UIs:
+	 * Contract matches the invoicing app / ProjectCheck / TicketCheck license UIs:
 	 * `{ id, displayName, hasSeat }`. Search merges uid + display-name hits so
 	 * admins can find people by login or by name.
 	 *
