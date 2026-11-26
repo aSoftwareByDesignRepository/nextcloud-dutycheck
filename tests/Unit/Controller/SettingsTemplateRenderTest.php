@@ -45,6 +45,9 @@ final class SettingsTemplateRenderTest extends TestCase
 		self::assertFileExists($file, "Partial for '{$section}' must exist");
 		$_ = $vars;
 		$l = $l10n ?? $this->l10n();
+		// The agent partial reads the extracted template var (NC extract($_)),
+		// so mirror the real render path here instead of passing it via $_ only.
+		$agentAccess = is_array($vars['agentAccess'] ?? null) ? $vars['agentAccess'] : ['visible' => false];
 		ob_start();
 		try {
 			include $file;
@@ -89,13 +92,57 @@ final class SettingsTemplateRenderTest extends TestCase
 		];
 	}
 
+	/**
+	 * @return array<string, mixed>
+	 */
+	private function agentVars(): array
+	{
+		return [
+			'agentAccess' => [
+				'visible' => true,
+				'appId' => 'dutycheck',
+				'agentHeader' => 'X-DutyCheck-Agent',
+				'ncUrl' => 'https://cloud.example.test',
+				'isAdmin' => true,
+				'canMint' => true,
+				'selfMintEnabled' => false,
+				'tokens' => [
+					[
+						'id' => 1,
+						'userId' => 'alice',
+						'label' => 'ci-bot',
+						'scopes' => ['dutycheck:roster:read'],
+						'createdAt' => 1800000000,
+						'expiresAt' => 1831536000,
+						'lastUsedAt' => null,
+						'lastTool' => null,
+						'state' => 'active',
+					],
+				],
+				'presets' => [
+					'read' => ['dutycheck:roster:read'],
+					'act' => ['dutycheck:roster:read', 'dutycheck:roster:write'],
+				],
+				'allScopes' => ['dutycheck:roster:read', 'dutycheck:roster:write'],
+				'scopeLabels' => [
+					'dutycheck:roster:read' => 'Read roster',
+					'dutycheck:roster:write' => 'Acknowledge and write roster',
+				],
+			],
+		];
+	}
+
 	public function testEverySectionPartialRendersAsAccessibleFragment(): void
 	{
 		foreach (SettingsSectionCatalog::SECTIONS as $section) {
 			if ($section === 'support') {
 				continue; // needs a SupportUsLinks instance — covered below and by SupportUsSectionRenderTest
 			}
-			$vars = $section === 'license' ? $this->licenseVars() : [];
+			$vars = match ($section) {
+				'license' => $this->licenseVars(),
+				'agent' => $this->agentVars(),
+				default => [],
+			};
 			$html = $this->renderPartial($section, $vars);
 			$this->assertValidFragment($section, $html, $vars);
 		}
@@ -107,7 +154,11 @@ final class SettingsTemplateRenderTest extends TestCase
 			if ($section === 'support') {
 				continue; // rendered + pinned by SupportUsSectionRenderTest
 			}
-			$vars = $section === 'license' ? $this->licenseVars() : [];
+			$vars = match ($section) {
+				'license' => $this->licenseVars(),
+				'agent' => $this->agentVars(),
+				default => [],
+			};
 			$html = $this->renderPartial($section, $vars);
 			self::assertMatchesRegularExpression(
 				'/\sid="' . preg_quote($anchor, '/') . '"/',

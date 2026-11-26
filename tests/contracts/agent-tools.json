@@ -1,0 +1,453 @@
+{
+  "schemaVersion": 1,
+  "appId": "dutycheck",
+  "agentExposure": "declared",
+  "tools": [
+    {
+      "name": "dc_get_my_roster",
+      "kind": "read",
+      "riskClass": 0,
+      "route": "mobile#myRoster",
+      "method": "GET",
+      "path": "/api/mobile/my/roster",
+      "scope": "dutycheck:roster:read",
+      "label": "My roster",
+      "description": "List the token owner's roster entries, optionally filtered by date range.",
+      "params": {
+        "from": {
+          "type": "string",
+          "required": false,
+          "description": "ISO date lower bound."
+        },
+        "to": {
+          "type": "string",
+          "required": false,
+          "description": "ISO date upper bound."
+        },
+        "caps": {
+          "type": "string",
+          "required": false,
+          "description": "Comma-separated capability opt-ins (e.g. 'standby' to include standby rows)."
+        }
+      }
+    },
+    {
+      "name": "dc_acknowledge_duty",
+      "kind": "write",
+      "riskClass": 2,
+      "confirm": "required",
+      "route": "mobile#acknowledgeAssignment",
+      "method": "POST",
+      "path": "/api/mobile/my/assignments/{id}/acknowledge",
+      "idempotency": "natural",
+      "scope": "dutycheck:roster:write",
+      "label": "Acknowledge assignment",
+      "description": "Acknowledge a published roster assignment (state transition — confirm required).",
+      "params": {
+        "id": {
+          "type": "integer",
+          "required": true,
+          "description": "Path parameter."
+        }
+      }
+    },
+    {
+      "name": "dc_list_my_absences",
+      "kind": "read",
+      "riskClass": 0,
+      "route": "mobile#myAbsences",
+      "method": "GET",
+      "path": "/api/mobile/my/absences",
+      "scope": "dutycheck:absences:read",
+      "label": "My absences",
+      "description": "List the token owner's absences."
+    },
+    {
+      "name": "dc_create_my_absence",
+      "kind": "write",
+      "riskClass": 1,
+      "route": "mobile#createMyAbsence",
+      "method": "POST",
+      "path": "/api/mobile/my/absences",
+      "idempotency": "clientRequestId",
+      "scope": "dutycheck:absences:write",
+      "label": "Create absence",
+      "description": "Create an absence for the token owner.",
+      "params": {
+        "kind": {
+          "type": "string",
+          "required": true,
+          "description": "Absence kind."
+        },
+        "startDate": {
+          "type": "string",
+          "required": true,
+          "description": "ISO start date."
+        },
+        "endDate": {
+          "type": "string",
+          "required": true,
+          "description": "ISO end date."
+        }
+      }
+    },
+    {
+      "name": "dc_list_open_shifts",
+      "kind": "read",
+      "riskClass": 0,
+      "route": "mobile#listOpenShifts",
+      "method": "GET",
+      "path": "/api/mobile/open-shifts",
+      "scope": "dutycheck:open_shifts:read",
+      "label": "Open shifts",
+      "description": "List open shifts claimable by the token owner.",
+      "params": {
+        "periodId": {
+          "type": "integer",
+          "required": false,
+          "description": "Limit to a roster period."
+        }
+      }
+    },
+    {
+      "name": "dc_claim_open_shift",
+      "kind": "write",
+      "riskClass": 2,
+      "confirm": "required",
+      "route": "mobile#claimOpenShift",
+      "method": "POST",
+      "path": "/api/mobile/open-shifts/{id}/claim",
+      "idempotency": "natural",
+      "scope": "dutycheck:open_shifts:write",
+      "label": "Claim open shift",
+      "description": "Claim an open shift for the token owner (state transition — confirm required).",
+      "params": {
+        "id": {
+          "type": "integer",
+          "required": true,
+          "description": "Path parameter."
+        }
+      }
+    },
+    {
+      "name": "dc_create_swap_request",
+      "kind": "write",
+      "riskClass": 1,
+      "route": "mobile#createSwapRequest",
+      "method": "POST",
+      "path": "/api/mobile/swaps",
+      "idempotency": "clientRequestId",
+      "scope": "dutycheck:swaps:write",
+      "label": "Request swap",
+      "description": "Request a swap for one of the token owner's assignments.",
+      "params": {
+        "assignmentId": {
+          "type": "integer",
+          "required": true
+        },
+        "toEmployeeId": {
+          "type": "integer",
+          "required": false,
+          "description": "Target employee; omit for an open offer."
+        },
+        "reason": {
+          "type": "string",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "dc_accept_swap",
+      "kind": "write",
+      "riskClass": 2,
+      "confirm": "required",
+      "route": "mobile#acceptSwap",
+      "method": "POST",
+      "path": "/api/mobile/swaps/{id}/accept",
+      "idempotency": "natural",
+      "scope": "dutycheck:swaps:write",
+      "label": "Accept swap",
+      "description": "Accept a swap offer as the counterparty (state transition — confirm required).",
+      "params": {
+        "id": {
+          "type": "integer",
+          "required": true,
+          "description": "Path parameter."
+        }
+      }
+    },
+    {
+      "name": "dc_list_my_swaps",
+      "kind": "read",
+      "riskClass": 0,
+      "route": "mobile#listMySwaps",
+      "method": "GET",
+      "path": "/api/mobile/my/swaps",
+      "scope": "dutycheck:swaps:read",
+      "label": "My swaps",
+      "description": "List swap requests involving the token owner."
+    },
+    {
+      "name": "dc_withdraw_swap",
+      "kind": "write",
+      "riskClass": 2,
+      "confirm": "required",
+      "route": "mobile#withdrawSwap",
+      "method": "POST",
+      "path": "/api/mobile/swaps/{id}/withdraw",
+      "idempotency": "natural",
+      "scope": "dutycheck:swaps:write",
+      "label": "Withdraw swap",
+      "description": "Withdraw an open swap request (state transition — confirm required).",
+      "params": {
+        "id": {
+          "type": "integer",
+          "required": true,
+          "description": "Path parameter."
+        }
+      }
+    },
+    {
+      "name": "dc_list_swap_candidates",
+      "kind": "read",
+      "riskClass": 0,
+      "route": "mobile#swapCandidates",
+      "method": "GET",
+      "path": "/api/mobile/my/swap-candidates",
+      "scope": "dutycheck:swaps:read",
+      "label": "Swap candidates",
+      "description": "List colleagues eligible as swap counterparties."
+    },
+    {
+      "name": "dc_get_team_week",
+      "kind": "read",
+      "riskClass": 0,
+      "route": "mobile#teamWeek",
+      "method": "GET",
+      "path": "/api/mobile/team-week",
+      "scope": "dutycheck:roster:read",
+      "label": "Team week",
+      "description": "Read the colleague roster for one week (peer visibility applies).",
+      "params": {
+        "locationId": {
+          "type": "integer",
+          "required": false
+        },
+        "weekStart": {
+          "type": "string",
+          "required": false,
+          "description": "ISO date of the week start."
+        },
+        "page": {
+          "type": "integer",
+          "required": false
+        },
+        "pageSize": {
+          "type": "integer",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "dc_list_my_preferences",
+      "kind": "read",
+      "riskClass": 0,
+      "route": "mobile#myPreferences",
+      "method": "GET",
+      "path": "/api/mobile/my/preferences",
+      "scope": "dutycheck:preferences:read",
+      "label": "My shift preferences",
+      "description": "List the token owner's shift preferences."
+    },
+    {
+      "name": "dc_save_my_preference",
+      "kind": "write",
+      "riskClass": 1,
+      "route": "mobile#saveMyPreference",
+      "method": "POST",
+      "path": "/api/mobile/my/preferences",
+      "idempotency": "clientRequestId",
+      "scope": "dutycheck:preferences:write",
+      "label": "Save shift preference",
+      "description": "Create a shift preference, or update it when id is given.",
+      "params": {
+        "id": {
+          "type": "integer",
+          "required": false,
+          "description": "Existing preference id for update."
+        },
+        "band": {
+          "type": "string",
+          "required": true,
+          "description": "Shift band (e.g. early/late/night)."
+        },
+        "weekdayMask": {
+          "type": "integer",
+          "required": false,
+          "description": "Weekday bitmask 1-127 (default 127)."
+        },
+        "weekday_mask": {
+          "type": "integer",
+          "required": false,
+          "description": "snake_case alias of weekdayMask."
+        },
+        "locationId": {
+          "type": "integer",
+          "required": false
+        },
+        "location_id": {
+          "type": "integer",
+          "required": false,
+          "description": "snake_case alias of locationId."
+        },
+        "priority": {
+          "type": "integer",
+          "required": false,
+          "description": "0-100."
+        },
+        "validFrom": {
+          "type": "string",
+          "required": false,
+          "description": "ISO date."
+        },
+        "valid_from": {
+          "type": "string",
+          "required": false,
+          "description": "snake_case alias of validFrom."
+        },
+        "validTo": {
+          "type": "string",
+          "required": false,
+          "description": "ISO date."
+        },
+        "valid_to": {
+          "type": "string",
+          "required": false,
+          "description": "snake_case alias of validTo."
+        }
+      }
+    },
+    {
+      "name": "dc_delete_my_preference",
+      "kind": "write",
+      "riskClass": 2,
+      "confirm": "required",
+      "route": "mobile#deleteMyPreference",
+      "method": "DELETE",
+      "path": "/api/mobile/my/preferences/{id}",
+      "idempotency": "natural",
+      "scope": "dutycheck:preferences:write",
+      "label": "Delete shift preference",
+      "description": "Delete a shift preference (state transition — confirm required).",
+      "params": {
+        "id": {
+          "type": "integer",
+          "required": true,
+          "description": "Path parameter."
+        }
+      }
+    },
+    {
+      "name": "dc_list_my_blackouts",
+      "kind": "read",
+      "riskClass": 0,
+      "route": "mobile#myBlackouts",
+      "method": "GET",
+      "path": "/api/mobile/my/blackouts",
+      "scope": "dutycheck:blackouts:read",
+      "label": "My cannot-work days",
+      "description": "List the token owner's availability blackouts.",
+      "params": {
+        "from": {
+          "type": "string",
+          "required": false,
+          "description": "ISO date lower bound."
+        },
+        "to": {
+          "type": "string",
+          "required": false,
+          "description": "ISO date upper bound."
+        }
+      }
+    },
+    {
+      "name": "dc_create_my_blackout",
+      "kind": "write",
+      "riskClass": 1,
+      "route": "mobile#createMyBlackout",
+      "method": "POST",
+      "path": "/api/mobile/my/blackouts",
+      "idempotency": "clientRequestId",
+      "scope": "dutycheck:blackouts:write",
+      "label": "Create cannot-work day",
+      "description": "Create an availability blackout for the token owner.",
+      "params": {
+        "startAt": {
+          "type": "string",
+          "required": true,
+          "description": "ISO datetime."
+        },
+        "start_at": {
+          "type": "string",
+          "required": false,
+          "description": "snake_case alias of startAt."
+        },
+        "endAt": {
+          "type": "string",
+          "required": true,
+          "description": "ISO datetime."
+        },
+        "end_at": {
+          "type": "string",
+          "required": false,
+          "description": "snake_case alias of endAt."
+        },
+        "label": {
+          "type": "string",
+          "required": false,
+          "description": "Blackout label enum (default 'other')."
+        },
+        "labelEnum": {
+          "type": "string",
+          "required": false,
+          "description": "Alias of label."
+        },
+        "locationId": {
+          "type": "integer",
+          "required": false
+        },
+        "location_id": {
+          "type": "integer",
+          "required": false,
+          "description": "snake_case alias of locationId."
+        }
+      }
+    },
+    {
+      "name": "dc_delete_my_blackout",
+      "kind": "write",
+      "riskClass": 2,
+      "confirm": "required",
+      "route": "mobile#deleteMyBlackout",
+      "method": "DELETE",
+      "path": "/api/mobile/my/blackouts/{id}",
+      "idempotency": "natural",
+      "scope": "dutycheck:blackouts:write",
+      "label": "Delete cannot-work day",
+      "description": "Delete an availability blackout (state transition — confirm required).",
+      "params": {
+        "id": {
+          "type": "integer",
+          "required": true,
+          "description": "Path parameter."
+        }
+      }
+    }
+  ],
+  "deny": [
+    "mobile#bootstrap",
+    "mobile#icalTokenMeta",
+    "mobile#createIcalToken",
+    "mobile#rotateIcalToken"
+  ]
+}

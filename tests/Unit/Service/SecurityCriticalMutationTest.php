@@ -384,7 +384,10 @@ final class SecurityCriticalMutationTest extends TestCase
 	public function testClientLicenseMiddlewareRejectsCookieOnMobileMutations(): void
 	{
 		$request = $this->createMock(\OCP\IRequest::class);
-		$request->method('getHeader')->with('Authorization')->willReturn('');
+		$request->method('getHeader')->willReturnMap([
+			['Authorization', ''],
+			['X-DutyCheck-Agent', ''],
+		]);
 		$request->method('getPathInfo')->willReturn('/apps/dutycheck/api/mobile/my/assignments/1/acknowledge');
 
 		$license = $this->createMock(LicenseService::class);

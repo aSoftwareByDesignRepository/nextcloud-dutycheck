@@ -51,6 +51,12 @@ class SessionCsrfMiddleware extends Middleware
 		if (str_starts_with($auth, 'basic ')) {
 			return;
 		}
+		// Scoped agent tokens are equally non-ambient: the request carries an
+		// explicit credential verified by AgentAuthMiddleware (invalid tokens
+		// never reach the controller), so ambient session state cannot ride it.
+		if (trim((string) $this->request->getHeader('X-DutyCheck-Agent')) !== '') {
+			return;
+		}
 		// No logged-in session → nothing ambient to protect; auth middleware rejects anyway.
 		if ($this->userSession->getUser() === null) {
 			return;

@@ -38,6 +38,13 @@ class ClientLicenseMiddleware extends Middleware
 			return;
 		}
 
+		// Scoped agent tokens (X-DutyCheck-Agent) are verified and gated by
+		// AgentAuthMiddleware — an invalid token dies there, so skipping the
+		// Basic/seat gate here cannot smuggle an unauthenticated request in.
+		if (trim((string)$this->request->getHeader('X-DutyCheck-Agent')) !== '') {
+			return;
+		}
+
 		// Defense-in-depth with MobileController::requireUid — cookie sessions must not
 		// reach NoCSRFRequired companion mutations.
 		if (!$this->usesBasicAppPassword()) {

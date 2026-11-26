@@ -35,12 +35,18 @@ final class RouteStrictIdContractTest extends TestCase
 	}
 
 	/**
-	 * Map a route name prefix to its controller file (NC convention:
-	 * 'rosterApi#updateTemplate' → lib/Controller/RosterApiController.php).
+	 * Map a route name prefix to its controller file using Nextcloud's exact
+	 * naming rule: underScoreToCamelCase(ucfirst($prefix)) . 'Controller'.
+	 * ('agent_token#revoke' → lib/Controller/AgentTokenController.php)
 	 */
 	private static function controllerSource(string $prefix): string
 	{
-		$file = self::appRoot() . '/lib/Controller/' . ucfirst($prefix) . 'Controller.php';
+		$camel = (string) preg_replace_callback(
+			'/_[a-z]?/',
+			static fn (array $m): string => strtoupper(ltrim($m[0], '_')),
+			ucfirst($prefix)
+		);
+		$file = self::appRoot() . '/lib/Controller/' . $camel . 'Controller.php';
 		self::assertFileExists($file, 'route prefix ' . $prefix . ' must resolve to a controller file');
 		return (string) file_get_contents($file);
 	}

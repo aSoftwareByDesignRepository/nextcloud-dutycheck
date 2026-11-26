@@ -22,6 +22,7 @@ use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
 use OCP\IURLGenerator;
@@ -53,6 +54,7 @@ class MobileController extends Controller
 		private readonly ?SelfServiceSettingsService $selfService = null,
 		private readonly ?CompanyService $companies = null,
 		private readonly ?EffectiveTargetHoursFacade $facade = null,
+		private readonly ?\OCA\DutyCheck\Agent\AgentContext $agentContext = null,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -94,6 +96,7 @@ class MobileController extends Controller
 	}
 
 	#[NoAdminRequired]
+	#[PublicPage]  // agent tokens never create a session — requireUid() is the auth gate
 	#[NoCSRFRequired]
 	public function myRoster(): JSONResponse
 	{
@@ -121,6 +124,7 @@ class MobileController extends Controller
 	}
 
 	#[NoAdminRequired]
+	#[PublicPage]  // agent tokens never create a session — requireUid() is the auth gate
 	#[NoCSRFRequired]
 	public function acknowledgeAssignment(int $id): JSONResponse
 	{
@@ -135,6 +139,7 @@ class MobileController extends Controller
 	}
 
 	#[NoAdminRequired]
+	#[PublicPage]  // agent tokens never create a session — requireUid() is the auth gate
 	#[NoCSRFRequired]
 	public function myAbsences(): JSONResponse
 	{
@@ -148,6 +153,7 @@ class MobileController extends Controller
 	}
 
 	#[NoAdminRequired]
+	#[PublicPage]  // agent tokens never create a session — requireUid() is the auth gate
 	#[NoCSRFRequired]
 	public function createMyAbsence(): JSONResponse
 	{
@@ -167,6 +173,7 @@ class MobileController extends Controller
 	}
 
 	#[NoAdminRequired]
+	#[PublicPage]  // agent tokens never create a session — requireUid() is the auth gate
 	#[NoCSRFRequired]
 	public function listOpenShifts(): JSONResponse
 	{
@@ -186,6 +193,7 @@ class MobileController extends Controller
 	}
 
 	#[NoAdminRequired]
+	#[PublicPage]  // agent tokens never create a session — requireUid() is the auth gate
 	#[NoCSRFRequired]
 	public function claimOpenShift(int $id): JSONResponse
 	{
@@ -201,6 +209,7 @@ class MobileController extends Controller
 	}
 
 	#[NoAdminRequired]
+	#[PublicPage]  // agent tokens never create a session — requireUid() is the auth gate
 	#[NoCSRFRequired]
 	public function createSwapRequest(): JSONResponse
 	{
@@ -223,6 +232,7 @@ class MobileController extends Controller
 	}
 
 	#[NoAdminRequired]
+	#[PublicPage]  // agent tokens never create a session — requireUid() is the auth gate
 	#[NoCSRFRequired]
 	public function acceptSwap(int $id): JSONResponse
 	{
@@ -237,6 +247,7 @@ class MobileController extends Controller
 	}
 
 	#[NoAdminRequired]
+	#[PublicPage]  // agent tokens never create a session — requireUid() is the auth gate
 	#[NoCSRFRequired]
 	public function listMySwaps(): JSONResponse
 	{
@@ -251,6 +262,7 @@ class MobileController extends Controller
 	}
 
 	#[NoAdminRequired]
+	#[PublicPage]  // agent tokens never create a session — requireUid() is the auth gate
 	#[NoCSRFRequired]
 	public function withdrawSwap(int $id): JSONResponse
 	{
@@ -265,6 +277,7 @@ class MobileController extends Controller
 	}
 
 	#[NoAdminRequired]
+	#[PublicPage]  // agent tokens never create a session — requireUid() is the auth gate
 	#[NoCSRFRequired]
 	public function swapCandidates(): JSONResponse
 	{
@@ -279,6 +292,7 @@ class MobileController extends Controller
 	}
 
 	#[NoAdminRequired]
+	#[PublicPage]  // agent tokens never create a session — requireUid() is the auth gate
 	#[NoCSRFRequired]
 	public function teamWeek(): JSONResponse
 	{
@@ -297,6 +311,7 @@ class MobileController extends Controller
 	}
 
 	#[NoAdminRequired]
+	#[PublicPage]  // agent tokens never create a session — requireUid() is the auth gate
 	#[NoCSRFRequired]
 	public function myPreferences(): JSONResponse
 	{
@@ -312,6 +327,7 @@ class MobileController extends Controller
 	}
 
 	#[NoAdminRequired]
+	#[PublicPage]  // agent tokens never create a session — requireUid() is the auth gate
 	#[NoCSRFRequired]
 	public function saveMyPreference(): JSONResponse
 	{
@@ -330,6 +346,7 @@ class MobileController extends Controller
 	}
 
 	#[NoAdminRequired]
+	#[PublicPage]  // agent tokens never create a session — requireUid() is the auth gate
 	#[NoCSRFRequired]
 	public function deleteMyPreference(int $id): JSONResponse
 	{
@@ -345,6 +362,7 @@ class MobileController extends Controller
 	}
 
 	#[NoAdminRequired]
+	#[PublicPage]  // agent tokens never create a session — requireUid() is the auth gate
 	#[NoCSRFRequired]
 	public function myBlackouts(): JSONResponse
 	{
@@ -362,6 +380,7 @@ class MobileController extends Controller
 	}
 
 	#[NoAdminRequired]
+	#[PublicPage]  // agent tokens never create a session — requireUid() is the auth gate
 	#[NoCSRFRequired]
 	public function createMyBlackout(): JSONResponse
 	{
@@ -388,6 +407,7 @@ class MobileController extends Controller
 	}
 
 	#[NoAdminRequired]
+	#[PublicPage]  // agent tokens never create a session — requireUid() is the auth gate
 	#[NoCSRFRequired]
 	public function deleteMyBlackout(int $id): JSONResponse
 	{
@@ -451,6 +471,12 @@ class MobileController extends Controller
 	 */
 	private function requireUid(): string
 	{
+		// Scoped agent token (D-01): the middleware armed a request-scoped
+		// principal — no session, no Basic app-password. Fall through to
+		// Basic auth when no agent credential was presented.
+		if ($this->agentContext !== null && $this->agentContext->isArmed()) {
+			return (string)$this->agentContext->uid();
+		}
 		if (!$this->usesBasicAppPassword()) {
 			throw new \RuntimeException('UNAUTHENTICATED');
 		}

@@ -21,7 +21,10 @@ final class ClientLicenseMiddlewareTest extends TestCase
 	public function testCookieSessionOnMobilePathIsRejected(): void
 	{
 		$request = $this->createMock(IRequest::class);
-		$request->method('getHeader')->with('Authorization')->willReturn('');
+		$request->method('getHeader')->willReturnMap([
+			['Authorization', ''],
+			['X-DutyCheck-Agent', ''],
+		]);
 		$request->method('getPathInfo')->willReturn('/apps/dutycheck/api/mobile/my/roster');
 
 		$license = $this->createMock(LicenseService::class);
@@ -40,7 +43,10 @@ final class ClientLicenseMiddlewareTest extends TestCase
 	public function testCookieSessionOnBootstrapIsRejected(): void
 	{
 		$request = $this->createMock(IRequest::class);
-		$request->method('getHeader')->with('Authorization')->willReturn('');
+		$request->method('getHeader')->willReturnMap([
+			['Authorization', ''],
+			['X-DutyCheck-Agent', ''],
+		]);
 		$request->method('getPathInfo')->willReturn('/apps/dutycheck/api/mobile/bootstrap');
 
 		$license = $this->createMock(LicenseService::class);
@@ -54,6 +60,28 @@ final class ClientLicenseMiddlewareTest extends TestCase
 		);
 		$this->expectException(MobileUnauthenticatedException::class);
 		$mw->beforeController(new \stdClass(), 'bootstrap');
+	}
+
+	public function testAgentHeaderSkipsBasicAndSeatGate(): void
+	{
+		// X-DutyCheck-Agent requests are authenticated + seat-gated by
+		// AgentAuthMiddleware; the device/Basic path must not claim them.
+		$request = $this->createMock(IRequest::class);
+		$request->method('getHeader')->willReturnMap([
+			['Authorization', ''],
+			['X-DutyCheck-Agent', 'ckst_testtoken'],
+		]);
+		$request->method('getPathInfo')->willReturn('/apps/dutycheck/api/mobile/my/roster');
+
+		$session = $this->createMock(IUserSession::class);
+		$session->expects($this->never())->method('getUser');
+		$license = $this->createMock(LicenseService::class);
+		$license->expects($this->never())->method('isMobilePlanActive');
+		$license->expects($this->never())->method('assertMobileAccess');
+
+		$mw = new ClientLicenseMiddleware($request, $session, $license, new NullLogger());
+		$mw->beforeController(new \stdClass(), 'myRoster');
+		self::assertTrue(true, 'agent-header request must pass through without throwing');
 	}
 
 	public function testAfterExceptionMapsUnauthenticatedTo401(): void
@@ -110,7 +138,10 @@ final class ClientLicenseMiddlewareTest extends TestCase
 	public function testBootstrapExemptEvenWithBasicAuth(): void
 	{
 		$request = $this->createMock(IRequest::class);
-		$request->method('getHeader')->with('Authorization')->willReturn('Basic abc');
+		$request->method('getHeader')->willReturnMap([
+			['Authorization', 'Basic abc'],
+			['X-DutyCheck-Agent', ''],
+		]);
 		$request->method('getPathInfo')->willReturn('/apps/dutycheck/api/mobile/bootstrap');
 
 		$license = $this->createMock(LicenseService::class);
@@ -128,7 +159,10 @@ final class ClientLicenseMiddlewareTest extends TestCase
 	public function testGatedPathRequiresActivePlan(): void
 	{
 		$request = $this->createMock(IRequest::class);
-		$request->method('getHeader')->with('Authorization')->willReturn('Basic abc');
+		$request->method('getHeader')->willReturnMap([
+			['Authorization', 'Basic abc'],
+			['X-DutyCheck-Agent', ''],
+		]);
 		$request->method('getPathInfo')->willReturn('/apps/dutycheck/api/mobile/my/roster');
 		$request->method('getMethod')->willReturn('GET');
 
@@ -148,7 +182,10 @@ final class ClientLicenseMiddlewareTest extends TestCase
 	public function testBasicWithoutSessionUserIsRejectedOnGatedPath(): void
 	{
 		$request = $this->createMock(IRequest::class);
-		$request->method('getHeader')->with('Authorization')->willReturn('Basic abc');
+		$request->method('getHeader')->willReturnMap([
+			['Authorization', 'Basic abc'],
+			['X-DutyCheck-Agent', ''],
+		]);
 		$request->method('getPathInfo')->willReturn('/apps/dutycheck/api/mobile/my/roster');
 
 		$session = $this->createMock(IUserSession::class);
@@ -165,7 +202,10 @@ final class ClientLicenseMiddlewareTest extends TestCase
 	public function testWebApiPathsAreNotGatedEvenWithBasicAuth(): void
 	{
 		$request = $this->createMock(IRequest::class);
-		$request->method('getHeader')->with('Authorization')->willReturn('Basic abc');
+		$request->method('getHeader')->willReturnMap([
+			['Authorization', 'Basic abc'],
+			['X-DutyCheck-Agent', ''],
+		]);
 		$request->method('getPathInfo')->willReturn('/apps/dutycheck/api/my/roster');
 
 		$license = $this->createMock(LicenseService::class);
@@ -184,7 +224,10 @@ final class ClientLicenseMiddlewareTest extends TestCase
 	public function testWebApiPathsIgnoreMissingBasic(): void
 	{
 		$request = $this->createMock(IRequest::class);
-		$request->method('getHeader')->with('Authorization')->willReturn('');
+		$request->method('getHeader')->willReturnMap([
+			['Authorization', ''],
+			['X-DutyCheck-Agent', ''],
+		]);
 		$request->method('getPathInfo')->willReturn('/apps/dutycheck/api/my/roster');
 
 		$license = $this->createMock(LicenseService::class);

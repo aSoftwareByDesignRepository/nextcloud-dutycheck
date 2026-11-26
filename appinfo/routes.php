@@ -21,7 +21,7 @@ return [
 		// Keep the requirement literal (route files load without the app autoloader).
 		// tests/Unit/Controller/SettingsPagesContractTest pins it to SettingsSectionCatalog::routeRequirement().
 		['name' => 'page#settingsSection', 'url' => '/settings/{section}', 'verb' => 'GET',
-			'requirements' => ['section' => 'access|duty-roles|planning|companies|conflicts|shift-templates|qualifications|planner-scope|operations|dienst-team|integration|privacy|license|transfer|support']],
+			'requirements' => ['section' => 'access|duty-roles|planning|companies|conflicts|shift-templates|qualifications|planner-scope|operations|dienst-team|integration|privacy|license|agent|transfer|support']],
 		['name' => 'api#bootstrap', 'url' => '/api/bootstrap', 'verb' => 'GET'],
 
 		// ── Config & data transfer (test → production) ──────────────────
@@ -266,5 +266,16 @@ return [
 		['name' => 'rosterApi#publicIcal', 'url' => '/api/ical/{employeeId}', 'verb' => 'GET',
 			'requirements' => ['employeeId' => '\d+']],
 		['name' => 'rosterApi#widgetSnapshot', 'url' => '/api/widget-snapshot', 'verb' => 'GET'],
+
+		// Agent (AI/MCP) surface. The manifest is readable by any valid
+		// agent token OR a session user; token administration is session+CSRF
+		// only — AgentAuthMiddleware denies agent credentials on these paths.
+		['name' => 'agent_manifest#show', 'url' => '/agent/v1/manifest', 'verb' => 'GET'],
+		['name' => 'agent_token#index', 'url' => '/agent/v1/tokens', 'verb' => 'GET'],
+		['name' => 'agent_token#mint', 'url' => '/agent/v1/tokens', 'verb' => 'POST'],
+		['name' => 'agent_token#audit', 'url' => '/agent/v1/audit', 'verb' => 'GET'],
+		['name' => 'agent_token#updatePolicy', 'url' => '/agent/v1/policy', 'verb' => 'POST'],
+		['name' => 'agent_token#revoke', 'url' => '/agent/v1/tokens/{id}/revoke', 'verb' => 'POST', 'requirements' => ['id' => '\\d+']],
+		['name' => 'agent_token#rotate', 'url' => '/agent/v1/tokens/{id}/rotate', 'verb' => 'POST', 'requirements' => ['id' => '\\d+']],
 	],
 ];

@@ -42,6 +42,7 @@ class PageController extends Controller
 		private LicenseService $licenseService,
 		private \OCA\DutyCheck\ConfigTransfer\TransferReceiptStore $transferReceipts,
 		private ?SelfServiceSettingsService $selfService = null,
+		private ?\OCA\DutyCheck\Agent\AgentSettingsPayload $agentSettings = null,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -348,6 +349,11 @@ class PageController extends Controller
 					['section' => 'license'],
 				) . '#dutycheck-license',
 			);
+		}
+		if ($section === 'agent' && $this->agentSettings !== null) {
+			$extra['agentAccess'] = $this->agentSettings->payload($this->access->currentUserId());
+			Util::addScript(Application::APP_ID, 'agent-access');
+			Util::addStyle(Application::APP_ID, 'agent-access');
 		}
 		if ($section === 'transfer') {
 			$extra['transferLastReceipt'] = $this->transferReceipts->lastReceipt();

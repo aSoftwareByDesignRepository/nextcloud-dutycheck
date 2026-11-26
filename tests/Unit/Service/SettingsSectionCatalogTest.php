@@ -47,7 +47,7 @@ final class SettingsSectionCatalogTest extends TestCase
 	{
 		$sections = SettingsSectionCatalog::SECTIONS;
 		self::assertSame($sections, array_values(array_unique($sections)), 'Section slugs must be unique');
-		self::assertCount(15, $sections);
+		self::assertCount(16, $sections);
 		foreach ($sections as $section) {
 			self::assertMatchesRegularExpression(
 				'/^[a-z]+(-[a-z]+)*$/',
@@ -144,6 +144,7 @@ final class SettingsSectionCatalogTest extends TestCase
 			'integration' => 'T:ArbeitszeitCheck integration',
 			'privacy' => 'T:Privacy & words we use',
 			'license' => 'T:Official mobile & terminal licenses',
+			'agent' => 'T:AI access (MCP)',
 			'transfer' => 'T:Transfer configuration',
 			'support' => 'T:Support & us',
 		];
@@ -170,6 +171,7 @@ final class SettingsSectionCatalogTest extends TestCase
 			'integration' => 'T:Integration',
 			'privacy' => 'T:Privacy',
 			'license' => 'T:License',
+			'agent' => 'T:AI access',
 			'transfer' => 'T:Transfer',
 			'support' => 'T:Support us',
 		];
@@ -213,6 +215,7 @@ final class SettingsSectionCatalogTest extends TestCase
 			'dienst-team' => 'one place for self-service',
 			'integration' => 'never writes to ArbeitszeitCheck',
 			'privacy' => 'plain-language terms',
+			'agent' => 'only inside this app',
 			'transfer' => 'one encrypted file',
 		];
 		$seen = [];

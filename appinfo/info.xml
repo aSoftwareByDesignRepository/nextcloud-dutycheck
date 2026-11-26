@@ -426,12 +426,15 @@ Melhoramos este app com o uso real. Relatórios de bugs, atritos e ideias ajudam
 	<repair-steps>
 		<install>
 			<step>OCA\DutyCheck\Repair\EnsureDutyCheckSchema</step>
+			<step>OCA\DutyCheck\Repair\EnsureAgentTables</step>
 		</install>
 		<post-migration>
 			<step>OCA\DutyCheck\Repair\EnsureDutyCheckSchema</step>
+			<step>OCA\DutyCheck\Repair\EnsureAgentTables</step>
 		</post-migration>
 		<uninstall>
 			<step>OCA\DutyCheck\Repair\UninstallDropTables</step>
+			<step>OCA\DutyCheck\Repair\UninstallAgentTables</step>
 		</uninstall>
 		<pre-migration>
 			<step>OCA\DutyCheck\Repair\BackupBeforeUpdate</step>

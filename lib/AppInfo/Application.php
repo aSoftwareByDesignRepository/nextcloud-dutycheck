@@ -19,6 +19,8 @@ use OCA\DutyCheck\Integration\IntegrationSyncRateLimiter;
 use OCA\DutyCheck\Command\ReconcileArbeitszeitCheckMirrorCommand;
 use OCA\DutyCheck\Repair\EnsureDutyCheckSchema;
 use OCA\DutyCheck\Repair\UninstallDropTables;
+use OCA\DutyCheck\Repair\EnsureAgentTables;
+use OCA\DutyCheck\Repair\UninstallAgentTables;
 use OCA\DutyCheck\Middleware\AppAccessMiddleware;
 use OCA\DutyCheck\Middleware\ClientLicenseMiddleware;
 use OCA\DutyCheck\Middleware\SessionCsrfMiddleware;
@@ -499,7 +501,41 @@ class Application extends App implements IBootstrap
 		$context->registerMiddleware(AppAccessMiddleware::class);
 		$context->registerMiddleware(ClientLicenseMiddleware::class);
 		$context->registerMiddleware(SessionCsrfMiddleware::class);
+
+		// _shared/agent-auth pack — scoped AI-agent tokens (suite MCP contract)
+		$context->registerService(\OCA\DutyCheck\Agent\AgentManifest::class, function ($c) {
+			return new \OCA\DutyCheck\Agent\AgentManifest(
+				'dutycheck',
+				\dirname(__DIR__, 2) . '/appinfo/agent-manifest.json'
+			);
+		});
+		$context->registerService(\OCA\DutyCheck\Agent\AgentSeatGate::class, function ($c) {
+			return new \OCA\DutyCheck\Agent\DutyCheckAgentSeatGate(
+				$c->query(\OCA\DutyCheck\Service\LicenseService::class)
+			);
+		});
+		$context->registerService(\OCA\DutyCheck\Agent\AgentAccessGate::class, function ($c) {
+			return new \OCA\DutyCheck\Agent\DutyCheckAgentAccessGate(
+				$c->query(\OCA\DutyCheck\Service\AccessControlService::class),
+				$c->query(\OCP\IGroupManager::class)
+			);
+		});
+		$context->registerService(\OCA\DutyCheck\Middleware\AgentAuthMiddleware::class, function ($c) {
+			return new \OCA\DutyCheck\Middleware\AgentAuthMiddleware(
+				$c->query(\OCP\IRequest::class),
+				$c->query(\OCA\DutyCheck\Agent\AgentContext::class),
+				$c->query(\OCA\DutyCheck\Agent\AgentTokenService::class),
+				$c->query(\OCA\DutyCheck\Agent\AgentManifest::class),
+				$c->query(\OCA\DutyCheck\Agent\AgentSeatGate::class),
+				$c->query(\OCA\DutyCheck\Agent\AgentAuditMapper::class),
+				$c->query(\Psr\Log\LoggerInterface::class),
+				'dutycheck'
+			);
+		});
+		$context->registerMiddleware(\OCA\DutyCheck\Middleware\AgentAuthMiddleware::class);
+
 		$context->registerEventListener(UserDeletedEvent::class, UserDeletedListener::class);
+		$context->registerEventListener(UserDeletedEvent::class, \OCA\DutyCheck\Listener\AgentUserDeletedListener::class);
 		// F17: TourCheck round status transitions mark linked periods
 		// conflicts_dirty; the drain job recomputes the coverage gap.
 		$context->registerEventListener('OCA\TourCheck::roundMissed', TourCheckRoundLinkListener::class);
@@ -518,6 +554,16 @@ class Application extends App implements IBootstrap
 			return new EnsureDutyCheckSchema(
 				$c->query(\OCP\IDBConnection::class),
 				$c->query(\OCP\IConfig::class),
+			);
+		});
+		$context->registerService(EnsureAgentTables::class, function ($c): EnsureAgentTables {
+			return new EnsureAgentTables(
+				$c->query(\OCP\IDBConnection::class),
+			);
+		});
+		$context->registerService(UninstallAgentTables::class, function ($c): UninstallAgentTables {
+			return new UninstallAgentTables(
+				$c->query(\OCP\IDBConnection::class),
 			);
 		});
 
