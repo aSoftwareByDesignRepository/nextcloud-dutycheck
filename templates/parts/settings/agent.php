@@ -118,7 +118,7 @@ $dc_tokens = is_array($dc_state['tokens']) ? $dc_state['tokens'] : [];
 	<dialog id="dc-agent-mint-dialog" class="dc-dialog dc-agent-mint-dialog" aria-labelledby="dc-agent-mint-h">
 		<div class="dc-dialog__body">
 			<h3 id="dc-agent-mint-h"><?php p($l->t('Connect your AI')); ?></h3>
-			<form id="dc-agent-mint-form" novalidate>
+			<form id="dc-agent-mint-form" class="dc-form-stack" novalidate>
 				<div class="dc-form-row">
 					<label for="dc-agent-label"><?php p($l->t('Label')); ?></label>
 					<input type="text" id="dc-agent-label" name="label" maxlength="190" required autocomplete="off" placeholder="<?php p($l->t('Claude on my laptop')); ?>">

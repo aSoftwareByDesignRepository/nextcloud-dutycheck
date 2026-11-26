@@ -164,7 +164,7 @@
 	border: 1px solid var(--color-border-dark, var(--dc-border));
 	border-radius: 999px;
 	cursor: pointer;
-	font-size: var(--dc-fs-s, 0.875rem);
+	font-size: var(--dc-fs-sm, 0.875rem);
 	min-height: 44px;
 	background: var(--color-main-background);
 }
@@ -194,8 +194,8 @@ dialog.dc-agent-revoke-dialog:not([open]) {
 }
 .dc-agent-config {
 	width: 100%;
-	font-family: var(--dc-font-mono, monospace);
-	font-size: var(--dc-fs-s, 0.8125rem);
+	font-family: var(--dc-mono, monospace);
+	font-size: var(--dc-fs-sm, 0.8125rem);
 	padding: var(--dc-space-2, 8px);
 	border: 1px solid var(--color-border-dark, var(--dc-border));
 	border-radius: var(--dc-radius-md, 8px);
@@ -204,7 +204,7 @@ dialog.dc-agent-revoke-dialog:not([open]) {
 	resize: vertical;
 }
 #dc-agent-secret {
-	font-family: var(--dc-font-mono, monospace);
+	font-family: var(--dc-mono, monospace);
 }
 
 .dc-agent-actions {
@@ -248,4 +248,30 @@ dialog.dc-agent-revoke-dialog:not([open]) {
 	.dc-badge::before {
 		background: CanvasText;
 	}
+}
+
+/* Section chrome the pack template emits (dc-section-title/intro) —
+   styled home mirrors .dc-section__header h2 / .dc-section__sub so the
+   emitted classes resolve to real rules (emitted_class_coverage). */
+.dc-agent .dc-section-title {
+	margin: 0;
+	font-size: var(--dc-fs-xl);
+	line-height: var(--dc-line-tight);
+	overflow-wrap: anywhere;
+}
+.dc-agent .dc-section-intro {
+	margin: var(--dc-space-1) 0 0;
+	color: var(--dc-muted);
+	font-size: var(--dc-fs-sm);
+	line-height: var(--dc-line-base);
+}
+
+/* Inline field error (pack mint dialog) — same recipe as the family
+   field-errors pack: danger ink, small type, next-step copy lives in the
+   text the server fields-map writes here. */
+.dc-agent .dc-field-error {
+	margin: var(--dc-space-1) 0 0;
+	color: var(--color-error-text, var(--color-element-error, #e9322d));
+	font-size: var(--dc-fs-sm);
+	line-height: var(--dc-line-base);
 }
