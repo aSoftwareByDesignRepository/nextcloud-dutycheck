@@ -739,9 +739,7 @@
 						text: String(emp.displayName || emp.name || emp.id),
 					}));
 				});
-				const today = new Date();
-				const p = (n) => String(n).padStart(2, '0');
-				const todayIso = today.getFullYear() + '-' + p(today.getMonth() + 1) + '-' + p(today.getDate());
+				const todayIso = D.todayIsoDate();
 				const fromInput = create('input', {
 					type: 'date', id: 'dc-pat-assign-from', class: 'dc-input dc-input--date',
 					attrs: { required: '', value: todayIso },
