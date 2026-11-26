@@ -114,6 +114,25 @@
 			d.close();
 		}
 	}
+	// NC notification handlers can preventDefault the global Escape
+	// keydown, suppressing the native <dialog> cancel event — a dialog
+	// opened via showModal() would then ignore Escape entirely. Bind a
+	// dialog-level close ourselves (host_app_escape_preventdefault).
+	// ponytail: heal is app-side; port to _shared/agent-auth tpl on next sync
+	function armEscape(dlg) {
+		if (dlg) {
+			dlg.addEventListener('keydown', function (e) {
+				if (e.key === 'Escape') {
+					e.preventDefault();
+					e.stopPropagation();
+					dlg.close();
+				}
+			});
+		}
+	}
+	armEscape(mintDialog);
+	armEscape(secretDialog);
+	armEscape(revokeDialog);
 
 	var connectBtn = document.getElementById(prefix + '-agent-connect');
 	var labelInput = document.getElementById(prefix + '-agent-label');
