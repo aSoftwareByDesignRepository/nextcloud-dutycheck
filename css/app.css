@@ -11,6 +11,9 @@
  * tinted surfaces derived via `color-mix()` so the app matches every NC
  * theme without hard-coded hex values.
  *
+ * Token definitions live in css/common/tokens.css — the canonical token
+ * home (family convention), loaded before this sheet on every surface.
+ *
  * Accessibility (WCAG 2.1 AA):
  *  - Visible focus rings on every focusable element.
  *  - 4.5:1 text contrast on text, surfaces tinted not coloured-out.
@@ -27,106 +30,10 @@
  */
 
 /* ── Tokens ──────────────────────────────────────────────────── */
-:root {
-	/* Spacing scale (4 px grid — never invent 10/18/20 px) */
-	--dc-space-1: 4px;
-	--dc-space-2: 8px;
-	--dc-space-3: 12px;
-	--dc-space-4: 16px;
-	--dc-space-5: 24px;
-	--dc-space-6: 32px;
-	--dc-space-7: 48px;
-	--dc-space-8: 64px;
-
-	/* Radii */
-	--dc-radius-sm: 6px;
-	--dc-radius-md: 12px;
-	--dc-radius-lg: 16px;
-
-	/* Type scale */
-	--dc-fs-xs: 0.75rem;
-	--dc-fs-sm: 0.875rem;
-	--dc-fs-md: 1rem;
-	--dc-fs-lg: 1.125rem;
-	--dc-fs-xl: 1.5rem;
-	--dc-fs-2xl: 1.875rem;
-	--dc-line-tight: 1.2;
-	--dc-line-base: 1.45;
-
-	--dc-breakpoint-sm: 480px;
-	--dc-breakpoint-md: 768px;
-	--dc-breakpoint-lg: 1024px;
-
-	--dc-icon-sm: 1rem;
-	--dc-icon-md: 1.125rem;
-	--dc-icon-lg: 1.375rem;
-	--dc-icon-well: 2.25rem;
-	--dc-touch: 44px;
-
-	--dc-tab-num: tabular-nums;
-}
-
-/*
- * Theme-dependent tokens MUST live on themed surfaces (body / .dc-app / .dc-modal),
- * not :root. Nextcloud sets --color-main-* on body; resolving color-mix on :root
- * falls back to light #fff while text inherits dark-theme --color-main-text
- * → WCAG contrast ~1.1:1. Modals mount on document.body outside #app-content.
- *
- * Tints mix INTO --color-main-background (AZC contract) — never into transparent —
- * so callouts stay visible on every NC theme including high-contrast.
- */
-body,
-#app-content.dc-app,
-.dc-app,
-.dc-modal,
-.dc-toasts {
-	--dc-overlay-top: var(--header-height, 50px);
-	--dc-overlay-height: calc(100dvh - var(--header-height, 50px));
-
-	/* Shadows */
-	--dc-shadow-sm: 0 1px 2px color-mix(in srgb, var(--color-main-text, #1d1d1d) 8%, transparent);
-	--dc-shadow-md: 0 8px 24px color-mix(in srgb, var(--color-main-text, #1d1d1d) 12%, transparent);
-
-	/* Surfaces */
-	--dc-bg-soft: color-mix(in srgb, var(--color-main-background, #fff) 96%, var(--color-main-text, #1d1d1d) 4%);
-	--dc-bg-card: var(--color-main-background, #fff);
-	--dc-bg-stripe: color-mix(in srgb, var(--color-main-background, #fff) 92%, var(--color-main-text, #1d1d1d) 8%);
-	--dc-border: color-mix(in srgb, var(--color-main-text, #1d1d1d) 12%, transparent);
-	--dc-border-strong: color-mix(in srgb, var(--color-main-text, #1d1d1d) 24%, transparent);
-	/* Interactive controls need >=3:1 (WCAG 1.4.11): maxcontrast is NC's own
-	   input border; --color-border / --dc-border stay surface-only. */
-	--dc-form-border: var(--color-border-maxcontrast, var(--dc-border-strong));
-	/* Prefer Nextcloud's AA-tested muted token (same approach as BudgetCheck).
-	   Fallback mixes against the background (not transparent) so secondary text
-	   still clears 4.5:1 on tinted surfaces across custom themes. */
-	--dc-muted: var(
-		--color-text-maxcontrast,
-		color-mix(in srgb, var(--color-main-text, #1d1d1d) 67%, var(--color-main-background, #fff))
-	);
-	--dc-text: var(--color-main-text, #1d1d1d);
-
-	/* Severity tints — mix into main-background (AZC / design-system §1.5) */
-	--dc-tint-info: color-mix(in srgb, var(--color-primary-element, #0082c9) 16%, var(--color-main-background, #fff));
-	--dc-tint-success: color-mix(in srgb, var(--color-success-text, var(--color-success, #46ba61)) 18%, var(--color-main-background, #fff));
-	/* NC34+ --color-success is a pale *surface*; borders/icons need the ink / element token. */
-	--dc-tint-success-border: color-mix(in srgb, var(--color-element-success, var(--color-success-text, #005416)) 55%, var(--color-main-background, #fff));
-	--dc-tint-warning: color-mix(in srgb, var(--color-warning-text, var(--color-warning, #c98600)) 22%, var(--color-main-background, #fff));
-	--dc-tint-critical: color-mix(in srgb, var(--color-error-text, var(--color-error, #cc4646)) 18%, var(--color-main-background, #fff));
-	/*
-	 * Solid danger CTA fill — NC --color-element-error (theme-aware). Brand
-	 * #ba1b1b is fallback only when the platform token is absent. Never use
-	 * pale --color-error surface tints for on-fill text (fails AA on NC 30+).
-	 */
-	--dc-danger-fill: var(--color-element-error, #ba1b1b);
-	/* Hover/active shade for solid danger CTAs — mixed into main-text so the
-	   state change reads on every NC theme (same contract as
-	   --color-primary-element-hover on primary variants). */
-	--dc-danger-fill-hover: color-mix(in srgb, var(--dc-danger-fill) 88%, var(--color-main-text, #000));
-	--dc-danger-on-fill: var(--color-primary-element-text, #ffffff);
-	--dc-scrim: color-mix(in srgb, var(--color-main-text, #000) 60%, transparent);
-
-	color: var(--color-main-text, #1d1d1d);
-}
+/* Canonical token blocks moved to css/common/tokens.css (family convention —
+ * the gate and sibling apps derive the app prefix from --{p}-space-1 there).
+ * Theme-dependent tokens still resolve on themed surfaces (body / .dc-app /
+ * .dc-modal / .dc-toasts) inside that file; nothing here may re-declare them. */
 
 /* ── Skip link / live regions ────────────────────────────────── */
 .dc-skip-link {
@@ -754,6 +661,13 @@ body,
 	gap: var(--dc-space-3);
 }
 .dc-empty p, .dc-empty h2 { margin: 0; }
+/* Inline muted hint text (empty-state copy, settings microcopy). */
+.dc-hint {
+	margin: var(--dc-space-1) 0 0;
+	font-size: var(--dc-fs-sm);
+	color: var(--dc-muted);
+	line-height: var(--dc-line-base);
+}
 .dc-callout {
 	display: flex;
 	flex-direction: column;
@@ -764,6 +678,7 @@ body,
 	min-width: 0;
 	overflow-wrap: anywhere;
 }
+.dc-callout--info { background: var(--dc-tint-info); }
 .dc-callout--warning { background: var(--dc-tint-warning); }
 .dc-callout--critical { background: var(--dc-tint-critical); }
 .dc-callout--success { background: var(--dc-tint-success); }
@@ -2773,6 +2688,20 @@ dialog .dc-btn--danger:active,
 	flex-direction: column;
 	gap: var(--dc-space-3);
 }
+/* Pending-action rows (swap reviews, open-shift claims): label left, actions right. */
+.dc-conflicts__item {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--dc-space-2);
+	min-width: 0;
+}
+.dc-conflicts__item p {
+	flex: 1 1 12rem;
+	min-width: 0;
+	margin: 0;
+	overflow-wrap: anywhere;
+}
 .dc-conflict {
 	display: grid;
 	grid-template-columns: auto minmax(0, 1fr);
@@ -4701,6 +4630,11 @@ form.dc-form-grid[aria-busy='true'] .button {
 	gap: var(--dc-space-2);
 	align-items: center;
 	margin-top: var(--dc-space-2);
+}
+/* Selection count inside the flex row — kill the <p> default margins so it
+   centres with the action buttons. */
+.dc-roster-bulk-bar__count {
+	margin: 0;
 }
 .dc-settings-privacy__list {
 	margin: 0 0 var(--dc-space-4);

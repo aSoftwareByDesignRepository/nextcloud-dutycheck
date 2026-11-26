@@ -1,15 +1,130 @@
 /*
- * Backwards-compatibility token bridge.
+ * DutyCheck design tokens (--dc-*) — canonical home.
  *
- * Older DutyCheck CSS referenced --dc-color-* variables; the rebuilt design
- * system in css/app.css now reads directly from Nextcloud variables and the
- * --dc-* spacing/radius/shape tokens defined there. This file keeps the old
- * names alive for any third-party consumers and historical inline styles so
- * a missing --dc-color-* token never falls back to `unset` and renders an
- * inaccessible black-on-black surface.
+ * Family convention (same role as the AZC donor block): spacing, radii,
+ * typography scale, and breakpoint tokens resolve on :root; theme-dependent
+ * tokens resolve on themed surfaces (body / .dc-app / .dc-modal / .dc-toasts)
+ * because Nextcloud sets --color-* on body[data-theme-*] — color-mix on bare
+ * :root would fall back to light surfaces while text inherits dark-theme ink.
+ * Tints mix INTO --color-main-background — never into transparent — so
+ * callouts stay visible on every NC theme including high-contrast.
  *
- * Theme-dependent mixes must resolve on body-themed surfaces (same as app.css),
- * not bare :root — otherwise dark-theme text (#ebebeb) paints on light fallbacks.
+ * Colors come from Nextcloud variables (--color-*, --color-main-*,
+ * --color-primary-element, --color-success, --color-warning, --color-error);
+ * no raw hex beyond last-resort fallbacks.
+ *
+ * The second half of this file is the backwards-compatibility bridge that
+ * keeps the legacy --dc-color-* names alive for third-party consumers and
+ * historical inline styles so a missing token never falls back to `unset`
+ * and renders an inaccessible surface.
+ */
+
+/* ── Theme-independent tokens ──────────────────────────────── */
+:root {
+	/* Spacing scale (4 px grid — never invent 10/18/20 px) */
+	--dc-space-1: 4px;
+	--dc-space-2: 8px;
+	--dc-space-3: 12px;
+	--dc-space-4: 16px;
+	--dc-space-5: 24px;
+	--dc-space-6: 32px;
+	--dc-space-7: 48px;
+	--dc-space-8: 64px;
+
+	/* Radii */
+	--dc-radius-sm: 6px;
+	--dc-radius-md: 12px;
+	--dc-radius-lg: 16px;
+
+	/* Type scale */
+	--dc-fs-xs: 0.75rem;
+	--dc-fs-sm: 0.875rem;
+	--dc-fs-md: 1rem;
+	--dc-fs-lg: 1.125rem;
+	--dc-fs-xl: 1.5rem;
+	--dc-fs-2xl: 1.875rem;
+	--dc-line-tight: 1.2;
+	--dc-line-base: 1.45;
+
+	--dc-breakpoint-sm: 480px;
+	--dc-breakpoint-md: 768px;
+	--dc-breakpoint-lg: 1024px;
+
+	--dc-icon-sm: 1rem;
+	--dc-icon-md: 1.125rem;
+	--dc-icon-lg: 1.375rem;
+	--dc-icon-well: 2.25rem;
+	--dc-touch: 44px;
+
+	--dc-tab-num: tabular-nums;
+}
+
+/* ── Theme-dependent tokens ────────────────────────────────── */
+body,
+#app-content.dc-app,
+.dc-app,
+.dc-modal,
+.dc-toasts {
+	--dc-overlay-top: var(--header-height, 50px);
+	--dc-overlay-height: calc(100dvh - var(--header-height, 50px));
+
+	/* Shadows */
+	--dc-shadow-sm: 0 1px 2px color-mix(in srgb, var(--color-main-text, #1d1d1d) 8%, transparent);
+	--dc-shadow-md: 0 8px 24px color-mix(in srgb, var(--color-main-text, #1d1d1d) 12%, transparent);
+
+	/* Surfaces */
+	--dc-bg-soft: color-mix(in srgb, var(--color-main-background, #fff) 96%, var(--color-main-text, #1d1d1d) 4%);
+	--dc-bg-card: var(--color-main-background, #fff);
+	--dc-bg-stripe: color-mix(in srgb, var(--color-main-background, #fff) 92%, var(--color-main-text, #1d1d1d) 8%);
+	--dc-border: color-mix(in srgb, var(--color-main-text, #1d1d1d) 12%, transparent);
+	--dc-border-strong: color-mix(in srgb, var(--color-main-text, #1d1d1d) 24%, transparent);
+	/* Interactive controls need >=3:1 (WCAG 1.4.11): maxcontrast is NC's own
+	   input border; --color-border / --dc-border stay surface-only. */
+	--dc-form-border: var(--color-border-maxcontrast, var(--dc-border-strong));
+	/* Prefer Nextcloud's AA-tested muted token (same approach as BudgetCheck).
+	   Fallback mixes against the background (not transparent) so secondary text
+	   still clears 4.5:1 on tinted surfaces across custom themes. */
+	--dc-muted: var(
+		--color-text-maxcontrast,
+		color-mix(in srgb, var(--color-main-text, #1d1d1d) 67%, var(--color-main-background, #fff))
+	);
+	--dc-text: var(--color-main-text, #1d1d1d);
+
+	/* Severity tints — mix into main-background (AZC / design-system §1.5) */
+	--dc-tint-info: color-mix(in srgb, var(--color-primary-element, #0082c9) 16%, var(--color-main-background, #fff));
+	--dc-tint-success: color-mix(in srgb, var(--color-success-text, var(--color-success, #46ba61)) 18%, var(--color-main-background, #fff));
+	/* NC34+ --color-success is a pale *surface*; borders/icons need the ink / element token. */
+	--dc-tint-success-border: color-mix(in srgb, var(--color-element-success, var(--color-success-text, #005416)) 55%, var(--color-main-background, #fff));
+	--dc-tint-warning: color-mix(in srgb, var(--color-warning-text, var(--color-warning, #c98600)) 22%, var(--color-main-background, #fff));
+	--dc-tint-critical: color-mix(in srgb, var(--color-error-text, var(--color-error, #cc4646)) 18%, var(--color-main-background, #fff));
+	/*
+	 * Solid danger CTA fill — NC --color-element-error (theme-aware). Brand
+	 * #ba1b1b is fallback only when the platform token is absent. Never use
+	 * pale --color-error surface tints for on-fill text (fails AA on NC 30+).
+	 */
+	--dc-danger-fill: var(--color-element-error, #ba1b1b);
+	/* Hover/active shade for solid danger CTAs — mixed into main-text so the
+	   state change reads on every NC theme (same contract as
+	   --color-primary-element-hover on primary variants). */
+	--dc-danger-fill-hover: color-mix(in srgb, var(--dc-danger-fill) 88%, var(--color-main-text, #000));
+	--dc-danger-on-fill: var(--color-primary-element-text, #ffffff);
+	--dc-scrim: color-mix(in srgb, var(--color-main-text, #000) 60%, transparent);
+
+	color: var(--color-main-text, #1d1d1d);
+}
+
+/*
+ * ── Backwards-compatibility bridge ────────────────────────────
+ *
+ * Older DutyCheck CSS referenced --dc-color-* variables; the canonical tokens
+ * above now carry the live definitions. This bridge keeps the old names alive
+ * for any third-party consumers and historical inline styles so a missing
+ * --dc-color-* token never falls back to `unset` and renders an inaccessible
+ * black-on-black surface.
+ *
+ * Theme-dependent mixes must resolve on body-themed surfaces (same as the
+ * canonical block), not bare :root — otherwise dark-theme text (#ebebeb)
+ * paints on light fallbacks.
  */
 #app-content.dc-app,
 .dc-app,
@@ -29,13 +144,6 @@ body {
 	--dc-color-success: var(--color-success, #46ba61);
 	--dc-color-warning: var(--color-warning, #c98600);
 	--dc-color-error: var(--color-error, #cc4646);
-	/*
-	 * Solid danger CTA fill — prefer NC --color-element-error so Light/Dark/HC
-	 * and custom accents resolve; brand #ba1b1b only as last-resort fallback
-	 * (never pale --color-error tint under on-fill text).
-	 */
-	--dc-danger-fill: var(--color-element-error, #ba1b1b);
-	--dc-danger-on-fill: var(--color-primary-element-text, #ffffff);
 	--dc-color-overlay: color-mix(in srgb, var(--color-main-text, #000) 60%, transparent);
 	--dc-color-shadow-soft: color-mix(in srgb, var(--color-main-text, #000) 4%, transparent);
 	--dc-color-shadow-strong: color-mix(in srgb, var(--color-main-text, #000) 22%, transparent);

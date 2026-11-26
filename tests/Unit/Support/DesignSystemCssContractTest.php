@@ -30,7 +30,7 @@ final class DesignSystemCssContractTest extends TestCase
 	{
 		self::assertMatchesRegularExpression(
 			'/--dc-muted:\s*var\(\s*--color-text-maxcontrast/s',
-			$this->appCss,
+			$this->tokensCss,
 			'--dc-muted must prefer Nextcloud --color-text-maxcontrast (BudgetCheck parity)',
 		);
 		self::assertMatchesRegularExpression(
@@ -40,7 +40,7 @@ final class DesignSystemCssContractTest extends TestCase
 		);
 		self::assertDoesNotMatchRegularExpression(
 			'/--dc-muted:\s*color-mix\([^;]*72%/s',
-			$this->appCss,
+			$this->tokensCss . $this->appCss,
 			'Invented 72% transparent mixes must not replace the NC token',
 		);
 	}
@@ -232,12 +232,12 @@ final class DesignSystemCssContractTest extends TestCase
 	{
 		self::assertMatchesRegularExpression(
 			'/--dc-tint-info:\s*color-mix\(in srgb,\s*var\(--color-primary-element[^)]*\)\s+\d+%,\s*var\(--color-main-background/s',
-			$this->appCss,
+			$this->tokensCss,
 			'Tints must mix into --color-main-background (AZC contract), not transparent',
 		);
 		self::assertDoesNotMatchRegularExpression(
 			'/--dc-tint-(info|success|warning|critical):\s*color-mix\([^;]*,\s*transparent\)/s',
-			$this->appCss,
+			$this->tokensCss . $this->appCss,
 			'Transparent tint mixes disappear on dark / high-contrast themes',
 		);
 	}
@@ -339,7 +339,7 @@ final class DesignSystemCssContractTest extends TestCase
 
 	public function testTouchTargetTokenAndSafeAreaPadding(): void
 	{
-		self::assertStringContainsString('--dc-touch: 44px', $this->appCss);
+		self::assertStringContainsString('--dc-touch: 44px', $this->tokensCss);
 		self::assertStringContainsString('env(safe-area-inset-top', $this->appCss);
 		self::assertStringContainsString('env(safe-area-inset-left', $this->appCss);
 	}
