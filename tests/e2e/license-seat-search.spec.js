@@ -13,11 +13,11 @@ test.describe('DutyCheck license seat search', () => {
 		await page.setViewportSize({ width: 1280, height: 900 })
 		await loginWithFallback(page, plannerCredsCandidates())
 		await page.goto('/apps/dutycheck/settings/license', { waitUntil: 'domcontentloaded' })
-		await expect(page.locator('#dc-license-panel, #dc-license-seat-search-input').first()).toBeVisible({
+		await expect(page.locator('#dc-license-page, #dc-seat-user-search').first()).toBeVisible({
 			timeout: 30_000,
 		})
 
-		const search = page.locator('#dc-license-seat-search-input')
+		const search = page.locator('#dc-seat-user-search')
 		await expect(search).toBeVisible()
 		await expect(search).toHaveAttribute('role', 'combobox')
 
@@ -40,14 +40,14 @@ test.describe('DutyCheck license seat search', () => {
 		})
 
 		await search.fill('al')
-		const suggest = page.locator('#dc-license-seat-search-suggest')
+		const suggest = page.locator('#dc-seat-search-results')
 		await expect(suggest).toBeVisible({ timeout: 10_000 })
 		await expect(suggest.getByRole('option', { name: /Alice Example/i })).toBeVisible() // i18n: fixture account display name (API data), never localized chrome
 		// Already-seated Bob must be filtered out of the listbox.
 		await expect(suggest.getByRole('option', { name: /Bob Example/i })).toHaveCount(0) // i18n: fixture display name from seeded/mocked API payload
 
 		const results = await new AxeBuilder({ page })
-			.include('#dc-license-panel, #dc-main-content')
+			.include('#dc-license-page, #dc-main-content')
 			.withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
 			.exclude('.toastify')
 			.analyze()
@@ -57,7 +57,7 @@ test.describe('DutyCheck license seat search', () => {
 	test('legacy users-shaped payload still populates suggestions', async ({ page }) => {
 		await loginWithFallback(page, plannerCredsCandidates())
 		await page.goto('/apps/dutycheck/settings/license', { waitUntil: 'domcontentloaded' })
-		await expect(page.locator('#dc-license-seat-search-input')).toBeVisible({ timeout: 30_000 })
+		await expect(page.locator('#dc-seat-user-search')).toBeVisible({ timeout: 30_000 })
 
 		await page.route('**/apps/dutycheck/api/license/search/users**', async (route) => {
 			await route.fulfill({
@@ -70,8 +70,8 @@ test.describe('DutyCheck license seat search', () => {
 			})
 		})
 
-		await page.locator('#dc-license-seat-search-input').fill('ca')
-		const suggest = page.locator('#dc-license-seat-search-suggest')
+		await page.locator('#dc-seat-user-search').fill('ca')
+		const suggest = page.locator('#dc-seat-search-results')
 		await expect(suggest.getByRole('option', { name: /Cara Compat/i })).toBeVisible({ timeout: 10_000 }) // i18n: 'Cara Compat' is a mocked API displayName, not localized chrome
 	})
 
@@ -85,18 +85,18 @@ test.describe('DutyCheck license seat search', () => {
 		}
 		await login(page, creds)
 		await page.goto('/apps/dutycheck/settings/license', { waitUntil: 'domcontentloaded' })
-		await expect(page.locator('#dc-license-seat-search-input')).toBeVisible({ timeout: 30_000 })
+		await expect(page.locator('#dc-seat-user-search')).toBeVisible({ timeout: 30_000 })
 
 		const needle = String(creds.username).slice(0, Math.max(2, Math.min(4, creds.username.length)))
-		await page.locator('#dc-license-seat-search-input').fill(needle)
-		const suggest = page.locator('#dc-license-seat-search-suggest')
+		await page.locator('#dc-seat-user-search').fill(needle)
+		const suggest = page.locator('#dc-seat-search-results')
 		await expect(suggest).toBeVisible({ timeout: 15_000 })
 		// Either a real option or an explicit empty-state — never a silent dead
-		// end. The --err note must NOT satisfy this: a CSP-blocked/failed fetch
-		// would otherwise look like a legit empty state (127.0.0.1-vs-localhost
-		// connect-src regression class).
+		// end. A failed fetch closes the listbox + raises an error toast instead
+		// of rendering a fake empty state (127.0.0.1-vs-localhost connect-src
+		// regression class).
 		const options = suggest.locator('[role="option"]')
-		const empty = suggest.locator('.dc-license-seat-search__note:not(.dc-license-seat-search__note--err)')
+		const empty = suggest.locator('.dc-seat-search-results__empty')
 		await expect(options.or(empty).first()).toBeVisible({ timeout: 15_000 })
 		if (await options.count()) {
 			await expect(options.first()).toBeVisible()

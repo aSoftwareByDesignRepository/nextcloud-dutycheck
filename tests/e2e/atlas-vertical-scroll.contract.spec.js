@@ -18,13 +18,13 @@ test.describe('ATLAS_VERTICAL_SCROLL_CONTRACT', () => {
 		await page.setViewportSize({ width: 1280, height: 640 })
 		await loginWithFallback(page, plannerCredsCandidates())
 		await page.goto('/apps/dutycheck/settings/license', { waitUntil: 'domcontentloaded' })
-		await page.waitForSelector('#dc-license-panel, .dc-access-denied', { timeout: 45_000 })
+		await page.waitForSelector('#dc-license-page, .dc-access-denied', { timeout: 45_000 })
 		test.skip((await page.locator('.dc-access-denied').count()) > 0, 'License access denied')
-		await page.waitForSelector('#dc-license-panel', { timeout: 30_000 })
+		await page.waitForSelector('#dc-license-page', { timeout: 30_000 })
 
 		await assertAtlasVerticalScrollReachable(page, {
 			scrollport: '#app-content',
-			target: '#dc-license-seat-table, #dc-license-seat-empty-row, #dc-license-panel',
+			target: '#dc-license-seats-table, #dc-seat-empty, #dc-license-page',
 			bottomSlopPx: 12,
 		})
 	})
@@ -33,13 +33,13 @@ test.describe('ATLAS_VERTICAL_SCROLL_CONTRACT', () => {
 		await page.setViewportSize({ width: 390, height: 667 })
 		await loginWithFallback(page, plannerCredsCandidates())
 		await page.goto('/apps/dutycheck/settings/license', { waitUntil: 'domcontentloaded' })
-		await page.waitForSelector('#dc-license-panel, .dc-access-denied', { timeout: 45_000 })
+		await page.waitForSelector('#dc-license-page, .dc-access-denied', { timeout: 45_000 })
 		test.skip((await page.locator('.dc-access-denied').count()) > 0, 'License access denied')
-		await page.waitForSelector('#dc-license-panel', { timeout: 30_000 })
+		await page.waitForSelector('#dc-license-page', { timeout: 30_000 })
 
 		await assertAtlasVerticalScrollReachable(page, {
 			scrollport: '#app-content',
-			target: '#dc-license-seat-table, #dc-license-seat-empty-row, #dc-license-panel',
+			target: '#dc-license-seats-table, #dc-seat-empty, #dc-license-page',
 			bottomSlopPx: 16,
 		})
 	})
