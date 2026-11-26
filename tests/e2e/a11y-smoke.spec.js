@@ -24,6 +24,8 @@ const settingsSections = [
   'integration',
   'privacy',
   'license',
+  'agent',
+  'transfer',
   'support',
 ]
 
