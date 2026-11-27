@@ -529,7 +529,8 @@ class Application extends App implements IBootstrap
 				$c->query(\OCA\DutyCheck\Agent\AgentSeatGate::class),
 				$c->query(\OCA\DutyCheck\Agent\AgentAuditMapper::class),
 				$c->query(\Psr\Log\LoggerInterface::class),
-				'dutycheck'
+				'dutycheck',
+				$c->query(\OCA\DutyCheck\Agent\AgentWebhookDispatcher::class)
 			);
 		});
 		$context->registerMiddleware(\OCA\DutyCheck\Middleware\AgentAuthMiddleware::class);
