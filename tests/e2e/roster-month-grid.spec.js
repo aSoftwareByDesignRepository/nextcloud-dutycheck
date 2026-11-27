@@ -35,8 +35,24 @@ async function stubMonthRoster(page) {
 		})
 	})
 	await page.route('**/apps/dutycheck/api/roster**', async (route) => {
-		const response = await route.fetch()
-		const raw = await response.text()
+		if (route.request().url().includes('/api/roster/signals')) {
+			await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, data: {} }) })
+			return
+		}
+		let response
+		try {
+			response = await route.fetch()
+		} catch {
+			await route.abort().catch(() => {})
+			return
+		}
+		let raw
+		try {
+			raw = await response.text()
+		} catch {
+			await route.abort().catch(() => {})
+			return
+		}
 		/** @type {Record<string, unknown>} */
 		let parsed = {}
 		try {
