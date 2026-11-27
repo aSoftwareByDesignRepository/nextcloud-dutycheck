@@ -3949,7 +3949,7 @@ form.dc-form-grid[aria-busy='true'] .button {
 	border: 0;
 }
 
-@media (max-width: 768.98px) {
+@media (max-width: 767.98px) {
 	.dc-support-us__options {
 		grid-template-columns: 1fr;
 	}
