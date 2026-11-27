@@ -30,6 +30,9 @@ final class TransferManifest extends AbstractTransferManifest
 			'access_allowed_user_ids' => ['class' => 'mirrored', 'security' => true, 'refs' => ['kind' => 'uid_list_json'], 'section' => 'access'],
 			'access_allowed_group_ids' => ['class' => 'mirrored', 'security' => true, 'refs' => ['kind' => 'gid_list_json'], 'section' => 'access'],
 			'app_admin_user_ids' => ['class' => 'mirrored', 'security' => true, 'refs' => ['kind' => 'uid_list_json'], 'section' => 'access'],
+			// ── agent token policy (Settings → AI access) — self-service mint
+			// widens who can mint scoped agent tokens → highlighted grant ──
+			'agent_self_mint' => ['class' => 'plain', 'security' => true, 'section' => 'agent'],
 			// ── planning defaults (Settings → Planning) ──
 			'default_break_minutes' => ['class' => 'plain', 'section' => 'planning'],
 			// ── operations (Settings → Notifications & retention) ──
