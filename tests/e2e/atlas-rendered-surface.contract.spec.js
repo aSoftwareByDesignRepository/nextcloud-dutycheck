@@ -44,6 +44,7 @@ const PAGES = [
 	{ name: 'my-absences', url: '/apps/dutycheck/my-absences' },
 	{ name: 'needs-role', url: '/apps/dutycheck/needs-role' },
 	{ name: 'settings-access', url: '/apps/dutycheck/settings/access' },
+	{ name: 'settings-agent', url: '/apps/dutycheck/settings/agent' },
 	{ name: 'settings-duty-roles', url: '/apps/dutycheck/settings/duty-roles' },
 	{ name: 'settings-planning', url: '/apps/dutycheck/settings/planning' },
 	{ name: 'settings-companies', url: '/apps/dutycheck/settings/companies' },
