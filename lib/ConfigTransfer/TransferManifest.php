@@ -52,6 +52,10 @@ final class TransferManifest extends AbstractTransferManifest
 			'block_publish_when_stale' => ['class' => 'plain', 'section' => 'integration'],
 			'integration_t_stale_seconds' => ['class' => 'plain', 'section' => 'integration'],
 			'integration_t_stale_publish_block_seconds' => ['class' => 'plain', 'section' => 'integration'],
+			// SSRF dev escape hatch (local test stacks only) — opening
+			// http:// webhook targets on a real instance via a transferred
+			// config would be a security regression → never transferable.
+			'agent_webhook_dev_http' => 'internal',
 			// ── internal bookkeeping — never transferred ──
 			'uninstall_repair_pass' => 'internal',
 			'upgrade_backup_last_snapshot_id' => 'internal',
@@ -262,6 +266,14 @@ final class TransferManifest extends AbstractTransferManifest
 			'dc_push_quiet_queue' => ['class' => 'internal'],
 			'dc_api_rate_limits' => ['class' => 'internal'],
 			'dc_period_locks' => ['class' => 'internal'],
+			// Agent-auth plumbing — token hashes, audit rows, and webhook
+			// subscriptions are bound to this instance's credentials and
+			// owners. The webhook signing secret is a live credential:
+			// declared sensitive so it can never serialize even if the
+			// table class is ever revisited.
+			'dc_agent_tokens' => ['class' => 'internal'],
+			'dc_agent_audit' => ['class' => 'internal'],
+			'dc_agent_webhooks' => ['class' => 'internal', 'secret_columns' => ['secret']],
 			'dc_period_audit_log' => ['class' => 'log'],
 		]);
 	}

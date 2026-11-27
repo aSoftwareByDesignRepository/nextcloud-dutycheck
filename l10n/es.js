@@ -286,7 +286,7 @@ OC.L10N.register(
 	"Choose employee" : "Elegir empleado",
 	"Choose exactly" : "Elegir exactamente",
 	"Choose location" : "Elegir sede",
-	"Choose which people may use %1$s. Only assigned users can sign in from their companion device." : "Elija quién puede usar %1$s. Solo los usuarios asignados pueden inicie sesión desde su dispositivo complementario.",
+	"Choose which people may use %1$s. Only assigned users can sign in from their companion device." : "Elija quién puede usar %1$s. Solo los usuarios asignados pueden iniciar sesión desde su dispositivo complementario.",
 	"Circuit breaker open — sync is paused. Try again later or check server logs." : "Disyuntor abierto: la sincronización está en pausa. Vuelva a intentarlo más tarde o consulte los registros del servidor.",
 	"Claim approved — assignment created." : "Reclamación aprobada: asignación creada.",
 	"Claim rejected." : "Reclamación rechazada.",
