@@ -185,8 +185,13 @@
 }
 
 /* Badge fallback — apps whose shell lacks a pill+dot badge get the recipe
- * locally so scope badges never render as bare text (no color-only state). */
-.dc-badge {
+ * locally so scope badges never render as bare text (no color-only state).
+ * Scoped under .dc-agent: an unscoped .dc-badge redefines the app's own
+ * badge recipe wherever this file loads, leaking pack chrome (dot + pill
+ * radius + --neutral variant) into app chrome like the scope-strip role
+ * badge — the strip then renders differently on agent pages vs everywhere
+ * else, and picks up a variant it never owned. */
+.dc-agent .dc-badge {
 	display: inline-flex;
 	align-items: center;
 	gap: var(--dc-space-1, 4px);
@@ -198,19 +203,24 @@
 	line-height: 1.6;
 	border: 1px solid transparent;
 }
-.dc-badge::before {
+.dc-agent .dc-badge::before {
 	content: '';
 	width: 6px; height: 6px;
 	border-radius: 50%;
 	background: currentColor;
 	flex-shrink: 0;
 }
-.dc-badge--neutral {
-	color: var(--color-text-maxcontrast);
+.dc-agent .dc-badge--neutral {
+	/* Muted ink must still clear AA on the tint: text-maxcontrast alone
+	 * measured ~3.4:1 on the 15% badge tint (axe color-contrast serious on
+	 * the populated /settings/agent cells). Pull the surviving token 62%
+	 * toward main-text — the family scheduled-badge recipe — keeps the
+	 * muted read and restores >=4.5:1 in light and dark. */
+	color: color-mix(in srgb, var(--color-text-maxcontrast) 62%, var(--color-main-text));
 	background: color-mix(in srgb, var(--color-main-background) 85%, var(--color-text-maxcontrast));
 	border-color: color-mix(in srgb, var(--color-main-background) 70%, var(--color-text-maxcontrast));
 }
-.dc-badge--info {
+.dc-agent .dc-badge--info {
 	color: var(--color-primary-element-text);
 	background: var(--color-primary-element);
 }
