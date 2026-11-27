@@ -63,8 +63,8 @@ $dc_tokens = is_array($dc_state['tokens']) ? $dc_state['tokens'] : [];
 			<tbody id="dc-agent-tbody">
 				<?php foreach ($dc_tokens as $dc_tok): ?>
 				<tr data-token-id="<?php p((string)($dc_tok['id'] ?? '')); ?>" data-token-label="<?php p((string)($dc_tok['label'] ?? '')); ?>"<?php if (($dc_tok['state'] ?? '') !== 'active'): ?> class="dc-agent-row--inactive"<?php endif; ?>>
-					<td data-cell="<?php p($l->t('Label')); ?>">
-						<span class="dc-agent-label"><?php p((string)($dc_tok['label'] ?? '')); ?></span>
+					<td data-cell="<?php p($l->t('Label')); ?>" class="dc-agent-label-cell">
+						<span class="dc-agent-label" title="<?php p((string)($dc_tok['label'] ?? '')); ?>"><?php p((string)($dc_tok['label'] ?? '')); ?></span>
 						<?php if (($dc_tok['state'] ?? '') === 'revoked'): ?>
 							<span class="dc-badge dc-badge--neutral"><?php p($l->t('Revoked')); ?></span>
 						<?php elseif (($dc_tok['state'] ?? '') === 'expired'): ?>
@@ -76,7 +76,7 @@ $dc_tokens = is_array($dc_state['tokens']) ? $dc_state['tokens'] : [];
 							<span class="dc-agent-owner"><?php p((string)$dc_tok['userId']); ?></span>
 						<?php endif; ?>
 					</td>
-					<td data-cell="<?php p($l->t('Scopes')); ?>">
+					<td data-cell="<?php p($l->t('Scopes')); ?>" class="dc-agent-scopes-cell">
 						<span class="dc-agent-scopes">
 						<?php foreach (($dc_tok['scopes'] ?? []) as $dc_scope): ?>
 							<span class="dc-badge dc-badge--neutral dc-agent-scope" title="<?php p((string)$dc_scope); ?>"><?php p((string)($dc_state['scopeLabels'][$dc_scope] ?? $dc_scope)); ?></span>

@@ -475,8 +475,8 @@
 			if (tok.state !== 'active') {
 				tr.className = prefix + '-agent-row--inactive';
 			}
-			tr.appendChild(cell(t('Label'), labelCellHtml(tok)));
-			tr.appendChild(cell(t('Scopes'), scopeCellHtml(tok)));
+			tr.appendChild(cell(t('Label'), labelCellHtml(tok), prefix + '-agent-label-cell'));
+			tr.appendChild(cell(t('Scopes'), scopeCellHtml(tok), prefix + '-agent-scopes-cell'));
 			tr.appendChild(cell(t('Created'), fmtTs(tok.createdAt)));
 			tr.appendChild(cell(t('Expires'), fmtTs(tok.expiresAt)));
 			tr.appendChild(cell(t('Last used'), tok.lastUsedAt ? fmtTs(tok.lastUsedAt) : t('never')));
@@ -538,9 +538,12 @@
 		}
 	}
 
-	function cell(label, inner) {
+	function cell(label, inner, cls) {
 		var td = document.createElement('td');
 		td.setAttribute('data-cell', label);
+		if (cls) {
+			td.className = cls;
+		}
 		if (inner instanceof Node) {
 			td.appendChild(inner);
 		} else {
@@ -554,6 +557,7 @@
 		var name = document.createElement('span');
 		name.className = prefix + '-agent-label';
 		name.textContent = tok.label || '';
+		name.title = tok.label || '';
 		frag.appendChild(name);
 		var badge = document.createElement('span');
 		badge.className = prefix + '-badge ' + (tok.state === 'active' ? prefix + '-badge--info' : prefix + '-badge--neutral');

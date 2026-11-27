@@ -231,6 +231,23 @@ test.describe('agent-auth settings surface — executed dialog legs', () => {
 				.toBeLessThan(m.lineHeight * 2.5)
 			expect(m.width, 'pill is wider than a character column').toBeGreaterThan(40)
 		}
+
+		// table_actions_fit (clipped_control_text_at_screen_edge, dc-vis-r61):
+		// at desktop width the whole row — label, pills, and the Rotate/Revoke
+		// actions — must fit inside the wrap with no sideways scroll. This
+		// fixture mints four scope pills, the widest realistic row.
+		const wrap = page.locator('.dc-agent-tablewrap')
+		const fit = await wrap.evaluate((el) => ({
+			scrollWidth: el.scrollWidth,
+			clientWidth: el.clientWidth,
+		}))
+		expect(fit.scrollWidth, 'agent table fits its wrap — no sideways scroll clips row actions')
+			.toBeLessThanOrEqual(fit.clientWidth)
+		const actionsBox = await row.locator('td.dc-row-actions').boundingBox()
+		const wrapBox = await wrap.boundingBox()
+		expect(actionsBox, 'actions cell painted').not.toBeNull()
+		expect(actionsBox.x + actionsBox.width, 'Rotate/Revoke fully inside the wrap at rest')
+			.toBeLessThanOrEqual(wrapBox.x + wrapBox.width + 1)
 	})
 
 	test('mint on populated table: row injected without reload', async ({ page }) => {

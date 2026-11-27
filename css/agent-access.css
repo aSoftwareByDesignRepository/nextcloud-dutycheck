@@ -100,7 +100,30 @@
 		text-align: left;
 	}
 	.dc-agent-table td[data-cell]::before { content: none; }
-	.dc-agent-table .dc-row-actions { justify-content: flex-end; padding-top: var(--dc-space-2, 8px); }
+	/* clipped_control_text_at_screen_edge: a real-width actions column plus
+	   unbounded elastic cells pushed the table ~107px past the wrap at
+	   1280px — actions clipped at rest, labels clipped when scrolled (DS:
+	   row actions never force sideways scrolling). Bound the two elastic
+	   cells so summed min-contents fit: the label ellipsizes with a title
+	   fallback, scope pills wrap between whole badges inside the capped
+	   cell, and the actions cell returns to a real table-cell (the card
+	   layout's flex rule would otherwise anonymous-wrap it) with nowrap
+	   buttons so the column sizes to Rotate+Revoke and no more. */
+	.dc-agent-table td.dc-row-actions {
+		display: table-cell;
+		white-space: nowrap;
+		text-align: end;
+	}
+	.dc-agent-table td.dc-agent-label-cell { max-width: 14rem; }
+	.dc-agent-table .dc-agent-label {
+		display: inline-block;
+		max-width: 100%;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		vertical-align: bottom;
+	}
+	.dc-agent-table td.dc-agent-scopes-cell { max-width: 12rem; }
 }
 
 /* Family app sheets blanket-hide .dc-table-wrap at ≤640px expecting a
