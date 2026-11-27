@@ -190,6 +190,49 @@ test.describe('agent-auth settings surface — executed dialog legs', () => {
 		await craftShot(page, 'table-after-first-mint')
 	})
 
+	test('scope badges render as whole pills — clipped_chips guard', async ({ page }) => {
+		// badge_min_content_collapse: the family .dc-badge recipe carries
+		// white-space:normal + overflow-wrap:anywhere; as flex items of a
+		// squeezed table cell the badges fragmented into per-character
+		// columns (dc-vis-r60 must_fix). The .dc-agent-scope nowrap guard
+		// must keep every pill's min-content at its full label so lines
+		// break BETWEEN badges. Self-contained: mints its own token so a
+		// worker-restart retry (new RUN) never depends on earlier tests.
+		await login(page, credsFromEnv('ADMIN'))
+		await page.goto(AGENT_URL, { waitUntil: 'domcontentloaded' })
+		const label = `${RUN}-badges`
+		const minted = await agentApi(page, 'POST', '/agent/v1/tokens', {
+			label,
+			preset: 'custom',
+			scopes: ['dutycheck:roster:read', 'dutycheck:absences:read', 'dutycheck:open_shifts:read', 'dutycheck:swaps:read'],
+		})
+		expect(minted.status, 'badge fixture mints').toBe(201)
+		await page.reload({ waitUntil: 'domcontentloaded' })
+		const row = page.locator('#dc-agent-tbody tr', { hasText: label })
+		await expect(row).toHaveCount(1)
+		const badges = row.locator('.dc-agent-scope')
+		const count = await badges.count()
+		expect(count, 'default preset mints several scope badges').toBeGreaterThanOrEqual(2)
+		const metrics = await badges.evaluateAll((els) => els.map((el) => {
+			const cs = getComputedStyle(el)
+			const r = el.getBoundingClientRect()
+			return {
+				whiteSpace: cs.whiteSpace,
+				height: r.height,
+				width: r.width,
+				lineHeight: parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.6,
+			}
+		}))
+		for (const m of metrics) {
+			expect(m.whiteSpace, 'scope badge never wraps mid-label').toBe('nowrap')
+			// A single-line pill is ~1 line + padding/border; anything past
+			// 2.5 line-heights means the label fragmented vertically.
+			expect(m.height, 'scope badge stays a one-line pill, not a letter column')
+				.toBeLessThan(m.lineHeight * 2.5)
+			expect(m.width, 'pill is wider than a character column').toBeGreaterThan(40)
+		}
+	})
+
 	test('mint on populated table: row injected without reload', async ({ page }) => {
 		await login(page, credsFromEnv('ADMIN'))
 		await page.goto(AGENT_URL, { waitUntil: 'domcontentloaded' })
