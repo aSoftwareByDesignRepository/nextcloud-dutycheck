@@ -1688,6 +1688,12 @@ OC.L10N.register(
 	"{title}: {have} of {need} staff ({time})" : "{title}: {have} von {need} Personen ({time})",
 	"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page." : "{unlinked} von {total} aktiven Beschäftigten haben kein verknüpftes Nextcloud-Konto — Abwesenheiten für sie bleiben in DutyCheck, bis die Konten auf der Seite „Beschäftigte“ verknüpft sind.",
 	"{used} of {total} seats used" : "{used} von {total} Sitzen genutzt",
-	"“Must fix” issues block publishing." : "„Muss behoben werden“-Punkte blockieren die Veröffentlichung."
+	"“Must fix” issues block publishing." : "„Muss behoben werden“-Punkte blockieren die Veröffentlichung.",
+	"Endpoint" : "Endpunkt",
+	"Events" : "Ereignisse",
+	"Last delivery" : "Letzte Zustellung",
+	"State" : "Status",
+	"Webhook endpoints" : "Webhook-Endpunkte",
+	"Your AI assistant can register endpoints that receive a signed notification whenever it changes something here. They belong to you — test or revoke them any time." : "Ihr KI-Assistent kann Endpunkte registrieren, die eine signierte Benachrichtigung erhalten, wenn er hier etwas ändert. Sie gehören Ihnen — testen oder widerrufen Sie sie jederzeit."
 	}
 );

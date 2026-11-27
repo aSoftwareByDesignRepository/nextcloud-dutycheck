@@ -1688,6 +1688,12 @@ OC.L10N.register(
 	"{title}: {have} of {need} staff ({time})" : "{title}: {have} of {need} staff ({time})",
 	"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page." : "{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page.",
 	"{used} of {total} seats used" : "{used} of {total} seats used",
-	"“Must fix” issues block publishing." : "“Must fix” issues block publishing."
+	"“Must fix” issues block publishing." : "“Must fix” issues block publishing.",
+	"Endpoint" : "Endpoint",
+	"Events" : "Events",
+	"Last delivery" : "Last delivery",
+	"State" : "State",
+	"Webhook endpoints" : "Webhook endpoints",
+	"Your AI assistant can register endpoints that receive a signed notification whenever it changes something here. They belong to you — test or revoke them any time." : "Your AI assistant can register endpoints that receive a signed notification whenever it changes something here. They belong to you — test or revoke them any time."
 	}
 );
