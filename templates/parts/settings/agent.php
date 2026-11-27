@@ -102,6 +102,25 @@ $dc_tokens = is_array($dc_state['tokens']) ? $dc_state['tokens'] : [];
 	</div>
 	<?php endif; ?>
 
+	<div class="dc-agent-webhooks" id="dc-agent-webhooks">
+		<h3 class="dc-agent-sub-h" id="dc-agent-webhooks-h"><?php p($l->t('Webhook endpoints')); ?></h3>
+		<p class="dc-form-row__hint"><?php p($l->t('Your AI assistant can register endpoints that receive a signed notification whenever it changes something here. They belong to you — test or revoke them any time.')); ?></p>
+		<div class="dc-table-wrap dc-agent-tablewrap" tabindex="0" role="region" aria-labelledby="dc-agent-webhooks-h">
+			<table class="dc-table dc-table--cards dc-agent-table" id="dc-agent-webhook-table">
+				<thead>
+					<tr>
+						<th scope="col"><?php p($l->t('Endpoint')); ?></th>
+						<th scope="col"><?php p($l->t('Events')); ?></th>
+						<th scope="col"><?php p($l->t('State')); ?></th>
+						<th scope="col"><?php p($l->t('Last delivery')); ?></th>
+						<th scope="col"><span class="dc-visually-hidden"><?php p($l->t('Actions')); ?></span></th>
+					</tr>
+				</thead>
+				<tbody id="dc-agent-webhook-tbody"></tbody>
+			</table>
+		</div>
+	</div>
+
 	<?php if ($dc_state['isAdmin']): ?>
 	<div class="dc-form-row dc-agent-selfmint">
 		<input type="hidden" name="agent_self_mint" value="0">

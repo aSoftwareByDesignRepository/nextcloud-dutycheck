@@ -477,6 +477,14 @@ dialog.dc-agent-revoke-dialog:not([open]) {
 	font-size: var(--dc-fs-sm);
 	line-height: var(--dc-line-base);
 }
+.dc-agent-sub-h {
+	margin: var(--dc-space-6, 32px) 0 var(--dc-space-1, 4px);
+	font-size: var(--dc-fs-lg, 1.125rem);
+	line-height: var(--dc-line-tight, 1.25);
+}
+.dc-agent-webhooks > .dc-form-row__hint {
+	margin-bottom: var(--dc-space-3, 12px);
+}
 
 /* Inline field error (mint dialog) — family field-errors recipe: danger
    ink, small type; next-step copy lives in the text the server fields-map
