@@ -1688,6 +1688,22 @@ OC.L10N.register(
 	"{title}: {have} of {need} staff ({time})" : "{title}: {have} av {need} personal ({time})",
 	"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page." : "{unlinked} av {total} aktiva anställda har inget länkat Nextcloud-konto – frånvaro för dem stannar i DutyCheck tills konton länkas på sidan Anställda.",
 	"{used} of {total} seats used" : "{used} av {total} platser använda",
-	"“Must fix” issues block publishing." : "“Måste åtgärdas”-problem blockerar publicering."
+	"“Must fix” issues block publishing." : "“Måste åtgärdas”-problem blockerar publicering.",
+	"Endpoint" : "Slutpunkt",
+	"Events" : "Händelser",
+	"Last delivery" : "Senaste leverans",
+	"State" : "Status",
+	"Webhook endpoints" : "Webhook-slutpunkter",
+	"Your AI assistant can register endpoints that receive a signed notification whenever it changes something here. They belong to you — test or revoke them any time." : "Din AI-assistent kan registrera slutpunkter som tar emot ett signerat meddelande när den ändrar något här. De tillhör dig — testa eller återkalla dem när som helst.",
+	"No webhook endpoints yet." : "Inga webhook-slutpunkter ännu.",
+	"Endpoints could not be loaded." : "Slutpunkterna kunde inte läsas in.",
+	"Test notification queued — check your endpoint." : "Testmeddelande i kö — kontrollera din slutpunkt.",
+	"Could not queue the test." : "Testet kunde inte köas.",
+	"Stop notifications to" : "Stoppa aviseringar till",
+	"Pending events are dropped — your AI can register a new endpoint any time." : "Väntande händelser kasseras — din AI kan registrera en ny slutpunkt när som helst.",
+	"Endpoint revoked." : "Slutpunkt återkallad.",
+	"All events" : "Alla händelser",
+	"Disabled" : "Inaktiverad",
+	"Test" : "Testa"
 	}
 );

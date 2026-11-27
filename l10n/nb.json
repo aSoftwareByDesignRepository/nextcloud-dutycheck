@@ -1775,6 +1775,22 @@
         "{title}: {have} of {need} staff ({time})": "{title}: {have} av {need} ansatte ({time})",
         "{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page.": "{unlinked} av {total} aktive ansatte har ingen koblet Nextcloud-konto – fravær for dem forblir i DutyCheck til kontoer er koblet til på Ansatte-siden.",
         "{used} of {total} seats used": "{used} av {total} seter brukt",
-        "“Must fix” issues block publishing.": "“Må rettes”-problemer blokkerer publisering."
+        "“Must fix” issues block publishing.": "“Må rettes”-problemer blokkerer publisering.",
+        "Endpoint": "Endepunkt",
+        "Events": "Hendelser",
+        "Last delivery": "Siste levering",
+        "State": "Tilstand",
+        "Webhook endpoints": "Webhook-endepunkter",
+        "Your AI assistant can register endpoints that receive a signed notification whenever it changes something here. They belong to you — test or revoke them any time.": "AI-assistenten din kan registrere endepunkter som mottar et signert varsel hver gang den endrer noe her. De tilhører deg — test eller tilbakekall dem når som helst.",
+        "No webhook endpoints yet.": "Ingen webhook-endepunkter ennå.",
+        "Endpoints could not be loaded.": "Endepunktene kunne ikke lastes.",
+        "Test notification queued — check your endpoint.": "Testvarsel i kø — sjekk endepunktet ditt.",
+        "Could not queue the test.": "Kunne ikke sette testen i kø.",
+        "Stop notifications to": "Stopp varsler til",
+        "Pending events are dropped — your AI can register a new endpoint any time.": "Ventende hendelser forkastes — AI-en din kan registrere et nytt endepunkt når som helst.",
+        "Endpoint revoked.": "Endepunkt tilbakekalt.",
+        "All events": "Alle hendelser",
+        "Disabled": "Deaktivert",
+        "Test": "Test"
     }
 }

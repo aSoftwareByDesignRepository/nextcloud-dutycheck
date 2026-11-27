@@ -1746,6 +1746,22 @@
         "{title}: {have} of {need} staff ({time})": "{title}：{have}/{need} 人（{time}）",
         "{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page.": "{unlinked} 名（共 {total} 名在职员工）未关联 Nextcloud 账号——在“员工”页关联账号前，他们的缺勤留在 DutyCheck。",
         "{used} of {total} seats used": "已用 {used}/{total} 席位",
-        "“Must fix” issues block publishing.": "“必须修复”问题阻止发布。"
+        "“Must fix” issues block publishing.": "“必须修复”问题阻止发布。",
+        "Endpoint": "端点",
+        "Events": "事件",
+        "Last delivery": "上次送达",
+        "State": "状态",
+        "Webhook endpoints": "Webhook 端点",
+        "Your AI assistant can register endpoints that receive a signed notification whenever it changes something here. They belong to you — test or revoke them any time.": "你的 AI 助手可以注册端点，每当它在此处更改内容时，这些端点都会收到签名通知。它们属于你——可以随时测试或撤销。",
+        "No webhook endpoints yet.": "还没有 Webhook 端点。",
+        "Endpoints could not be loaded.": "无法加载端点。",
+        "Test notification queued — check your endpoint.": "测试通知已排队——请检查你的端点。",
+        "Could not queue the test.": "无法将测试加入队列。",
+        "Stop notifications to": "停止向以下地址发送通知：",
+        "Pending events are dropped — your AI can register a new endpoint any time.": "待处理的事件将被丢弃——你的 AI 可以随时注册新端点。",
+        "Endpoint revoked.": "端点已撤销。",
+        "All events": "所有事件",
+        "Disabled": "已禁用",
+        "Test": "测试"
     }
 }

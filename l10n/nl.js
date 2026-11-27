@@ -1688,6 +1688,22 @@ OC.L10N.register(
 	"{title}: {have} of {need} staff ({time})" : "{title}: {have} van {need} medewerkers ({time})",
 	"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page." : "{unlinked} van {total} actieve werknemers hebben geen gekoppeld Nextcloud-account. Afwezigheden voor hen blijven in DutyCheck totdat de accounts zijn gekoppeld op de pagina Werknemers.",
 	"{used} of {total} seats used" : "{used} van {total} stoelen gebruikt",
-	"“Must fix” issues block publishing." : "“Moet worden opgelost”-problemen blokkeren publicatie."
+	"“Must fix” issues block publishing." : "“Moet worden opgelost”-problemen blokkeren publicatie.",
+	"Endpoint" : "Eindpunt",
+	"Events" : "Gebeurtenissen",
+	"Last delivery" : "Laatste levering",
+	"State" : "Status",
+	"Webhook endpoints" : "Webhook-eindpunten",
+	"Your AI assistant can register endpoints that receive a signed notification whenever it changes something here. They belong to you — test or revoke them any time." : "Je AI-assistent kan eindpunten registreren die een ondertekende melding ontvangen wanneer hij hier iets wijzigt. Ze zijn van jou — test of herroep ze op elk moment.",
+	"No webhook endpoints yet." : "Nog geen webhook-eindpunten.",
+	"Endpoints could not be loaded." : "Eindpunten konden niet worden geladen.",
+	"Test notification queued — check your endpoint." : "Testmelding in wachtrij — controleer je eindpunt.",
+	"Could not queue the test." : "De test kon niet in de wachtrij worden gezet.",
+	"Stop notifications to" : "Stoppen van meldingen aan",
+	"Pending events are dropped — your AI can register a new endpoint any time." : "Gebeurtenissen in behandeling worden verwijderd — je AI kan op elk moment een nieuw eindpunt registreren.",
+	"Endpoint revoked." : "Eindpunt herroepen.",
+	"All events" : "Alle gebeurtenissen",
+	"Disabled" : "Uitgeschakeld",
+	"Test" : "Testen"
 	}
 );

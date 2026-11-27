@@ -1694,6 +1694,16 @@ OC.L10N.register(
 	"Last delivery" : "Letzte Zustellung",
 	"State" : "Status",
 	"Webhook endpoints" : "Webhook-Endpunkte",
-	"Your AI assistant can register endpoints that receive a signed notification whenever it changes something here. They belong to you — test or revoke them any time." : "Ihr KI-Assistent kann Endpunkte registrieren, die eine signierte Benachrichtigung erhalten, wenn er hier etwas ändert. Sie gehören Ihnen — testen oder widerrufen Sie sie jederzeit."
+	"Your AI assistant can register endpoints that receive a signed notification whenever it changes something here. They belong to you — test or revoke them any time." : "Ihr KI-Assistent kann Endpunkte registrieren, die eine signierte Benachrichtigung erhalten, wenn er hier etwas ändert. Sie gehören Ihnen — testen oder widerrufen Sie sie jederzeit.",
+	"No webhook endpoints yet." : "Noch keine Webhook-Endpunkte.",
+	"Endpoints could not be loaded." : "Endpunkte konnten nicht geladen werden.",
+	"Test notification queued — check your endpoint." : "Testbenachrichtigung eingereiht — prüfen Sie Ihren Endpunkt.",
+	"Could not queue the test." : "Der Test konnte nicht eingereiht werden.",
+	"Stop notifications to" : "Einstellen der Benachrichtigungen an",
+	"Pending events are dropped — your AI can register a new endpoint any time." : "Ausstehende Ereignisse werden verworfen — Ihre KI kann jederzeit einen neuen Endpunkt registrieren.",
+	"Endpoint revoked." : "Endpunkt widerrufen.",
+	"All events" : "Alle Ereignisse",
+	"Disabled" : "Deaktiviert",
+	"Test" : "Testen"
 	}
 );

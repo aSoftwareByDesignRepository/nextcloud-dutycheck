@@ -1688,6 +1688,22 @@ OC.L10N.register(
 	"{title}: {have} of {need} staff ({time})" : "{title}: {have} \/ {need} personel ({time})",
 	"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page." : "{unlinked} \/ {total} etkin çalışanın bağlı Nextcloud hesabı yok — hesaplar Çalışanlar sayfasında bağlanana kadar onların devamsızlıkları DutyCheck'te kalır.",
 	"{used} of {total} seats used" : "{used} \/ {total} mobil lisans kullanılıyor",
-	"“Must fix” issues block publishing." : "“Düzeltilmeli” sorunları yayımlamayı engeller."
+	"“Must fix” issues block publishing." : "“Düzeltilmeli” sorunları yayımlamayı engeller.",
+	"Endpoint" : "Uç nokta",
+	"Events" : "Olaylar",
+	"Last delivery" : "Son teslimat",
+	"State" : "Durum",
+	"Webhook endpoints" : "Webhook uç noktaları",
+	"Your AI assistant can register endpoints that receive a signed notification whenever it changes something here. They belong to you — test or revoke them any time." : "Yapay zekâ asistanınız, burada bir şeyi değiştirdiğinde imzalı bildirim alan uç noktalar kaydedebilir. Bunlar size aittir — istediğiniz zaman test edin veya iptal edin.",
+	"No webhook endpoints yet." : "Henüz webhook uç noktası yok.",
+	"Endpoints could not be loaded." : "Uç noktalar yüklenemedi.",
+	"Test notification queued — check your endpoint." : "Test bildirimi kuyruğa alındı — uç noktanızı kontrol edin.",
+	"Could not queue the test." : "Test kuyruğa alınamadı.",
+	"Stop notifications to" : "Bildirimleri durdur:",
+	"Pending events are dropped — your AI can register a new endpoint any time." : "Bekleyen olaylar atılır — yapay zekânız istediği zaman yeni bir uç nokta kaydedebilir.",
+	"Endpoint revoked." : "Uç nokta iptal edildi.",
+	"All events" : "Tüm olaylar",
+	"Disabled" : "Devre dışı",
+	"Test" : "Test"
 	}
 );

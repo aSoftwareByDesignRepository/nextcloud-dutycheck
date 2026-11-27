@@ -1688,6 +1688,22 @@ OC.L10N.register(
 	"{title}: {have} of {need} staff ({time})" : "{title}: {have} di {need} personale ({time})",
 	"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page." : "{unlinked} dei {total} dipendenti attivi non hanno un account Nextcloud collegato: le loro assenze rimangono in DutyCheck finché gli account non vengono collegati nella pagina Dipendenti.",
 	"{used} of {total} seats used" : "{used} di {total} posti utilizzati",
-	"“Must fix” issues block publishing." : "I problemi “Da correggere obbligatoriamente” bloccano la pubblicazione."
+	"“Must fix” issues block publishing." : "I problemi “Da correggere obbligatoriamente” bloccano la pubblicazione.",
+	"Endpoint" : "Endpoint",
+	"Events" : "Eventi",
+	"Last delivery" : "Ultima consegna",
+	"State" : "Stato",
+	"Webhook endpoints" : "Endpoint webhook",
+	"Your AI assistant can register endpoints that receive a signed notification whenever it changes something here. They belong to you — test or revoke them any time." : "Il tuo assistente IA può registrare endpoint che ricevono una notifica firmata ogni volta che cambia qualcosa qui. Ti appartengono — provali o revocali in qualsiasi momento.",
+	"No webhook endpoints yet." : "Ancora nessun endpoint webhook.",
+	"Endpoints could not be loaded." : "Impossibile caricare gli endpoint.",
+	"Test notification queued — check your endpoint." : "Notifica di test in coda — controlla il tuo endpoint.",
+	"Could not queue the test." : "Impossibile mettere il test in coda.",
+	"Stop notifications to" : "Interrompere le notifiche a",
+	"Pending events are dropped — your AI can register a new endpoint any time." : "Gli eventi in sospeso vengono eliminati — la tua IA può registrare un nuovo endpoint in qualsiasi momento.",
+	"Endpoint revoked." : "Endpoint revocato.",
+	"All events" : "Tutti gli eventi",
+	"Disabled" : "Disabilitato",
+	"Test" : "Testa"
 	}
 );

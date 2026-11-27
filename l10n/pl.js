@@ -1688,6 +1688,22 @@ OC.L10N.register(
 	"{title}: {have} of {need} staff ({time})" : "{title}: {have} z {need} osób ({time})",
 	"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page." : "{unlinked} z {total} aktywnych pracowników nie ma połączonego konta Nextcloud — ich nieobecności pozostają w DutyCheck do czasu połączenia kont na stronie Pracownicy.",
 	"{used} of {total} seats used" : "Zastosowano gniazda {used} z {total}",
-	"“Must fix” issues block publishing." : "Problemy „Wymaga naprawy” blokują publikację."
+	"“Must fix” issues block publishing." : "Problemy „Wymaga naprawy” blokują publikację.",
+	"Endpoint" : "Punkt końcowy",
+	"Events" : "Zdarzenia",
+	"Last delivery" : "Ostatnie doręczenie",
+	"State" : "Stan",
+	"Webhook endpoints" : "Punkty końcowe webhooków",
+	"Your AI assistant can register endpoints that receive a signed notification whenever it changes something here. They belong to you — test or revoke them any time." : "Twój asystent AI może rejestrować punkty końcowe, które otrzymują podpisane powiadomienie, gdy coś tutaj zmieni. Należą do Ciebie — testuj je lub unieważniaj w dowolnym momencie.",
+	"No webhook endpoints yet." : "Brak punktów końcowych webhooków.",
+	"Endpoints could not be loaded." : "Nie udało się wczytać punktów końcowych.",
+	"Test notification queued — check your endpoint." : "Powiadomienie testowe w kolejce — sprawdź swój punkt końcowy.",
+	"Could not queue the test." : "Nie udało się dodać testu do kolejki.",
+	"Stop notifications to" : "Zatrzymać powiadomienia do",
+	"Pending events are dropped — your AI can register a new endpoint any time." : "Oczekujące zdarzenia zostaną odrzucone — Twoja AI może zarejestrować nowy punkt końcowy w dowolnym momencie.",
+	"Endpoint revoked." : "Punkt końcowy unieważniony.",
+	"All events" : "Wszystkie zdarzenia",
+	"Disabled" : "Wyłączony",
+	"Test" : "Testuj"
 	}
 );

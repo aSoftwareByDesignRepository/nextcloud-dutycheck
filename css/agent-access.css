@@ -107,11 +107,16 @@
 	   cells so summed min-contents fit: the label ellipsizes with a title
 	   fallback, scope pills wrap between whole badges inside the capped
 	   cell, and the actions cell returns to a real table-cell (the card
-	   layout's flex rule would otherwise anonymous-wrap it) with nowrap
-	   buttons so the column sizes to Rotate+Revoke and no more. */
+	   layout's flex rule would otherwise anonymous-wrap it). Buttons keep
+	   normal wrapping: nowrap made the column's min-content the combined
+	   Rotate+Revoke width, which alone overran the wrap in long-action
+	   locales (de 'Widerrufen' clipped mid-glyph @1280px); with normal
+	   wrapping auto layout keeps both buttons on one line when space
+	   allows and stacks them when squeezed, so the table's summed
+	   min-content never exceeds the card. */
 	.dc-agent-table td.dc-row-actions {
 		display: table-cell;
-		white-space: nowrap;
+		white-space: normal;
 		text-align: end;
 	}
 	.dc-agent-table td.dc-agent-label-cell { max-width: 14rem; }

@@ -689,7 +689,7 @@
         "Mobile seats": "Places mobiles",
         "Mobile seats used": "Places mobiles utilisées",
         "Mobile seats will stop working immediately. This does not affect the web app, which stays free.": "Les sièges mobiles cesseront de fonctionner immédiatement. Cela n'affecte pas l'application web, qui reste gratuite.",
-        "Mode": "Mode d'affichage",
+        "Mode": "Mode",
         "Mon": "lun.",
         "Month": "Mois",
         "More Check apps": "Plus d'applications Check",
@@ -1774,7 +1774,23 @@
         "{title}: {have} of {need} staff ({time})": "{title} : {have} sur {need} personnes ({time})",
         "{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page.": "{unlinked} des {total} employés actifs n'ont pas de compte Nextcloud lié — les absences pour eux restent dans DutyCheck jusqu'à ce que les comptes soient liés sur la page Employés.",
         "{used} of {total} seats used": "{used} sièges utilisés sur {total}",
-        "“Must fix” issues block publishing.": "Les problèmes « À corriger obligatoirement » bloquent la publication."
+        "“Must fix” issues block publishing.": "Les problèmes « À corriger obligatoirement » bloquent la publication.",
+        "Endpoint": "Point de terminaison",
+        "Events": "Événements",
+        "Last delivery": "Dernière remise",
+        "State": "État",
+        "Webhook endpoints": "Points de terminaison webhook",
+        "Your AI assistant can register endpoints that receive a signed notification whenever it changes something here. They belong to you — test or revoke them any time.": "Votre assistant IA peut enregistrer des points de terminaison qui reçoivent une notification signée chaque fois qu’il modifie quelque chose ici. Ils vous appartiennent — testez-les ou révoquez-les à tout moment.",
+        "No webhook endpoints yet.": "Pas encore de points de terminaison webhook.",
+        "Endpoints could not be loaded.": "Les points de terminaison n’ont pas pu être chargés.",
+        "Test notification queued — check your endpoint.": "Notification de test mise en file — vérifiez votre point de terminaison.",
+        "Could not queue the test.": "Impossible de mettre le test en file.",
+        "Stop notifications to": "Arrêter les notifications vers",
+        "Pending events are dropped — your AI can register a new endpoint any time.": "Les événements en attente sont abandonnés — votre IA peut enregistrer un nouveau point de terminaison à tout moment.",
+        "Endpoint revoked.": "Point de terminaison révoqué.",
+        "All events": "Tous les événements",
+        "Disabled": "Désactivé",
+        "Test": "Tester"
     },
     "pluralForm": "nplurals=2; plural=(n > 1);"
 }

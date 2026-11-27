@@ -1688,6 +1688,22 @@ OC.L10N.register(
 	"{title}: {have} of {need} staff ({time})" : "{title}: {have} из {need} сотрудников ({time})",
 	"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page." : "{unlinked} из {total} активных сотрудников не имеют связанного аккаунта Nextcloud — их отсутствия остаются в DutyCheck, пока аккаунты не связаны на странице «Сотрудники».",
 	"{used} of {total} seats used" : "Использовано мест: {used} из {total}",
-	"“Must fix” issues block publishing." : "Проблемы «Нужно исправить» блокируют публикацию."
+	"“Must fix” issues block publishing." : "Проблемы «Нужно исправить» блокируют публикацию.",
+	"Endpoint" : "Конечная точка",
+	"Events" : "События",
+	"Last delivery" : "Последняя доставка",
+	"State" : "Состояние",
+	"Webhook endpoints" : "Конечные точки вебхуков",
+	"Your AI assistant can register endpoints that receive a signed notification whenever it changes something here. They belong to you — test or revoke them any time." : "Ваш ИИ-ассистент может регистрировать конечные точки, которые получают подписанное уведомление всякий раз, когда он что-то здесь меняет. Они принадлежат вам — проверяйте или отзывайте их в любое время.",
+	"No webhook endpoints yet." : "Пока нет конечных точек вебхуков.",
+	"Endpoints could not be loaded." : "Не удалось загрузить конечные точки.",
+	"Test notification queued — check your endpoint." : "Тестовое уведомление поставлено в очередь — проверьте вашу конечную точку.",
+	"Could not queue the test." : "Не удалось поставить тест в очередь.",
+	"Stop notifications to" : "Остановить уведомления для",
+	"Pending events are dropped — your AI can register a new endpoint any time." : "Ожидающие события удаляются — ваш ИИ может зарегистрировать новую конечную точку в любое время.",
+	"Endpoint revoked." : "Конечная точка отозвана.",
+	"All events" : "Все события",
+	"Disabled" : "Отключено",
+	"Test" : "Тест"
 	}
 );

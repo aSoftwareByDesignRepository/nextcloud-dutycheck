@@ -1694,6 +1694,16 @@ OC.L10N.register(
 	"Last delivery" : "Last delivery",
 	"State" : "State",
 	"Webhook endpoints" : "Webhook endpoints",
-	"Your AI assistant can register endpoints that receive a signed notification whenever it changes something here. They belong to you — test or revoke them any time." : "Your AI assistant can register endpoints that receive a signed notification whenever it changes something here. They belong to you — test or revoke them any time."
+	"Your AI assistant can register endpoints that receive a signed notification whenever it changes something here. They belong to you — test or revoke them any time." : "Your AI assistant can register endpoints that receive a signed notification whenever it changes something here. They belong to you — test or revoke them any time.",
+	"No webhook endpoints yet." : "No webhook endpoints yet.",
+	"Endpoints could not be loaded." : "Endpoints could not be loaded.",
+	"Test notification queued — check your endpoint." : "Test notification queued — check your endpoint.",
+	"Could not queue the test." : "Could not queue the test.",
+	"Stop notifications to" : "Stop notifications to",
+	"Pending events are dropped — your AI can register a new endpoint any time." : "Pending events are dropped — your AI can register a new endpoint any time.",
+	"Endpoint revoked." : "Endpoint revoked.",
+	"All events" : "All events",
+	"Disabled" : "Disabled",
+	"Test" : "Test"
 	}
 );

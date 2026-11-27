@@ -1688,6 +1688,22 @@ OC.L10N.register(
 	"{title}: {have} of {need} staff ({time})" : "{title}: {have} af {need} medarbejdere ({time})",
 	"{unlinked} of {total} active employees have no linked Nextcloud account — absences for them stay in DutyCheck until accounts are linked on the Employees page." : "{unlinked} af {total} aktive medarbejdere har ingen linket Nextcloud-konto — fravær for dem forbliver i DutyCheck, indtil konti linkes på siden Medarbejdere.",
 	"{used} of {total} seats used" : "{used} af {total} brugte sæder",
-	"“Must fix” issues block publishing." : "\"Skal rettes\"-problemer blokerer offentliggørelse."
+	"“Must fix” issues block publishing." : "\"Skal rettes\"-problemer blokerer offentliggørelse.",
+	"Endpoint" : "Slutpunkt",
+	"Events" : "Hændelser",
+	"Last delivery" : "Seneste levering",
+	"State" : "Tilstand",
+	"Webhook endpoints" : "Webhook-slutpunkter",
+	"Your AI assistant can register endpoints that receive a signed notification whenever it changes something here. They belong to you — test or revoke them any time." : "Din AI-assistent kan registrere slutpunkter, der modtager en signeret notifikation, hver gang den ændrer noget her. De tilhører dig — test eller tilbagekald dem når som helst.",
+	"No webhook endpoints yet." : "Ingen webhook-slutpunkter endnu.",
+	"Endpoints could not be loaded." : "Slutpunkterne kunne ikke indlæses.",
+	"Test notification queued — check your endpoint." : "Testnotifikation i kø — tjek dit slutpunkt.",
+	"Could not queue the test." : "Testen kunne ikke sættes i kø.",
+	"Stop notifications to" : "Stop notifikationer til",
+	"Pending events are dropped — your AI can register a new endpoint any time." : "Ventende hændelser kasseres — din AI kan registrere et nyt slutpunkt når som helst.",
+	"Endpoint revoked." : "Slutpunkt tilbagekaldt.",
+	"All events" : "Alle hændelser",
+	"Disabled" : "Deaktiveret",
+	"Test" : "Test"
 	}
 );
