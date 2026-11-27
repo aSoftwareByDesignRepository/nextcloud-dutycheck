@@ -137,6 +137,20 @@
 }
 
 .dc-agent-label { font-weight: 600; margin-right: var(--dc-space-2, 8px); }
+/* meta_pill_overlap: max-width on the td caps the painted box, but Blink
+   still lays the cell's inline content out at max-content width — under
+   the 14rem cap label+badge+owner ran ~390px and the scopes cell's opaque
+   pills painted over badge + owner chip. A flex-wrap inner wrapper
+   resolves against the clamped cell width and breaks lines BETWEEN items
+   (same idiom as .dc-agent-scopes), so badge/owner wrap below the label
+   instead of overflowing under the pills. Whitespace-only text inside a
+   flex container is not rendered (no anonymous items) — the label's
+   margin-right and owner's margin-left carry the real spacing. */
+.dc-agent-labelcell {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+}
 .dc-agent-owner {
 	margin-left: var(--dc-space-2, 8px);
 	font-size: var(--dc-fs-xs, 0.75rem);

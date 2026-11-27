@@ -553,7 +553,14 @@
 	}
 
 	function labelCellHtml(tok) {
+		// meta_pill_overlap (dc-vis-r62): the wrapper is a flex container
+		// (.dc-agent-labelcell) — the td's max-width caps the painted box
+		// only, and Blink lays the cell's inline content out at max-content
+		// width, so label+badge+owner overflowed ~390px and the scopes
+		// cell's opaque pills painted over badge + owner. flex-wrap breaks
+		// lines BETWEEN items against the clamped cell width.
 		var frag = document.createElement('span');
+		frag.className = prefix + '-agent-labelcell';
 		var name = document.createElement('span');
 		name.className = prefix + '-agent-label';
 		name.textContent = tok.label || '';

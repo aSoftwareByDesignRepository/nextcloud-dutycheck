@@ -57,6 +57,56 @@ async function agentApi(page, method, path, body) {
 	return { status: res.status(), json: await res.json().catch(() => ({})) }
 }
 
+/**
+ * dc-vis-r62 meta_pill_overlap pin: every descendant of a label cell must
+ * stay inside the capped td (label may ellipsize, badge/owner must wrap
+ * below it — the PHP render's semantics), and no label-cell descendant may
+ * intersect a scope-pill rect (the opaque pills of the next td used to
+ * paint over the badge + owner chip on JS-rebuilt rows). This assert FAILS
+ * on the pre-heal labelCellHtml (zero whitespace → one unbreakable run
+ * overflowing the 14rem cell).
+ */
+async function assertLabelCellMetaFits(page, context) {
+	const reports = await page.locator('#dc-agent-tbody tr').evaluateAll((trs) =>
+		trs.map((tr) => {
+			const td = tr.querySelector('td.dc-agent-label-cell')
+			if (!td) return null
+			const tdBox = td.getBoundingClientRect()
+			const scopeBoxes = Array.from(tr.querySelectorAll('.dc-agent-scope'))
+				.map((el) => el.getBoundingClientRect())
+			const spills = []
+			const overlaps = []
+			td.querySelectorAll('*').forEach((el) => {
+				const r = el.getBoundingClientRect()
+				if (r.width === 0) return
+				if (r.left < tdBox.left - 1 || r.right > tdBox.right + 1) {
+					spills.push(`${el.className} [${r.left.toFixed(0)},${r.right.toFixed(0)}] vs td right ${tdBox.right.toFixed(0)}`)
+				}
+				for (const s of scopeBoxes) {
+					if (r.left < s.right - 1 && r.right > s.left + 1 && r.top < s.bottom - 1 && r.bottom > s.top + 1) {
+						overlaps.push(`${el.className} intersects scope pill`)
+						break
+					}
+				}
+			})
+			const label = td.querySelector('.dc-agent-label')
+			return {
+				token: tr.getAttribute('data-token-label'),
+				spills,
+				overlaps,
+				labelEllipsized: label ? label.scrollWidth > label.clientWidth : false,
+				labelClient: label ? label.clientWidth : 0,
+				tdClient: td.clientWidth,
+			}
+		}).filter(Boolean),
+	)
+	for (const rep of reports) {
+		expect(rep.spills, `${context}: "${rep.token}" label-cell content inside capped cell`).toEqual([])
+		expect(rep.overlaps, `${context}: "${rep.token}" label-cell descendants never intersect scope pills`).toEqual([])
+	}
+	return reports
+}
+
 test.describe('agent-auth settings surface — executed dialog legs', () => {
 	test.skip(!process.env.NC_ADMIN_USER, 'Requires NC_ADMIN_USER / NC_ADMIN_PASS')
 	test.setTimeout(90_000)
@@ -248,12 +298,22 @@ test.describe('agent-auth settings surface — executed dialog legs', () => {
 		expect(actionsBox, 'actions cell painted').not.toBeNull()
 		expect(actionsBox.x + actionsBox.width, 'Rotate/Revoke fully inside the wrap at rest')
 			.toBeLessThanOrEqual(wrapBox.x + wrapBox.width + 1)
+
+		// dc-vis-r62 overlap pin (PHP-rendered baseline path): badge + owner
+		// inside the capped label cell, no intersection with scope pills.
+		await assertLabelCellMetaFits(page, 'PHP-rendered rows')
 	})
 
 	test('mint on populated table: row injected without reload', async ({ page }) => {
 		await login(page, credsFromEnv('ADMIN'))
 		await page.goto(AGENT_URL, { waitUntil: 'domcontentloaded' })
 		await expect(page.locator('#dc-agent-tbody')).toBeVisible()
+		// Lone-long-label fixture: after rebuildTable the label span must
+		// ellipsize inside the capped cell rather than push badge+owner past
+		// the cell edge (dc-vis-r62 follow-up leg).
+		const longLabel = `${RUN}-${'longlabel'.repeat(8)}`
+		const mintedLong = await agentApi(page, 'POST', '/agent/v1/tokens', { label: longLabel, preset: 'act' })
+		expect(mintedLong.status, 'long-label fixture mints').toBe(201)
 		await page.locator('#dc-agent-connect').click()
 		await page.locator('#dc-agent-label').fill(`${RUN}-second`)
 		const resp = page.waitForResponse((r) => r.url().includes('/agent/v1/tokens') && r.request().method() === 'POST')
@@ -264,6 +324,15 @@ test.describe('agent-auth settings surface — executed dialog legs', () => {
 		// rebuildTable injects the row in place — no navigation
 		await expect(page.locator('#dc-agent-tbody tr', { hasText: `${RUN}-second` })).toHaveCount(1)
 		expect(page.url()).toContain('/settings/agent')
+
+		// dc-vis-r62 overlap pin (JS rebuildTable path — the regressed one):
+		// every row's badge/owner inside the capped label cell, no scope-pill
+		// paint-over; the long-label row proves ellipsize-not-push.
+		const reps = await assertLabelCellMetaFits(page, 'post-mint rebuildTable')
+		const longRep = reps.find((r) => r.token === longLabel)
+		expect(longRep, 'long-label row rebuilt').toBeTruthy()
+		expect(longRep.labelEllipsized, 'lone long label ellipsizes instead of pushing').toBe(true)
+		await craftShot(page, 'table-after-mint-populated')
 	})
 
 	test('revoke open→cancel keeps active row; confirm revokes durably', async ({ page }) => {
@@ -297,6 +366,9 @@ test.describe('agent-auth settings surface — executed dialog legs', () => {
 		expect(after.json.tokens.find((t) => String(t.id) === String(tokenId))?.state).toBe('revoked')
 		await expect(row).toHaveClass(/dc-agent-row--inactive/)
 		await expect(row.locator('.dc-agent-revoke')).toHaveCount(0)
+		// dc-vis-r62 overlap pin (post-revoke rebuildTable): revoked badge +
+		// owner inside the capped cell on JS-rebuilt rows, no pill paint-over.
+		await assertLabelCellMetaFits(page, 'post-revoke rebuildTable')
 		await craftShot(page, 'table-after-revoke')
 	})
 
