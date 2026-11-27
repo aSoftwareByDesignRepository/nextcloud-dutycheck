@@ -26,7 +26,7 @@ const LIST_ALLOW = '.dc-chip-list, .dc-setup-checklist, .dc-entity-results, '
 	+ '.dc-conflicts, .dc-today__gaps, .dc-today__timeline, .dc-my-team__list, '
 	+ '.dc-patterns__list, .dc-my-availability__list, .dc-dienst-team__summary, '
 	+ '.dc-timezone-picker__results, .dc-breadcrumb, .dc-nav-footer__menu, '
-	+ '.dc-license-seat-search__listbox'
+	+ '.dc-seat-search-results'
 
 // Every shipped page route (app mounts into #dc-main-content inside
 // #app-content; denied surfaces render .dc-denied instead).
